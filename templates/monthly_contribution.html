@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monthly Contribution - UMB IHL</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <header>
+        <h1>UMB IHL Investment Calculator</h1>
+    </header>
+    <div class="container">
+        <h2>Calculate Your Monthly Contribution</h2>
+        <div class="input-section">
+            <h3>Input Details</h3>
+            <form method="POST">
+                <div class="group">
+                    <label>Target Amount (₵):</label>
+                    <input type="number" name="target_amount" placeholder="0" step="0.01" required>
+                </div>
+                <div class="group">
+                    <label>Starting Principal (₵):</label>
+                    <input type="number" name="starting_principal" placeholder="0" step="0.01" required>
+                </div>
+                <div class="group">
+                    <label>Period (years):</label>
+                    <input type="number" name="period" placeholder="0" min="0" required>
+                </div>
+                <div class="group">
+                    <label>Average Annual Return (%):</label>
+                    <input type="number" name="annual_return" placeholder="0" step="0.01" required>
+                </div>
+                <div class="button-container">
+                    <button class="action-btn" type="submit">Calculate</button>
+                    <button class="action-btn" type="reset">Clear</button>
+                    <a href="/" class="action-btn">Back</a>
+                </div>
+            </form>
+        </div>
+        {% if error %}
+        <div class="results" style="color: red; text-align: center;">
+            <p>{{ error }}</p>
+        </div>
+        {% elif result %}
+        <div class="results" style="display:block;">
+            <h3>Results</h3>
+            <p>Monthly Contribution Needed: ₵{{ result }}</p>
+        </div>
+        {% endif %}
+    </div>
+    <footer>
+        <p>Created by Kofi Busia Kyei</p>
+    </footer>
+</body>
+</html>

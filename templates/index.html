@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UMB IHL Investment Calculator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <header>
+        <h1>UMB IHL Investment Calculator</h1>
+    </header>
+    <div class="container">
+        <img src="{{ url_for('static', filename='images/umb_logo.png') }}" alt="UMB IHL Logo" class="logo">
+        <p class="intro">Let’s get started ...</p>
+        <p>Click on MONTHLY CONTRIBUTION to calculate how much you need to contribute monthly in GHS to achieve your investment goal.</p>
+        <p>Click on END BALANCE to calculate how much your investment will grow in GHS based on your monthly contributions.</p>
+        <div class="button-container">
+            <a href="/monthly-contribution" class="button">Monthly Contribution</a>
+            <a href="/end-balance" class="button">End Balance</a>
+        </div>
+        <button class="terms-btn">Terms and Conditions</button>
+        <div class="terms">
+            <p>1. This calculator is for illustrative purposes only and does not constitute investment advice.</p>
+            <p>2. It is not intended as the sole basis for investment decisions.</p>
+            <p>3. UMB IHL and its employees are not liable for its use or misuse.</p>
+        </div>
+    </div>
+    <footer>
+        <p>Created by Kofi Busia Kyei</p>
+    </footer>
+    <script>
+        document.querySelector('.terms-btn').addEventListener('click', function() {
+            const terms = document.querySelector('.terms');
+            terms.style.display = terms.style.display === 'block' ? 'none' : 'block';
+        });
+    </script>
+</body>
+</html>
