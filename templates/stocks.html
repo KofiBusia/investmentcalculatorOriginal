@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stocks - Investment Calculator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <header>
+        <h1>Investment Calculator</h1>
+    </header>
+    <div class="container">
+        <h2>Stocks Calculation</h2>
+        <div class="input-section">
+            <h3>Input Details</h3>
+            <form method="POST">
+                <div class="group">
+                    <label>Purchase Price per Share (GHS):</label>
+                    <input type="number" name="purchase_price" placeholder="0" step="0.01" required>
+                </div>
+                <div class="group">
+                    <label>Selling Price per Share (GHS):</label>
+                    <input type="number" name="selling_price" placeholder="0" step="0.01" required>
+                </div>
+                <div class="group">
+                    <label>Number of Shares:</label>
+                    <input type="number" name="num_shares" placeholder="0" step="1" required>
+                </div>
+                <div class="group">
+                    <label>Dividends Received (GHS):</label>
+                    <input type="number" name="dividends" placeholder="0" step="0.01" required>
+                </div>
+                <div class="group">
+                    <label>Initial Investment (GHS):</label>
+                    <input type="number" name="initial_investment" placeholder="0" step="0.01" required>
+                </div>
+                <div class="button-container">
+                    <button class="action-btn" type="submit">Calculate</button>
+                    <button class="action-btn" type="reset">Clear</button>
+                    <a href="/" class="action-btn">Back</a>
+                </div>
+            </form>
+        </div>
+        {% if error %}
+        <div class="results" style="color: red; text-align: center;">
+            <p>{{ error }}</p>
+        </div>
+        {% elif result %}
+        <div class="results" style="display:block;">
+            <h3>Results</h3>
+            <p><strong>Capital Gain: GHS {{ result.capital_gain }}</strong></p>
+            <p><strong>Total Return: {{ result.total_return }}%</strong></p>
+        </div>
+        {% endif %}
+    </div>
+    <footer>
+        <p>Created by Kofi Busia Kyei</p>
+    </footer>
+</body>
+</html>

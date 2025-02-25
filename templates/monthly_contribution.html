@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Monthly Contribution - UMB IHL</title>
+    <title>Monthly Contribution - Investment Calculator</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
     <header>
-        <h1>UMB IHL Investment Calculator</h1>
+        <h1>Investment Calculator</h1>
     </header>
     <div class="container">
         <h2>Calculate Your Monthly Contribution</h2>
@@ -16,16 +16,16 @@
             <h3>Input Details</h3>
             <form method="POST">
                 <div class="group">
-                    <label>Target Amount (₵):</label>
+                    <label>Target Amount (GHS):</label>
                     <input type="number" name="target_amount" placeholder="0" step="0.01" required>
                 </div>
                 <div class="group">
-                    <label>Starting Principal (₵):</label>
+                    <label>Starting Principal (GHS):</label>
                     <input type="number" name="starting_principal" placeholder="0" step="0.01" required>
                 </div>
                 <div class="group">
                     <label>Period (years):</label>
-                    <input type="number" name="period" placeholder="0" min="0" required>
+                    <input type="number" name="period" placeholder="0" step="0.01" required>
                 </div>
                 <div class="group">
                     <label>Average Annual Return (%):</label>
@@ -45,7 +45,7 @@
         {% elif result %}
         <div class="results" style="display:block;">
             <h3>Results</h3>
-            <p>Monthly Contribution Needed: ₵{{ result }}</p>
+            <p><strong>Monthly Contribution Needed: GHS {{ result }}</strong></p>
         </div>
         {% endif %}
     </div>
