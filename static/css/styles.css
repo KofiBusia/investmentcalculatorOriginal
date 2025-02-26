@@ -13,8 +13,21 @@ header {
     text-align: center;
 }
 
+.header-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px; /* Space between logo and title */
+}
+
+.logo {
+    max-width: 100px; /* Adjust this based on your logo size */
+    height: auto;
+}
+
 header h1 {
     margin: 0;
+    font-size: 24px; /* Adjust if needed */
 }
 
 .container {

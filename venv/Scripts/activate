@@ -38,7 +38,7 @@ deactivate () {
 # unset irrelevant variables
 deactivate nondestructive
 
-VIRTUAL_ENV="C:\Users\kkyei\Desktop\umb-ihl-investment-calculator\venv"
+VIRTUAL_ENV="C:\Users\kkyei\Desktop\Investment_Calculator3\venv"
 export VIRTUAL_ENV
 
 _OLD_VIRTUAL_PATH="$PATH"

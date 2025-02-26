@@ -279,5 +279,27 @@ def cryptocurrency():
     return render_template('cryptocurrency.html', result=result)
 
 if __name__ == '__main__':
+    # For local development, use waitress
     from waitress import serve
     serve(app, host="0.0.0.0", port=5000)
+else:
+    # For production on Render, use Gunicorn
+    if __name__ == 'app':
+        from gunicorn.app.base import BaseApplication
+
+        class StandaloneApplication(BaseApplication):
+            def __init__(self, app, options=None):
+                self.application = app
+                super().__init__(options)
+
+            def load_config(self):
+                pass
+
+            def load(self):
+                return self.application
+
+        options = {
+            'bind': '0.0.0.0:5000',
+            'workers': 4,  # Adjust based on your needs
+        }
+        StandaloneApplication(app, options).run()
