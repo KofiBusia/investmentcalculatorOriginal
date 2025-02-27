@@ -16,16 +16,28 @@
             <h3>Input Details</h3>
             <form method="POST">
                 <div class="group">
-                    <label>Purchase Price (GHS):</label>
-                    <input type="number" name="purchase_price" placeholder="0" step="0.01" required>
+                    <label>Principal (GHS):</label>
+                    <input type="number" name="principal" placeholder="0" step="0.01" required>
                 </div>
                 <div class="group">
-                    <label>Selling Price (GHS):</label>
+                    <label>Tenor (Days):</label>
+                    <input type="number" name="tenor" placeholder="0" step="1" required>
+                </div>
+                <div class="group">
+                    <label>Rate % (p.a.):</label>
+                    <input type="number" name="rate" placeholder="0" step="0.01" required>
+                </div>
+                <div class="group">
+                    <label>Total Coupons (GHS):</label>
+                    <input type="number" name="total_coupons" placeholder="0" step="0.01" required>
+                </div>
+                <div class="group">
+                    <label>Holding Period (Days):</label>
+                    <input type="number" name="holding_period" placeholder="0" step="1" required>
+                </div>
+                <div class="group">
+                    <label>Selling Price (GHS) (for early exit):</label>
                     <input type="number" name="selling_price" placeholder="0" step="0.01" required>
-                </div>
-                <div class="group">
-                    <label>Total Coupon Payments (GHS):</label>
-                    <input type="number" name="coupon_payments" placeholder="0" step="0.01" required>
                 </div>
                 <div class="button-container">
                     <button class="action-btn" type="submit">Calculate</button>
@@ -41,7 +53,9 @@
         {% elif result %}
         <div class="results" style="display:block;">
             <h3>Results</h3>
-            <p><strong>Total Return: {{ result.total_return }}%</strong></p>
+            <p><strong>Maturity Amount: GHS {{ result.maturity_amount }}</strong></p>
+            <p><strong>Bond Yield: {{ result.bond_yield }}%</strong></p>
+            <p><strong>Holding Period Return (for early exits): {{ result.holding_period_return }}%</strong></p>
         </div>
         {% endif %}
     </div>

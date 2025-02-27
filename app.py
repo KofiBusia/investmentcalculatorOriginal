@@ -14,7 +14,7 @@ def monthly_contribution():
             target = float(request.form['target_amount'])
             principal = float(request.form['starting_principal'])
             period = float(request.form['period'])
-            rate = float(request.form['annual_return']) / 100
+            rate = float(request.form['annual_return']) / 100  # Convert percentage to decimal (e.g., 20% → 0.20)
 
             if target <= 0 or principal < 0 or period <= 0 or rate < 0:
                 return render_template('monthly_contribution.html', error="Please enter valid positive numbers.")
@@ -23,8 +23,13 @@ def monthly_contribution():
             if rate == 0:
                 monthly_contribution = (target - principal) / months
             else:
-                monthly_rate = rate / 12
-                monthly_contribution = (target - (principal * (1 + monthly_rate) ** months)) * monthly_rate / ((1 + monthly_rate) ** months - 1)
+                # Calculate the compounded monthly return: (1 + annual_rate)^(1/12) - 1
+                monthly_rate = (1 + rate) ** (1 / 12) - 1
+                # Future value of the starting principal with compound interest
+                future_principal = principal * (1 + monthly_rate) ** months
+                # Solve for monthly contribution using the annuity future value formula: P = FV / [((1 + r)^n - 1) / r]
+                monthly_contribution = (target - future_principal) / (((1 + monthly_rate) ** months - 1) / monthly_rate)
+
             result = "{:,.2f}".format(monthly_contribution)
         except ValueError:
             return render_template('monthly_contribution.html', error="Please enter valid numbers.")
@@ -93,21 +98,29 @@ def bonds():
     result = None
     if request.method == 'POST':
         try:
-            purchase_price = float(request.form['purchase_price'])
+            principal = float(request.form['principal'])
+            tenor = float(request.form['tenor'])
+            rate = float(request.form['rate']) / 100  # Convert percentage to decimal (e.g., 21% → 0.21)
+            total_coupons = float(request.form['total_coupons'])
+            holding_period = float(request.form['holding_period'])
             selling_price = float(request.form['selling_price'])
-            coupon_payments = float(request.form['coupon_payments'])
-            holding_period = float(request.form['holding_period'])  # New input
 
-            if any(x < 0 for x in [purchase_price, selling_price, coupon_payments, holding_period]) or holding_period == 0:
-                return render_template('bonds.html', error="Please enter valid positive numbers for all fields, and Holding Period must be greater than 0.")
+            if any(x < 0 for x in [principal, tenor, rate, total_coupons, holding_period, selling_price]) or principal == 0 or holding_period == 0:
+                return render_template('bonds.html', error="Please enter valid positive numbers for all fields, and Principal and Holding Period must be greater than 0.")
 
-            price_change = selling_price - purchase_price
-            total_return = (coupon_payments + price_change) / purchase_price * 100
-            annualized_return = total_return * (365 / holding_period)  # Annualize the return
+            # 1. Maturity Amount (GHS) = Principal + Total Coupons
+            maturity_amount = principal + total_coupons
+
+            # 2. Bond Yield (%) = (Total Coupons + (Maturity Amount - Principal)) / (Principal * (Tenor / 365)) * 100
+            bond_yield = (total_coupons + (maturity_amount - principal)) / (principal * (tenor / 365)) * 100
+
+            # 3. Holding Period Return (%) = (Total Coupons + (Selling Price - Principal)) / (Principal * (Holding Period / 365)) * 100
+            holding_period_return = (total_coupons + (selling_price - principal)) / (principal * (holding_period / 365)) * 100
 
             result = {
-                'total_return': round(total_return, 2),  # Optional: Keep non-annualized return
-                'annualized_return': round(annualized_return, 2)
+                'maturity_amount': "{:,.2f}".format(maturity_amount),
+                'bond_yield': round(bond_yield, 2),
+                'holding_period_return': round(holding_period_return, 2)
             }
         except ValueError:
             return render_template('bonds.html', error="Please enter valid numbers.")
