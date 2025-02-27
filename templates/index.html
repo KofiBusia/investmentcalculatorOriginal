@@ -12,25 +12,23 @@
             <img src="{{ url_for('static', filename='images/umb_logo.png') }}" alt="UMB Logo" class="logo">
             <h1>Investment Calculator</h1>
         </div>
+        <nav>
+            <ul>
+                <li><a href="/about">About Us</a></li>
+                <li><a href="/contact">Contact Us</a></li>
+                <li><a href="/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/terms">Terms & Conditions</a></li>
+            </ul>
+        </nav>
     </header>
-
-    <!-- Added Navigation Menu -->
-    <nav>
-        <ul>
-            <li><a href="/">Home</a></li>
-            <li><a href="/about">About Us</a></li>
-            <li><a href="/privacy-policy">Privacy Policy</a></li>
-            <li><a href="/terms">Terms & Conditions</a></li>
-            <li><a href="/contact">Contact Us</a></li>
-        </ul>
-    </nav>
-
     <div class="container">
         <h2>Select Investment Product</h2>
+        <p>Welcome to the Investment Calculator! Choose an investment product below to explore potential returns.</p>
         <ul>
             <li><a href="/stocks">Stocks</a></li>
             <li><a href="/bonds">Bonds (Corporate & Government)</a></li>
             <li><a href="/tbills">Treasury Bills (T-Bills)</a></li>
+            <li><a href="/tbills-rediscount">Treasury Bills Rediscount</a></li>
             <li><a href="/mutual-funds">Mutual Funds</a></li>
             <li><a href="/etfs">ETFs (Exchange-Traded Funds)</a></li>
             <li><a href="/cds">CDs (Certificates of Deposit)</a></li>
@@ -42,7 +40,6 @@
             <li><a href="/end-balance">End Balance</a></li>
         </ul>
     </div>
-
     <footer>
         <p>Created by Kofi Busia Kyei</p>
     </footer>

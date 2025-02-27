@@ -30,6 +30,16 @@ header h1 {
     font-size: 24px; /* Adjust if needed */
 }
 
+/* Added rules for navigation links */
+nav a {
+    color: white; /* Make links white */
+    text-decoration: none; /* Remove underline */
+}
+
+nav a:hover {
+    color: #f0f0f0; /* Slightly lighter white on hover for feedback */
+}
+
 .container {
     max-width: 800px;
     margin: 20px auto;

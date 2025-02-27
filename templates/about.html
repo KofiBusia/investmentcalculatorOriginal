@@ -3,29 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>About Us</title>
+    <title>About Us - Investment Calculator</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
     <header>
-        <h1>About Us</h1>
+        <div class="header-content">
+            <img src="{{ url_for('static', filename='images/umb_logo.png') }}" alt="UMB Logo" class="logo">
+            <h1>Investment Calculator</h1>
+        </div>
     </header>
-    <div class="container">
-        <h2>Welcome to Young Investor Calculator!</h2>
-        <p>Our mission is to help individuals make smarter investment decisions by providing easy-to-use financial tools.</p>
 
-        <h2>Why Choose Us?</h2>
+    <nav>
         <ul>
-            <li>Accurate investment calculations</li>
-            <li>User-friendly interface</li>
-            <li>Free and accessible to everyone</li>
+            <li><a href="/">Home</a></li>
+            <li><a href="/about">About Us</a></li>
+            <li><a href="/privacy-policy">Privacy Policy</a></li>
+            <li><a href="/terms">Terms & Conditions</a></li>
+            <li><a href="/contact">Contact Us</a></li>
         </ul>
+    </nav>
 
-        <h2>Meet the Creator</h2>
-        <p>Young Investor Calculator was created by Kofi Busia Kyei, a passionate developer and financial enthusiast.</p>
-
-        <h2>Contact</h2>
-        <p>Email: support@younginvestorcalculator.com</p>
+    <div class="container">
+        <h2>About Us</h2>
+        <p>Welcome to the Investment Calculator! This tool helps young investors explore investment options and calculate potential returns. Created by Kofi Busia Kyei, it simplifies financial planning.</p>
     </div>
+
+    <footer>
+        <p>Created by Kofi Busia Kyei</p>
+    </footer>
 </body>
 </html>

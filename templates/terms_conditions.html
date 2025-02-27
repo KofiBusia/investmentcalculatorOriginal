@@ -3,33 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Terms & Conditions</title>
+    <title>Terms & Conditions - Investment Calculator</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
     <header>
-        <h1>Terms & Conditions</h1>
+        <div class="header-content">
+            <img src="{{ url_for('static', filename='images/umb_logo.png') }}" alt="UMB Logo" class="logo">
+            <h1>Investment Calculator</h1>
+        </div>
     </header>
+
+    <nav>
+        <ul>
+            <li><a href="/">Home</a></li>
+            <li><a href="/about">About Us</a></li>
+            <li><a href="/privacy-policy">Privacy Policy</a></li>
+            <li><a href="/terms">Terms & Conditions</a></li>
+            <li><a href="/contact">Contact Us</a></li>
+        </ul>
+    </nav>
+
     <div class="container">
-        <p>Effective Date: {{ current_date }}</p>
-
-        <h2>1. Acceptance of Terms</h2>
-        <p>By using this website, you agree to comply with these terms.</p>
-
-        <h2>2. Use of Service</h2>
-        <p>You may use this site only for lawful purposes and in accordance with these Terms.</p>
-
-        <h2>3. Intellectual Property</h2>
-        <p>All content is owned by Young Investor Calculator and may not be copied without permission.</p>
-
-        <h2>4. Limitation of Liability</h2>
-        <p>We are not responsible for any investment decisions based on the use of this website.</p>
-
-        <h2>5. Changes to Terms</h2>
-        <p>We may update these terms, and continued use of the site implies acceptance of the changes.</p>
-
-        <h2>6. Contact Us</h2>
-        <p>For inquiries, contact support@younginvestorcalculator.com.</p>
+        <h2>Terms & Conditions</h2>
+        <p>By using this tool, you agree it’s for informational purposes only. Results are estimates, not financial advice, and the creator isn’t liable for decisions based on them.</p>
     </div>
+
+    <footer>
+        <p>Created by Kofi Busia Kyei</p>
+    </footer>
 </body>
 </html>

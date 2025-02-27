@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>T-Bills - Investment Calculator</title>
+    <title>Treasury Bills Rediscount - Investment Calculator</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
@@ -11,21 +11,25 @@
         <h1>Investment Calculator</h1>
     </header>
     <div class="container">
-        <h2>T-Bills Calculation</h2>
+        <h2>Treasury Bills Rediscount Calculation</h2>
         <div class="input-section">
             <h3>Input Details</h3>
             <form method="POST">
                 <div class="group">
-                    <label>Principal (GHS):</label>
-                    <input type="number" name="principal" placeholder="0" step="0.01" required>
+                    <label>Settlement Amount (GHS):</label>
+                    <input type="number" name="settlement_amount" placeholder="0" step="0.01" required>
                 </div>
                 <div class="group">
-                    <label>Tenor (days):</label>
-                    <input type="number" name="tenor" placeholder="0" step="1" required>
-                </div>
-                <div class="group">
-                    <label>Rate % (p.a):</label>
+                    <label>Rediscount Rate (% p.a.):</label>
                     <input type="number" name="rate" placeholder="0" step="0.01" required>
+                </div>
+                <div class="group">
+                    <label>Remaining Days to Maturity:</label>
+                    <input type="number" name="days_to_maturity" placeholder="0" step="1" required>
+                </div>
+                <div class="group">
+                    <label>Initial Face Value (GHS):</label>
+                    <input type="number" name="initial_fv" placeholder="0" step="0.01" required>
                 </div>
                 <div class="button-container">
                     <button class="action-btn" type="submit">Calculate</button>
@@ -41,7 +45,8 @@
         {% elif result %}
         <div class="results" style="display:block;">
             <h3>Results</h3>
-            <p><strong>Maturity Value: GHS {{ result.maturity_value }}</strong></p>
+            <p><strong>Settlement Face Value: GHS {{ result.settlement_fv }}</strong></p>
+            <p><strong>Face Value After Rediscount: GHS {{ result.face_value_after_rediscount }}</strong></p>
         </div>
         {% endif %}
     </div>
