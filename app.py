@@ -108,16 +108,18 @@ def tbills():
     result = None
     if request.method == 'POST':
         try:
-            face_value = float(request.form['face_value'])
-            purchase_price = float(request.form['purchase_price'])
-            days_to_maturity = float(request.form['days_to_maturity'])
+            principal = float(request.form['principal'])
+            rate = float(request.form['rate']) / 100  # Convert percentage to decimal (e.g., 30% → 0.3)
+            tenor = float(request.form['tenor'])
 
-            if face_value <= 0 or purchase_price <= 0 or days_to_maturity <= 0:
+            if principal <= 0 or rate < 0 or tenor <= 0:
                 return render_template('tbills.html', error="Please enter valid positive numbers.")
 
-            discount_yield = ((face_value - purchase_price) / purchase_price) * (364 / days_to_maturity) * 100
+            # Calculate Maturity Value: Principal * (1 + Rate)^(Tenor/364)
+            maturity_value = principal * (1 + rate) ** (tenor / 364)
+
             result = {
-                'discount_yield': round(discount_yield, 2)
+                'maturity_value': "{:,.2f}".format(maturity_value)  # Format with commas and 2 decimal places
             }
         except ValueError:
             return render_template('tbills.html', error="Please enter valid numbers.")
@@ -277,6 +279,52 @@ def cryptocurrency():
             return render_template('cryptocurrency.html', error="Please enter valid numbers.")
 
     return render_template('cryptocurrency.html', result=result)
+
+# Routes for additional pages
+@app.route('/about')
+def about():
+    return render_template('about.html')
+
+@app.route('/privacy-policy')
+def privacy_policy():
+    return render_template('privacy_policy.html')
+
+@app.route('/terms')
+def terms_conditions():
+    return render_template('terms_conditions.html')
+
+@app.route('/contact')
+def contact():
+    return render_template('contact.html')
+
+# New route for Treasury Bills Rediscount
+@app.route('/tbills-rediscount', methods=['GET', 'POST'])
+def tbills_rediscount():
+    result = None
+    if request.method == 'POST':
+        try:
+            settlement_amount = float(request.form['settlement_amount'])
+            rate = float(request.form['rate']) / 100  # Convert percentage to decimal (e.g., 30% → 0.3)
+            days_to_maturity = float(request.form['days_to_maturity'])
+            initial_fv = float(request.form['initial_fv'])
+
+            if settlement_amount <= 0 or rate < 0 or days_to_maturity <= 0 or initial_fv <= 0:
+                return render_template('tbills_rediscount.html', error="Please enter valid positive numbers.")
+
+            # Calculate Settlement Face Value (FV) using the formula: FV = Settlement Amount * (1 + r)^(x/364)
+            settlement_fv = settlement_amount * (1 + rate) ** (days_to_maturity / 364)
+            
+            # Calculate Face Value After Rediscount: Initial FV - Partial FV
+            face_value_after_rediscount = initial_fv - settlement_fv
+
+            result = {
+                'settlement_fv': "{:,.2f}".format(settlement_fv),  # Format with commas and 2 decimal places
+                'face_value_after_rediscount': "{:,.2f}".format(face_value_after_rediscount)
+            }
+        except ValueError:
+            return render_template('tbills_rediscount.html', error="Please enter valid numbers.")
+
+    return render_template('tbills_rediscount.html', result=result)
 
 if __name__ == '__main__':
     # For local development, use waitress
