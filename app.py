@@ -39,7 +39,7 @@ def end_balance():
             monthly = float(request.form['monthly_contribution'])
             principal = float(request.form['starting_principal'])
             period = float(request.form['period'])
-            rate = float(request.form['annual_return']) / 100
+            rate = float(request.form['annual_return']) / 100  # Convert percentage to decimal (e.g., 20% → 0.20)
 
             if monthly < 0 or principal < 0 or period <= 0 or rate < 0:
                 return render_template('end_balance.html', error="Please enter valid positive numbers.")
@@ -48,8 +48,15 @@ def end_balance():
             if rate == 0:
                 end_balance = principal + monthly * months
             else:
-                monthly_rate = rate / 12
-                end_balance = (principal * (1 + monthly_rate) ** months) + (monthly * ((1 + monthly_rate) ** months - 1) / monthly_rate)
+                # Calculate the compounded monthly return: (1 + annual_rate)^(1/12) - 1
+                monthly_rate = (1 + rate) ** (1 / 12) - 1
+                # Future value of the starting principal with compound interest
+                future_principal = principal * (1 + monthly_rate) ** months
+                # Future value of monthly contributions using the annuity formula: P * [((1 + r)^n - 1) / r]
+                future_contributions = monthly * (((1 + monthly_rate) ** months - 1) / monthly_rate)
+                # Total end balance
+                end_balance = future_principal + future_contributions
+
             result = "{:,.2f}".format(end_balance)
         except ValueError:
             return render_template('end_balance.html', error="Please enter valid numbers.")
@@ -89,14 +96,18 @@ def bonds():
             purchase_price = float(request.form['purchase_price'])
             selling_price = float(request.form['selling_price'])
             coupon_payments = float(request.form['coupon_payments'])
+            holding_period = float(request.form['holding_period'])  # New input
 
-            if any(x < 0 for x in [purchase_price, selling_price, coupon_payments]):
-                return render_template('bonds.html', error="Please enter valid non-negative numbers.")
+            if any(x < 0 for x in [purchase_price, selling_price, coupon_payments, holding_period]) or holding_period == 0:
+                return render_template('bonds.html', error="Please enter valid positive numbers for all fields, and Holding Period must be greater than 0.")
 
             price_change = selling_price - purchase_price
             total_return = (coupon_payments + price_change) / purchase_price * 100
+            annualized_return = total_return * (365 / holding_period)  # Annualize the return
+
             result = {
-                'total_return': round(total_return, 2)
+                'total_return': round(total_return, 2),  # Optional: Keep non-annualized return
+                'annualized_return': round(annualized_return, 2)
             }
         except ValueError:
             return render_template('bonds.html', error="Please enter valid numbers.")
