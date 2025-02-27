@@ -109,14 +109,15 @@ def tbills():
     if request.method == 'POST':
         try:
             principal = float(request.form['principal'])
-            rate = float(request.form['rate']) / 100  # Convert percentage to decimal (e.g., 30% → 0.3)
+            rate = float(request.form['rate']) / 100  # Convert percentage to decimal (e.g., 21% → 0.21)
             tenor = float(request.form['tenor'])
 
             if principal <= 0 or rate < 0 or tenor <= 0:
                 return render_template('tbills.html', error="Please enter valid positive numbers.")
 
-            # Calculate Maturity Value: Principal * (1 + Rate)^(Tenor/364)
-            maturity_value = principal * (1 + rate) ** (tenor / 364)
+            # Calculate Maturity Value using the formula: ((Principal * Tenor * Rate) / 364) + Principal
+            interest = (principal * tenor * rate) / 364
+            maturity_value = principal + interest
 
             result = {
                 'maturity_value': "{:,.2f}".format(maturity_value)  # Format with commas and 2 decimal places
