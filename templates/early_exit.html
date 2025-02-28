@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bonds - Investment Calculator</title>
+    <title>Early Exit - Investment Calculator</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
@@ -11,7 +11,7 @@
         <h1>Investment Calculator</h1>
     </header>
     <div class="container">
-        <h2>Bonds Calculation</h2>
+        <h2>Early Exit Calculation</h2>
         <div class="input-section">
             <h3>Input Details</h3>
             <form method="POST">
@@ -20,22 +20,22 @@
                     <input type="number" name="principal" placeholder="0" step="0.01" required>
                 </div>
                 <div class="group">
-                    <label>Tenor (Days):</label>
-                    <input type="number" name="tenor" placeholder="0" step="1" required>
+                    <label>Holding Period (Days):</label>
+                    <input type="number" name="holding_period" placeholder="0" step="1" required>
                 </div>
                 <div class="group">
-                    <label>Rate % (p.a.):</label>
-                    <input type="number" name="rate" placeholder="0" step="0.01" required>
+                    <label>Selling Price (GHS):</label>
+                    <input type="number" name="selling_price" placeholder="0" step="0.01" required>
                 </div>
                 <div class="group">
-                    <label>Total Coupons (GHS):</label>
-                    <input type="number" name="total_coupons" placeholder="0" step="0.01" required>
+                    <label>Total Coupons (GHS) (if accrued):</label>
+                    <input type="number" name="total_coupons" placeholder="0" step="0.01">
                 </div>
                 <div class="button-container">
                     <button class="action-btn" type="submit">Calculate</button>
                     <button class="action-btn" type="reset">Clear</button>
                     <a href="/" class="action-btn">Back</a>
-                    <a href="/early_exit" class="action-btn">Early Exit Calculator</a>
+                    <a href="/bonds" class="action-btn">Full-Term Calculator</a>
                 </div>
             </form>
         </div>
@@ -46,9 +46,7 @@
         {% elif result %}
         <div class="results" style="display:block;">
             <h3>Results</h3>
-            <p><strong>Maturity Amount: GHS {{ result.maturity_amount }}</strong></p>
-            <p><strong>Bond Yield: {{ result.bond_yield }}%</strong></p>
-            <p><strong>Holding Period Return (for early exits): {{ result.holding_period_return }}%</strong></p>
+            <p><strong>Holding Period Return: {{ result.holding_period_return }}%</strong></p>
         </div>
         {% endif %}
     </div>
