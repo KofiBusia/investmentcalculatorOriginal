@@ -3,32 +3,40 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>T-Bills - Investment Calculator</title>
+    <title>{% block title %}{% endblock %} - Investment Calculator</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1910810542133525"
-     crossorigin="anonymous"></script>
 </head>
 <body>
     <header>
+        <!-- Show logo only on the homepage -->
+        {% if request.path == '/' %}
+        <div class="header-content">
+            <img src="{{ url_for('static', filename='images/umb_logo.png') }}" alt="UMB Logo" class="logo">
+            <h1>Investment Calculator</h1>
+        </div>
+        {% else %}
         <h1>Investment Calculator</h1>
+        {% endif %}
+        <!-- Navigation bar -->
+        {% if request.path == '/' %}
+        <nav>
+            <ul>
+                <li><a href="/about">About Us</a></li>
+                <li><a href="/contact">Contact Us</a></li>
+                <li><a href="/privacy-policy">Privacy Policy</a></li>
+                <li><a href="/terms">Terms & Conditions</a></li>
+            </ul>
+        </nav>
+        {% endif %}
     </header>
     <div class="container">
-        <h2>T-Bills Calculation</h2>
+        {% block content %}
+        <!-- Placeholder for page-specific content -->
+        <h2>{% block page_title %}{% endblock %}</h2>
         <div class="input-section">
             <h3>Input Details</h3>
             <form method="POST">
-                <div class="group">
-                    <label>Principal (GHS):</label>
-                    <input type="number" name="principal" placeholder="0" step="0.01" required>
-                </div>
-                <div class="group">
-                    <label>Tenor (days):</label>
-                    <input type="number" name="tenor" placeholder="0" step="1" required>
-                </div>
-                <div class="group">
-                    <label>Rate % (p.a):</label>
-                    <input type="number" name="rate" placeholder="0" step="0.01" required>
-                </div>
+                {% block form_fields %}{% endblock %}
                 <div class="button-container">
                     <button class="action-btn" type="submit">Calculate</button>
                     <button class="action-btn" type="reset">Clear</button>
@@ -43,9 +51,10 @@
         {% elif result %}
         <div class="results" style="display:block;">
             <h3>Results</h3>
-            <p><strong>Maturity Value: GHS {{ result.maturity_value }}</strong></p>
+            {% block result_fields %}{% endblock %}
         </div>
         {% endif %}
+        {% endblock %}
     </div>
     <footer>
         <p>Created by Kofi Busia Kyei</p>
