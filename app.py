@@ -1,6 +1,12 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, send_from_directory
 
 app = Flask(__name__)
+
+@app.route('/ads.txt')
+def ads_txt():
+    return send_from_directory('static', 'ads.txt')
+
+# Rest of your code remains unchanged
 
 @app.route('/')
 def index():
@@ -115,31 +121,21 @@ def bonds():
         try:
             principal = float(request.form['principal'])
             tenor = float(request.form['tenor'])
-            rate = float(request.form['rate']) / 100  # Convert percentage to decimal (e.g., 21% → 0.21)
+            rate = float(request.form['rate']) / 100
             total_coupons = float(request.form['total_coupons'])
-            holding_period = float(request.form['holding_period'])
-            selling_price = float(request.form['selling_price'])
 
-            if any(x < 0 for x in [principal, tenor, rate, total_coupons, holding_period, selling_price]) or principal == 0 or holding_period == 0:
-                return render_template('bonds.html', error="Please enter valid positive numbers for all fields, and Principal and Holding Period must be greater than 0.")
+            if any(x < 0 for x in [principal, tenor, rate, total_coupons]) or principal == 0:
+                return render_template('bonds.html', error="Please enter valid positive numbers.")
 
-            # 1. Maturity Amount (GHS) = Principal + Total Coupons
             maturity_amount = principal + total_coupons
-
-            # 2. Bond Yield (%) = (Total Coupons + (Maturity Amount - Principal)) / (Principal * (Tenor / 365)) * 100
             bond_yield = (total_coupons + (maturity_amount - principal)) / (principal * (tenor / 365)) * 100
-
-            # 3. Holding Period Return (%) = (Total Coupons + (Selling Price - Principal)) / (Principal * (Holding Period / 365)) * 100
-            holding_period_return = (total_coupons + (selling_price - principal)) / (principal * (holding_period / 365)) * 100
 
             result = {
                 'maturity_amount': "{:,.2f}".format(maturity_amount),
-                'bond_yield': round(bond_yield, 2),
-                'holding_period_return': round(holding_period_return, 2)
+                'bond_yield': round(bond_yield, 2)
             }
         except ValueError:
             return render_template('bonds.html', error="Please enter valid numbers.")
-
     return render_template('bonds.html', result=result)
 
 @app.route('/tbills', methods=['GET', 'POST'])
@@ -336,6 +332,28 @@ def terms_conditions():
 @app.route('/contact')
 def contact():
     return render_template('contact.html')
+
+@app.route('/early_exit', methods=['GET', 'POST'])
+def early_exit():
+    result = None
+    if request.method == 'POST':
+        try:
+            principal = float(request.form['principal'])
+            holding_period = float(request.form['holding_period'])
+            selling_price = float(request.form['selling_price'])
+            total_coupons = float(request.form.get('total_coupons', 0))  # Optional field
+
+            if any(x < 0 for x in [principal, holding_period, selling_price, total_coupons]) or principal == 0 or holding_period == 0:
+                return render_template('early_exit.html', error="Please enter valid positive numbers.")
+
+            holding_period_return = (total_coupons + (selling_price - principal)) / (principal * (holding_period / 365)) * 100
+
+            result = {
+                'holding_period_return': round(holding_period_return, 2)
+            }
+        except ValueError:
+            return render_template('early_exit.html', error="Please enter valid numbers.")
+    return render_template('early_exit.html', result=result)
 
 # New route for Treasury Bills Rediscount
 @app.route('/tbills-rediscount', methods=['GET', 'POST'])
