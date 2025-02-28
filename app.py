@@ -73,20 +73,35 @@ def stocks():
     result = None
     if request.method == 'POST':
         try:
-            purchase_price = float(request.form['purchase_price'])
-            selling_price = float(request.form['selling_price'])
             num_shares = float(request.form['num_shares'])
+            purchase_price_per_share = float(request.form['purchase_price_per_share'])
+            purchase_commission = float(request.form['purchase_commission']) / 100  # Convert percentage to decimal
+            selling_price_per_share = float(request.form['selling_price_per_share'])
+            sale_commission = float(request.form['sale_commission']) / 100  # Convert percentage to decimal
             dividends = float(request.form['dividends'])
-            initial_investment = float(request.form['initial_investment'])
 
-            if any(x < 0 for x in [purchase_price, selling_price, num_shares, dividends, initial_investment]):
+            if any(x < 0 for x in [num_shares, purchase_price_per_share, purchase_commission, selling_price_per_share, sale_commission, dividends]):
                 return render_template('stocks.html', error="Please enter valid non-negative numbers.")
 
-            capital_gain = (selling_price - purchase_price) * num_shares
-            total_return = (dividends + capital_gain) / initial_investment * 100
+            # Calculate total purchase price (consideration) and total cost including commission
+            purchase_consideration = num_shares * purchase_price_per_share
+            purchase_commission_amount = purchase_consideration * purchase_commission
+            total_purchase_cost = purchase_consideration + purchase_commission_amount
+
+            # Calculate total selling price (consideration) and net proceeds after commission
+            selling_consideration = num_shares * selling_price_per_share
+            sale_commission_amount = selling_consideration * sale_commission
+            net_sale_proceeds = selling_consideration - sale_commission_amount
+
+            # Calculate metrics
+            capital_gain = ((net_sale_proceeds - total_purchase_cost) / total_purchase_cost) * 100
+            dividend_yield = (dividends / total_purchase_cost) * 100
+            total_return = ((net_sale_proceeds - total_purchase_cost + dividends) / total_purchase_cost) * 100
+
             result = {
-                'capital_gain': "{:,.2f}".format(capital_gain),
-                'total_return': round(total_return, 2)
+                'total_return': round(total_return, 2),
+                'capital_gain': round(capital_gain, 2),
+                'dividend_yield': round(dividend_yield, 2)
             }
         except ValueError:
             return render_template('stocks.html', error="Please enter valid numbers.")

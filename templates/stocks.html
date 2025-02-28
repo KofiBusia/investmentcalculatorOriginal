@@ -16,24 +16,28 @@
             <h3>Input Details</h3>
             <form method="POST">
                 <div class="group">
-                    <label>Purchase Price per Share (GHS):</label>
-                    <input type="number" name="purchase_price" placeholder="0" step="0.01" required>
-                </div>
-                <div class="group">
-                    <label>Selling Price per Share (GHS):</label>
-                    <input type="number" name="selling_price" placeholder="0" step="0.01" required>
-                </div>
-                <div class="group">
                     <label>Number of Shares:</label>
                     <input type="number" name="num_shares" placeholder="0" step="1" required>
                 </div>
                 <div class="group">
-                    <label>Dividends Received (GHS):</label>
-                    <input type="number" name="dividends" placeholder="0" step="0.01" required>
+                    <label>Purchase Price per Share (GHS):</label>
+                    <input type="number" name="purchase_price_per_share" placeholder="0" step="0.01" required>
                 </div>
                 <div class="group">
-                    <label>Initial Investment (GHS):</label>
-                    <input type="number" name="initial_investment" placeholder="0" step="0.01" required>
+                    <label>Purchase Commission (%):</label>
+                    <input type="number" name="purchase_commission" placeholder="0" step="0.01" required>
+                </div>
+                <div class="group">
+                    <label>Selling Price per Share (GHS):</label>
+                    <input type="number" name="selling_price_per_share" placeholder="0" step="0.01" required>
+                </div>
+                <div class="group">
+                    <label>Sale Commission (%):</label>
+                    <input type="number" name="sale_commission" placeholder="0" step="0.01" required>
+                </div>
+                <div class="group">
+                    <label>Dividends Earned (GHS):</label>
+                    <input type="number" name="dividends" placeholder="0" step="0.01" required>
                 </div>
                 <div class="button-container">
                     <button class="action-btn" type="submit">Calculate</button>
@@ -49,8 +53,9 @@
         {% elif result %}
         <div class="results" style="display:block;">
             <h3>Results</h3>
-            <p><strong>Capital Gain: GHS {{ result.capital_gain }}</strong></p>
             <p><strong>Total Return: {{ result.total_return }}%</strong></p>
+            <p><strong>Capital Gain: {{ result.capital_gain }}%</strong></p>
+            <p><strong>Dividend Yield: {{ result.dividend_yield }}%</strong></p>
         </div>
         {% endif %}
     </div>
