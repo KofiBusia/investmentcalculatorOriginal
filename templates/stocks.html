@@ -1,68 +1,53 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stocks - Investment Calculator</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1910810542133525"
-     crossorigin="anonymous"></script>
-</head>
-<body>
-    <header>
-        <h1>Investment Calculator</h1>
-    </header>
-    <div class="container">
-        <h2>Stocks Calculation</h2>
-        <div class="input-section">
-            <h3>Input Details</h3>
-            <form method="POST">
-                <div class="group">
-                    <label>Number of Shares:</label>
-                    <input type="number" name="num_shares" placeholder="0" step="1" required>
-                </div>
-                <div class="group">
-                    <label>Purchase Price per Share (GHS):</label>
-                    <input type="number" name="purchase_price_per_share" placeholder="0" step="0.01" required>
-                </div>
-                <div class="group">
-                    <label>Purchase Commission (%):</label>
-                    <input type="number" name="purchase_commission" placeholder="0" step="0.01" required>
-                </div>
-                <div class="group">
-                    <label>Selling Price per Share (GHS):</label>
-                    <input type="number" name="selling_price_per_share" placeholder="0" step="0.01" required>
-                </div>
-                <div class="group">
-                    <label>Sale Commission (%):</label>
-                    <input type="number" name="sale_commission" placeholder="0" step="0.01" required>
-                </div>
-                <div class="group">
-                    <label>Dividends Earned (GHS):</label>
-                    <input type="number" name="dividends" placeholder="0" step="0.01" required>
-                </div>
-                <div class="button-container">
-                    <button class="action-btn" type="submit">Calculate</button>
-                    <button class="action-btn" type="reset">Clear</button>
-                    <a href="/" class="action-btn">Back</a>
-                </div>
-            </form>
+{% extends "base.html" %}
+
+{% block title %}Stocks Calculation{% endblock %}
+
+{% block content %}
+<h2>Stocks Calculation</h2>
+<div class="input-section">
+    <h3>Input Details</h3>
+    <form method="POST">
+        <div class="form-group">
+            <label for="num_shares">Number of Shares:</label>
+            <input type="number" class="form-control" id="num_shares" name="num_shares" placeholder="0" step="1" required>
         </div>
-        {% if error %}
-        <div class="results" style="color: red; text-align: center;">
-            <p>{{ error }}</p>
+        <div class="form-group">
+            <label for="purchase_price_per_share">Purchase Price per Share (GHS):</label>
+            <input type="number" class="form-control" id="purchase_price_per_share" name="purchase_price_per_share" placeholder="0" step="0.01" required>
         </div>
-        {% elif result %}
-        <div class="results" style="display:block;">
-            <h3>Results</h3>
-            <p><strong>Total Return: {{ result.total_return }}%</strong></p>
-            <p><strong>Capital Gain: {{ result.capital_gain }}%</strong></p>
-            <p><strong>Dividend Yield: {{ result.dividend_yield }}%</strong></p>
+        <div class="form-group">
+            <label for="purchase_commission">Purchase Commission (%):</label>
+            <input type="number" class="form-control" id="purchase_commission" name="purchase_commission" placeholder="0" step="0.01" required>
         </div>
-        {% endif %}
-    </div>
-    <footer>
-        <p>Created by Kofi Busia Kyei</p>
-    </footer>
-</body>
-</html>
+        <div class="form-group">
+            <label for="selling_price_per_share">Selling Price per Share (GHS):</label>
+            <input type="number" class="form-control" id="selling_price_per_share" name="selling_price_per_share" placeholder="0" step="0.01" required>
+        </div>
+        <div class="form-group">
+            <label for="sale_commission">Sale Commission (%):</label>
+            <input type="number" class="form-control" id="sale_commission" name="sale_commission" placeholder="0" step="0.01" required>
+        </div>
+        <div class="form-group">
+            <label for="dividends">Dividends Earned (GHS):</label>
+            <input type="number" class="form-control" id="dividends" name="dividends" placeholder="0" step="0.01" required>
+        </div>
+        <div class="button-container">
+            <button class="btn btn-primary" type="submit">Calculate</button>
+            <button class="btn btn-secondary" type="reset">Clear</button>
+            <a href="/" class="btn btn-secondary">Back</a>
+        </div>
+    </form>
+</div>
+{% if error %}
+<div class="alert alert-danger mt-3" role="alert">
+    {{ error }}
+</div>
+{% elif result %}
+<div class="results mt-3">
+    <h3>Results</h3>
+    <p><strong>Total Return: {{ result.total_return }}%</strong></p>
+    <p><strong>Capital Gain: {{ result.capital_gain }}%</strong></p>
+    <p><strong>Dividend Yield: {{ result.dividend_yield }}%</strong></p>
+</div>
+{% endif %}
+{% endblock %}

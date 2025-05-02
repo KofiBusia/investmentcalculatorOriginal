@@ -1,36 +1,37 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Terms & Conditions - Investment Calculator</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-</head>
-<body>
-    <header>
-        <div class="header-content">
-            <img src="{{ url_for('static', filename='images/umb_logo.png') }}" alt="UMB Logo" class="logo">
-            <h1>Investment Calculator</h1>
-        </div>
-    </header>
+{% extends "base.html" %}
 
-    <nav>
-        <ul>
-            <li><a href="/">Home</a></li>
-            <li><a href="/about">About Us</a></li>
-            <li><a href="/privacy-policy">Privacy Policy</a></li>
-            <li><a href="/terms">Terms & Conditions</a></li>
-            <li><a href="/contact">Contact Us</a></li>
-        </ul>
-    </nav>
+{% block title %}Terms and Conditions{% endblock %}
 
-    <div class="container">
-        <h2>Terms & Conditions</h2>
-        <p>By using this tool, you agree it’s for informational purposes only. Results are estimates, not financial advice, and the creator isn’t liable for decisions based on them.</p>
-    </div>
+{% block content %}
+<h2>Terms and Conditions</h2>
+<p><strong>Effective Date:</strong> May 2, 2025<br>
 
-    <footer>
-        <p>Created by Kofi Busia Kyei</p>
-    </footer>
-</body>
-</html>
+<p>Welcome to the Investment Calculator ("the Website"). These Terms and Conditions ("Terms") govern your use of our Website and any services offered herein.</p>
+
+<h3>1. Acceptance of Terms</h3>
+<p>By accessing and using this Website, you accept and agree to be bound by these Terms and our Privacy Policy. If you do not agree with any part of these Terms, please do not use the Website.</p>
+
+<h3>2. Use of the Website</h3>
+<p>You agree to use the Website for lawful purposes only. You are responsible for ensuring that your use complies with all applicable laws and regulations.</p>
+
+<h3>3. No Financial Advice</h3>
+<p>All calculations, results, and content provided on this Website are for informational and educational purposes only. They do <strong>not</strong> constitute financial, investment, tax, or legal advice. Always consult with a qualified financial advisor before making any investment decisions.</p>
+
+<h3>4. Accuracy of Information</h3>
+<p>We strive to provide accurate and up-to-date content; however, we do not guarantee the accuracy, completeness, or reliability of any calculations or results. The Website is provided "as is" without warranties of any kind.</p>
+
+<h3>5. Intellectual Property</h3>
+<p>All content, including code, design, text, graphics, and logo, are the property of the Website operator unless otherwise stated. You may not reproduce, republish, or distribute any content without prior written permission.</p>
+
+<h3>6. Limitation of Liability</h3>
+<p>We shall not be liable for any direct, indirect, incidental, consequential, or punitive damages arising from your use of or inability to use the Website.</p>
+
+<h3>7. Third-Party Links</h3>
+<p>The Website may contain links to third-party websites. We do not control or endorse these websites and are not responsible for their content or practices.</p>
+
+<h3>8. Changes to the Terms</h3>
+<p>We reserve the right to modify these Terms at any time. Changes will be effective immediately upon posting on the Website. Your continued use after changes means you accept the new Terms.</p>
+
+<h3>9. Governing Law</h3>
+<p>These Terms shall be governed by and construed in accordance with the laws of your jurisdiction.</p>
+{% endblock %}

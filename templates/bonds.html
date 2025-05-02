@@ -1,59 +1,45 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bonds - Investment Calculator</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-</head>
-<body>
-    <header>
-        <h1>Investment Calculator</h1>
-    </header>
-    <div class="container">
-        <h2>Bonds Calculation</h2>
-        <div class="input-section">
-            <h3>Input Details</h3>
-            <form method="POST">
-                <div class="group">
-                    <label>Principal (GHS):</label>
-                    <input type="number" name="principal" placeholder="0" step="0.01" required>
-                </div>
-                <div class="group">
-                    <label>Tenor (Days):</label>
-                    <input type="number" name="tenor" placeholder="0" step="1" required>
-                </div>
-                <div class="group">
-                    <label>Rate % (p.a.):</label>
-                    <input type="number" name="rate" placeholder="0" step="0.01" required>
-                </div>
-                <div class="group">
-                    <label>Total Coupons (GHS):</label>
-                    <input type="number" name="total_coupons" placeholder="0" step="0.01" required>
-                </div>
-                <div class="button-container">
-                    <button class="action-btn" type="submit">Calculate</button>
-                    <button class="action-btn" type="reset">Clear</button>
-                    <a href="/" class="action-btn">Back</a>
-                    <a href="/early_exit" class="action-btn">Early Exit Calculator</a>
-                </div>
-            </form>
+{% extends "base.html" %}
+
+{% block title %}Bonds Calculation{% endblock %}
+
+{% block content %}
+<h2>Bonds Calculation</h2>
+<div class="input-section">
+    <h3>Input Details</h3>
+    <form method="POST">
+        <div class="form-group">
+            <label for="principal">Principal (GHS):</label>
+            <input type="number" class="form-control" id="principal" name="principal" placeholder="0" step="0.01" required>
         </div>
-        {% if error %}
-        <div class="results" style="color: red; text-align: center;">
-            <p>{{ error }}</p>
+        <div class="form-group">
+            <label for="tenor">Tenor (Days):</label>
+            <input type="number" class="form-control" id="tenor" name="tenor" placeholder="0" step="1" required>
         </div>
-        {% elif result %}
-        <div class="results" style="display:block;">
-            <h3>Results</h3>
-            <p><strong>Maturity Amount: GHS {{ result.maturity_amount }}</strong></p>
-            <p><strong>Bond Yield: {{ result.bond_yield }}%</strong></p>
-            <p><strong>Holding Period Return (for early exits): {{ result.holding_period_return }}%</strong></p>
+        <div class="form-group">
+            <label for="rate">Rate % (p.a.):</label>
+            <input type="number" class="form-control" id="rate" name="rate" placeholder="0" step="0.01" required>
         </div>
-        {% endif %}
-    </div>
-    <footer>
-        <p>Created by Kofi Busia Kyei</p>
-    </footer>
-</body>
-</html>
+        <div class="form-group">
+            <label for="total_coupons">Total Coupons (GHS):</label>
+            <input type="number" class="form-control" id="total_coupons" name="total_coupons" placeholder="0" step="0.01" required>
+        </div>
+        <div class="button-container">
+            <button class="btn btn-primary" type="submit">Calculate</button>
+            <button class="btn btn-secondary" type="reset">Clear</button>
+            <a href="/" class="btn btn-secondary">Back</a>
+            <a href="/early_exit" class="btn btn-secondary">Early Exit Calculator</a>
+        </div>
+    </form>
+</div>
+{% if error %}
+<div class="alert alert-danger mt-3" role="alert">
+    {{ error }}
+</div>
+{% elif result %}
+<div class="results mt-3">
+    <h3>Results</h3>
+    <p><strong>Maturity Amount: GHS {{ result.maturity_amount }}</strong></p>
+    <p><strong>Bond Yield: {{ result.bond_yield }}%</strong></p>
+</div>
+{% endif %}
+{% endblock %}

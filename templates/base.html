@@ -4,60 +4,106 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}{% endblock %} - Investment Calculator</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <style>
+        /* Body styling */
+        body {
+            background: linear-gradient(to bottom, #f8f9fa, #d1e7ff); /* Light gray to soft blue */
+            color: #2c3e50; /* Dark blue-gray for default text */
+            font-family: 'Arial', sans-serif; /* Clean, modern font */
+        }
+
+        /* Container styling */
+        .container {
+            background-color: #ffffff; /* White background */
+            color: #2c3e50; /* Dark text for visibility */
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Soft shadow */
+            padding: 25px; /* Spacious padding */
+            border-radius: 8px; /* Rounded corners */
+            margin-top: 20px; /* Spacing from header */
+        }
+
+        /* Header styling with gradient */
+        header {
+            background: linear-gradient(90deg, #007bff, #00c6ff); /* Blue to light blue gradient */
+            padding: 15px 0; /* Vertical padding */
+        }
+
+        /* Logo and title alignment */
+        .header-content {
+            display: flex;
+            align-items: center;
+        }
+
+        .header-content img {
+            max-height: 60px; /* Slightly larger logo for better visibility */
+            margin-right: 15px; /* Space between logo and title */
+        }
+
+        .header-content h1 {
+            font-size: 24px; /* Balanced title size */
+            color: #ffffff; /* White text for contrast */
+            margin: 0; /* Remove default margin */
+        }
+
+        /* Navigation links styling */
+        nav ul.nav {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        nav ul.nav li.nav-item {
+            margin-left: 10px;
+        }
+
+        nav ul.nav li.nav-item a.nav-link {
+            color: #ffffff; /* White text */
+            font-weight: 500; /* Slightly bold for visibility */
+            transition: color 0.3s ease; /* Smooth hover effect */
+        }
+
+        nav ul.nav li.nav-item a.nav-link:hover {
+            color: #ffdd57; /* Yellow hover effect for dynamic feel */
+        }
+
+        /* Footer styling */
+        footer {
+            background-color: #e9ecef; /* Light gray */
+            color: #2c3e50; /* Matching dark text */
+            padding: 10px 0;
+        }
+    </style>
 </head>
 <body>
     <header>
-        <!-- Show logo only on the homepage -->
-        {% if request.path == '/' %}
-        <div class="header-content">
-            <img src="{{ url_for('static', filename='images/umb_logo.png') }}" alt="UMB Logo" class="logo">
-            <h1>Investment Calculator</h1>
-        </div>
-        {% else %}
-        <h1>Investment Calculator</h1>
-        {% endif %}
-        <!-- Navigation bar -->
-        {% if request.path == '/' %}
-        <nav>
-            <ul>
-                <li><a href="/about">About Us</a></li>
-                <li><a href="/contact">Contact Us</a></li>
-                <li><a href="/privacy-policy">Privacy Policy</a></li>
-                <li><a href="/terms">Terms & Conditions</a></li>
-            </ul>
-        </nav>
-        {% endif %}
-    </header>
-    <div class="container">
-        {% block content %}
-        <!-- Placeholder for page-specific content -->
-        <h2>{% block page_title %}{% endblock %}</h2>
-        <div class="input-section">
-            <h3>Input Details</h3>
-            <form method="POST">
-                {% block form_fields %}{% endblock %}
-                <div class="button-container">
-                    <button class="action-btn" type="submit">Calculate</button>
-                    <button class="action-btn" type="reset">Clear</button>
-                    <a href="/" class="action-btn">Back</a>
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center">
+                <div class="header-content">
+                    <img src="{{ url_for('static', filename='images/umb_logo.png') }}" alt="UMB Logo">
+                    <h1>Investment Calculator</h1>
                 </div>
-            </form>
+                <nav>
+                    <ul class="nav">
+                        <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/about">About Us</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/contact">Contact Us</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/privacy-policy">Privacy Policy</a></li>
+                        <li class="nav-item"><a class="nav-link" href="/terms">Terms & Conditions</a></li>
+                    </ul>
+                </nav>
+            </div>
         </div>
-        {% if error %}
-        <div class="results" style="color: red; text-align: center;">
-            <p>{{ error }}</p>
-        </div>
-        {% elif result %}
-        <div class="results" style="display:block;">
-            <h3>Results</h3>
-            {% block result_fields %}{% endblock %}
-        </div>
-        {% endif %}
-        {% endblock %}
+    </header>
+    <div class="container mt-4">
+        {% block content %}{% endblock %}
     </div>
-    <footer>
-        <p>Created by Kofi Busia Kyei</p>
+    <footer class="text-center mt-4">
+        <p>Created by <a href="https://kofibusia.github.io/kofi-busia-kyei.github.io/" target="_blank">Kofi Busia Kyei</a></p>
     </footer>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>

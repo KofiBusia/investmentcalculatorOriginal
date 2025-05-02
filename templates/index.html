@@ -1,50 +1,62 @@
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Investment Calculator</title>
-        <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-    
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1910810542133525"
-         crossorigin="anonymous"></script>
-    </head>
-<body>
-    <header>
-        <div class="header-content">
-            <img src="{{ url_for('static', filename='images/umb_logo.png') }}" alt="UMB Logo" class="logo">
-            <h1>Investment Calculator</h1>
-        </div>
-        <nav>
-            <ul>
-                <li><a href="/about">About Us</a></li>
-                <li><a href="/contact">Contact Us</a></li>
-                <li><a href="/privacy-policy">Privacy Policy</a></li>
-                <li><a href="/terms">Terms & Conditions</a></li>
-            </ul>
-        </nav>
-    </header>
-    <div class="container">
-        <h2>Select Investment Product</h2>
-        <p>Welcome to the Investment Calculator! Choose an investment product below to explore potential returns.</p>
-        <ul>
-            <li><a href="/stocks">Stocks</a></li>
-            <li><a href="/bonds">Bonds (Corporate & Government)</a></li>
-            <li><a href="/tbills">Treasury Bills (T-Bills)</a></li>
-            <li><a href="/tbills-rediscount">Treasury Bills Rediscount</a></li>
-            <li><a href="/mutual-funds">Mutual Funds</a></li>
-            <li><a href="/etfs">ETFs (Exchange-Traded Funds)</a></li>
-            <li><a href="/cds">CDs (Certificates of Deposit)</a></li>
-            <li><a href="/money-market">Money Market Accounts</a></li>
-            <li><a href="/options">Options (Call & Put)</a></li>
-            <li><a href="/futures">Futures</a></li>
-            <li><a href="/cryptocurrency">Cryptocurrency</a></li>
-            <li><a href="/monthly-contribution">Monthly Contribution</a></li>
-            <li><a href="/end-balance">End Balance</a></li>
-        </ul>
-    </div>
-    <footer>
-        <p>Created by Kofi Busia Kyei</p>
-    </footer>
-</body>
-</html>
+{% extends "base.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<h2>Select Investment Product</h2>
+<p>Welcome to the Investment Calculator! Choose an investment product below to explore potential returns.</p>
+<div class="product-grid">
+    <a href="/stocks" class="product-card">
+        <img src="{{ url_for('static', filename='icons/stocks.png') }}" alt="Stocks">
+        <h3>Stocks</h3>
+    </a>
+    <a href="/bonds" class="product-card">
+        <img src="{{ url_for('static', filename='icons/bonds.png') }}" alt="Bonds">
+        <h3>Bonds (Corporate & Government)</h3>
+    </a>
+    <a href="/tbills" class="product-card">
+        <img src="{{ url_for('static', filename='icons/tbills.png') }}" alt="T-Bills">
+        <h3>Treasury Bills (T-Bills)</h3>
+    </a>
+    <a href="/tbills-rediscount" class="product-card">
+        <img src="{{ url_for('static', filename='icons/tbills-rediscount.png') }}" alt="T-Bills Rediscount">
+        <h3>Treasury Bills Rediscount</h3>
+    </a>
+    <a href="/mutual-funds" class="product-card">
+        <img src="{{ url_for('static', filename='icons/mutual-funds.png') }}" alt="Mutual Funds">
+        <h3>Mutual Funds</h3>
+    </a>
+    <a href="/etfs" class="product-card">
+        <img src="{{ url_for('static', filename='icons/etfs.png') }}" alt="ETFs">
+        <h3>ETFs (Exchange-Traded Funds)</h3>
+    </a>
+    <a href="/cds" class="product-card">
+        <img src="{{ url_for('static', filename='icons/cds.png') }}" alt="CDs">
+        <h3>CDs (Certificates of Deposit)</h3>
+    </a>
+    <a href="/money-market" class="product-card">
+        <img src="{{ url_for('static', filename='icons/money-market.png') }}" alt="Money Market">
+        <h3>Money Market Accounts</h3>
+    </a>
+    <a href="/options" class="product-card">
+        <img src="{{ url_for('static', filename='icons/options.png') }}" alt="Options">
+        <h3>Options (Call & Put)</h3>
+    </a>
+    <a href="/futures" class="product-card">
+        <img src="{{ url_for('static', filename='icons/futures.png') }}" alt="Futures">
+        <h3>Futures</h3>
+    </a>
+    <a href="/cryptocurrency" class="product-card">
+        <img src="{{ url_for('static', filename='icons/cryptocurrency.png') }}" alt="Cryptocurrency">
+        <h3>Cryptocurrency</h3>
+    </a>
+    <a href="/monthly-contribution" class="product-card">
+        <img src="{{ url_for('static', filename='icons/monthly-contribution.png') }}" alt="Monthly Contribution">
+        <h3>Monthly Contribution</h3>
+    </a>
+    <a href="/end-balance" class="product-card">
+        <img src="{{ url_for('static', filename='icons/end-balance.png') }}" alt="End Balance">
+        <h3>End Balance</h3>
+    </a>
+</div>
+{% endblock %}

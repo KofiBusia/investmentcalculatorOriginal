@@ -1,36 +1,10 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>About Us - Investment Calculator</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-</head>
-<body>
-    <header>
-        <div class="header-content">
-            <img src="{{ url_for('static', filename='images/umb_logo.png') }}" alt="UMB Logo" class="logo">
-            <h1>Investment Calculator</h1>
-        </div>
-    </header>
+{% extends "base.html" %}
 
-    <nav>
-        <ul>
-            <li><a href="/">Home</a></li>
-            <li><a href="/about">About Us</a></li>
-            <li><a href="/privacy-policy">Privacy Policy</a></li>
-            <li><a href="/terms">Terms & Conditions</a></li>
-            <li><a href="/contact">Contact Us</a></li>
-        </ul>
-    </nav>
+{% block title %}About Us{% endblock %}
 
-    <div class="container">
-        <h2>About Us</h2>
-        <p>Welcome to the Investment Calculator! This tool helps young investors explore investment options and calculate potential returns. Created by Kofi Busia Kyei, it simplifies financial planning.</p>
-    </div>
-
-    <footer>
-        <p>Created by Kofi Busia Kyei</p>
-    </footer>
-</body>
-</html>
+{% block content %}
+<h2>About Us</h2>
+<p>Welcome to the Investment Calculator, a powerful tool designed to help young investors explore various investment options and calculate potential returns. Created by Kofi Busia Kyei, this calculator simplifies financial planning by providing easy-to-use interfaces for a wide range of investment products.</p>
+<p>Our mission is to empower individuals with the knowledge and tools they need to make informed investment decisions. Whether you're just starting out or looking to diversify your portfolio, the Investment Calculator is here to assist you every step of the way.</p>
+<p><strong>About the Creator:</strong> Kofi Busia Kyei is a passionate developer and financial enthusiast dedicated to making complex financial concepts accessible to everyone. With a background in software development and finance, Kofi combines technical expertise with a deep understanding of investment strategies to create practical tools for investors.</p>
+{% endblock %}

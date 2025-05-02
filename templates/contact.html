@@ -1,36 +1,26 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contact Us - Investment Calculator</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-</head>
-<body>
-    <header>
-        <div class="header-content">
-            <img src="{{ url_for('static', filename='images/umb_logo.png') }}" alt="UMB Logo" class="logo">
-            <h1>Investment Calculator</h1>
-        </div>
-    </header>
+{% extends "base.html" %}
 
-    <nav>
-        <ul>
-            <li><a href="/">Home</a></li>
-            <li><a href="/about">About Us</a></li>
-            <li><a href="/privacy-policy">Privacy Policy</a></li>
-            <li><a href="/terms">Terms & Conditions</a></li>
-            <li><a href="/contact">Contact Us</a></li>
-        </ul>
-    </nav>
+{% block title %}Contact Us{% endblock %}
 
-    <div class="container">
-        <h2>Contact Us</h2>
-        <p>For support, contact Email: support@younginvestorcalculator.com. We’re here to help!</p>
+{% block content %}
+<h2>Contact Us</h2>
+<p>We’d love to hear from you! Please fill out the form below to get in touch.</p>
+<form method="POST" action="/contact">
+    <div class="form-group">
+        <label for="name">Name</label>
+        <input type="text" class="form-control" id="name" name="name" placeholder="Enter your name" required>
     </div>
-
-    <footer>
-        <p>Created by Kofi Busia Kyei</p>
-    </footer>
-</body>
-</html>
+    <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" class="form-control" id="email" name="email" placeholder="Enter your email" required>
+    </div>
+    <div class="form-group">
+        <label for="message">Message</label>
+        <textarea class="form-control" id="message" name="message" rows="4" placeholder="Your message" required></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Send</button>
+</form>
+{% if success %}
+<div class="alert alert-success mt-3">{{ success }}</div>
+{% endif %}
+{% endblock %}

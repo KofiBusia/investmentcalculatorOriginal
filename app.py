@@ -1,12 +1,21 @@
 from flask import Flask, render_template, request, send_from_directory
+from flask_mail import Mail, Message
 
 app = Flask(__name__)
+
+# Email configuration (update with your email provider's settings)
+app.config['MAIL_SERVER'] = 'smtp.yourmailprovider.com'  # e.g., 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = 'your-email@example.com'  # Your email
+app.config['MAIL_PASSWORD'] = 'your-email-password'  # Your email password
+app.config['MAIL_DEFAULT_SENDER'] = 'your-email@example.com'
+
+mail = Mail(app)
 
 @app.route('/ads.txt')
 def ads_txt():
     return send_from_directory('static', 'ads.txt')
-
-# Rest of your code remains unchanged
 
 @app.route('/')
 def index():
@@ -329,8 +338,32 @@ def privacy_policy():
 def terms_conditions():
     return render_template('terms_conditions.html')
 
-@app.route('/contact')
+@app.route('/contact', methods=['GET', 'POST'])
 def contact():
+    if request.method == 'POST':
+        name = request.form['name']
+        email = request.form['email']
+        message = request.form['message']
+        
+        # Send email to info@cleanvisionhr.com
+        msg_to_admin = Message(
+            subject=f"New Contact Form Submission from {name}",
+            recipients=['info@cleanvisionhr.com'],
+            body=f"Name: {name}\nEmail: {email}\nMessage: {message}"
+        )
+        mail.send(msg_to_admin)
+        
+        # Send auto-response to the user
+        msg_to_user = Message(
+            subject="Thank you for contacting us!",
+            recipients=[email],
+            body=f"Dear {name},\n\nThank you for reaching out to us. We have received your message and will get back to you shortly.\n\nBest regards,\nInvestment Calculator Team"
+        )
+        mail.send(msg_to_user)
+        
+        # Show success message
+        return render_template('contact.html', success="Your message has been sent successfully!")
+    
     return render_template('contact.html')
 
 @app.route('/early_exit', methods=['GET', 'POST'])
@@ -355,7 +388,6 @@ def early_exit():
             return render_template('early_exit.html', error="Please enter valid numbers.")
     return render_template('early_exit.html', result=result)
 
-# New route for Treasury Bills Rediscount
 @app.route('/tbills-rediscount', methods=['GET', 'POST'])
 def tbills_rediscount():
     result = None
