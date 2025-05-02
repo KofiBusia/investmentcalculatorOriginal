@@ -1,105 +1,170 @@
+/* Base Styles */
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
-    color: #333;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(to right, #ecf0f1, #fdfdfd);
+    color: #2c3e50;
     margin: 0;
     padding: 0;
+    line-height: 1.6;
 }
 
+/* Header */
 header {
-    background-color: #2c3e50;
-    color: #fff;
-    padding: 10px 0;
+    background-color: #1a252f;
+    color: #ffffff;
+    padding: 20px 0;
     text-align: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .header-content {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 15px; /* Space between logo and title */
+    gap: 20px;
+    flex-wrap: wrap;
 }
 
 .logo {
-    max-width: 100px; /* Adjust this based on your logo size */
+    max-width: 80px;
     height: auto;
 }
 
 header h1 {
     margin: 0;
-    font-size: 24px; /* Adjust if needed */
+    font-size: 2rem;
+    font-weight: 600;
 }
 
-/* Added rules for navigation links */
+/* Navigation Links */
 nav a {
-    color: white; /* Make links white */
-    text-decoration: none; /* Remove underline */
+    color: white;
+    text-decoration: none;
+    font-weight: 500;
+    padding: 0 10px;
+    transition: color 0.3s ease;
 }
 
 nav a:hover {
-    color: #f0f0f0; /* Slightly lighter white on hover for feedback */
+    color: #18bc9c;
 }
 
+/* Main Container */
 .container {
-    max-width: 800px;
-    margin: 20px auto;
-    padding: 20px;
-    background-color: #fff;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    max-width: 900px;
+    margin: 40px auto;
+    padding: 30px;
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+    transition: box-shadow 0.3s ease-in-out;
 }
 
+.container:hover {
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+}
+
+/* Headings */
 h2, h3 {
-    color: #2c3e50;
-}
-
-.input-section {
+    color: #1a252f;
+    font-weight: 600;
     margin-bottom: 20px;
 }
 
+/* Form Section */
+.input-section {
+    margin-bottom: 30px;
+}
+
 .group {
-    margin-bottom: 15px;
+    margin-bottom: 20px;
 }
 
 .group label {
     display: block;
-    margin-bottom: 5px;
+    margin-bottom: 8px;
+    font-weight: 500;
 }
 
-.group input, .group select {
-    padding: 8px;
+.group input,
+.group select {
+    padding: 10px 12px;
     width: 100%;
-    max-width: 300px;
+    max-width: 350px;
+    border: 1px solid #dcdcdc;
+    border-radius: 6px;
     box-sizing: border-box;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
 }
 
+.group input:focus,
+.group select:focus {
+    outline: none;
+    border-color: #3498db;
+}
+
+/* Buttons */
 .action-btn {
-    background-color: #3498db;
+    background: linear-gradient(135deg, #3498db, #2980b9);
     color: #fff;
     border: none;
-    padding: 10px 20px;
-    margin: 5px;
+    padding: 12px 24px;
+    margin: 8px 5px;
     cursor: pointer;
-    text-decoration: none;
+    font-size: 1rem;
+    border-radius: 6px;
+    transition: background 0.3s ease, transform 0.2s ease;
     display: inline-block;
+    text-decoration: none;
 }
 
 .action-btn:hover {
-    background-color: #2980b9;
+    background: linear-gradient(135deg, #2980b9, #1c638c);
+    transform: translateY(-2px);
 }
 
+/* Results */
 .results {
-    margin-top: 20px;
-    padding: 10px;
-    background-color: #ecf0f1;
-    border-left: 5px solid #2c3e50;
+    margin-top: 30px;
+    padding: 20px;
+    background-color: #f8f9fa;
+    border-left: 6px solid #3498db;
+    border-radius: 8px;
 }
 
 .results p {
-    margin: 10px 0;
+    margin: 12px 0;
+    font-weight: 500;
 }
 
+/* Footer */
 footer {
     text-align: center;
-    margin-top: 20px;
+    margin-top: 40px;
+    padding-bottom: 20px;
     color: #7f8c8d;
+    font-size: 0.9rem;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .header-content {
+        flex-direction: column;
+    }
+
+    .group input,
+    .group select {
+        max-width: 100%;
+    }
+
+    .container {
+        margin: 20px 10px;
+        padding: 20px;
+    }
+
+    .action-btn {
+        width: 100%;
+        text-align: center;
+    }
 }
