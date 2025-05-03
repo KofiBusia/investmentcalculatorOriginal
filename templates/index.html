@@ -3,60 +3,47 @@
 {% block title %}Home{% endblock %}
 
 {% block content %}
-<h2>Select Investment Product</h2>
+<h2 class="centered-heading">Select Investment Product</h2>
 <p>Welcome to the Investment Calculator! Choose an investment product below to explore potential returns.</p>
 <div class="product-grid">
     <a href="/stocks" class="product-card">
-        <img src="{{ url_for('static', filename='icons/stocks.png') }}" alt="Stocks">
         <h3>Stocks</h3>
     </a>
     <a href="/bonds" class="product-card">
-        <img src="{{ url_for('static', filename='icons/bonds.png') }}" alt="Bonds">
         <h3>Bonds (Corporate & Government)</h3>
     </a>
     <a href="/tbills" class="product-card">
-        <img src="{{ url_for('static', filename='icons/tbills.png') }}" alt="T-Bills">
         <h3>Treasury Bills (T-Bills)</h3>
     </a>
     <a href="/tbills-rediscount" class="product-card">
-        <img src="{{ url_for('static', filename='icons/tbills-rediscount.png') }}" alt="T-Bills Rediscount">
         <h3>Treasury Bills Rediscount</h3>
     </a>
     <a href="/mutual-funds" class="product-card">
-        <img src="{{ url_for('static', filename='icons/mutual-funds.png') }}" alt="Mutual Funds">
         <h3>Mutual Funds</h3>
     </a>
     <a href="/etfs" class="product-card">
-        <img src="{{ url_for('static', filename='icons/etfs.png') }}" alt="ETFs">
         <h3>ETFs (Exchange-Traded Funds)</h3>
     </a>
     <a href="/cds" class="product-card">
-        <img src="{{ url_for('static', filename='icons/cds.png') }}" alt="CDs">
         <h3>CDs (Certificates of Deposit)</h3>
     </a>
     <a href="/money-market" class="product-card">
-        <img src="{{ url_for('static', filename='icons/money-market.png') }}" alt="Money Market">
         <h3>Money Market Accounts</h3>
     </a>
     <a href="/options" class="product-card">
-        <img src="{{ url_for('static', filename='icons/options.png') }}" alt="Options">
         <h3>Options (Call & Put)</h3>
     </a>
     <a href="/futures" class="product-card">
-        <img src="{{ url_for('static', filename='icons/futures.png') }}" alt="Futures">
         <h3>Futures</h3>
     </a>
     <a href="/cryptocurrency" class="product-card">
-        <img src="{{ url_for('static', filename='icons/cryptocurrency.png') }}" alt="Cryptocurrency">
         <h3>Cryptocurrency</h3>
     </a>
-    <a href="/monthly-contribution" class="product-card">
-        <img src="{{ url_for('static', filename='icons/monthly-contribution.png') }}" alt="Monthly Contribution">
-        <h3>Monthly Contribution</h3>
-    </a>
     <a href="/end-balance" class="product-card">
-        <img src="{{ url_for('static', filename='icons/end-balance.png') }}" alt="End Balance">
         <h3>End Balance</h3>
+    </a>
+    <a href="/monthly-contribution" class="product-card">
+        <h3>Monthly Contribution</h3>
     </a>
 </div>
 {% endblock %}

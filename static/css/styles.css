@@ -1,22 +1,23 @@
 /* Define CSS Variables */
 :root {
-    --primary-color: #007bff;        /* Vibrant blue for trust */
-    --primary-dark: #0056b3;         /* Darker blue for hover states */
-    --secondary-color: #6c757d;      /* Neutral gray for secondary elements */
-    --accent-color: #28a745;         /* Green for growth and highlights */
-    --background-color: #f8f9fa;     /* Light gray background */
-    --text-color: #212529;           /* Dark text for readability */
-    --header-bg: #343a40;            /* Dark gray header */
-    --footer-color: #6c757d;         /* Muted gray for footer */
-    --nav-link-color: #f8f9fa;       /* Light gray for navigation links */
-    --nav-link-hover: #28a745;       /* Green for navigation link hover */
-    --nav-link-bg: rgba(40, 167, 69, 0.2); /* Semi-transparent green for nav background */
+    --primary-color: #001f3f; /* Deep navy blue */
+    --primary-dark: #001022; /* Darker navy for hover */
+    --secondary-color: #4a4a4a; /* Dark gray for secondary elements */
+    --accent-color: #ffd700; /* Gold for highlights */
+    --background-color: #ffffff; /* White background */
+    --text-color: #333333; /* Dark gray text */
+    --header-bg: #f8f9fa; /* Light grey for header */
+    --header-text-color: #333333; /* Dark text for header */
+    --footer-color: #4a4a4a; /* Dark gray for footer */
+    --nav-link-color: var(--header-text-color); /* Use header text color */
+    --nav-link-hover: var(--primary-color); /* Navy blue for hover */
+    --nav-link-bg: transparent; /* No background for nav */
 }
 
 /* Base Styles */
 body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
-    background-color: var(--background-color);
+    font-family: 'Roboto', sans-serif;
+    background-color: #f9f9f9; /* Very light gray */
     color: var(--text-color);
     margin: 0;
     padding: 0;
@@ -26,10 +27,13 @@ body {
 /* Header */
 header {
     background-color: var(--header-bg);
-    color: #ffffff;
-    padding: 30px 0;
-    text-align: center;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    color: var(--header-text-color);
+    padding: 20px 0;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+header .container {
+    background-color: transparent;
 }
 
 .header-content {
@@ -40,50 +44,42 @@ header {
 }
 
 .logo {
-    width: 60px;
-    height: auto;
+    max-height: 80px;
+    margin-right: 20px;
 }
 
-header h1 {
-    font-size: 2.5rem;
-    font-weight: 700;
+.header-title {
+    font-size: 28px;
+    color: var(--header-text-color);
     margin: 0;
+    font-family: 'Montserrat', sans-serif;
 }
 
 /* Navigation Links */
 nav {
-    background-color: var(--nav-link-bg); /* Semi-transparent green background for nav links */
-    padding: 10px 0;
-    border-radius: 8px;
+    background-color: var(--nav-link-bg);
 }
 
 nav a {
-    color: var(--nav-link-color);    /* Light gray for better contrast */
+    color: var(--nav-link-color);
     text-decoration: none;
-    font-weight: 600;                /* Bolder text for visibility */
-    padding: 0 15px;
-    transition: color 0.3s ease, text-decoration 0.3s ease;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2); /* Subtle shadow for depth */
+    font-weight: 500;
+    padding: 10px 15px;
+    transition: color 0.3s ease;
 }
 
 nav a:hover {
-    color: var(--nav-link-hover);    /* Green on hover */
-    text-decoration: underline;      /* Underline on hover for emphasis */
+    color: var(--nav-link-hover);
 }
 
 /* Main Container */
 .container {
-    max-width: 900px;
+    max-width: 1200px;
     margin: 40px auto;
     padding: 30px;
-    background-color: #ffffff;
+    background-color: var(--background-color);
     border-radius: 12px;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
-    transition: box-shadow 0.3s ease-in-out;
-}
-
-.container:hover {
-    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
 }
 
 /* Headings */
@@ -91,6 +87,11 @@ h2, h3 {
     color: var(--text-color);
     font-weight: 600;
     margin-bottom: 20px;
+    font-family: 'Montserrat', sans-serif;
+}
+
+h2 {
+    font-size: 2.5rem;
 }
 
 /* Product Grid */
@@ -101,13 +102,19 @@ h2, h3 {
     margin-top: 20px;
 }
 
+@media (min-width: 768px) {
+    .product-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
 .product-card {
     background-color: #fff;
-    border: 1px solid #ddd;
+    border: 1px solid #e0e0e0;
     border-radius: 8px;
     padding: 20px;
     text-align: center;
-    transition: box-shadow 0.3s ease, transform 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
     text-decoration: none;
     color: var(--text-color);
     opacity: 0;
@@ -116,23 +123,25 @@ h2, h3 {
 }
 
 .product-card:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
 }
 
 .product-card:focus {
-    outline: 2px solid var(--primary-color);
+    outline: 2px solid var(--accent-color);
+    outline-offset: 2px;
 }
 
 .product-card img {
-    width: 50px;
-    height: 50px;
-    margin-bottom: 10px;
+    width: 64px;
+    height: 64px;
+    margin-bottom: 15px;
 }
 
 .product-card h3 {
-    margin: 0;
-    font-size: 1.2rem;
+    font-size: 1.4rem;
+    margin: 10px 0;
+    color: var(--primary-color);
 }
 
 @keyframes fadeInUp {
@@ -155,15 +164,16 @@ h2, h3 {
     display: block;
     margin-bottom: 8px;
     font-weight: 500;
+    color: var(--text-color);
 }
 
 .group input,
 .group select {
-    padding: 10px 12px;
+    padding: 10px 15px;
     width: 100%;
     max-width: 350px;
-    border: 1px solid #dcdcdc;
-    border-radius: 6px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
     box-sizing: border-box;
     font-size: 1rem;
     transition: border-color 0.3s ease;
@@ -171,8 +181,8 @@ h2, h3 {
 
 .group input:focus,
 .group select:focus {
-    outline: none;
     border-color: var(--primary-color);
+    outline: none;
 }
 
 /* Buttons */
@@ -196,7 +206,8 @@ h2, h3 {
 }
 
 .action-btn:focus {
-    outline: 2px solid var(--primary-dark);
+    outline: 2px solid var(--accent-color);
+    outline-offset: 2px;
 }
 
 /* Results */
@@ -220,7 +231,23 @@ footer {
     margin-top: 40px;
     padding: 20px 0;
     color: var(--footer-color);
-    border-top: 1px solid #ddd;
+    border-top: 1px solid #e0e0e0;
+    background-color: #f8f9fa;
+}
+
+footer p {
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+footer a {
+    color: var(--primary-color);
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+footer a:hover {
+    color: var(--accent-color);
 }
 
 /* Responsive */
