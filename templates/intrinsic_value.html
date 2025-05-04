@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+
+{% block title %}Intrinsic Value Calculation{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Intrinsic Value Calculation for Stocks</h2>
+    <p>Intrinsic value is an estimate of a stock's true worth based on its fundamentals, such as its earnings, assets, and growth potential. It’s calculated using a discounted cash flow (DCF) model, which projects future cash flows and discounts them back to their present value. This helps investors determine whether a stock is undervalued or overvalued compared to its current market price.</p>
+    
+    <h3>How the Intrinsic Value is Calculated</h3>
+    <p>We use a method called the perpetual growth Discounted Cash Flow (DCF) model. Here’s a simple breakdown of how it works:</p>
+    <ol>
+        <li><strong>Start with Free Cash Flow (FCF)</strong>: We take the company’s most recent Free Cash Flow (FCF), which is the cash it generates after paying for its operations and investments.</li>
+        <li><strong>Assume Steady Growth</strong>: We assume this FCF will grow at a constant rate forever. This rate is called the <strong>perpetual growth rate (g)</strong>. You can let the app figure it out from past FCF data or enter it yourself.</li>
+        <li><strong>Adjust for Time and Risk</strong>: We estimate the future FCFs based on this growth rate and adjust them to today’s value using a <strong>discount rate (r)</strong>. This rate comes from the Capital Asset Pricing Model (CAPM), which factors in things like the risk-free rate, market return, and the stock’s risk (beta).</li>
+        <li><strong>Find the Enterprise Value</strong>: By combining these adjusted future FCFs, we calculate the <strong>Enterprise Value</strong>, which represents the total value of the company’s operations.</li>
+        <li><strong>Adjust for Debt and Cash</strong>: To get the <strong>Equity Value</strong>, we subtract the company’s total debt and add its cash and equivalents to the Enterprise Value.</li>
+        <li><strong>Calculate Value per Share</strong>: Finally, we divide the Equity Value by the number of outstanding shares to get the <strong>Intrinsic Value per Share</strong>.</li>
+    </ol>
+    <p>In simple terms, it looks like this:</p>
+    <p><strong>Intrinsic Value per Share = (Enterprise Value - Total Debt + Cash and Equivalents) / Outstanding Shares</strong></p>
+    <p>Where the Enterprise Value is figured out as:</p>
+    <p><strong>Enterprise Value = (Last FCF × (1 + growth rate)) / (discount rate - growth rate)</strong></p>
+    <p>This method estimates what the stock is truly worth based on the cash it can generate in the future.</p>
+
+    <form method="POST">
+        <!-- Historical Free Cash Flow Section -->
+        <h3>Historical Free Cash Flow (Last 5 Years)</h3>
+        <p>Enter the Free Cash Flow for the last 5 years, with Year 1 being the earliest and Year 5 being the most recent.</p>
+        <p><small>Please enter FCF in full values, not in thousands (e.g., 1,000,000 for one million).</small></p>
+        {% macro input_field(name, label, type='number', step='0.01', required=True) %}
+        <div class="group">
+            <label for="{{ name }}">{{ label }}:</label>
+            <input type="{{ type }}" step="{{ step }}" name="{{ name }}" id="{{ name }}" value="{{ request.form[name] or '' }}" {{ 'required' if required else '' }}>
+        </div>
+        {% endmacro %}
+
+        {% for i in range(1, 6) %}
+        {{ input_field('fcf_' ~ i, 'Free Cash Flow (FCF) Year ' ~ i) }}
+        {% endfor %}
+
+        <!-- Valuation Parameters Section -->
+        <h3>Valuation Parameters</h3>
+        <p><small>Please enter Outstanding Shares, Total Debt, and Cash and Equivalents in full values, not in thousands (e.g., 1,000,000 for one million). Enter Risk-Free Rate, Market Return, and Beta as decimals (e.g., 5 for 5%).</small></p>
+        {{ input_field('risk_free_rate', 'Risk-Free Rate (%)', step='0.01') }}
+        {{ input_field('market_return', 'Market Return (%)', step='0.01') }}
+        {{ input_field('beta', 'Beta', step='0.01') }}
+        {{ input_field('outstanding_shares', 'Outstanding Shares (most recent)', step='0.01') }}
+        {{ input_field('total_debt', 'Total Debt (most recent)', step='0.01') }}
+        {{ input_field('cash_and_equivalents', 'Cash and Equivalents (most recent)', step='0.01') }}
+
+        <!-- Growth Rate Toggle -->
+        <div class="group">
+            <label for="auto_growth_rate">
+                <input type="checkbox" id="auto_growth_rate" name="auto_growth_rate" {{ 'checked' if request.method == 'GET' or request.form.get('auto_growth_rate') == 'on' else '' }}>
+                Auto-compute growth rate from historical FCF
+            </label>
+        </div>
+        <div class="group" id="manual_growth_rate">
+            <label for="manual_growth_rate">Manual Growth Rate (%) (e.g., 5 for 5%):</label>
+            <input type="number" step="0.01" name="manual_growth_rate" id="manual_growth_rate" value="{{ request.form['manual_growth_rate'] or '' }}">
+        </div>
+        <p><small>Note: For the perpetual growth model, the growth rate must be less than the discount rate. If using auto-compute, ensure historical FCF growth is reasonable.</small></p>
+
+        <button type="submit" class="action-btn">Calculate</button>
+        <a href="{{ url_for('intrinsic_value') }}" class="action-btn">Clear</a>
+        <a href="/" class="action-btn">Back to Home</a>
+    </form>
+
+    <!-- Results and Errors -->
+    {% if result %}
+    <div class="results">
+        <p>Intrinsic Value per Share: GHS{{ result }}</p>
+    </div>
+    {% endif %}
+    {% if error %}
+    <p style="color: red;">{{ error }}</p>
+    {% endif %}
+</div>
+
+<!-- JavaScript for Toggling Manual Growth Rate -->
+<script>
+    window.addEventListener('load', function() {
+        const checkbox = document.getElementById('auto_growth_rate');
+        const manualGrowthRateDiv = document.getElementById('manual_growth_rate');
+        manualGrowthRateDiv.style.display = checkbox.checked ? 'none' : 'block';
+    });
+
+    document.getElementById('auto_growth_rate').addEventListener('change', function() {
+        document.getElementById('manual_growth_rate').style.display = this.checked ? 'none' : 'block';
+    });
+</script>
+{% endblock %}

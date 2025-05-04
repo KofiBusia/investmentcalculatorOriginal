@@ -13,6 +13,75 @@ app.config['MAIL_DEFAULT_SENDER'] = 'your-email@example.com'
 
 mail = Mail(app)
 
+def calculate_intrinsic_value_full(
+    fcfs: list[float],
+    risk_free_rate: float,
+    market_return: float,
+    beta: float,
+    outstanding_shares: float,
+    total_debt: float,
+    cash_and_equivalents: float,
+    growth_rate: float = None,
+    auto_growth_rate: bool = True
+) -> float:
+    """
+    Calculates the intrinsic value per share using perpetual growth DCF from historical FCF.
+    
+    Parameters:
+    - fcfs: Historical Free Cash Flows (years 1-5)
+    - risk_free_rate: e.g., 0.03 for 3%
+    - market_return: e.g., 0.08 for 8%
+    - beta: e.g., 1.2
+    - outstanding_shares: Number of shares
+    - total_debt: Total debt of the company
+    - cash_and_equivalents: Cash and equivalents of the company
+    - growth_rate: Optional manual growth rate (if not auto-computed)
+    - auto_growth_rate: Whether to auto-compute growth rate from historical FCF (default: True)
+
+    Returns:
+    - Intrinsic value per share.
+    """
+    assert len(fcfs) == 5, "Provide exactly 5 years of historical FCF"
+
+    # Determine growth rate based on auto_growth_rate
+    if auto_growth_rate:
+        if fcfs[0] == 0:
+            g = 0.0
+        else:
+            g = (fcfs[-1] / fcfs[0]) ** (1 / (len(fcfs) - 1)) - 1
+        growth_source = "auto-computed"
+    else:
+        g = growth_rate
+        growth_source = "manually input"
+
+    # Use the last FCF
+    last_fcf = fcfs[-1]
+
+    # Calculate discount rate using CAPM
+    discount_rate = risk_free_rate + beta * (market_return - risk_free_rate)
+
+    # Check if discount_rate > g with detailed error message
+    if discount_rate <= g:
+        raise ValueError(
+            f"Discount rate ({discount_rate:.2%}) must be greater than growth rate ({g:.2%}) for the perpetual growth model. "
+            f"The growth rate was {growth_source}. Consider lowering the growth rate or increasing the discount rate "
+            "by adjusting the risk-free rate, market return, or beta."
+        )
+
+    # Calculate next year's FCF
+    fcf_next = last_fcf * (1 + g)
+
+    # Calculate enterprise value using perpetual growth formula
+    enterprise_value = fcf_next / (discount_rate - g)
+
+    # Calculate equity value
+    equity_value = enterprise_value - total_debt + cash_and_equivalents
+
+    # Calculate intrinsic value per share
+    intrinsic_value_per_share = equity_value / outstanding_shares if equity_value > 0 else 0
+
+    return intrinsic_value_per_share
+
 @app.route('/ads.txt')
 def ads_txt():
     return send_from_directory('static', 'ads.txt')
@@ -29,7 +98,7 @@ def monthly_contribution():
             target = float(request.form['target_amount'])
             principal = float(request.form['starting_principal'])
             period = float(request.form['period'])
-            rate = float(request.form['annual_return']) / 100  # Convert percentage to decimal (e.g., 20% → 0.20)
+            rate = float(request.form['annual_return']) / 100  # Convert percentage to decimal
 
             if target <= 0 or principal < 0 or period <= 0 or rate < 0:
                 return render_template('monthly_contribution.html', error="Please enter valid positive numbers.")
@@ -38,11 +107,8 @@ def monthly_contribution():
             if rate == 0:
                 monthly_contribution = (target - principal) / months
             else:
-                # Calculate the compounded monthly return: (1 + annual_rate)^(1/12) - 1
                 monthly_rate = (1 + rate) ** (1 / 12) - 1
-                # Future value of the starting principal with compound interest
                 future_principal = principal * (1 + monthly_rate) ** months
-                # Solve for monthly contribution using the annuity future value formula: P = FV / [((1 + r)^n - 1) / r]
                 monthly_contribution = (target - future_principal) / (((1 + monthly_rate) ** months - 1) / monthly_rate)
 
             result = "{:,.2f}".format(monthly_contribution)
@@ -59,7 +125,7 @@ def end_balance():
             monthly = float(request.form['monthly_contribution'])
             principal = float(request.form['starting_principal'])
             period = float(request.form['period'])
-            rate = float(request.form['annual_return']) / 100  # Convert percentage to decimal (e.g., 20% → 0.20)
+            rate = float(request.form['annual_return']) / 100  # Convert percentage to decimal
 
             if monthly < 0 or principal < 0 or period <= 0 or rate < 0:
                 return render_template('end_balance.html', error="Please enter valid positive numbers.")
@@ -68,13 +134,9 @@ def end_balance():
             if rate == 0:
                 end_balance = principal + monthly * months
             else:
-                # Calculate the compounded monthly return: (1 + annual_rate)^(1/12) - 1
                 monthly_rate = (1 + rate) ** (1 / 12) - 1
-                # Future value of the starting principal with compound interest
                 future_principal = principal * (1 + monthly_rate) ** months
-                # Future value of monthly contributions using the annuity formula: P * [((1 + r)^n - 1) / r]
                 future_contributions = monthly * (((1 + monthly_rate) ** months - 1) / monthly_rate)
-                # Total end balance
                 end_balance = future_principal + future_contributions
 
             result = "{:,.2f}".format(end_balance)
@@ -90,25 +152,22 @@ def stocks():
         try:
             num_shares = float(request.form['num_shares'])
             purchase_price_per_share = float(request.form['purchase_price_per_share'])
-            purchase_commission = float(request.form['purchase_commission']) / 100  # Convert percentage to decimal
+            purchase_commission = float(request.form['purchase_commission']) / 100
             selling_price_per_share = float(request.form['selling_price_per_share'])
-            sale_commission = float(request.form['sale_commission']) / 100  # Convert percentage to decimal
+            sale_commission = float(request.form['sale_commission']) / 100
             dividends = float(request.form['dividends'])
 
             if any(x < 0 for x in [num_shares, purchase_price_per_share, purchase_commission, selling_price_per_share, sale_commission, dividends]):
                 return render_template('stocks.html', error="Please enter valid non-negative numbers.")
 
-            # Calculate total purchase price (consideration) and total cost including commission
             purchase_consideration = num_shares * purchase_price_per_share
             purchase_commission_amount = purchase_consideration * purchase_commission
             total_purchase_cost = purchase_consideration + purchase_commission_amount
 
-            # Calculate total selling price (consideration) and net proceeds after commission
             selling_consideration = num_shares * selling_price_per_share
             sale_commission_amount = selling_consideration * sale_commission
             net_sale_proceeds = selling_consideration - sale_commission_amount
 
-            # Calculate metrics
             capital_gain = ((net_sale_proceeds - total_purchase_cost) / total_purchase_cost) * 100
             dividend_yield = (dividends / total_purchase_cost) * 100
             total_return = ((net_sale_proceeds - total_purchase_cost + dividends) / total_purchase_cost) * 100
@@ -153,18 +212,17 @@ def tbills():
     if request.method == 'POST':
         try:
             principal = float(request.form['principal'])
-            rate = float(request.form['rate']) / 100  # Convert percentage to decimal (e.g., 21% → 0.21)
+            rate = float(request.form['rate']) / 100
             tenor = float(request.form['tenor'])
 
             if principal <= 0 or rate < 0 or tenor <= 0:
                 return render_template('tbills.html', error="Please enter valid positive numbers.")
 
-            # Calculate Maturity Value using the formula: ((Principal * Tenor * Rate) / 364) + Principal
             interest = (principal * tenor * rate) / 364
             maturity_value = principal + interest
 
             result = {
-                'maturity_value': "{:,.2f}".format(maturity_value)  # Format with commas and 2 decimal places
+                'maturity_value': "{:,.2f}".format(maturity_value)
             }
         except ValueError:
             return render_template('tbills.html', error="Please enter valid numbers.")
@@ -325,7 +383,6 @@ def cryptocurrency():
 
     return render_template('cryptocurrency.html', result=result)
 
-# Routes for additional pages
 @app.route('/about')
 def about():
     return render_template('about.html')
@@ -361,7 +418,6 @@ def contact():
         )
         mail.send(msg_to_user)
         
-        # Show success message
         return render_template('contact.html', success="Your message has been sent successfully!")
     
     return render_template('contact.html')
@@ -374,7 +430,7 @@ def early_exit():
             principal = float(request.form['principal'])
             holding_period = float(request.form['holding_period'])
             selling_price = float(request.form['selling_price'])
-            total_coupons = float(request.form.get('total_coupons', 0))  # Optional field
+            total_coupons = float(request.form.get('total_coupons', 0))
 
             if any(x < 0 for x in [principal, holding_period, selling_price, total_coupons]) or principal == 0 or holding_period == 0:
                 return render_template('early_exit.html', error="Please enter valid positive numbers.")
@@ -394,21 +450,18 @@ def tbills_rediscount():
     if request.method == 'POST':
         try:
             settlement_amount = float(request.form['settlement_amount'])
-            rate = float(request.form['rate']) / 100  # Convert percentage to decimal (e.g., 30% → 0.3)
+            rate = float(request.form['rate']) / 100
             days_to_maturity = float(request.form['days_to_maturity'])
             initial_fv = float(request.form['initial_fv'])
 
             if settlement_amount <= 0 or rate < 0 or days_to_maturity <= 0 or initial_fv <= 0:
                 return render_template('tbills_rediscount.html', error="Please enter valid positive numbers.")
 
-            # Calculate Settlement Face Value (FV) using the formula: FV = Settlement Amount * (1 + r)^(x/364)
             settlement_fv = settlement_amount * (1 + rate) ** (days_to_maturity / 364)
-            
-            # Calculate Face Value After Rediscount: Initial FV - Partial FV
             face_value_after_rediscount = initial_fv - settlement_fv
 
             result = {
-                'settlement_fv': "{:,.2f}".format(settlement_fv),  # Format with commas and 2 decimal places
+                'settlement_fv': "{:,.2f}".format(settlement_fv),
                 'face_value_after_rediscount': "{:,.2f}".format(face_value_after_rediscount)
             }
         except ValueError:
@@ -416,8 +469,48 @@ def tbills_rediscount():
 
     return render_template('tbills_rediscount.html', result=result)
 
+@app.route('/intrinsic-value', methods=['GET', 'POST'])
+def intrinsic_value():
+    result = None
+    error = None
+    if request.method == 'POST':
+        try:
+            # Extract 5 years of FCF
+            fcfs = [float(request.form[f'fcf_{i}']) for i in range(1, 6)]
+            risk_free_rate = float(request.form['risk_free_rate']) / 100
+            market_return = float(request.form['market_return']) / 100
+            beta = float(request.form['beta'])
+            outstanding_shares = float(request.form['outstanding_shares'])
+            total_debt = float(request.form['total_debt'])
+            cash_and_equivalents = float(request.form['cash_and_equivalents'])
+            auto_growth_rate = request.form.get('auto_growth_rate') == 'on'
+
+            # Handle growth rate
+            if auto_growth_rate:
+                growth_rate = None  # Will be auto-computed
+            else:
+                growth_rate = float(request.form['manual_growth_rate']) / 100
+
+            # Validation
+            if outstanding_shares <= 0:
+                error = "Outstanding shares must be positive."
+            else:
+                intrinsic_value = calculate_intrinsic_value_full(
+                    fcfs, risk_free_rate, market_return, beta,
+                    outstanding_shares, total_debt, cash_and_equivalents,
+                    growth_rate=growth_rate, auto_growth_rate=auto_growth_rate
+                )
+                result = "{:,.2f}".format(intrinsic_value)
+
+        except ValueError as e:
+            error = str(e)
+        except Exception as e:
+            error = "An error occurred: " + str(e)
+
+    return render_template('intrinsic_value.html', result=result, error=error)
+
 if __name__ == '__main__':
-    # For local development, use waitress
+    # For local development, use Waitress
     from waitress import serve
     serve(app, host="0.0.0.0", port=5000)
 else:
