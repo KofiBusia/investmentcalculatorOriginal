@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Calculate Beta{% endblock %}
+
+{% block content %}
+<h2>Beta Calculator</h2>
+<p>Calculate Beta (β) using historical returns:</p>
+<p><strong>β = Cov(R<sub>stock</sub>, R<sub>market</sub>) / Var(R<sub>market</sub>)</strong></p>
+<p><small>Enter returns as percentages, separated by commas (e.g., 5.2, -3.1, 4.7). Ensure both stock and market returns have the same number of periods.</small></p>
+
+<form method="POST">
+    <div class="group">
+        <label for="stock_returns">Stock Returns (%), comma-separated:</label>
+        <input type="text" name="stock_returns" placeholder="e.g., 5.2, -3.1, 4.7" required>
+    </div>
+    <div class="group">
+        <label for="market_returns">Market Returns (%), comma-separated:</label>
+        <input type="text" name="market_returns" placeholder="e.g., 4.1, -2.8, 5.0" required>
+    </div>
+
+    <button type="submit" class="action-btn">Calculate Beta</button>
+</form>
+
+{% if beta is not none %}
+<div class="results">
+    <p>Calculated Beta: <strong>{{ beta }}</strong></p>
+</div>
+{% endif %}
+
+{% if error %}
+<p style="color: red;">{{ error }}</p>
+{% endif %}
+{% endblock %}

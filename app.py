@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, send_from_directory
 from flask_mail import Mail, Message
+import numpy as np  # Added for Beta calculation
 
 app = Flask(__name__)
 
@@ -89,6 +90,61 @@ def ads_txt():
 @app.route('/')
 def index():
     return render_template('index.html')
+
+@app.route('/calculate-fcf', methods=['GET', 'POST'])
+def calculate_fcf():
+    fcfs = None
+    ocfs = None
+    capex = None
+    error = None
+    currency_symbol = "$"  # Configurable currency symbol
+
+    if request.method == 'POST':
+        try:
+            ocfs = [float(request.form[f'ocf_{i}']) for i in range(1, 6)]
+            capex = [float(request.form[f'capex_{i}']) for i in range(1, 6)]
+
+            if any(ocf < 0 or cap < 0 for ocf, cap in zip(ocfs, capex)):
+                error = "Please enter valid non-negative numbers for OCF and CAPEX."
+            else:
+                fcfs = [ocf - cap for ocf, cap in zip(ocfs, capex)]
+        except ValueError:
+            error = "Please enter valid numbers for all fields."
+
+    return render_template('calculate_fcf.html', fcfs=fcfs, ocfs=ocfs, capex=capex, error=error, currency_symbol=currency_symbol)
+
+@app.route('/calculate-beta', methods=['GET', 'POST'])
+def calculate_beta():
+    beta = None
+    error = None
+
+    if request.method == 'POST':
+        try:
+            stock_returns_str = request.form['stock_returns']
+            market_returns_str = request.form['market_returns']
+
+            # Parse inputs into lists of floats
+            stock_returns = [float(x.strip()) for x in stock_returns_str.split(',')]
+            market_returns = [float(x.strip()) for x in market_returns_str.split(',')]
+
+            if len(stock_returns) != len(market_returns):
+                error = "Stock and market returns must have the same number of periods."
+            elif len(stock_returns) < 2:
+                error = "At least two periods of returns are required to calculate Beta."
+            else:
+                cov_matrix = np.cov(stock_returns, market_returns)
+                cov_stock_market = cov_matrix[0, 1]
+                var_market = cov_matrix[1, 1]
+                beta = cov_stock_market / var_market if var_market != 0 else None
+
+                if beta is None:
+                    error = "Cannot calculate Beta: Market returns variance is zero."
+                else:
+                    beta = round(beta, 4)
+        except ValueError:
+            error = "Please enter valid comma-separated numbers for returns."
+
+    return render_template('calculate_beta.html', beta=beta, error=error)
 
 @app.route('/monthly-contribution', methods=['GET', 'POST'])
 def monthly_contribution():
