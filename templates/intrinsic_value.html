@@ -27,11 +27,11 @@
         <!-- Historical Free Cash Flow Section -->
         <h3>Historical Free Cash Flow (Last 5 Years)</h3>
         <p>Enter the Free Cash Flow for the last 5 years, with Year 1 being the earliest and Year 5 being the most recent.</p>
-        <p><small>Please enter FCF in full values, not in thousands (e.g., 1,000,000 for one million).</small></p>
-        {% macro input_field(name, label, type='number', step='0.01', required=True) %}
+        <p><small>Please enter the Free Cash Flow for each year in full GHS values, not in thousands (e.g., 1,000,000 for one million GHS).</small></p>
+        {% macro input_field(name, label, type='number', step='1', required=True, min='0') %}
         <div class="group">
             <label for="{{ name }}">{{ label }}:</label>
-            <input type="{{ type }}" step="{{ step }}" name="{{ name }}" id="{{ name }}" value="{{ request.form[name] or '' }}" {{ 'required' if required else '' }}>
+            <input type="{{ type }}" step="{{ step }}" name="{{ name }}" id="{{ name }}" value="{{ request.form[name] or '' }}" {{ 'required' if required else '' }} min="{{ min }}">
         </div>
         {% endmacro %}
 
@@ -41,13 +41,13 @@
 
         <!-- Valuation Parameters Section -->
         <h3>Valuation Parameters</h3>
-        <p><small>Please enter Outstanding Shares, Total Debt, and Cash and Equivalents in full values, not in thousands (e.g., 1,000,000 for one million). Enter Risk-Free Rate, Market Return, and Beta as decimals (e.g., 5 for 5%).</small></p>
+        <p><small>Please enter Outstanding Shares as the total number of shares, Total Debt and Cash and Equivalents in full GHS values, not in thousands (e.g., 1,000,000 for one million GHS). Enter Risk-Free Rate, Market Return, and Beta as decimals (e.g., 5 for 5%).</small></p>
         {{ input_field('risk_free_rate', 'Risk-Free Rate (%)', step='0.01') }}
         {{ input_field('market_return', 'Market Return (%)', step='0.01') }}
         {{ input_field('beta', 'Beta', step='0.01') }}
-        {{ input_field('outstanding_shares', 'Outstanding Shares (most recent)', step='0.01') }}
-        {{ input_field('total_debt', 'Total Debt (most recent)', step='0.01') }}
-        {{ input_field('cash_and_equivalents', 'Cash and Equivalents (most recent)', step='0.01') }}
+        {{ input_field('outstanding_shares', 'Outstanding Shares (most recent)', step='1') }}
+        {{ input_field('total_debt', 'Total Debt (most recent)', step='1') }}
+        {{ input_field('cash_and_equivalents', 'Cash and Equivalents (most recent)', step='1') }}
 
         <!-- Growth Rate Toggle -->
         <div class="group">
@@ -58,7 +58,7 @@
         </div>
         <div class="group" id="manual_growth_rate">
             <label for="manual_growth_rate">Manual Growth Rate (%) (e.g., 5 for 5%):</label>
-            <input type="number" step="0.01" name="manual_growth_rate" id="manual_growth_rate" value="{{ request.form['manual_growth_rate'] or '' }}">
+            <input type="number" step="0.01" name="manual_growth_rate" id="manual_growth_rate" value="{{ request.form['manual_growth_rate'] or '' }}" min="0">
         </div>
         <p><small>Note: For the perpetual growth model, the growth rate must be less than the discount rate. If using auto-compute, ensure historical FCF growth is reasonable.</small></p>
 
@@ -70,7 +70,7 @@
     <!-- Results and Errors -->
     {% if result %}
     <div class="results">
-        <p>Intrinsic Value per Share: GHS{{ result }}</p>
+        <p>Intrinsic Value per Share: GHS{{ result }} <small>(Ghanaian Cedi)</small></p>
     </div>
     {% endif %}
     {% if error %}
@@ -80,14 +80,13 @@
 
 <!-- JavaScript for Toggling Manual Growth Rate -->
 <script>
-    window.addEventListener('load', function() {
+    function toggleManualGrowthRate() {
         const checkbox = document.getElementById('auto_growth_rate');
         const manualGrowthRateDiv = document.getElementById('manual_growth_rate');
         manualGrowthRateDiv.style.display = checkbox.checked ? 'none' : 'block';
-    });
+    }
 
-    document.getElementById('auto_growth_rate').addEventListener('change', function() {
-        document.getElementById('manual_growth_rate').style.display = this.checked ? 'none' : 'block';
-    });
+    window.addEventListener('load', toggleManualGrowthRate);
+    document.getElementById('auto_growth_rate').addEventListener('change', toggleManualGrowthRate);
 </script>
 {% endblock %}

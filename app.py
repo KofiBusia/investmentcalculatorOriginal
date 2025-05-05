@@ -1,18 +1,66 @@
-from flask import Flask, render_template, request, send_from_directory
+from flask import Flask, render_template, request, send_from_directory, flash, redirect, url_for
 from flask_mail import Mail, Message
-import numpy as np  # Added for Beta calculation
+import numpy as np
+import os
+from dotenv import load_dotenv
+
+load_dotenv()  # ← This loads variables from .env
 
 app = Flask(__name__)
+app.secret_key = os.getenv('SECRET_KEY', 'default_secret_key')  # Set via environment; default for local dev only
 
-# Email configuration (update with your email provider's settings)
-app.config['MAIL_SERVER'] = 'smtp.yourmailprovider.com'  # e.g., 'smtp.gmail.com'
-app.config['MAIL_PORT'] = 587
-app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = 'your-email@example.com'  # Your email
-app.config['MAIL_PASSWORD'] = 'your-email-password'  # Your email password
-app.config['MAIL_DEFAULT_SENDER'] = 'your-email@example.com'
+# Email configuration using environment variables
+app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER')  # e.g., 'smtp.gmail.com'
+app.config['MAIL_PORT'] = int(os.getenv('MAIL_PORT', 587))  # Default to 587 if not set
+app.config['MAIL_USE_TLS'] = os.getenv('MAIL_USE_TLS', 'True') == 'True'  # Convert string to boolean
+app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')  # e.g., 'your-email@gmail.com'
+app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')  # Email password or app-specific password
+app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_DEFAULT_SENDER')  # e.g., 'your-email@gmail.com'
 
 mail = Mail(app)
+
+def calculate_dcf(fcfs, risk_free_rate, market_return, beta, debt, equity, tax_rate, growth_rate, use_exit_multiple=False, exit_ebitda_multiple=None, ebitda_last_year=None):
+    assert len(fcfs) == 5, "Provide exactly 5 years of FCF"
+    total_value = debt + equity
+    if total_value <= 0:
+        raise ValueError("Total value (debt + equity) must be positive")
+    cost_equity = risk_free_rate + beta * (market_return - risk_free_rate)
+    cost_debt = 0.05
+    wacc = (equity / total_value) * cost_equity + (debt / total_value) * cost_debt * (1 - tax_rate)
+    pv_fcfs = sum(fcf / (1 + wacc) ** (i + 1) for i, fcf in enumerate(fcfs))
+    last_fcf = fcfs[-1]
+    if use_exit_multiple:
+        if exit_ebitda_multiple is None or ebitda_last_year is None:
+            raise ValueError("Exit EBITDA multiple and last year's EBITDA required")
+        terminal_value = ebitda_last_year * exit_ebitda_multiple
+    else:
+        if wacc <= growth_rate:
+            raise ValueError(f"WACC ({wacc:.2%}) must be greater than growth rate ({growth_rate:.2%})")
+        fcf_next = last_fcf * (1 + growth_rate)
+        terminal_value = fcf_next / (wacc - growth_rate)
+    pv_terminal = terminal_value / (1 + wacc) ** 5
+    enterprise_value = pv_fcfs + pv_terminal
+    equity_value = max(enterprise_value - debt, 0)
+    return enterprise_value, equity_value
+
+def calculate_vc_method(exit_value, target_roi, investment_amount, exit_horizon, dilution_factor=1.0):
+    if any(x <= 0 for x in [exit_value, target_roi, investment_amount, exit_horizon]):
+        raise ValueError("All inputs must be positive")
+    if dilution_factor <= 0 or dilution_factor > 1:
+        raise ValueError("Dilution factor must be between 0 and 1")
+    adjusted_exit_value = exit_value * dilution_factor
+    post_money_valuation = adjusted_exit_value / target_roi
+    pre_money_valuation = post_money_valuation - investment_amount
+    return pre_money_valuation, post_money_valuation
+
+def calculate_arr_multiple(arr, arr_multiple, control_premium=0.0, illiquidity_discount=0.0):
+    if arr <= 0 or arr_multiple <= 0:
+        raise ValueError("ARR and ARR multiple must be positive")
+    if control_premium < 0 or illiquidity_discount < 0:
+        raise ValueError("Control premium and illiquidity discount cannot be negative")
+    base_valuation = arr * arr_multiple
+    adjusted_valuation = base_valuation * (1 + control_premium) * (1 - illiquidity_discount)
+    return adjusted_valuation
 
 def calculate_intrinsic_value_full(
     fcfs: list[float],
@@ -238,6 +286,149 @@ def stocks():
 
     return render_template('stocks.html', result=result)
 
+@app.route('/mna', methods=['GET', 'POST'])
+def mna_calculator():
+    if request.method == 'POST':
+        try:
+            # Capture form data as strings to retain in the form
+            form_data = {
+                'acquirer_eps': request.form['acquirer_eps'],
+                'acquirer_shares': request.form['acquirer_shares'],
+                'target_eps': request.form['target_eps'],
+                'target_shares': request.form['target_shares'],
+                'new_shares_issued': request.form['new_shares_issued'],
+                'synergy_value': request.form['synergy_value']
+            }
+            # Convert to floats for calculation
+            acquirer_eps = float(form_data['acquirer_eps'])
+            acquirer_shares = float(form_data['acquirer_shares'])
+            target_eps = float(form_data['target_eps'])
+            target_shares = float(form_data['target_shares'])
+            new_shares_issued = float(form_data['new_shares_issued'])
+            synergy_value = float(form_data['synergy_value'])
+
+            # Validation
+            if acquirer_shares <= 0 or target_shares <= 0 or new_shares_issued < 0:
+                result = "Error: Shares outstanding and new shares issued must be positive."
+                return render_template('mna.html', result=result, form_data=form_data)
+            total_shares = acquirer_shares + new_shares_issued
+            if total_shares <= 0:
+                result = "Error: Total shares outstanding must be positive."
+                return render_template('mna.html', result=result, form_data=form_data)
+
+            # Perform M&A calculations
+            acquirer_earnings = acquirer_eps * acquirer_shares
+            target_earnings = target_eps * target_shares
+            combined_earnings = acquirer_earnings + target_earnings + synergy_value
+            combined_eps = combined_earnings / total_shares
+            eps_change = combined_eps - acquirer_eps
+            status = "Accretive" if eps_change > 0 else "Dilutive" if eps_change < 0 else "Neutral"
+
+            # Format results
+            result = f"""
+                <p>Pre-Deal Acquirer EPS: ${acquirer_eps:,.2f}</p>
+                <p>Post-Deal Combined EPS: ${combined_eps:,.2f}</p>
+                <p>EPS Change: ${eps_change:,.2f} ({status})</p>
+                <p>Total Combined Earnings (incl. Synergy): ${combined_earnings:,.2f}</p>
+                <p>Total Shares Outstanding: {total_shares:,.0f}</p>
+            """
+            return render_template('mna.html', result=result, form_data=form_data)
+        except ValueError:
+            result = "Error: Please enter valid numeric values."
+            return render_template('mna.html', result=result, form_data=request.form)
+    return render_template('mna.html', form_data={})
+
+@app.route('/pe-vc', methods=['GET', 'POST'])
+def pe_vc_valuation():
+    if request.method == 'POST':
+        try:
+            form_data = {
+                'valuation_method': request.form['valuation_method'],
+                'fcf_1': request.form.get('fcf_1', ''),
+                'fcf_2': request.form.get('fcf_2', ''),
+                'fcf_3': request.form.get('fcf_3', ''),
+                'fcf_4': request.form.get('fcf_4', ''),
+                'fcf_5': request.form.get('fcf_5', ''),
+                'risk_free_rate': request.form.get('risk_free_rate', ''),
+                'market_return': request.form.get('market_return', ''),
+                'beta': request.form.get('beta', ''),
+                'debt': request.form.get('debt', ''),
+                'equity': request.form.get('equity', ''),
+                'tax_rate': request.form.get('tax_rate', ''),
+                'growth_rate': request.form.get('growth_rate', ''),
+                'use_exit_multiple': request.form.get('use_exit_multiple', 'off'),
+                'exit_ebitda_multiple': request.form.get('exit_ebitda_multiple', ''),
+                'ebitda_last_year': request.form.get('ebitda_last_year', ''),
+                'exit_value': request.form.get('exit_value', ''),
+                'target_roi': request.form.get('target_roi', ''),
+                'investment_amount': request.form.get('investment_amount', ''),
+                'exit_horizon': request.form.get('exit_horizon', ''),
+                'dilution_factor': request.form.get('dilution_factor', '1.0'),
+                'arr': request.form.get('arr', ''),
+                'arr_multiple': request.form.get('arr_multiple', ''),
+                'control_premium': request.form.get('control_premium', '0.0'),
+                'illiquidity_discount': request.form.get('illiquidity_discount', '0.0')
+            }
+            valuation_method = form_data['valuation_method']
+            result = ""
+
+            if valuation_method == "dcf":
+                fcfs = [float(form_data[f'fcf_{i}']) for i in range(1, 6)]
+                risk_free_rate = float(form_data['risk_free_rate']) / 100
+                market_return = float(form_data['market_return']) / 100
+                beta = float(form_data['beta'])
+                debt = float(form_data['debt'])
+                equity = float(form_data['equity'])
+                tax_rate = float(form_data['tax_rate']) / 100
+                growth_rate = float(form_data['growth_rate']) / 100
+                use_exit_multiple = form_data['use_exit_multiple'] == 'on'
+                exit_ebitda_multiple = float(form_data['exit_ebitda_multiple']) if form_data['exit_ebitda_multiple'] else None
+                ebitda_last_year = float(form_data['ebitda_last_year']) if form_data['ebitda_last_year'] else None
+
+                enterprise_value, equity_value = calculate_dcf(
+                    fcfs, risk_free_rate, market_return, beta, debt, equity, tax_rate,
+                    growth_rate, use_exit_multiple, exit_ebitda_multiple, ebitda_last_year
+                )
+                result = f"""
+                    <p>DCF Valuation:</p>
+                    <p>Enterprise Value: ${enterprise_value:,.2f}</p>
+                    <p>Equity Value: ${equity_value:,.2f}</p>
+                """
+
+            elif valuation_method == "vc":
+                exit_value = float(form_data['exit_value'])
+                target_roi = float(form_data['target_roi'])
+                investment_amount = float(form_data['investment_amount'])
+                exit_horizon = float(form_data['exit_horizon'])
+                dilution_factor = float(form_data['dilution_factor'])
+
+                pre_money_valuation, post_money_valuation = calculate_vc_method(
+                    exit_value, target_roi, investment_amount, exit_horizon, dilution_factor
+                )
+                result = f"""
+                    <p>VC Method Valuation:</p>
+                    <p>Pre-Money Valuation: ${pre_money_valuation:,.2f}</p>
+                    <p>Post-Money Valuation: ${post_money_valuation:,.2f}</p>
+                """
+
+            elif valuation_method == "arr":
+                arr = float(form_data['arr'])
+                arr_multiple = float(form_data['arr_multiple'])
+                control_premium = float(form_data['control_premium']) / 100
+                illiquidity_discount = float(form_data['illiquidity_discount']) / 100
+
+                valuation = calculate_arr_multiple(arr, arr_multiple, control_premium, illiquidity_discount)
+                result = f"""
+                    <p>ARR Multiple Valuation:</p>
+                    <p>Valuation: ${valuation:,.2f}</p>
+                """
+
+            return render_template('pe_vc.html', result=result, form_data=form_data)
+        except ValueError as e:
+            result = f"Error: {str(e)}"
+            return render_template('pe_vc.html', result=result, form_data=form_data)
+    return render_template('pe_vc.html', form_data={})
+
 @app.route('/bonds', methods=['GET', 'POST'])
 def bonds():
     result = None
@@ -458,23 +649,29 @@ def contact():
         email = request.form['email']
         message = request.form['message']
         
-        # Send email to info@cleanvisionhr.com
-        msg_to_admin = Message(
-            subject=f"New Contact Form Submission from {name}",
-            recipients=['info@cleanvisionhr.com'],
-            body=f"Name: {name}\nEmail: {email}\nMessage: {message}"
-        )
-        mail.send(msg_to_admin)
+        try:
+            # Send email to info@cleanvisionhr.com
+            msg_to_admin = Message(
+                subject=f"New Contact Form Submission from {name}",
+                recipients=['info@cleanvisionhr.com'],
+                body=f"Name: {name}\nEmail: {email}\nMessage: {message}"
+            )
+            mail.send(msg_to_admin)
+            
+            # Send auto-response to the user
+            msg_to_user = Message(
+                subject="Thank you for contacting us!",
+                recipients=[email],
+                body=f"Dear {name},\n\nThank you for reaching out to us. We have received your message and will get back to you shortly.\n\nBest regards,\nInvestment Calculator Team"
+            )
+            mail.send(msg_to_user)
+            
+            flash("Your message has been sent successfully!", "success")
+        except Exception as e:
+            app.logger.error(f"Error sending email: {str(e)}")
+            flash("An error occurred while sending your message. Please try again later.", "danger")
         
-        # Send auto-response to the user
-        msg_to_user = Message(
-            subject="Thank you for contacting us!",
-            recipients=[email],
-            body=f"Dear {name},\n\nThank you for reaching out to us. We have received your message and will get back to you shortly.\n\nBest regards,\nInvestment Calculator Team"
-        )
-        mail.send(msg_to_user)
-        
-        return render_template('contact.html', success="Your message has been sent successfully!")
+        return redirect(url_for('contact'))
     
     return render_template('contact.html')
 
