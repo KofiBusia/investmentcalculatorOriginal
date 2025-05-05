@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}Portfolio Volatility{% endblock %}
+
+{% block content %}
+<h2 class="centered-heading">Portfolio Volatility Calculator</h2>
+<p>Calculate the volatility of a portfolio based on asset weights and covariance matrix.</p>
+<p><strong>Note:</strong> Enter weights as decimals (e.g., 0.4 for 40%). Weights must sum to 1. Enter the covariance matrix with rows separated by semicolons and elements by commas (e.g., for 2 assets: "0.04, 0.02; 0.02, 0.03").</p>
+<p><strong>Example:</strong> For two assets with weights 0.4 and 0.6, and covariance matrix "0.04, 0.02; 0.02, 0.03", the portfolio volatility is calculated as the square root of (w^T * Cov * w).</p>
+<form method="POST" action="/volatility">
+    <div>
+        <label for="weights">Asset Weights (comma-separated):</label>
+        <input type="text" id="weights" name="weights" placeholder="e.g., 0.4, 0.6" value="{{ form_data.weights | default('') }}" required>
+    </div>
+    <div>
+        <label for="covariance">Covariance Matrix (semicolon-separated rows, comma-separated elements):</label>
+        <input type="text" id="covariance" name="covariance" placeholder="e.g., 0.04, 0.02; 0.02, 0.03" value="{{ form_data.covariance | default('') }}" required>
+    </div>
+    <button type="submit">Calculate</button>
+</form>
+
+{% if result %}
+<h3>Results:</h3>
+<p>{{ result }}</p>
+{% endif %}
+{% if error %}
+<p class="error">{{ error }}</p>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}Expected Return{% endblock %}
+
+{% block content %}
+<h2 class="centered-heading">Expected Return Calculator</h2>
+<p>Calculate the expected return of a portfolio based on asset weights and expected returns.</p>
+<p><strong>Note:</strong> Enter weights and returns as decimals (e.g., 0.4 for 40%, 0.08 for 8%). Weights must sum to 1.</p>
+<p><strong>Example:</strong> For two assets with weights 0.4 and 0.6, and expected returns 0.08 and 0.12, enter "0.4, 0.6" for weights and "0.08, 0.12" for returns. The expected return will be 0.4*0.08 + 0.6*0.12 = 0.104 or 10.4%.</p>
+<form method="POST" action="/expected-return">
+    <div>
+        <label for="weights">Asset Weights (comma-separated):</label>
+        <input type="text" id="weights" name="weights" placeholder="e.g., 0.4, 0.6" value="{{ form_data.weights | default('') }}" required>
+    </div>
+    <div>
+        <label for="returns">Asset Expected Returns (comma-separated):</label>
+        <input type="text" id="returns" name="returns" placeholder="e.g., 0.08, 0.12" value="{{ form_data.returns | default('') }}" required>
+    </div>
+    <button type="submit">Calculate</button>
+</form>
+
+{% if result %}
+<h3>Results:</h3>
+<p>{{ result }}</p>
+{% endif %}
+{% if error %}
+<p class="error">{{ error }}</p>
+{% endif %}
+{% endblock %}

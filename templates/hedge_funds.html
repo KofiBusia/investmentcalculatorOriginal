@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Hedge Fund Calculator{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2 class="centered-heading">Hedge Fund Return Calculator</h2>
+    <p>Estimate returns from hedge fund investments based on strategy, leverage, and target performance.</p>
+
+    <h3>About Hedge Fund Investing</h3>
+    <p>Hedge funds employ diverse strategies to generate returns, often using leverage to amplify gains (and risks). This calculator estimates the expected return and risk of a hedge fund investment based on the selected strategy, initial investment, leverage factor, and target return.</p>
+
+    <h3>Input Fields</h3>
+    <p>Provide the following details to calculate hedge fund returns:</p>
+    <ul>
+        <li><strong>Strategy</strong>: Choose a hedge fund strategy (e.g., Long-Short Equity, Arbitrage, Global Macro).</li>
+        <li><strong>Initial Investment</strong>: The amount invested in the hedge fund.</li>
+        <li><strong>Leverage Factor</strong>: The multiple of borrowed funds used (e.g., 2 for 2x leverage).</li>
+        <li><strong>Target Return (%)</strong>: The expected annual return before leverage.</li>
+        <li><strong>Volatility (%)</strong>: The standard deviation of the strategy’s returns, representing risk.</li>
+    </ul>
+
+    <form method="POST" action="/hedge-funds">
+        <div class="group">
+            <label for="strategy">Select Strategy:</label>
+            <select id="strategy" name="strategy" required>
+                <option value="long-short" {% if form_data['strategy'] == 'long-short' %}selected{% endif %}>Long-Short Equity</option>
+                <option value="arbitrage" {% if form_data['strategy'] == 'arbitrage' %}selected{% endif %}>Arbitrage</option>
+                <option value="global-macro" {% if form_data['strategy'] == 'global-macro' %}selected{% endif %}>Global Macro</option>
+            </select>
+        </div>
+        <div class="group">
+            <label for="investment">Initial Investment ($):</label>
+            <input type="number" step="0.01" id="investment" name="investment" value="{{ form_data['investment'] if form_data else '' }}" required>
+        </div>
+        <div class="group">
+            <label for="leverage">Leverage Factor (e.g., 2 for 2x):</label>
+            <input type="number" step="0.01" id="leverage" name="leverage" value="{{ form_data['leverage'] if form_data else '' }}" required>
+        </div>
+        <div class="group">
+            <label for="target_return">Target Return (%):</label>
+            <input type="number" step="0.01" id="target_return" name="target_return" value="{{ form_data['target_return'] if form_data else '' }}" required>
+        </div>
+        <div class="group">
+            <label for="volatility">Volatility (%):</label>
+            <input type="number" step="0.01" id="volatility" name="volatility" value="{{ form_data['volatility'] if form_data else '' }}" required>
+        </div>
+        <div>
+            <input type="submit" value="Calculate" class="action-btn">
+            <button type="reset" class="action-btn">Clear</button>
+        </div>
+    </form>
+
+    {% if result %}
+    <div class="results">
+        <h3>Results</h3>
+        {{ result|safe }}
+    </div>
+    {% endif %}
+
+    <a href="/" class="action-btn">Back to Home</a>
+</div>
+{% endblock %}

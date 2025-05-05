@@ -19,6 +19,105 @@ app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_DEFAULT_SENDER')  # e.g., 'y
 
 mail = Mail(app)
 
+def parse_comma_separated(text):
+    """Parse a comma-separated string into a list of floats."""
+    try:
+        return [float(x.strip()) for x in text.split(',')]
+    except ValueError:
+        raise ValueError("Invalid numeric format. Use comma-separated numbers (e.g., 0.4, 0.6).")
+
+def parse_covariance_matrix(text, num_assets):
+    """Parse a semicolon-separated covariance matrix into a numpy array."""
+    try:
+        rows = text.split(';')
+        if len(rows) != num_assets:
+            raise ValueError(f"Covariance matrix must have {num_assets} rows.")
+        matrix = []
+        for row in rows:
+            elements = parse_comma_separated(row)
+            if len(elements) != num_assets:
+                raise ValueError(f"Each row must have {num_assets} elements.")
+            matrix.append(elements)
+        matrix = np.array(matrix)
+        # Check symmetry
+        if not np.allclose(matrix, matrix.T):
+            raise ValueError("Covariance matrix must be symmetric.")
+        # Check positive semi-definite (all eigenvalues non-negative)
+        if np.any(np.linalg.eigvals(matrix) < -1e-10):
+            raise ValueError("Covariance matrix must be positive semi-definite.")
+        return matrix
+    except ValueError as e:
+        raise ValueError(f"Invalid covariance matrix: {str(e)}")
+
+def calculate_expected_return(weights, returns):
+    """Calculate portfolio expected return."""
+    if len(weights) != len(returns):
+        raise ValueError("Number of weights must match number of returns.")
+    if len(weights) < 1 or len(weights) > 10:
+        raise ValueError("Number of assets must be between 1 and 10.")
+    if abs(sum(weights) - 1.0) > 0.01:
+        raise ValueError("Weights must sum to 1.")
+    if any(w < 0 for w in weights):
+        raise ValueError("Weights must be non-negative.")
+    return np.sum(np.array(weights) * np.array(returns))
+
+
+def calculate_portfolio_metrics(num_assets, returns, weights, volatilities):
+    if num_assets != len(returns) or num_assets != len(weights) or num_assets != len(volatilities):
+        raise ValueError("Number of assets must match returns, weights, and volatilities")
+    if num_assets < 1 or num_assets > 10:
+        raise ValueError("Number of assets must be between 1 and 10")
+    if abs(sum(weights) - 1.0) > 0.01:
+        raise ValueError("Portfolio weights must sum to 1")
+    if any(w < 0 for w in weights) or any(v < 0 for v in volatilities):
+        raise ValueError("Weights and volatilities must be non-negative")
+    
+    expected_return = sum(r * w for r, w in zip(returns, weights)) / 100
+    # Simplified portfolio volatility (assumes no correlation)
+    portfolio_volatility = np.sqrt(sum((w * v / 100) ** 2 for w, v in zip(weights, volatilities)))
+    return expected_return, portfolio_volatility
+
+def calculate_forex_profit(investment, initial_rate, final_rate):
+    if any(x <= 0 for x in [investment, initial_rate, final_rate]):
+        raise ValueError("All inputs must be positive")
+    base_currency = investment
+    foreign_currency = base_currency * initial_rate
+    final_value = foreign_currency / final_rate
+    profit = final_value - base_currency
+    return profit
+
+def calculate_esg_metrics(esg_amount, total_portfolio, num_esg_assets, esg_scores, esg_weights):
+    if esg_amount > total_portfolio or esg_amount < 0 or total_portfolio <= 0:
+        raise ValueError("Invalid investment or portfolio values")
+    if num_esg_assets != len(esg_scores) or num_esg_assets != len(esg_weights):
+        raise ValueError("Number of ESG assets must match scores and weights")
+    if num_esg_assets < 1 or num_esg_assets > 5:
+        raise ValueError("Number of ESG assets must be between 1 and 5")
+    if abs(sum(esg_weights) - 1.0) > 0.01:
+        raise ValueError("ESG weights must sum to 1")
+    if any(w < 0 for w in esg_weights) or any(s < 0 or s > 100 for s in esg_scores):
+        raise ValueError("Invalid ESG scores or weights")
+    
+    esg_proportion = esg_amount / total_portfolio
+    weighted_esg_score = sum(s * w for s, w in zip(esg_scores, esg_weights))
+    return esg_proportion, weighted_esg_score
+
+def calculate_hedge_fund_returns(strategy, investment, leverage, target_return, volatility):
+    if any(x <= 0 for x in [investment, leverage, volatility]) or target_return < 0:
+        raise ValueError("Invalid inputs")
+    
+    # Strategy-specific adjustments (simplified)
+    strategy_multipliers = {
+        'long-short': 1.0,
+        'arbitrage': 0.8,  # Lower risk/return
+        'global-macro': 1.2  # Higher risk/return
+    }
+    multiplier = strategy_multipliers.get(strategy, 1.0)
+    leveraged_return = target_return / 100 * leverage * multiplier
+    leveraged_volatility = volatility / 100 * leverage * multiplier
+    expected_value = investment * (1 + leveraged_return)
+    return expected_value, leveraged_return, leveraged_volatility
+
 def calculate_dcf(fcfs, risk_free_rate, market_return, beta, debt, equity, tax_rate, growth_rate, use_exit_multiple=False, exit_ebitda_multiple=None, ebitda_last_year=None):
     assert len(fcfs) == 5, "Provide exactly 5 years of FCF"
     total_value = debt + equity
@@ -139,6 +238,49 @@ def ads_txt():
 def index():
     return render_template('index.html')
 
+@app.route('/expected-return', methods=['GET', 'POST'])
+def expected_return():
+    if request.method == 'POST':
+        try:
+            form_data = {
+                'weights': request.form['weights'],
+                'returns': request.form['returns']
+            }
+            weights = parse_comma_separated(form_data['weights'])
+            returns = parse_comma_separated(form_data['returns'])
+            expected_return = calculate_expected_return(weights, returns)
+            result = f"Portfolio Expected Return: {expected_return:.2%}"
+            return render_template('expected_return.html', result=result, form_data=form_data)
+        except ValueError as e:
+            error = f"Error: {str(e)}"
+            return render_template('expected_return.html', error, form_data=form_data, error=error)
+    return render_template('expected_return.html', form_data={})
+
+def calculate_portfolio_volatility(weights, cov_matrix):
+    """Calculate portfolio volatility (standard deviation) using weights and covariance matrix."""
+    weights_array = np.array(weights)
+    portfolio_variance = np.dot(weights_array.T, np.dot(cov_matrix, weights_array))
+    return np.sqrt(portfolio_variance)
+
+@app.route('/volatility', methods=['GET', 'POST'])
+def volatility():
+    if request.method == 'POST':
+        try:
+            form_data = {
+                'weights': request.form['weights'],
+                'covariance': request.form['covariance']
+            }
+            weights = parse_comma_separated(form_data['weights'])
+            cov_matrix = parse_covariance_matrix(form_data['covariance'], len(weights))
+            portfolio_volatility = calculate_portfolio_volatility(weights, cov_matrix)
+            result = f"Portfolio Volatility: {portfolio_volatility:.2%}"
+            return render_template('volatility.html', result=result, form_data=form_data)
+        except ValueError as e:
+            error = f"Error: {str(e)}"
+            return render_template('volatility.html', error=error, form_data=form_data)
+    return render_template('volatility.html', form_data={})
+
+
 @app.route('/calculate-fcf', methods=['GET', 'POST'])
 def calculate_fcf():
     fcfs = None
@@ -160,6 +302,127 @@ def calculate_fcf():
             error = "Please enter valid numbers for all fields."
 
     return render_template('calculate_fcf.html', fcfs=fcfs, ocfs=ocfs, capex=capex, error=error, currency_symbol=currency_symbol)
+
+@app.route('/portfolio-diversification', methods=['GET', 'POST'])
+def portfolio_diversification():
+    if request.method == 'POST':
+        try:
+            form_data = {
+                'num_assets': request.form['num_assets']
+            }
+            num_assets = int(request.form['num_assets'])
+            returns = []
+            weights = []
+            volatilities = []
+            for i in range(1, num_assets + 1):
+                form_data[f'return_{i}'] = request.form[f'return_{i}']
+                form_data[f'weight_{i}'] = request.form[f'weight_{i}']
+                form_data[f'volatility_{i}'] = request.form[f'volatility_{i}']
+                returns.append(float(form_data[f'return_{i}']))
+                weights.append(float(form_data[f'weight_{i}']))
+                volatilities.append(float(form_data[f'volatility_{i}']))
+
+            expected_return, portfolio_volatility = calculate_portfolio_metrics(num_assets, returns, weights, volatilities)
+            result = f"""
+                <p>Portfolio Expected Return: {expected_return:.2%}</p>
+                <p>Portfolio Volatility (Risk): {portfolio_volatility:.2%}</p>
+            """
+            return render_template('portfolio_diversification.html', result=result, form_data=form_data)
+        except ValueError as e:
+            result = f"Error: {str(e)}"
+            return render_template('portfolio_diversification.html', result=result, form_data=request.form)
+    return render_template('portfolio_diversification.html', form_data={})
+
+@app.route('/forex', methods=['GET', 'POST'])
+def forex_calculator():
+    if request.method == 'POST':
+        try:
+            form_data = {
+                'investment': request.form['investment'],
+                'initial_rate': request.form['initial_rate'],
+                'final_rate': request.form['final_rate']
+            }
+            investment = float(form_data['investment'])
+            initial_rate = float(form_data['initial_rate'])
+            final_rate = float(form_data['final_rate'])
+
+            profit = calculate_forex_profit(investment, initial_rate, final_rate)
+            result = f"""
+                <p>Forex Profit/Loss: ${profit:,.2f}</p>
+                <p>Initial Investment: ${investment:,.2f}</p>
+                <p>Initial Exchange Rate: {initial_rate:.4f}</p>
+                <p>Final Exchange Rate: {final_rate:.4f}</p>
+            """
+            return render_template('forex.html', result=result, form_data=form_data)
+        except ValueError as e:
+            result = f"Error: {str(e)}"
+            return render_template('forex.html', result=result, form_data=request.form)
+    return render_template('forex.html', form_data={})
+
+@app.route('/esg-investments', methods=['GET', 'POST'])
+def esg_investments():
+    if request.method == 'POST':
+        try:
+            form_data = {
+                'esg_amount': request.form['esg_amount'],
+                'total_portfolio': request.form['total_portfolio'],
+                'num_esg_assets': request.form['num_esg_assets']
+            }
+            esg_amount = float(form_data['esg_amount'])
+            total_portfolio = float(form_data['total_portfolio'])
+            num_esg_assets = int(form_data['num_esg_assets'])
+            esg_scores = []
+            esg_weights = []
+            for i in range(1, num_esg_assets + 1):
+                form_data[f'esg_score_{i}'] = request.form[f'esg_score_{i}']
+                form_data[f'esg_weight_{i}'] = request.form[f'esg_weight_{i}']
+                esg_scores.append(float(form_data[f'esg_score_{i}']))
+                esg_weights.append(float(form_data[f'esg_weight_{i}']))
+
+            esg_proportion, weighted_esg_score = calculate_esg_metrics(
+                esg_amount, total_portfolio, num_esg_assets, esg_scores, esg_weights
+            )
+            result = f"""
+                <p>ESG Investment Proportion: {esg_proportion:.2%}</p>
+                <p>Weighted ESG Score: {weighted_esg_score:.2f}/100</p>
+            """
+            return render_template('esg.html', result=result, form_data=form_data)
+        except ValueError as e:
+            result = f"Error: {str(e)}"
+            return render_template('esg.html', result=result, form_data=request.form)
+    return render_template('esg.html', form_data={})
+
+@app.route('/hedge-funds', methods=['GET', 'POST'])
+def hedge_funds():
+    if request.method == 'POST':
+        try:
+            form_data = {
+                'strategy': request.form['strategy'],
+                'investment': request.form['investment'],
+                'leverage': request.form['leverage'],
+                'target_return': request.form['target_return'],
+                'volatility': request.form['volatility']
+            }
+            strategy = form_data['strategy']
+            investment = float(form_data['investment'])
+            leverage = float(form_data['leverage'])
+            target_return = float(form_data['target_return'])
+            volatility = float(form_data['volatility'])
+
+            expected_value, leveraged_return, leveraged_volatility = calculate_hedge_fund_returns(
+                strategy, investment, leverage, target_return, volatility
+            )
+            result = f"""
+                <p>Expected Portfolio Value: ${expected_value:,.2f}</p>
+                <p>Leveraged Return: {leveraged_return:.2%}</p>
+                <p>Leveraged Volatility (Risk): {leveraged_volatility:.2%}</p>
+                <p>Strategy: {strategy.replace('-', ' ').title()}</p>
+            """
+            return render_template('hedge_funds.html', result=result, form_data=form_data)
+        except ValueError as e:
+            result = f"Error: {str(e)}"
+            return render_template('hedge_funds.html', result=result, form_data=request.form)
+    return render_template('hedge_funds.html', form_data={})
 
 @app.route('/calculate-beta', methods=['GET', 'POST'])
 def calculate_beta():

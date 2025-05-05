@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Portfolio Diversification{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2 class="centered-heading">Portfolio Diversification Tool</h2>
+    <p>Optimize your investment portfolio by analyzing expected returns, weights, and diversification metrics.</p>
+
+    <h3>About Portfolio Diversification</h3>
+    <p>Portfolio diversification reduces risk by allocating investments across various assets. This tool calculates the expected portfolio return and risk (standard deviation) based on the expected returns and weights of individual assets. It assumes no correlation between assets for simplicity, but you can extend this by incorporating a covariance matrix in advanced analyses.</p>
+
+    <h3>Input Fields</h3>
+    <p>Provide the following details to analyze your portfolio:</p>
+    <ul>
+        <li><strong>Number of Assets</strong>: The total number of assets in your portfolio (1-10).</li>
+        <li><strong>Expected Returns (%)</strong>: The anticipated annual return for each asset (e.g., 10 for 10%).</li>
+        <li><strong>Portfolio Weights</strong>: The proportion of the portfolio allocated to each asset (e.g., 0.4 for 40%). Weights must sum to 1.</li>
+        <li><strong>Volatility (%)</strong>: The standard deviation of each asset’s returns, representing risk (e.g., 15 for 15%).</li>
+    </ul>
+
+    <form method="POST" action="/portfolio-diversification">
+        <div class="group">
+            <label for="num_assets">Number of Assets (1-10):</label>
+            <input type="number" step="1" min="1" max="10" id="num_assets" name="num_assets" value="{{ form_data['num_assets'] if form_data else '' }}" required>
+        </div>
+        {% for i in range(10) %}
+        <div class="group asset-input" style="display: none;" id="asset_{{ i+1 }}">
+            <h4>Asset {{ i+1 }}</h4>
+            <div class="group">
+                <label for="return_{{ i+1 }}">Expected Return (%):</label>
+                <input type="number" step="0.01" id="return_{{ i+1 }}" name="return_{{ i+1 }}" value="{{ form_data['return_' + (i+1)|string] if form_data else '' }}">
+            </div>
+            <div class="group">
+                <label for="weight_{{ i+1 }}">Portfolio Weight (e.g., 0.4 for 40%):</label>
+                <input type="number" step="0.01" id="weight_{{ i+1 }}" name="weight_{{ i+1 }}" value="{{ form_data['weight_' + (i+1)|string] if form_data else '' }}">
+            </div>
+            <div class="group">
+                <label for="volatility_{{ i+1 }}">Volatility (%):</label>
+                <input type="number" step="0.01" id="volatility_{{ i+1 }}" name="volatility_{{ i+1 }}" value="{{ form_data['volatility_' + (i+1)|string] if form_data else '' }}">
+            </div>
+        </div>
+        {% endfor %}
+        <div>
+            <input type="submit" value="Calculate" class="action-btn">
+            <button type="reset" class="action-btn">Clear</button>
+        </div>
+    </form>
+
+    {% if result %}
+    <div class="results">
+        <h3>Results</h3>
+        {{ result|safe }}
+    </div>
+    {% endif %}
+
+    <a href="/" class="action-btn">Back to Home</a>
+</div>
+
+<script>
+    function updateAssetInputs() {
+        const numAssets = parseInt(document.getElementById('num_assets').value) || 0;
+        for (let i = 1; i <= 10; i++) {
+            const assetDiv = document.getElementById(`asset_${i}`);
+            if (i <= numAssets) {
+                assetDiv.style.display = 'block';
+                assetDiv.querySelectorAll('input').forEach(input => input.required = true);
+            } else {
+                assetDiv.style.display = 'none';
+                assetDiv.querySelectorAll('input').forEach(input => input.required = false);
+            }
+        }
+    }
+    document.getElementById('num_assets').addEventListener('input', updateAssetInputs);
+    window.addEventListener('load', updateAssetInputs);
+</script>
+{% endblock %}
