@@ -1,29 +1,132 @@
 {% extends "base.html" %}
 
-{% block title %}Portfolio Volatility{% endblock %}
+{% block title %}Portfolio Volatility Calculator{% endblock %}
 
 {% block content %}
-<h2 class="centered-heading">Portfolio Volatility Calculator</h2>
-<p>Calculate the volatility of a portfolio based on asset weights and covariance matrix.</p>
-<p><strong>Note:</strong> Enter weights as decimals (e.g., 0.4 for 40%). Weights must sum to 1. Enter the covariance matrix with rows separated by semicolons and elements by commas (e.g., for 2 assets: "0.04, 0.02; 0.02, 0.03").</p>
-<p><strong>Example:</strong> For two assets with weights 0.4 and 0.6, and covariance matrix "0.04, 0.02; 0.02, 0.03", the portfolio volatility is calculated as the square root of (w^T * Cov * w).</p>
-<form method="POST" action="/volatility">
-    <div>
-        <label for="weights">Asset Weights (comma-separated):</label>
-        <input type="text" id="weights" name="weights" placeholder="e.g., 0.4, 0.6" value="{{ form_data.weights | default('') }}" required>
-    </div>
-    <div>
-        <label for="covariance">Covariance Matrix (semicolon-separated rows, comma-separated elements):</label>
-        <input type="text" id="covariance" name="covariance" placeholder="e.g., 0.04, 0.02; 0.02, 0.03" value="{{ form_data.covariance | default('') }}" required>
-    </div>
-    <button type="submit">Calculate</button>
-</form>
+<div class="container">
+    <h2 class="centered-heading">Portfolio Volatility Calculator</h2>
+    <p>Calculate the volatility (risk) of a portfolio based on asset weights and their covariance matrix.</p>
 
-{% if result %}
-<h3>Results:</h3>
-<p>{{ result }}</p>
-{% endif %}
-{% if error %}
-<p class="error">{{ error }}</p>
-{% endif %}
+    <h3>About Portfolio Volatility</h3>
+    <p>Portfolio volatility measures the risk of a portfolio by calculating the standard deviation of its returns. It accounts for the weights of each asset and their covariances, which reflect how asset returns move together. This tool computes volatility as the square root of the portfolio variance (w^T * Cov * w), where w is the weight vector and Cov is the covariance matrix.</p>
+    <p><strong>Example:</strong> For two assets with weights 40% (0.4) and 60% (0.6), and a covariance matrix [[0.04, 0.02], [0.02, 0.03]], the volatility is calculated based on the weighted covariance.</p>
+
+    <h3>Input Fields</h3>
+    <p>Provide the following details to calculate your portfolio’s volatility:</p>
+    <ul>
+        <li><strong>Number of Assets</strong>: The number of assets in your portfolio (1–10).</li>
+        <li><strong>Asset Weights</strong>: The proportion of the portfolio allocated to each asset (e.g., 0.4 for 40%). Weights must sum to 1.</li>
+        <li><strong>Covariance Matrix</strong>: The covariance between asset returns. For N assets, provide a symmetric N×N matrix where each element is the covariance between two assets (e.g., 0.04 for variance, 0.02 for covariance).</li>
+    </ul>
+
+    <form method="POST" action="/volatility" onsubmit="return validateWeights()">
+        <div class="group">
+            <label for="num_assets">Number of Assets (1–10):</label>
+            <input type="number" step="1" min="1" max="10" id="num_assets" name="num_assets" value="{{ form_data['num_assets'] if form_data else '' }}" required>
+        </div>
+        {% for i in range(10) %}
+        <div class="group asset-input" style="display: none;" id="asset_{{ i+1 }}">
+            <h4>Asset {{ i+1 }}</h4>
+            <div class="group">
+                <label for="weight_{{ i+1 }}">Weight (e.g., 0.4 for 40%):</label>
+                <input type="number" step="0.01" min="0" max="1" id="weight_{{ i+1 }}" name="weight_{{ i+1 }}" value="{{ form_data['weight_' + (i+1)|string] if form_data else '' }}">
+            </div>
+        </div>
+        {% endfor %}
+        <div class="group covariance-input" style="display: none;" id="covariance_matrix">
+            <h4>Covariance Matrix</h4>
+            <p>Enter the covariance matrix elements (variances and covariances). For N assets, provide N×N elements.</p>
+            {% for i in range(10) %}
+            <div class="covariance-row" style="display: none;" id="cov_row_{{ i+1 }}">
+                <h5>Row {{ i+1 }}</h5>
+                {% for j in range(10) %}
+                <div class="group covariance-element" style="display: none;" id="cov_{{ i+1 }}_{{ j+1 }}">
+                    <label for="cov_{{ i+1 }}_{{ j+1 }}">Covariance (Asset {{ i+1 }}, Asset {{ j+1 }}):</label>
+                    <input type="number" step="0.0001" id="cov_{{ i+1 }}_{{ j+1 }}" name="cov_{{ i+1 }}_{{ j+1 }}" value="{{ form_data['cov_' + (i+1)|string + '_' + (j+1)|string] if form_data else '' }}">
+                </div>
+                {% endfor %}
+            </div>
+            {% endfor %}
+        </div>
+        <div>
+            <input type="submit" value="Calculate" class="action-btn">
+            <button type="reset" class="action-btn">Clear</button>
+        </div>
+    </form>
+
+    {% if result %}
+    <div class="results">
+        <h3>Results</h3>
+        {{ result|safe }}
+    </div>
+    {% endif %}
+    {% if error %}
+    <p style="color: red;">{{ error }}</p>
+    {% endif %}
+
+    <a href="/" class="action-btn">Back to Home</a>
+</div>
+
+<script>
+    function updateAssetInputs() {
+        const numAssets = parseInt(document.getElementById('num_assets').value) || 0;
+        // Update asset weight inputs
+        for (let i = 1; i <= 10; i++) {
+            const assetDiv = document.getElementById(`asset_${i}`);
+            if (i <= numAssets) {
+                assetDiv.style.display = 'block';
+                assetDiv.querySelectorAll('input').forEach(input => input.required = true);
+            } else {
+                assetDiv.style.display = 'none';
+                assetDiv.querySelectorAll('input').forEach(input => {
+                    input.required = false;
+                    input.value = '';
+                });
+            }
+        }
+        // Update covariance matrix inputs
+        const covMatrixDiv = document.getElementById('covariance_matrix');
+        covMatrixDiv.style.display = numAssets > 0 ? 'block' : 'none';
+        for (let i = 1; i <= 10; i++) {
+            const rowDiv = document.getElementById(`cov_row_${i}`);
+            if (i <= numAssets) {
+                rowDiv.style.display = 'block';
+                for (let j = 1; j <= 10; j++) {
+                    const elementDiv = document.getElementById(`cov_${i}_${j}`);
+                    if (j <= numAssets) {
+                        elementDiv.style.display = 'block';
+                        elementDiv.querySelector('input').required = true;
+                    } else {
+                        elementDiv.style.display = 'none';
+                        elementDiv.querySelector('input').required = false;
+                        elementDiv.querySelector('input').value = '';
+                    }
+                }
+            } else {
+                rowDiv.style.display = 'none';
+                rowDiv.querySelectorAll('input').forEach(input => {
+                    input.required = false;
+                    input.value = '';
+                });
+            }
+        }
+    }
+
+    function validateWeights() {
+        const numAssets = parseInt(document.getElementById('num_assets').value) || 0;
+        let sumWeights = 0;
+        for (let i = 1; i <= numAssets; i++) {
+            const weight = parseFloat(document.getElementById(`weight_${i}`).value) || 0;
+            sumWeights += weight;
+        }
+        if (Math.abs(sumWeights - 1) > 0.05) {
+            alert('Weights must sum to 1 (within 5% tolerance). Current sum: ' + sumWeights.toFixed(2));
+            return false;
+        }
+        return true;
+    }
+
+    document.getElementById('num_assets').addEventListener('input', updateAssetInputs);
+    window.addEventListener('load', updateAssetInputs);
+</script>
 {% endblock %}

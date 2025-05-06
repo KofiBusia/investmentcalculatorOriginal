@@ -252,16 +252,25 @@ def expected_return():
     if request.method == 'POST':
         try:
             form_data = {
-                'weights': request.form['weights'],
-                'returns': request.form['returns']
+                'num_assets': request.form['num_assets']
             }
-            weights = parse_comma_separated(form_data['weights'])
-            returns = parse_comma_separated(form_data['returns'])
+            num_assets = int(form_data['num_assets'])
+            weights = []
+            returns = []
+            for i in range(1, num_assets + 1):
+                form_data[f'weight_{i}'] = request.form[f'weight_{i}']
+                form_data[f'return_{i}'] = request.form[f'return_{i}']
+                weights.append(float(form_data[f'weight_{i}']))
+                returns.append(float(form_data[f'return_{i}']))
+            
             expected_return = calculate_expected_return(weights, returns)
-            result = f"Portfolio Expected Return: {expected_return:.2%}"
+            result = f"<p>Portfolio Expected Return: {expected_return:.2%}</p>"
             return render_template('expected_return.html', result=result, form_data=form_data)
         except ValueError as e:
             error = f"Error: {str(e)}"
+            return render_template('expected_return.html', error=error, form_data=form_data)
+        except Exception as e:
+            error = f"Unexpected error: {str(e)}"
             return render_template('expected_return.html', error=error, form_data=form_data)
     return render_template('expected_return.html', form_data={})
 
@@ -276,16 +285,38 @@ def volatility():
     if request.method == 'POST':
         try:
             form_data = {
-                'weights': request.form['weights'],
-                'covariance': request.form['covariance']
+                'num_assets': request.form['num_assets']
             }
-            weights = parse_comma_separated(form_data['weights'])
-            cov_matrix = parse_covariance_matrix(form_data['covariance'], len(weights))
+            num_assets = int(form_data['num_assets'])
+            weights = []
+            for i in range(1, num_assets + 1):
+                form_data[f'weight_{i}'] = request.form[f'weight_{i}']
+                weights.append(float(form_data[f'weight_{i}']))
+            
+            # Build covariance matrix from individual inputs
+            cov_matrix = []
+            for i in range(1, num_assets + 1):
+                row = []
+                for j in range(1, num_assets + 1):
+                    form_data[f'cov_{i}_{j}'] = request.form[f'cov_{i}_{j}']
+                    row.append(float(form_data[f'cov_{i}_{j}']))
+                cov_matrix.append(row)
+            cov_matrix = np.array(cov_matrix)
+            
+            # Validate covariance matrix
+            if not np.allclose(cov_matrix, cov_matrix.T):
+                raise ValueError("Covariance matrix must be symmetric.")
+            if np.any(np.linalg.eigvals(cov_matrix) < -1e-10):
+                raise ValueError("Covariance matrix must be positive semi-definite.")
+            
             portfolio_volatility = calculate_portfolio_volatility(weights, cov_matrix)
-            result = f"Portfolio Volatility: {portfolio_volatility:.2%}"
+            result = f"<p>Portfolio Volatility: {portfolio_volatility:.2%}</p>"
             return render_template('volatility.html', result=result, form_data=form_data)
         except ValueError as e:
             error = f"Error: {str(e)}"
+            return render_template('volatility.html', error=error, form_data=form_data)
+        except Exception as e:
+            error = f"Unexpected error: {str(e)}"
             return render_template('volatility.html', error=error, form_data=form_data)
     return render_template('volatility.html', form_data={})
 

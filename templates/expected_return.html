@@ -1,29 +1,94 @@
 {% extends "base.html" %}
 
-{% block title %}Expected Return{% endblock %}
+{% block title %}Expected Return Calculator{% endblock %}
 
 {% block content %}
-<h2 class="centered-heading">Expected Return Calculator</h2>
-<p>Calculate the expected return of a portfolio based on asset weights and expected returns.</p>
-<p><strong>Note:</strong> Enter weights and returns as decimals (e.g., 0.4 for 40%, 0.08 for 8%). Weights must sum to 1.</p>
-<p><strong>Example:</strong> For two assets with weights 0.4 and 0.6, and expected returns 0.08 and 0.12, enter "0.4, 0.6" for weights and "0.08, 0.12" for returns. The expected return will be 0.4*0.08 + 0.6*0.12 = 0.104 or 10.4%.</p>
-<form method="POST" action="/expected-return">
-    <div>
-        <label for="weights">Asset Weights (comma-separated):</label>
-        <input type="text" id="weights" name="weights" placeholder="e.g., 0.4, 0.6" value="{{ form_data.weights | default('') }}" required>
-    </div>
-    <div>
-        <label for="returns">Asset Expected Returns (comma-separated):</label>
-        <input type="text" id="returns" name="returns" placeholder="e.g., 0.08, 0.12" value="{{ form_data.returns | default('') }}" required>
-    </div>
-    <button type="submit">Calculate</button>
-</form>
+<div class="container">
+    <h2 class="centered-heading">Expected Return Calculator</h2>
+    <p>Calculate the expected return of a portfolio based on asset weights and their expected returns.</p>
 
-{% if result %}
-<h3>Results:</h3>
-<p>{{ result }}</p>
-{% endif %}
-{% if error %}
-<p class="error">{{ error }}</p>
-{% endif %}
+    <h3>About Expected Return</h3>
+    <p>The expected return of a portfolio is the weighted average of the expected returns of its assets. This tool calculates the portfolio’s expected return by multiplying each asset’s weight by its expected return and summing the results. Weights must sum to 1 (100%).</p>
+    <p><strong>Example:</strong> For two assets with weights 40% (0.4) and 60% (0.6), and expected returns 8% (0.08) and 12% (0.12), the expected return is (0.4 × 0.08) + (0.6 × 0.12) = 0.104 or 10.4%.</p>
+
+    <h3>Input Fields</h3>
+    <p>Provide the following details to calculate your portfolio’s expected return:</p>
+    <ul>
+        <li><strong>Number of Assets</strong>: The number of assets in your portfolio (1–10).</li>
+        <li><strong>Asset Weights</strong>: The proportion of the portfolio allocated to each asset (e.g., 0.4 for 40%). Weights must sum to 1.</li>
+        <li><strong>Expected Returns</strong>: The expected annual return for each asset (e.g., 0.08 for 8%).</li>
+    </ul>
+
+    <form method="POST" action="/expected-return" onsubmit="return validateWeights()">
+        <div class="group">
+            <label for="num_assets">Number of Assets (1–10):</label>
+            <input type="number" step="1" min="1" max="10" id="num_assets" name="num_assets" value="{{ form_data['num_assets'] if form_data else '' }}" required>
+        </div>
+        {% for i in range(10) %}
+        <div class="group asset-input" style="display: none;" id="asset_{{ i+1 }}">
+            <h4>Asset {{ i+1 }}</h4>
+            <div class="group">
+                <label for="weight_{{ i+1 }}">Weight (e.g., 0.4 for 40%):</label>
+                <input type="number" step="0.01" min="0" max="1" id="weight_{{ i+1 }}" name="weight_{{ i+1 }}" value="{{ form_data['weight_' + (i+1)|string] if form_data else '' }}">
+            </div>
+            <div class="group">
+                <label for="return_{{ i+1 }}">Expected Return (e.g., 0.08 for 8%):</label>
+                <input type="number" step="0.01" id="return_{{ i+1 }}" name="return_{{ i+1 }}" value="{{ form_data['return_' + (i+1)|string] if form_data else '' }}">
+            </div>
+        </div>
+        {% endfor %}
+        <div>
+            <input type="submit" value="Calculate" class="action-btn">
+            <button type="reset" class="action-btn">Clear</button>
+        </div>
+    </form>
+
+    {% if result %}
+    <div class="results">
+        <h3>Results</h3>
+        {{ result|safe }}
+    </div>
+    {% endif %}
+    {% if error %}
+    <p style="color: red;">{{ error }}</p>
+    {% endif %}
+
+    <a href="/" class="action-btn">Back to Home</a>
+</div>
+
+<script>
+    function updateAssetInputs() {
+        const numAssets = parseInt(document.getElementById('num_assets').value) || 0;
+        for (let i = 1; i <= 10; i++) {
+            const assetDiv = document.getElementById(`asset_${i}`);
+            if (i <= numAssets) {
+                assetDiv.style.display = 'block';
+                assetDiv.querySelectorAll('input').forEach(input => input.required = true);
+            } else {
+                assetDiv.style.display = 'none';
+                assetDiv.querySelectorAll('input').forEach(input => {
+                    input.required = false;
+                    input.value = '';
+                });
+            }
+        }
+    }
+
+    function validateWeights() {
+        const numAssets = parseInt(document.getElementById('num_assets').value) || 0;
+        let sumWeights = 0;
+        for (let i = 1; i <= numAssets; i++) {
+            const weight = parseFloat(document.getElementById(`weight_${i}`).value) || 0;
+            sumWeights += weight;
+        }
+        if (Math.abs(sumWeights - 1) > 0.05) {
+            alert('Weights must sum to 1 (within 5% tolerance). Current sum: ' + sumWeights.toFixed(2));
+            return false;
+        }
+        return true;
+    }
+
+    document.getElementById('num_assets').addEventListener('input', updateAssetInputs);
+    window.addEventListener('load', updateAssetInputs);
+</script>
 {% endblock %}
