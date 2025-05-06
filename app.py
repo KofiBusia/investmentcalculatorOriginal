@@ -4,7 +4,7 @@ import numpy as np
 import os
 from dotenv import load_dotenv
 
-load_dotenv()  # ← This loads variables from .env
+load_dotenv()  # Load variables from .env
 
 app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY', 'default_secret_key')  # Set via environment; default for local dev only
@@ -60,7 +60,6 @@ def calculate_expected_return(weights, returns):
     if any(w < 0 for w in weights):
         raise ValueError("Weights must be non-negative.")
     return np.sum(np.array(weights) * np.array(returns))
-
 
 def calculate_portfolio_metrics(num_assets, returns, weights, volatilities):
     if num_assets != len(returns) or num_assets != len(weights) or num_assets != len(volatilities):
@@ -171,9 +170,9 @@ def calculate_intrinsic_value_full(
     cash_and_equivalents: float,
     growth_rate: float = None,
     auto_growth_rate: bool = True
-) -> float:
+) -> tuple[float, float, float]:
     """
-    Calculates the intrinsic value per share using perpetual growth DCF from historical FCF.
+    Calculates the intrinsic value per share, growth rate, and discount rate using perpetual growth DCF from historical FCF.
     
     Parameters:
     - fcfs: Historical Free Cash Flows (years 1-5)
@@ -187,7 +186,9 @@ def calculate_intrinsic_value_full(
     - auto_growth_rate: Whether to auto-compute growth rate from historical FCF (default: True)
 
     Returns:
-    - Intrinsic value per share.
+    - intrinsic_value_per_share: Intrinsic value per share
+    - g: Growth rate used in the calculation
+    - discount_rate: Discount rate calculated via CAPM
     """
     assert len(fcfs) == 5, "Provide exactly 5 years of historical FCF"
 
@@ -197,10 +198,8 @@ def calculate_intrinsic_value_full(
             g = 0.0
         else:
             g = (fcfs[-1] / fcfs[0]) ** (1 / (len(fcfs) - 1)) - 1
-        growth_source = "auto-computed"
     else:
         g = growth_rate
-        growth_source = "manually input"
 
     # Use the last FCF
     last_fcf = fcfs[-1]
@@ -211,9 +210,7 @@ def calculate_intrinsic_value_full(
     # Check if discount_rate > g with detailed error message
     if discount_rate <= g:
         raise ValueError(
-            f"Discount rate ({discount_rate:.2%}) must be greater than growth rate ({g:.2%}) for the perpetual growth model. "
-            f"The growth rate was {growth_source}. Consider lowering the growth rate or increasing the discount rate "
-            "by adjusting the risk-free rate, market return, or beta."
+            f"Discount rate ({discount_rate:.2%}) must be greater than growth rate ({g:.2%}) for the perpetual growth model."
         )
 
     # Calculate next year's FCF
@@ -228,7 +225,19 @@ def calculate_intrinsic_value_full(
     # Calculate intrinsic value per share
     intrinsic_value_per_share = equity_value / outstanding_shares if equity_value > 0 else 0
 
-    return intrinsic_value_per_share
+    return intrinsic_value_per_share, g, discount_rate
+
+def calculate_target_price(fcf, explicit_growth, n, g, r, debt, cash, shares):
+    """Calculate target price for a given projection period."""
+    if g >= r:
+        raise ValueError("Perpetual growth rate must be less than discount rate.")
+    # Project FCF for n years
+    projected_fcf = [fcf * (1 + explicit_growth)**i for i in range(1, n+1)]
+    # Terminal value at year n
+    terminal_value = (projected_fcf[-1] * (1 + g)) / (r - g)
+    # Target price (adjusted for debt/cash)
+    target_price = (terminal_value - debt + cash) / shares
+    return target_price
 
 @app.route('/ads.txt')
 def ads_txt():
@@ -253,7 +262,7 @@ def expected_return():
             return render_template('expected_return.html', result=result, form_data=form_data)
         except ValueError as e:
             error = f"Error: {str(e)}"
-            return render_template('expected_return.html', error, form_data=form_data, error=error)
+            return render_template('expected_return.html', error=error, form_data=form_data)
     return render_template('expected_return.html', form_data={})
 
 def calculate_portfolio_volatility(weights, cov_matrix):
@@ -279,7 +288,6 @@ def volatility():
             error = f"Error: {str(e)}"
             return render_template('volatility.html', error=error, form_data=form_data)
     return render_template('volatility.html', form_data={})
-
 
 @app.route('/calculate-fcf', methods=['GET', 'POST'])
 def calculate_fcf():
@@ -988,10 +996,13 @@ def tbills_rediscount():
 @app.route('/intrinsic-value', methods=['GET', 'POST'])
 def intrinsic_value():
     result = None
+    target_price = None
     error = None
+    projection_period = None
+
     if request.method == 'POST':
         try:
-            # Extract 5 years of FCF
+            # Extract inputs
             fcfs = [float(request.form[f'fcf_{i}']) for i in range(1, 6)]
             risk_free_rate = float(request.form['risk_free_rate']) / 100
             market_return = float(request.form['market_return']) / 100
@@ -999,31 +1010,51 @@ def intrinsic_value():
             outstanding_shares = float(request.form['outstanding_shares'])
             total_debt = float(request.form['total_debt'])
             cash_and_equivalents = float(request.form['cash_and_equivalents'])
+            explicit_growth_rate = float(request.form['explicit_growth_rate']) / 100
+            projection_period = int(request.form['projection_period'])
             auto_growth_rate = request.form.get('auto_growth_rate') == 'on'
 
             # Handle growth rate
             if auto_growth_rate:
-                growth_rate = None  # Will be auto-computed
+                growth_rate = None
             else:
                 growth_rate = float(request.form['manual_growth_rate']) / 100
 
             # Validation
             if outstanding_shares <= 0:
-                error = "Outstanding shares must be positive."
-            else:
-                intrinsic_value = calculate_intrinsic_value_full(
-                    fcfs, risk_free_rate, market_return, beta,
-                    outstanding_shares, total_debt, cash_and_equivalents,
-                    growth_rate=growth_rate, auto_growth_rate=auto_growth_rate
-                )
-                result = "{:,.2f}".format(intrinsic_value)
+                raise ValueError("Outstanding shares must be positive.")
+            if projection_period < 1 or projection_period > 5:
+                raise ValueError("Projection period must be between 1 and 5 years.")
+
+            # Calculate intrinsic value, growth rate, and discount rate
+            intrinsic_value, g, discount_rate = calculate_intrinsic_value_full(
+                fcfs, risk_free_rate, market_return, beta,
+                outstanding_shares, total_debt, cash_and_equivalents,
+                growth_rate=growth_rate, auto_growth_rate=auto_growth_rate
+            )
+
+            # Calculate target price
+            target_price_value = calculate_target_price(
+                fcfs[-1], explicit_growth_rate, projection_period,
+                g, discount_rate, total_debt, cash_and_equivalents, outstanding_shares
+            )
+
+            # Format results
+            result = f"{intrinsic_value:.2f}"
+            target_price = f"{target_price_value:.2f}"
 
         except ValueError as e:
             error = str(e)
         except Exception as e:
             error = "An error occurred: " + str(e)
 
-    return render_template('intrinsic_value.html', result=result, error=error)
+    return render_template(
+        'intrinsic_value.html',
+        result=result,
+        target_price=target_price,
+        error=error,
+        projection_period=projection_period
+    )
 
 if __name__ == '__main__':
     # For local development, use Waitress

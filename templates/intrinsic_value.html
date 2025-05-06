@@ -1,27 +1,30 @@
 {% extends "base.html" %}
 
-{% block title %}Intrinsic Value Calculation{% endblock %}
+{% block title %}Intrinsic Value and Target Price Calculation{% endblock %}
 
 {% block content %}
 <div class="container">
-    <h2>Intrinsic Value Calculation for Stocks</h2>
-    <p>Intrinsic value is an estimate of a stock's true worth based on its fundamentals, such as its earnings, assets, and growth potential. It’s calculated using a discounted cash flow (DCF) model, which projects future cash flows and discounts them back to their present value. This helps investors determine whether a stock is undervalued or overvalued compared to its current market price.</p>
+    <h2>Intrinsic Value and Target Price Calculation for Stocks</h2>
+    <p>Intrinsic value is an estimate of a stock's true worth based on its fundamentals, such as its earnings, assets, and growth potential. It’s calculated using a discounted cash flow (DCF) model, which projects future cash flows and discounts them back to their present value. The target price projects the stock’s future value over a selected period, adjusted for growth and risk.</p>
     
     <h3>How the Intrinsic Value is Calculated</h3>
-    <p>We use a method called the perpetual growth Discounted Cash Flow (DCF) model. Here’s a simple breakdown of how it works:</p>
+    <p>We use a perpetual growth Discounted Cash Flow (DCF) model. Here’s a simple breakdown:</p>
     <ol>
-        <li><strong>Start with Free Cash Flow (FCF)</strong>: We take the company’s most recent Free Cash Flow (FCF), which is the cash it generates after paying for its operations and investments.</li>
-        <li><strong>Assume Steady Growth</strong>: We assume this FCF will grow at a constant rate forever. This rate is called the <strong>perpetual growth rate (g)</strong>. You can let the app figure it out from past FCF data or enter it yourself.</li>
-        <li><strong>Adjust for Time and Risk</strong>: We estimate the future FCFs based on this growth rate and adjust them to today’s value using a <strong>discount rate (r)</strong>. This rate comes from the Capital Asset Pricing Model (CAPM), which factors in things like the risk-free rate, market return, and the stock’s risk (beta).</li>
-        <li><strong>Find the Enterprise Value</strong>: By combining these adjusted future FCFs, we calculate the <strong>Enterprise Value</strong>, which represents the total value of the company’s operations.</li>
-        <li><strong>Adjust for Debt and Cash</strong>: To get the <strong>Equity Value</strong>, we subtract the company’s total debt and add its cash and equivalents to the Enterprise Value.</li>
-        <li><strong>Calculate Value per Share</strong>: Finally, we divide the Equity Value by the number of outstanding shares to get the <strong>Intrinsic Value per Share</strong>.</li>
+        <li><strong>Start with Free Cash Flow (FCF)</strong>: We take the company’s most recent Free Cash Flow (FCF).</li>
+        <li><strong>Assume Steady Growth</strong>: We assume FCF grows at a constant rate (perpetual growth rate, g).</li>
+        <li><strong>Adjust for Time and Risk</strong>: Future FCFs are discounted using a discount rate (r) from the Capital Asset Pricing Model (CAPM).</li>
+        <li><strong>Find the Enterprise Value</strong>: Enterprise Value = (Last FCF × (1 + g)) / (r - g).</li>
+        <li><strong>Adjust for Debt and Cash</strong>: Equity Value = Enterprise Value - Total Debt + Cash and Equivalents.</li>
+        <li><strong>Calculate Value per Share</strong>: Intrinsic Value per Share = Equity Value / Outstanding Shares.</li>
     </ol>
-    <p>In simple terms, it looks like this:</p>
-    <p><strong>Intrinsic Value per Share = (Enterprise Value - Total Debt + Cash and Equivalents) / Outstanding Shares</strong></p>
-    <p>Where the Enterprise Value is figured out as:</p>
-    <p><strong>Enterprise Value = (Last FCF × (1 + growth rate)) / (discount rate - growth rate)</strong></p>
-    <p>This method estimates what the stock is truly worth based on the cash it can generate in the future.</p>
+
+    <h3>How the Target Price is Calculated</h3>
+    <p>The target price projects the stock’s value over a selected period (1 to 5 years) using an explicit growth rate for the projection period, followed by a perpetual growth rate:</p>
+    <ol>
+        <li><strong>Project FCF</strong>: FCF is grown at an explicit growth rate for the selected number of years.</li>
+        <li><strong>Calculate Terminal Value</strong>: At the end of the period, a terminal value is calculated using the perpetual growth rate: Terminal Value = (Projected FCF × (1 + g)) / (r - g).</li>
+        <li><strong>Adjust for Debt and Cash</strong>: Target Price = (Terminal Value - Total Debt + Cash) / Outstanding Shares.</li>
+    </ol>
 
     <form method="POST">
         <!-- Historical Free Cash Flow Section -->
@@ -41,7 +44,7 @@
 
         <!-- Valuation Parameters Section -->
         <h3>Valuation Parameters</h3>
-        <p><small>Please enter Outstanding Shares as the total number of shares, Total Debt and Cash and Equivalents in full GHS values, not in thousands (e.g., 1,000,000 for one million GHS). Enter Risk-Free Rate, Market Return, and Beta as decimals (e.g., 5 for 5%).</small></p>
+        <p><small>Please enter Outstanding Shares as the total number of shares, Total Debt and Cash and Equivalents in full GHS values, not in thousands (e.g., 1,000,000 for one million GHS). Enter Risk-Free Rate, Market Return, Beta, and Growth Rates as decimals (e.g., 5 for 5%).</small></p>
         {{ input_field('risk_free_rate', 'Risk-Free Rate (%)', step='0.01') }}
         {{ input_field('market_return', 'Market Return (%)', step='0.01') }}
         {{ input_field('beta', 'Beta', step='0.01') }}
@@ -53,14 +56,27 @@
         <div class="group">
             <label for="auto_growth_rate">
                 <input type="checkbox" id="auto_growth_rate" name="auto_growth_rate" {{ 'checked' if request.method == 'GET' or request.form.get('auto_growth_rate') == 'on' else '' }}>
-                Auto-compute growth rate from historical FCF
+                Auto-compute perpetual growth rate from historical FCF
             </label>
         </div>
         <div class="group" id="manual_growth_rate">
-            <label for="manual_growth_rate">Manual Growth Rate (%) (e.g., 5 for 5%):</label>
+            <label for="manual_growth_rate">Manual Perpetual Growth Rate (%) (e.g., 5 for 5%):</label>
             <input type="number" step="0.01" name="manual_growth_rate" id="manual_growth_rate" value="{{ request.form['manual_growth_rate'] or '' }}" min="0">
         </div>
-        <p><small>Note: For the perpetual growth model, the growth rate must be less than the discount rate. If using auto-compute, ensure historical FCF growth is reasonable.</small></p>
+        {{ input_field('explicit_growth_rate', 'Explicit Growth Rate for Projection (%)', step='0.01', required=True) }}
+        <p><small>Note: The perpetual growth rate must be less than the discount rate. If using auto-compute, ensure historical FCF growth is reasonable.</small></p>
+
+        <!-- Projection Period Selection -->
+        <h3>Projection Period for Target Price</h3>
+        <div class="group">
+            <label for="projection_period">Select Projection Period (Years):</label>
+            <select name="projection_period" id="projection_period" required>
+                <option value="" disabled {{ 'selected' if not request.form['projection_period'] else '' }}>Select a period</option>
+                {% for i in range(1, 6) %}
+                <option value="{{ i }}" {{ 'selected' if request.form['projection_period']|string == i|string else '' }}>{{ i }} Year{{ 's' if i > 1 else '' }}</option>
+                {% endfor %}
+            </select>
+        </div>
 
         <button type="submit" class="action-btn">Calculate</button>
         <a href="{{ url_for('intrinsic_value') }}" class="action-btn">Clear</a>
@@ -68,9 +84,14 @@
     </form>
 
     <!-- Results and Errors -->
-    {% if result %}
+    {% if result or target_price %}
     <div class="results">
+        {% if result %}
         <p>Intrinsic Value per Share: GHS{{ result }} <small>(Ghanaian Cedi)</small></p>
+        {% endif %}
+        {% if target_price %}
+        <p>Target Price per Share (in {{ projection_period }} Year{{ 's' if projection_period > 1 else '' }}): GHS{{ target_price }} <small>(Ghanaian Cedi)</small></p>
+        {% endif %}
     </div>
     {% endif %}
     {% if error %}
