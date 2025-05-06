@@ -799,6 +799,74 @@ def mutual_funds():
 
     return render_template('mutual_funds.html', result=result)
 
+@app.route('/duration', methods=['GET', 'POST'])
+def duration():
+    if request.method == 'POST':
+        try:
+            print("Form data received:", request.form)  # Debugging print
+
+            # Collect inputs
+            num_periods = int(request.form['num_periods'])
+            cash_flows = []
+            for i in range(1, num_periods + 1):
+                cf = request.form.get(f'cf_{i}', '')
+                if not cf:
+                    return render_template('duration.html', error=f"Cash flow for period {i} is required.")
+                cash_flows.append(float(cf))
+
+            yield_rate = float(request.form['yield']) / 100  # Convert % to decimal
+            compounding = int(request.form['compounding'])
+            initial_price = float(request.form['initial_price'])
+            price_drop = float(request.form['price_drop'])
+            price_rise = float(request.form['price_rise'])
+            yield_change = 0.01  # Fixed 1% for Effective Duration
+
+            # Validate inputs
+            if num_periods < 1 or num_periods > 10:
+                return render_template('duration.html', error="Number of periods must be between 1 and 10.")
+            if yield_rate < 0 or initial_price <= 0 or compounding < 1:
+                return render_template('duration.html', error="Invalid input: Yield, initial price, and compounding must be positive.")
+            if any(cf <= 0 for cf in cash_flows):
+                return render_template('duration.html', error="All cash flows must be positive.")
+
+            # Macaulay Duration (in years)
+            pv_sum = 0
+            weighted_pv_sum = 0
+            yield_per_period = yield_rate / compounding
+            for t in range(1, num_periods + 1):
+                pv = cash_flows[t-1] / (1 + yield_per_period) ** t
+                pv_sum += pv
+                weighted_pv_sum += (t / compounding) * pv  # Time in years
+
+            if pv_sum == 0:
+                return render_template('duration.html', error="Invalid cash flows: Sum of present values is zero.")
+
+            macaulay_duration = weighted_pv_sum / pv_sum  # Now in years
+
+            # Modified Duration
+            modified_duration = macaulay_duration / (1 + yield_rate / compounding)
+
+            # Effective Duration
+            effective_duration = (price_drop - price_rise) / (2 * yield_change * initial_price)
+
+            # Prepare results with rounding
+            result = {
+                'macaulay_duration': round(macaulay_duration, 2),
+                'modified_duration': round(modified_duration, 2),
+                'effective_duration': round(effective_duration, 2)
+            }
+
+            return render_template('duration.html', result=result)
+
+        except (ValueError, ZeroDivisionError) as e:
+            print("Error:", e)  # Debugging print
+            return render_template('duration.html', error="Invalid input: Please ensure all fields are valid numbers.")
+        except Exception as e:
+            print("Unexpected error:", e)  # Catch all other exceptions
+            return render_template('duration.html', error="An unexpected error occurred. Please try again.")
+
+    return render_template('duration.html')
+
 @app.route('/etfs', methods=['GET', 'POST'])
 def etfs():
     result = None

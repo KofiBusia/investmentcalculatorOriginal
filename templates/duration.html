@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+
+{% block title %}Duration Calculator{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Duration Calculator for Bonds</h2>
+    <p>Duration measures a bond's sensitivity to interest rate changes, helping you assess interest rate risk. This calculator computes three types of duration: Macaulay Duration (weighted average time to receive cash flows), Modified Duration (price sensitivity to yield changes), and Effective Duration (sensitivity for bonds with options).</p>
+    
+    <h3>How Duration is Calculated</h3>
+    <p>Here’s a simple overview:</p>
+    <ul>
+        <li><strong>Macaulay Duration</strong>: Average time to receive cash flows, weighted by their present values:</li>
+        <p><strong>Σ(t × CF<sub>t</sub> / (1 + y)<sup>t</sup>) / Bond Price</strong></p>
+        <li><strong>Modified Duration</strong>: Price change for a 1% yield change:</li>
+        <p><strong>Macaulay Duration / (1 + y / m)</strong></p>
+        <li><strong>Effective Duration</strong>: Price sensitivity to a small yield change:</li>
+        <p><strong>(Price<sub>drop</sub> - Price<sub>rise</sub>) / (2 × Δy × Initial Price)</strong></p>
+    </ul>
+    <p><em>CF<sub>t</sub></em>: Cash flow at time <em>t</em>, <em>y</em>: Yield per period, <em>m</em>: Compounding periods per year, <em>Δy</em>: Yield change (0.01).</p>
+
+    <!-- Error Message Display -->
+    {% if error %}
+    <div class="error" style="color: red; background-color: #ffe6e6; padding: 10px; margin-bottom: 20px; border: 1px solid red;">
+        <p><strong>Error:</strong> {{ error }}</p>
+    </div>
+    {% endif %}
+
+    <form method="POST" action="/duration">
+        <!-- Bond Parameters Section -->
+        <h3>Bond Parameters</h3>
+        <p>Enter cash flows (e.g., coupons and principal) in full GHS values (e.g., 1,000,000 for one million GHS). Enter Yield to Maturity as a percentage (e.g., 5 for 5%).</p>
+        {% macro input_field(name, label, type='number', step='1', required=True, min='0') %}
+        <div class="group">
+            <label for="{{ name }}">{{ label }}:</label>
+            <input type="{{ type }}" step="{{ step }}" name="{{ name }}" id="{{ name }}" value="{{ request.form.get(name, '') }}" {{ 'required' if required else '' }} {{ 'min="' ~ min ~ '"' if min else '' }}>
+        </div>
+        {% endmacro %}
+
+        <!-- Dropdown for Number of Periods -->
+        <div class="group">
+            <label for="num_periods">Number of Periods:</label>
+            <select name="num_periods" id="num_periods" required>
+                {% for i in range(1, 11) %}
+                <option value="{{ i }}" {{ 'selected' if request.form.get('num_periods', '1')|int == i else '' }}>{{ i }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Cash Flow Inputs (Hidden by Default, Shown via JavaScript) -->
+        {% for i in range(1, 11) %}
+        <div class="group cash-flow" id="cf_group_{{ i }}" style="display: none;">
+            <label for="cf_{{ i }}">Cash Flow Period {{ i }} (GHS):</label>
+            <input type="number" step="1" name="cf_{{ i }}" id="cf_{{ i }}" value="{{ request.form.get('cf_' ~ i, '') }}" min="0">
+        </div>
+        {% endfor %}
+
+        {{ input_field('yield', 'Yield to Maturity (%)', step='0.01', min='0') }}
+        {{ input_field('compounding', 'Compounding Periods per Year (e.g., 2 for semi-annual)', step='1', min='1') }}
+        {{ input_field('initial_price', 'Initial Bond Price (GHS)', step='1', min='0') }}
+        {{ input_field('price_drop', 'Bond Price if Yield Drops by 1% (GHS)', step='1', min='0') }}
+        {{ input_field('price_rise', 'Bond Price if Yield Rises by 1% (GHS)', step='1', min='0') }}
+
+        <button type="submit" class="action-btn">Calculate</button>
+        <a href="{{ url_for('duration') }}" class="action-btn">Clear</a>
+        <a href="/" class="action-btn">Back to Home</a>
+    </form>
+
+    <!-- Results Display -->
+    {% if result %}
+    <div class="results">
+        <h3>Results</h3>
+        <p>Macaulay Duration: {{ result.macaulay_duration }} years</p>
+        <p>Modified Duration: {{ result.modified_duration }}</p>
+        <p>Effective Duration: {{ result.effective_duration }}</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- JavaScript for Dynamic Cash Flow Inputs -->
+<script>
+    function updateCashFlowFields() {
+        const numPeriods = parseInt(document.getElementById('num_periods').value) || 1;
+        for (let i = 1; i <= 10; i++) {
+            const cfGroup = document.getElementById(`cf_group_${i}`);
+            const inputField = document.getElementById(`cf_${i}`);
+            if (i <= numPeriods) {
+                cfGroup.style.display = 'block';
+                inputField.required = true;
+            } else {
+                cfGroup.style.display = 'none';
+                inputField.required = false;
+                inputField.value = ''; // Clear hidden fields
+            }
+        }
+    }
+
+    // Run on page load
+    window.addEventListener('load', updateCashFlowFields);
+    // Run on dropdown change
+    document.getElementById('num_periods').addEventListener('change', updateCashFlowFields);
+</script>
+{% endblock %}
