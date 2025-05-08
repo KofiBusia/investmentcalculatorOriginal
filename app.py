@@ -85,6 +85,18 @@ def calculate_forex_profit(investment, initial_rate, final_rate):
     profit = final_value - base_currency
     return profit
 
+# Define CAGR calculation function
+def calculate_cagr(start_value, end_value, years):
+    """Calculate Compound Annual Growth Rate (CAGR) even with negative values"""
+    if start_value == 0:
+        return 0  # Avoid division by zero
+    try:
+        # Use absolute value for start_value to handle negative FCF
+        cagr = (end_value / abs(start_value)) ** (1 / years) - 1
+    except ZeroDivisionError:
+        return 0
+    return cagr * 100  # Return as percentage
+
 def calculate_esg_metrics(esg_amount, total_portfolio, num_esg_assets, esg_scores, esg_weights):
     if esg_amount > total_portfolio or esg_amount < 0 or total_portfolio <= 0:
         raise ValueError("Invalid investment or portfolio values")
@@ -592,7 +604,7 @@ def stocks():
 def mna_calculator():
     if request.method == 'POST':
         try:
-            # Capture form data as strings to retain in the form
+            # Capture form data
             form_data = {
                 'acquirer_eps': request.form['acquirer_eps'],
                 'acquirer_shares': request.form['acquirer_shares'],
@@ -609,35 +621,26 @@ def mna_calculator():
             new_shares_issued = float(form_data['new_shares_issued'])
             synergy_value = float(form_data['synergy_value'])
 
-            # Validation
-            if acquirer_shares <= 0 or target_shares <= 0 or new_shares_issued < 0:
-                result = "Error: Shares outstanding and new shares issued must be positive."
-                return render_template('mna.html', result=result, form_data=form_data)
-            total_shares = acquirer_shares + new_shares_issued
-            if total_shares <= 0:
-                result = "Error: Total shares outstanding must be positive."
-                return render_template('mna.html', result=result, form_data=form_data)
-
             # Perform M&A calculations
             acquirer_earnings = acquirer_eps * acquirer_shares
             target_earnings = target_eps * target_shares
             combined_earnings = acquirer_earnings + target_earnings + synergy_value
+            total_shares = acquirer_shares + new_shares_issued
             combined_eps = combined_earnings / total_shares
             eps_change = combined_eps - acquirer_eps
             status = "Accretive" if eps_change > 0 else "Dilutive" if eps_change < 0 else "Neutral"
 
             # Format results
             result = f"""
-                <p>Pre-Deal Acquirer EPS: ${acquirer_eps:,.2f}</p>
-                <p>Post-Deal Combined EPS: ${combined_eps:,.2f}</p>
-                <p>EPS Change: ${eps_change:,.2f} ({status})</p>
+                <p>Pre-Deal Acquirer EPS: ${acquirer_eps:.2f}</p>
+                <p>Post-Deal Combined EPS: ${combined_eps:.2f}</p>
+                <p>EPS Change: ${eps_change:.2f} ({status})</p>
                 <p>Total Combined Earnings (incl. Synergy): ${combined_earnings:,.2f}</p>
                 <p>Total Shares Outstanding: {total_shares:,.0f}</p>
             """
             return render_template('mna.html', result=result, form_data=form_data)
         except ValueError:
-            result = "Error: Please enter valid numeric values."
-            return render_template('mna.html', result=result, form_data=request.form)
+            return render_template('mna.html', result="Error: Please enter valid numeric values.", form_data=request.form)
     return render_template('mna.html', form_data={})
 
 @app.route('/pe-vc', methods=['GET', 'POST'])
@@ -1092,68 +1095,53 @@ def tbills_rediscount():
 
     return render_template('tbills_rediscount.html', result=result)
 
+# Intrinsic value calculation route
 @app.route('/intrinsic-value', methods=['GET', 'POST'])
 def intrinsic_value():
-    result = None
-    target_price = None
-    error = None
-    projection_period = None
-
     if request.method == 'POST':
         try:
-            # Extract inputs
-            fcfs = [float(request.form[f'fcf_{i}']) for i in range(1, 6)]
+            # Allow negative FCF values
+            fcf = [float(request.form[f'fcf_{i}']) for i in range(1, 6)]
             risk_free_rate = float(request.form['risk_free_rate']) / 100
             market_return = float(request.form['market_return']) / 100
             beta = float(request.form['beta'])
             outstanding_shares = float(request.form['outstanding_shares'])
             total_debt = float(request.form['total_debt'])
             cash_and_equivalents = float(request.form['cash_and_equivalents'])
-            explicit_growth_rate = float(request.form['explicit_growth_rate']) / 100
             projection_period = int(request.form['projection_period'])
-            auto_growth_rate = request.form.get('auto_growth_rate') == 'on'
 
-            # Handle growth rate
-            if auto_growth_rate:
-                growth_rate = None
-            else:
-                growth_rate = float(request.form['manual_growth_rate']) / 100
+            # Calculate discount rate using CAPM
+            discount_rate = risk_free_rate + beta * (market_return - risk_free_rate)
 
-            # Validation
-            if outstanding_shares <= 0:
-                raise ValueError("Outstanding shares must be positive.")
-            if projection_period < 1 or projection_period > 5:
-                raise ValueError("Projection period must be between 1 and 5 years.")
+            # Calculate growth rate from historical FCF (CAGR)
+            perpetual_growth_rate = calculate_cagr(fcf[0], fcf[-1], 4) / 100
 
-            # Calculate intrinsic value, growth rate, and discount rate
-            intrinsic_value, g, discount_rate = calculate_intrinsic_value_full(
-                fcfs, risk_free_rate, market_return, beta,
-                outstanding_shares, total_debt, cash_and_equivalents,
-                growth_rate=growth_rate, auto_growth_rate=auto_growth_rate
+            # Critical validation: discount rate must exceed growth rate
+            if discount_rate <= perpetual_growth_rate:
+                return render_template('intrinsic_value.html', 
+                                     error="Discount rate must exceed growth rate for valid calculations.")
+
+            # Intrinsic Value Calculation
+            last_fcf = fcf[-1]
+            enterprise_value = (last_fcf * (1 + perpetual_growth_rate)) / (discount_rate - perpetual_growth_rate)
+            equity_value = enterprise_value - total_debt + cash_and_equivalents
+            intrinsic_value = equity_value / outstanding_shares
+
+            # Target Price Calculation
+            projected_fcf = last_fcf * (1 + perpetual_growth_rate) ** projection_period
+            terminal_value = (projected_fcf * (1 + perpetual_growth_rate)) / (discount_rate - perpetual_growth_rate)
+            target_equity_value = terminal_value - total_debt + cash_and_equivalents
+            target_price = target_equity_value / outstanding_shares
+
+            return render_template(
+                'intrinsic_value.html',
+                result=f"{intrinsic_value:.2f}",
+                target_price=f"{target_price:.2f}",
+                projection_period=projection_period
             )
-
-            # Calculate target price
-            target_price_value = calculate_target_price(
-                fcfs[-1], explicit_growth_rate, projection_period,
-                g, discount_rate, total_debt, cash_and_equivalents, outstanding_shares
-            )
-
-            # Format results
-            result = f"{intrinsic_value:.2f}"
-            target_price = f"{target_price_value:.2f}"
-
-        except ValueError as e:
-            error = str(e)
-        except Exception as e:
-            error = "An error occurred: " + str(e)
-
-    return render_template(
-        'intrinsic_value.html',
-        result=result,
-        target_price=target_price,
-        error=error,
-        projection_period=projection_period
-    )
+        except ValueError:
+            return render_template('intrinsic_value.html', error="Please enter valid numeric values.")
+    return render_template('intrinsic_value.html')
 
 if __name__ == '__main__':
     # For local development, use Waitress
