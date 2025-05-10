@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}DCF Valuation Calculator{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Discounted Cash Flow (DCF) Calculator</h2>
+    <p>Calculate the intrinsic value of an investment based on future cash flows.</p>
+
+    <!-- Error Display -->
+    {% if error %}
+    <div class="error" style="color: red; background-color: #ffe6e6; padding: 10px; margin-bottom: 20px; border: 1px solid red;">
+        <strong>Error:</strong> {{ error }}
+    </div>
+    {% endif %}
+
+    <!-- Form -->
+    <form method="POST" action="{{ url_for('dcf_calculator') }}">
+        <h3>DCF Parameters</h3>
+        <p>Enter cash flows in full values (e.g., 1000000). Rates are in percentages (e.g., 5 for 5%).</p>
+
+        <div class="group">
+            <label for="years">Forecast Period (Years):</label>
+            <select name="years" id="years" required>
+                {% for i in range(1, 11) %}
+                <option value="{{ i }}" {{ 'selected' if request.form.get('years', '5')|int == i else '' }}>{{ i }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Dynamic Cash Flow Inputs -->
+        <div id="cash-flow-inputs">
+            {% for i in range(1, 11) %}
+            <div class="group cash-flow" id="cf_group_{{ i }}" style="display: none;">
+                <label for="cash_flow_{{ i }}">Year {{ i }} Cash Flow:</label>
+                <input type="number" step="1" name="cash_flow_{{ i }}" id="cash_flow_{{ i }}" value="{{ request.form.get('cash_flow_' ~ i, '') }}" min="0">
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="group">
+            <label for="discount_rate">Discount Rate (%):</label>
+            <input type="number" step="0.01" name="discount_rate" id="discount_rate" value="{{ request.form.get('discount_rate', '') }}" min="0" required>
+        </div>
+        <div class="group">
+            <label for="terminal_growth">Terminal Growth Rate (%):</label>
+            <input type="number" step="0.01" name="terminal_growth" id="terminal_growth" value="{{ request.form.get('terminal_growth', '') }}" min="0" required>
+        </div>
+
+        <button type="submit" class="action-btn">Calculate</button>
+        <a href="{{ url_for('dcf_calculator') }}" class="action-btn">Clear</a>
+        <a href="{{ url_for('index') }}" class="action-btn">Back to Home</a>
+    </form>
+
+    <!-- Results Display -->
+    {% if results %}
+    <div class="results">
+        <h3>DCF Valuation Results</h3>
+        <p><strong>Present Value of Cash Flows:</strong> GHS{{ "%.2f"|format(results.total_pv) }}</p>
+        <h4>Detailed Cash Flows:</h4>
+        <ul>
+            {% for pv in results.pv_cash_flows %}
+            <li>Year {{ loop.index }} PV: GHS{{ "%.2f"|format(pv) }}</li>
+            {% endfor %}
+        </ul>
+        <p><strong>Terminal Value:</strong> GHS{{ "%.2f"|format(results.terminal_value) }}</p>
+        <p><strong>PV of Terminal Value:</strong> GHS{{ "%.2f"|format(results.pv_terminal) }}</p>
+        <p><strong>Total DCF Value:</strong> GHS{{ "%.2f"|format(results.total_dcf) }}</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- JavaScript for Dynamic Fields -->
+<script>
+    function updateCashFlowFields() {
+        const years = parseInt(document.getElementById('years').value) || 5;
+        for (let i = 1; i <= 10; i++) {
+            const cfGroup = document.getElementById(`cf_group_${i}`);
+            const input = document.getElementById(`cash_flow_${i}`);
+            if (i <= years) {
+                cfGroup.style.display = 'block';
+                input.required = true;
+            } else {
+                cfGroup.style.display = 'none';
+                input.required = false;
+                input.value = ''; // Clear hidden fields
+            }
+        }
+    }
+
+    window.addEventListener('load', updateCashFlowFields);
+    document.getElementById('years').addEventListener('change', updateCashFlowFields);
+</script>
+{% endblock %}

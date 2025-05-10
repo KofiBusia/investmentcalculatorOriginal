@@ -3,6 +3,9 @@ from flask_mail import Mail, Message
 import numpy as np
 import os
 from dotenv import load_dotenv
+from dataclasses import dataclass
+from collections import namedtuple
+
 
 load_dotenv()  # Load variables from .env
 
@@ -18,6 +21,10 @@ app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')  # Email password or ap
 app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_DEFAULT_SENDER')  # e.g., 'your-email@gmail.com'
 
 mail = Mail(app)
+
+# Define result structures
+DCFResult = namedtuple('DCFResult', ['total_pv', 'pv_cash_flows', 'terminal_value', 'pv_terminal', 'total_dcf'])
+DVMResult = namedtuple('DVMResult', ['intrinsic_value', 'formula', 'pv_dividends', 'terminal_value', 'pv_terminal'])
 
 def calculate_twr(returns):
     twr = 1
@@ -277,6 +284,26 @@ def calculate_intrinsic_value_full(
     - g: Growth rate used in the calculation
     - discount_rate: Discount rate calculated via CAPM
     """
+    @dataclass
+    class DVMResult:
+      intrinsic_value: float
+      formula: str = ""
+      pv_dividends: list = None
+      terminal_value: float = 0.0
+      pv_terminal: float = 0.0
+
+    @dataclass
+    class DCFResult:
+      total_pv: float
+      pv_cash_flows: list
+      terminal_value: float
+      pv_terminal: float
+      total_dcf: float
+      
+    @app.template_filter('commafy')
+    def commafy(value):
+        return "{:,.2f}".format(value)
+    
     assert len(fcfs) == 5, "Provide exactly 5 years of historical FCF"
 
     # Determine growth rate based on auto_growth_rate
@@ -458,6 +485,141 @@ def portfolio_diversification():
             result = f"Error: {str(e)}"
             return render_template('portfolio_diversification.html', result=result, form_data=request.form)
     return render_template('portfolio_diversification.html', form_data={})
+
+# DCF Calculator Route
+@app.route('/dcf', methods=['GET', 'POST'])
+def dcf_calculator():
+    error = None
+    results = None
+    if request.method == 'POST':
+        try:
+            # Validate and parse inputs
+            years = int(request.form.get('years', 0))
+            if years < 1 or years > 10:
+                raise ValueError("Forecast period must be between 1 and 10 years.")
+            
+            discount_rate = float(request.form.get('discount_rate', '')) / 100
+            terminal_growth = float(request.form.get('terminal_growth', '')) / 100
+            if discount_rate <= 0:
+                raise ValueError("Discount rate must be positive.")
+            if discount_rate <= terminal_growth:
+                raise ValueError("Discount rate must exceed terminal growth rate.")
+
+            # Collect cash flows
+            cash_flows = []
+            for i in range(1, years + 1):
+                cf = request.form.get(f'cash_flow_{i}', '')
+                if not cf:
+                    raise ValueError(f"Cash flow for Year {i} is missing.")
+                cash_flows.append(float(cf))
+
+            # Perform DCF calculations
+            pv_cash_flows = [cf / (1 + discount_rate) ** i for i, cf in enumerate(cash_flows, 1)]
+            total_pv = sum(pv_cash_flows)
+            last_cash_flow = cash_flows[-1]
+            terminal_value = (last_cash_flow * (1 + terminal_growth)) / (discount_rate - terminal_growth)
+            pv_terminal = terminal_value / (1 + discount_rate) ** years
+            total_dcf = total_pv + pv_terminal
+
+            results = DCFResult(total_pv, pv_cash_flows, terminal_value, pv_terminal, total_dcf)
+        except ValueError as e:
+            error = str(e) if str(e) else "Invalid input detected."
+        except Exception as e:
+            error = f"An unexpected error occurred: {str(e)}"
+    return render_template('dcf.html', error=error, results=results)
+
+# Add these new routes
+# DVM Calculator Route
+@app.route('/dvm', methods=['GET', 'POST'])
+def dvm_calculator():
+    error = None
+    results = None
+    model_type = request.form.get('model_type', '') if request.method == 'POST' else None
+    if request.method == 'POST':
+        try:
+            r = float(request.form.get('r', '')) / 100
+            if r <= 0:
+                raise ValueError("Discount rate must be positive.")
+
+            if model_type == 'gordon_growth':
+                d1 = float(request.form.get('d1', ''))
+                g = float(request.form.get('g', '')) / 100
+                if r <= g:
+                    raise ValueError("Discount rate must exceed growth rate.")
+                intrinsic_value = d1 / (r - g)
+                formula = f"{d1:.2f} / ({r:.4f} - {g:.4f})"
+                results = DVMResult(intrinsic_value, formula, None, None, None)
+
+            elif model_type == 'multi_stage':
+                periods = int(request.form.get('periods', 0))
+                if periods < 1 or periods > 5:
+                    raise ValueError("Growth periods must be between 1 and 5.")
+                terminal_growth = float(request.form.get('terminal_growth', '')) / 100
+                if r <= terminal_growth:
+                    raise ValueError("Discount rate must exceed terminal growth rate.")
+                
+                dividends = []
+                for i in range(periods):
+                    d = request.form.get(f'dividend_{i+1}', '')
+                    if not d:
+                        raise ValueError(f"Dividend for Year {i+1} is missing.")
+                    dividends.append(float(d))
+
+                pv_dividends = [d / (1 + r) ** (i + 1) for i, d in enumerate(dividends)]
+                last_dividend = dividends[-1]
+                terminal_value = (last_dividend * (1 + terminal_growth)) / (r - terminal_growth)
+                pv_terminal = terminal_value / (1 + r) ** periods
+                intrinsic_value = sum(pv_dividends) + pv_terminal
+                results = DVMResult(intrinsic_value, None, pv_dividends, terminal_value, pv_terminal)
+
+            elif model_type == 'no_growth':
+                d = float(request.form.get('d', ''))
+                if r <= 0:
+                    raise ValueError("Discount rate must be positive.")
+                intrinsic_value = d / r
+                formula = f"{d:.2f} / {r:.4f}"
+                results = DVMResult(intrinsic_value, formula, None, None, None)
+
+            else:
+                raise ValueError("Invalid model type selected.")
+        except ValueError as e:
+            error = str(e) if str(e) else "Invalid input detected."
+        except Exception as e:
+            error = f"An unexpected error occurred: {str(e)}"
+    return render_template('dvm.html', error=error, results=results, model_type=model_type)
+
+# Add these calculation functions
+def calculate_gordon_growth(d1, r, g):
+    intrinsic_value = d1 / (r - g)
+    return {
+        'intrinsic_value': intrinsic_value,
+        'formula': f'{d1} / ({r:.2%} - {g:.2%})'
+    }
+
+def calculate_multi_stage(dividends, r, g):
+    pv_dividends = []
+    total_pv = 0
+    
+    for i, d in enumerate(dividends):
+        pv = d / ((1 + r) ** (i + 1))
+        pv_dividends.append(pv)
+        total_pv += pv
+    
+    terminal_value = (dividends[-1] * (1 + g)) / (r - g)
+    pv_terminal = terminal_value / ((1 + r) ** len(dividends))
+    
+    return {
+        'intrinsic_value': total_pv + pv_terminal,
+        'pv_dividends': pv_dividends,
+        'terminal_value': terminal_value,
+        'pv_terminal': pv_terminal
+    }
+
+def calculate_no_growth(d, r):
+    return {
+        'intrinsic_value': d / r,
+        'formula': f'{d} / {r:.2%}'
+    }
 
 @app.route('/forex', methods=['GET', 'POST'])
 def forex_calculator():

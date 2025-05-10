@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block title %}Dividend Valuation Model{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Dividend Valuation Model (DVM)</h2>
+    <p>Calculate stock value based on dividend models.</p>
+
+    <!-- Error Display -->
+    {% if error %}
+    <div class="error" style="color: red; background-color: #ffe6e6; padding: 10px; margin-bottom: 20px; border: 1px solid red;">
+        <strong>Error:</strong> {{ error }}
+    </div>
+    {% endif %}
+
+    <!-- Form -->
+    <form method="POST" action="{{ url_for('dvm_calculator') }}">
+        <div class="group">
+            <label for="model_type">Valuation Model:</label>
+            <select name="model_type" id="model_type" required>
+                <option value="gordon_growth" {{ 'selected' if model_type == 'gordon_growth' else '' }}>Gordon Growth</option>
+                <option value="multi_stage" {{ 'selected' if model_type == 'multi_stage' else '' }}>Multi-Stage</option>
+                <option value="no_growth" {{ 'selected' if model_type == 'no_growth' else '' }}>No-Growth</option>
+            </select>
+        </div>
+
+        <!-- Model-Specific Inputs -->
+        <div id="model-inputs">
+            <!-- Gordon Growth -->
+            <div class="model-input" id="gordon_growth_inputs">
+                <div class="group">
+                    <label for="d1">Next Year Dividend (D1):</label>
+                    <input type="number" step="0.01" name="d1" id="d1" value="{{ request.form.get('d1', '') }}" min="0" required>
+                </div>
+                <div class="group">
+                    <label for="r">Discount Rate (%):</label>
+                    <input type="number" step="0.01" name="r" id="r" value="{{ request.form.get('r', '') }}" min="0" required>
+                </div>
+                <div class="group">
+                    <label for="g">Growth Rate (%):</label>
+                    <input type="number" step="0.01" name="g" id="g" value="{{ request.form.get('g', '') }}" min="0" required>
+                </div>
+            </div>
+
+            <!-- Multi-Stage -->
+            <div class="model-input" id="multi_stage_inputs" style="display: none;">
+                <div class="group">
+                    <label for="periods">Growth Periods:</label>
+                    <select name="periods" id="periods">
+                        {% for i in range(1, 6) %}
+                        <option value="{{ i }}" {{ 'selected' if request.form.get('periods', '1')|int == i else '' }}>{{ i }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div id="dividend-inputs">
+                    {% for i in range(5) %}
+                    <div class="group dividend-input" style="display: none;">
+                        <label>Year {{ i+1 }} Dividend:</label>
+                        <input type="number" step="0.01" name="dividend_{{ i+1 }}" value="{{ request.form.get('dividend_' ~ (i+1), '') }}" min="0">
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="group">
+                    <label for="terminal_growth">Terminal Growth Rate (%):</label>
+                    <input type="number" step="0.01" name="terminal_growth" value="{{ request.form.get('terminal_growth', '') }}" min="0" required>
+                </div>
+                <div class="group">
+                    <label for="r">Discount Rate (%):</label>
+                    <input type="number" step="0.01" name="r" value="{{ request.form.get('r', '') }}" min="0" required>
+                </div>
+            </div>
+
+            <!-- No-Growth -->
+            <div class="model-input" id="no_growth_inputs" style="display: none;">
+                <div class="group">
+                    <label for="d">Annual Dividend:</label>
+                    <input type="number" step="0.01" name="d" value="{{ request.form.get('d', '') }}" min="0" required>
+                </div>
+                <div class="group">
+                    <label for="r">Discount Rate (%):</label>
+                    <input type="number" step="0.01" name="r" value="{{ request.form.get('r', '') }}" min="0" required>
+                </div>
+            </div>
+        </div>
+
+        <button type="submit" class="action-btn">Calculate</button>
+        <a href="{{ url_for('dvm_calculator') }}" class="action-btn">Clear</a>
+        <a href="{{ url_for('index') }}" class="action-btn">Back to Home</a>
+    </form>
+
+    <!-- Results Display -->
+    {% if results %}
+    <div class="results">
+        <h3>Valuation Results</h3>
+        {% if model_type == 'gordon_growth' %}
+            <p><strong>Intrinsic Value:</strong> GHS{{ "%.2f"|format(results.intrinsic_value) }}</p>
+            <p><strong>Formula:</strong> {{ results.formula|safe }}</p>
+        {% elif model_type == 'multi_stage' %}
+            <p><strong>Intrinsic Value:</strong> GHS{{ "%.2f"|format(results.intrinsic_value) }}</p>
+            <h4>Dividend PVs:</h4>
+            <ul>
+                {% for pv in results.pv_dividends %}
+                <li>Year {{ loop.index }}: GHS{{ "%.2f"|format(pv) }}</li>
+                {% endfor %}
+            </ul>
+            <p><strong>Terminal Value:</strong> GHS{{ "%.2f"|format(results.terminal_value) }}</p>
+            <p><strong>PV of Terminal Value:</strong> GHS{{ "%.2f"|format(results.pv_terminal) }}</p>
+        {% elif model_type == 'no_growth' %}
+            <p><strong>Intrinsic Value:</strong> GHS{{ "%.2f"|format(results.intrinsic_value) }}</p>
+            <p><strong>Formula:</strong> {{ results.formula|safe }}</p>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+<!-- JavaScript for Dynamic Inputs -->
+<script>
+    function updateModelInputs() {
+        const model = document.getElementById('model_type').value;
+        document.querySelectorAll('.model-input').forEach(el => el.style.display = 'none');
+        document.getElementById(`${model}_inputs`).style.display = 'block';
+        if (model === 'multi_stage') updateDividendInputs();
+    }
+
+    function updateDividendInputs() {
+        const periods = parseInt(document.getElementById('periods').value) || 1;
+        document.querySelectorAll('.dividend-input').forEach((el, index) => {
+            const shouldShow = index < periods;
+            el.style.display = shouldShow ? 'block' : 'none';
+            const input = el.querySelector('input');
+            input.required = shouldShow;
+            if (!shouldShow) input.value = ''; // Clear hidden fields
+        });
+    }
+
+    window.addEventListener('load', () => {
+        updateModelInputs();
+        document.getElementById('model_type').addEventListener('change', updateModelInputs);
+        const periodsSelect = document.getElementById('periods');
+        if (periodsSelect) periodsSelect.addEventListener('change', updateDividendInputs);
+    });
+</script>
+{% endblock %}
