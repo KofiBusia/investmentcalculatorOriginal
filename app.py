@@ -534,7 +534,8 @@ def dcf_calculator():
 def dvm_calculator():
     error = None
     results = None
-    model_type = request.form.get('model_type', '') if request.method == 'POST' else None
+    model_type = request.form.get('model_type', 'gordon_growth') if request.method == 'POST' else 'gordon_growth'
+
     if request.method == 'POST':
         try:
             r = float(request.form.get('r', '')) / 100
@@ -546,9 +547,11 @@ def dvm_calculator():
                 g = float(request.form.get('g', '')) / 100
                 if r <= g:
                     raise ValueError("Discount rate must exceed growth rate.")
-                intrinsic_value = d1 / (r - g)
-                formula = f"{d1:.2f} / ({r:.4f} - {g:.4f})"
-                results = DVMResult(intrinsic_value, formula, None, None, None)
+                result = calculate_gordon_growth(d1, r, g)
+                results = DVMResult(
+                    intrinsic_value=result['intrinsic_value'],
+                    formula=result['formula']
+                )
 
             elif model_type == 'multi_stage':
                 periods = int(request.form.get('periods', 0))
@@ -564,50 +567,48 @@ def dvm_calculator():
                     if not d:
                         raise ValueError(f"Dividend for Year {i+1} is missing.")
                     dividends.append(float(d))
-
-                pv_dividends = [d / (1 + r) ** (i + 1) for i, d in enumerate(dividends)]
-                last_dividend = dividends[-1]
-                terminal_value = (last_dividend * (1 + terminal_growth)) / (r - terminal_growth)
-                pv_terminal = terminal_value / (1 + r) ** periods
-                intrinsic_value = sum(pv_dividends) + pv_terminal
-                results = DVMResult(intrinsic_value, None, pv_dividends, terminal_value, pv_terminal)
+                
+                result = calculate_multi_stage(dividends, r, terminal_growth)
+                results = DVMResult(
+                    intrinsic_value=result['intrinsic_value'],
+                    pv_dividends=result['pv_dividends'],
+                    terminal_value=result['terminal_value'],
+                    pv_terminal=result['pv_terminal']
+                )
 
             elif model_type == 'no_growth':
                 d = float(request.form.get('d', ''))
-                if r <= 0:
-                    raise ValueError("Discount rate must be positive.")
-                intrinsic_value = d / r
-                formula = f"{d:.2f} / {r:.4f}"
-                results = DVMResult(intrinsic_value, formula, None, None, None)
+                result = calculate_no_growth(d, r)
+                results = DVMResult(
+                    intrinsic_value=result['intrinsic_value'],
+                    formula=result['formula']
+                )
 
             else:
                 raise ValueError("Invalid model type selected.")
+
         except ValueError as e:
-            error = str(e) if str(e) else "Invalid input detected."
+            error = str(e)
         except Exception as e:
             error = f"An unexpected error occurred: {str(e)}"
+
     return render_template('dvm.html', error=error, results=results, model_type=model_type)
 
 # Add these calculation functions
 def calculate_gordon_growth(d1, r, g):
     intrinsic_value = d1 / (r - g)
-    return {
-        'intrinsic_value': intrinsic_value,
-        'formula': f'{d1} / ({r:.2%} - {g:.2%})'
-    }
+    formula = f"{d1:.2f} / ({r*100:.2f}% - {g*100:.2f}%)"
+    return {'intrinsic_value': intrinsic_value, 'formula': formula}
 
-def calculate_multi_stage(dividends, r, g):
+def calculate_multi_stage(dividends, r, terminal_growth):
     pv_dividends = []
     total_pv = 0
-    
     for i, d in enumerate(dividends):
         pv = d / ((1 + r) ** (i + 1))
         pv_dividends.append(pv)
         total_pv += pv
-    
-    terminal_value = (dividends[-1] * (1 + g)) / (r - g)
+    terminal_value = (dividends[-1] * (1 + terminal_growth)) / (r - terminal_growth)
     pv_terminal = terminal_value / ((1 + r) ** len(dividends))
-    
     return {
         'intrinsic_value': total_pv + pv_terminal,
         'pv_dividends': pv_dividends,
@@ -616,10 +617,9 @@ def calculate_multi_stage(dividends, r, g):
     }
 
 def calculate_no_growth(d, r):
-    return {
-        'intrinsic_value': d / r,
-        'formula': f'{d} / {r:.2%}'
-    }
+    intrinsic_value = d / r
+    formula = f"{d:.2f} / {r*100:.2f}%"
+    return {'intrinsic_value': intrinsic_value, 'formula': formula}
 
 @app.route('/forex', methods=['GET', 'POST'])
 def forex_calculator():
@@ -1540,7 +1540,12 @@ else:
         from gunicorn.app.base import BaseApplication
 
         class StandaloneApplication(BaseApplication):
-            def __init__(self, app, options=None):
+            def __init__(self, intrinsic_value, formula=None, pv_dividends=None, terminal_value=None, pv_terminal=None):
+                self.intrinsic_value = intrinsic_value
+                self.formula = formula
+                self.pv_dividends = pv_dividends
+                self.terminal_value = terminal_value
+                self.pv_terminal = pv_terminal
                 self.application = app
                 super().__init__(options)
 
