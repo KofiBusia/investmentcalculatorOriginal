@@ -19,6 +19,43 @@ app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_DEFAULT_SENDER')  # e.g., 'y
 
 mail = Mail(app)
 
+def calculate_twr(returns):
+    twr = 1
+    for r in returns:
+        twr *= (1 + r)
+    return twr - 1
+
+def calculate_mwr(cash_flows):
+    return npf.irr(cash_flows)
+
+def calculate_modified_dietz(mv0, mv1, cash_flow, weight):
+    return (mv1 - mv0 - cash_flow) / (mv0 + (cash_flow * weight))
+
+def calculate_simple_dietz(mv0, mv1, cash_flow):
+    return (mv1 - mv0 - cash_flow) / (mv0 + cash_flow / 2)
+
+def calculate_irr(cash_flows):
+    return npf.irr(cash_flows)
+
+def calculate_hpr(p0, p1, dividend):
+    return (p1 - p0 + dividend) / p0
+
+def calculate_annualized_return(r, n):
+    return (1 + r) ** (1 / n) - 1
+
+def calculate_geometric_mean_return(returns):
+    return np.prod([1 + r for r in returns]) ** (1 / len(returns)) - 1
+
+def calculate_arithmetic_mean_return(returns):
+    return sum(returns) / len(returns)
+
+def calculate_real_return(nominal_return, inflation_rate):
+    return (1 + nominal_return) / (1 + inflation_rate) - 1
+
+def calculate_time_weighted_inflation(monthly_inflations):
+    tw_inflation = np.prod([1 + (i / 100) for i in monthly_inflations]) - 1
+    return tw_inflation
+
 def parse_comma_separated(text):
     """Parse a comma-separated string into a list of floats."""
     try:
@@ -869,6 +906,97 @@ def duration():
             return render_template('duration.html', error="An unexpected error occurred. Please try again.")
 
     return render_template('duration.html')
+
+@app.route('/portfolio_return', methods=['GET', 'POST'])
+def portfolio_return():
+    if request.method == 'POST':
+        try:
+            print("Form data received:", request.form)  # Debugging print
+
+            # Collect inputs
+            method = request.form['method']
+            data_input = request.form['data'].strip()
+            if not data_input:
+                raise ValueError("Data field cannot be empty.")
+            data = [float(x) for x in data_input.split(',') if x.strip()]
+            average_inflation = float(request.form['average_inflation']) / 100
+            monthly_inflation = request.form.get('monthly_inflation', '').strip()
+
+            # Validate inputs based on method
+            if method == 'twr' and len(data) < 2:
+                raise ValueError("Time-Weighted Return requires at least two periodic returns.")
+            elif method == 'mwr' and (len(data) < 2 or data[0] >= 0):
+                raise ValueError("Money-Weighted Return requires cash flows starting with a negative initial investment.")
+            elif method == 'modified_dietz' and len(data) != 4:
+                raise ValueError("Modified Dietz requires 4 inputs: initial value, final value, cash flow, weight.")
+            elif method == 'simple_dietz' and len(data) != 3:
+                raise ValueError("Simple Dietz requires 3 inputs: initial value, final value, cash flow.")
+            elif method == 'irr' and (len(data) < 2 or data[0] >= 0):
+                raise ValueError("Internal Rate of Return requires cash flows starting with a negative initial investment.")
+            elif method == 'hpr' and len(data) != 3:
+                raise ValueError("Holding Period Return requires 3 inputs: initial price, final price, dividend.")
+            elif method == 'annualized' and len(data) != 2:
+                raise ValueError("Annualized Return requires 2 inputs: total return, number of years.")
+            elif method in ['geometric_mean', 'arithmetic_mean'] and len(data) < 1:
+                raise ValueError(f"{method.replace('_', ' ').title()} requires at least one periodic return.")
+
+            # Compute nominal return
+            if method == 'twr':
+                nominal_return = calculate_twr(data)
+            elif method == 'mwr':
+                nominal_return = calculate_mwr(data)
+            elif method == 'modified_dietz':
+                mv0, mv1, cash_flow, weight = data
+                nominal_return = calculate_modified_dietz(mv0, mv1, cash_flow, weight)
+            elif method == 'simple_dietz':
+                mv0, mv1, cash_flow = data
+                nominal_return = calculate_simple_dietz(mv0, mv1, cash_flow)
+            elif method == 'irr':
+                nominal_return = calculate_irr(data)
+            elif method == 'hpr':
+                p0, p1, dividend = data
+                nominal_return = calculate_hpr(p0, p1, dividend)
+            elif method == 'annualized':
+                r, n = data
+                nominal_return = calculate_annualized_return(r, n)
+            elif method == 'geometric_mean':
+                nominal_return = calculate_geometric_mean_return(data)
+            elif method == 'arithmetic_mean':
+                nominal_return = calculate_arithmetic_mean_return(data)
+
+            # Calculate real return using average inflation
+            real_return_avg = calculate_real_return(nominal_return, average_inflation)
+
+            # Calculate real return using time-weighted inflation (if provided)
+            real_return_tw = None
+            if monthly_inflation:
+                monthly_inflations = [float(x) for x in monthly_inflation.split(',') if x.strip()]
+                if not monthly_inflations:
+                    raise ValueError("Monthly inflation rates must be valid numbers.")
+                tw_inflation = calculate_time_weighted_inflation(monthly_inflations)
+                real_return_tw = calculate_real_return(nominal_return, tw_inflation)
+
+            # Prepare results
+            result = {
+                'method': method.replace('_', ' ').title(),
+                'nominal_return': f"{nominal_return:.2%}" if nominal_return is not None else "N/A",
+                'real_return_avg': f"{real_return_avg:.2%}" if real_return_avg is not None else "N/A",
+                'real_return_tw': f"{real_return_tw:.2%}" if real_return_tw is not None else "Not Provided"
+            }
+
+            return render_template('portfolio_return.html', result=result)
+
+        except ValueError as ve:
+            print("ValueError:", ve)  # Debugging print
+            return render_template('portfolio_return.html', error=str(ve))
+        except RuntimeError as re:
+            print("RuntimeError (likely IRR convergence):", re)  # Debugging print
+            return render_template('portfolio_return.html', error="IRR calculation failed to converge. Please check cash flows.")
+        except Exception as e:
+            print("Unexpected error:", e)  # Debugging print
+            return render_template('portfolio_return.html', error=f"An unexpected error occurred: {e}")
+
+    return render_template('portfolio_return.html')
 
 @app.route('/etfs', methods=['GET', 'POST'])
 def etfs():

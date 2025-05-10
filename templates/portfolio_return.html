@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block title %}Portfolio Return Calculator{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Portfolio Return Calculator</h2>
+    <p>Calculate portfolio returns using various methods and adjust for inflation to find real returns.</p>
+    
+    <!-- Error Message Display -->
+    {% if error %}
+    <div class="error" style="color: red; background-color: #ffe6e6; padding: 10px; margin-bottom: 20px; border: 1px solid red;">
+        <p><strong>Error:</strong> {{ error }}</p>
+    </div>
+    {% endif %}
+
+    <form method="POST" action="/portfolio_return">
+        <!-- Return Method Selection -->
+        <h3>Step 1: Select Return Method</h3>
+        <div class="group">
+            <label for="method">Return Method:</label>
+            <select name="method" id="method" required>
+                <option value="twr">Time-Weighted Rate of Return (TWR)</option>
+                <option value="mwr">Money-Weighted Rate of Return (MWR)</option>
+                <option value="modified psa_dietz">Modified Dietz Method</option>
+                <option value="simple_dietz">Simple Dietz Method</option>
+                <option value="irr">Internal Rate of Return (IRR)</option>
+                <option value="hpr">Holding Period Return (HPR)</option>
+                <option value="annualized">Annualized Return</option>
+                <option value="geometric_mean">Geometric Mean Return</option>
+                <option value="arithmetic_mean">Arithmetic Mean Return</option>
+            </select>
+        </div>
+
+        <!-- Data Input Section -->
+        <h3>Step 2: Input Data</h3>
+        <div class="group">
+            <label for="data">Data (comma-separated values):</label>
+            <textarea name="data" id="data" placeholder="Select a method to see example input" rows="4" required></textarea>
+        </div>
+
+        <!-- Inflation Input -->
+        <h3>Step 3: Inflation Data</h3>
+        <div class="group">
+            <label for="average_inflation">Average Inflation Rate (%):</label>
+            <input type="number" step="0.01" name="average_inflation" id="average_inflation" value="{{ request.form.get('average_inflation', '') }}" placeholder="e.g., 3.5" required min="0">
+        </div>
+        <div class="group">
+            <label for="monthly_inflation">Monthly Inflation Rates (%) (optional, comma-separated):</label>
+            <textarea name="monthly_inflation" id="monthly_inflation" placeholder="e.g., 0.3, 0.4, 0.2" rows="3">{{ request.form.get('monthly_inflation', '') }}</textarea>
+        </div>
+
+        <!-- Buttons -->
+        <button type="submit" class="action-btn">Calculate</button>
+        <a href="{{ url_for('portfolio_return') }}" class="action-btn">Clear</a>
+        <a href="/" class="action-btn">Back to Home</a>
+    </form>
+
+    <!-- Results Section -->
+    {% if result %}
+    <div class="results">
+        <h3>Calculation Result</h3>
+        <p><strong>Method:</strong> {{ result.method|title }}</p>
+        <p><strong>Nominal Return:</strong> {{ result.nominal_return }}</p>
+        <p><strong>Real Return (Average Inflation):</strong> {{ result.real_return_avg }}</p>
+        <p><strong>Real Return (Time-Weighted Inflation):</strong> {{ result.real_return_tw }}</p>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    function updatePlaceholder() {
+        const method = document.getElementById('method').value;
+        const examples = {
+            'twr': 'e.g., 0.05, -0.02, 0.03 (periodic returns as decimals)',
+            'mwr': 'e.g., -1000, 200, 250, 600 (initial outflow, then inflows)',
+            'modified_dietz': 'e.g., 1000, 1500, 200, 0.5 (initial value, final value, cash flow, weight)',
+            'simple_dietz': 'e.g., 1000, 1500, 200 (initial value, final value, cash flow)',
+            'irr': 'e.g., -1000, 200, 300, 500 (initial outflow, then inflows)',
+            'hpr': 'e.g., 100, 120, 5 (initial price, final price, dividend)',
+            'annualized': 'e.g., 0.1, 2 (total return, number of years)',
+            'geometric_mean': 'e.g., 0.05, 0.03, -0.02 (periodic returns as decimals)',
+            'arithmetic_mean': 'e.g., 0.05, 0.03, -0.02 (periodic returns as decimals)'
+        };
+        document.getElementById('data').placeholder = examples[method] || 'Select a method to see example input';
+    }
+
+    // Validate comma-separated input
+    function validateInput(inputId, errorMessage) {
+        const input = document.getElementById(inputId).value.trim();
+        if (input) {
+            const values = input.split(',').map(v => v.trim());
+            if (values.some(v => isNaN(v) || v === '')) {
+                alert(errorMessage);
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // Run on page load
+    window.addEventListener('load', updatePlaceholder);
+    // Run on method change
+    document.getElementById('method').addEventListener('change', updatePlaceholder);
+    // Validate on form submit
+    document.querySelector('form').addEventListener('submit', function(e) {
+        if (!validateInput('data', 'Data must be comma-separated numbers (e.g., 0.05, -0.02).')) {
+            e.preventDefault();
+        }
+        if (document.getElementById('monthly_inflation').value.trim() && 
+            !validateInput('monthly_inflation', 'Monthly inflation rates must be comma-separated numbers (e.g., 0.3, 0.4).')) {
+            e.preventDefault();
+        }
+    });
+</script>
+{% endblock %}
