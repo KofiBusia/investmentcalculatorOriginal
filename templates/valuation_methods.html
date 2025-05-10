@@ -1,0 +1,238 @@
+{% extends "base.html" %}
+
+{% block title %}ValueMaster{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>ValueMaster: Portfolio Valuation</h2>
+    <p>Estimate the value of a portfolio or company using various valuation methods.</p>
+    
+    <!-- Error Message Display -->
+    {% if error %}
+    <div class="error" style="color: red; background-color: #ffe6e6; padding: 10px; margin-bottom: 20px; border: 1px solid red;">
+        <p><strong>Error:</strong> {{ error }}</p>
+    </div>
+    {% endif %}
+
+    <form method="POST" action="/valuation_methods">
+        <!-- Valuation Method Selection -->
+        <h3>Step 1: Select Valuation Method</h3>
+        <div class="group">
+            <label for="method">Valuation Method:</label>
+            <select name="method" id="method" required>
+                <option value="CCA" {% if selected_method == 'CCA' %}selected{% endif %}>Comparable Company Analysis (CCA)</option>
+                <option value="NAV" {% if selected_method == 'NAV' %}selected{% endif %}>Net Asset Value (NAV)</option>
+                <option value="Market Capitalization" {% if selected_method == 'Market Capitalization' %}selected{% endif %}>Market Capitalization</option>
+                <option value="EV" {% if selected_method == 'EV' %}selected{% endif %}>Enterprise Value (EV)</option>
+                <option value="Replacement Cost" {% if selected_method == 'Replacement Cost' %}selected{% endif %}>Replacement Cost</option>
+                <option value="Risk-Adjusted Return" {% if selected_method == 'Risk-Adjusted Return' %}selected{% endif %}>Risk-Adjusted Return</option>
+            </select>
+        </div>
+
+        <!-- Method-Specific Inputs -->
+        <h3>Step 2: Input Data</h3>
+        <div id="dcf-inputs" class="method-input" style="display: none;">
+            <div class="group">
+                <label for="cash_flows_dcf">Cash Flows (GHS, comma-separated):</label>
+                <textarea name="cash_flows" id="cash_flows_dcf" placeholder="e.g., 100000, 120000, 140000" rows="3" required>{{ request.form.get('cash_flows', '') }}</textarea>
+                <small class="form-text text-muted">Enter future cash flows starting from year 1 (e.g., 100000, 120000 for years 1, 2).</small>
+            </div>
+            <div class="group">
+                <label for="discount_rate_dcf">Discount Rate (%):</label>
+                <input type="number" step="0.01" name="discount_rate" id="discount_rate_dcf" value="{{ request.form.get('discount_rate', '') }}" placeholder="e.g., 8.0" min="0" required>
+                <small class="form-text text-muted">The rate used to discount future cash flows.</small>
+            </div>
+        </div>
+        <div id="cca-inputs" class="method-input" style="display: none;">
+            <div class="group">
+                <label for="pe_ratio_cca">P/E Ratio:</label>
+                <input type="number" step="0.01" name="pe_ratio" id="pe_ratio_cca" value="{{ request.form.get('pe_ratio', '') }}" placeholder="e.g., 15.0" min="0" required>
+                <small class="form-text text-muted">Price-to-earnings ratio from comparable companies.</small>
+            </div>
+            <div class="group">
+                <label for="earnings_cca">Earnings (GHS):</label>
+                <input type="number" step="1" name="earnings" id="earnings_cca" value="{{ request.form.get('earnings', '') }}" placeholder="e.g., 500000" min="0" required>
+                <small class="form-text text-muted">Company's net earnings.</small>
+            </div>
+        </div>
+        <div id="nav-inputs" class="method-input" style="display: none;">
+            <div class="group">
+                <label for="assets_nav">Total Assets (GHS):</label>
+                <input type="number" step="1" name="assets" id="assets_nav" value="{{ request.form.get('assets', '') }}" placeholder="e.g., 2000000" min="0" required>
+                <small class="form-text text-muted">Total value of all assets.</small>
+            </div>
+            <div class="group">
+                <label for="liabilities_nav">Total Liabilities (GHS):</label>
+                <input type="number" step="1" name="liabilities" id="liabilities_nav" value="{{ request.form.get('liabilities', '') }}" placeholder="e.g., 800000" min="0" required>
+                <small class="form-text text-muted">Total debt and obligations.</small>
+            </div>
+        </div>
+        <div id="market-capitalization-inputs" class="method-input" style="display: none;">
+            <div class="group">
+                <label for="share_price_mc">Share Price (GHS):</label>
+                <input type="number" step="0.01" name="share_price" id="share_price_mc" value="{{ request.form.get('share_price', '') }}" placeholder="e.g., 15.50" min="0" required>
+                <small class="form-text text-muted">Current price per share.</small>
+            </div>
+            <div class="group">
+                <label for="shares_outstanding_mc">Shares Outstanding:</label>
+                <input type="number" step="1" name="shares_outstanding" id="shares_outstanding_mc" value="{{ request.form.get('shares_outstanding', '') }}" placeholder="e.g., 1000000" min="0" required>
+                <small class="form-text text-muted">Total number of shares issued.</small>
+            </div>
+        </div>
+        <div id="ev-inputs" class="method-input" style="display: none;">
+            <div class="group">
+                <label for="market_cap_ev">Market Capitalization (GHS):</label>
+                <input type="number" step="1" name="market_cap" id="market_cap_ev" value="{{ request.form.get('market_cap', '') }}" placeholder="e.g., 1500000" min="0" required>
+                <small class="form-text text-muted">Total value of equity (share price × shares).</small>
+            </div>
+            <div class="group">
+                <label for="debt_ev">Total Debt (GHS):</label>
+                <input type="number" step="1" name="debt" id="debt_ev" value="{{ request.form.get('debt', '') }}" placeholder="e.g., 500000" min="0" required>
+                <small class="form-text text-muted">Total outstanding debt.</small>
+            </div>
+            <div class="group">
+                <label for="cash_ev">Cash and Equivalents (GHS):</label>
+                <input type="number" step="1" name="cash" id="cash_ev" value="{{ request.form.get('cash', '') }}" placeholder="e.g., 200000" min="0" required>
+                <small class="form-text text-muted">Cash available to the company.</small>
+            </div>
+        </div>
+        <div id="replacement-cost-inputs" class="method-input" style="display: none;">
+            <div class="group">
+                <label for="tangible_assets_rc">Tangible Assets (GHS):</label>
+                <input type="number" step="1" name="tangible_assets" id="tangible_assets_rc" value="{{ request.form.get('tangible_assets', '') }}" placeholder="e.g., 1500000" min="0" required>
+                <small class="form-text text-muted">Physical assets like property and equipment.</small>
+            </div>
+            <div class="group">
+                <label for="intangible_assets_rc">Intangible Assets (GHS):</label>
+                <input type="number" step="1" name="intangible_assets" id="intangible_assets_rc" value="{{ request.form.get('intangible_assets', '') }}" placeholder="e.g., 300000" min="0" required>
+                <small class="form-text text-muted">Non-physical assets like patents or goodwill.</small>
+            </div>
+            <div class="group">
+                <label for="adjustment_factor_rc">Adjustment Factor (default 1):</label>
+                <input type="number" step="0.01" name="adjustment_factor" id="adjustment_factor_rc" value="{{ request.form.get('adjustment_factor', '1') }}" placeholder="e.g., 1.0" min="0">
+                <small class="form-text text-muted">Factor to adjust replacement cost (optional).</small>
+            </div>
+        </div>
+        <div id="apv-inputs" class="method-input" style="display: none;">
+            <div class="group">
+                <label for="cash_flows_apv">Cash Flows (GHS, comma-separated):</label>
+                <textarea name="cash_flows" id="cash_flows_apv" placeholder="e.g., 100000, 120000, 140000" rows="3" required>{{ request.form.get('cash_flows', '') }}</textarea>
+                <small class="form-text text-muted">Enter future cash flows starting from year 1 (e.g., 100000, 120000 for years 1, 2).</small>
+            </div>
+            <div class="group">
+                <label for="discount_rate_apv">Discount Rate (%):</label>
+                <input type="number" step="0.01" name="discount_rate" id="discount_rate_apv" value="{{ request.form.get('discount_rate', '') }}" placeholder="e.g., 8.0" min="0" required>
+                <small class="form-text text-muted">The rate used to discount future cash flows.</small>
+            </div>
+            <div class="group">
+                <label for="debt_apv">Debt (GHS):</label>
+                <input type="number" step="1" name="debt" id="debt_apv" value="{{ request.form.get('debt', '') }}" placeholder="e.g., 500000" min="0" required>
+                <small class="form-text text-muted">Total outstanding debt.</small>
+            </div>
+            <div class="group">
+                <label for="tax_rate_apv">Tax Rate (%):</label>
+                <input type="number" step="0.01" name="tax_rate" id="tax_rate_apv" value="{{ request.form.get('tax_rate', '') }}" placeholder="e.g., 30.0" min="0" max="100" required>
+                <small class="form-text text-muted">Corporate tax rate for tax shield calculation.</small>
+            </div>
+        </div>
+        <div id="risk-adjusted-return-inputs" class="method-input" style="display: none;">
+            <div class="group">
+                <label for="returns_rar">Portfolio Return (%):</label>
+                <input type="number" step="0.01" name="returns" id="returns_rar" value="{{ request.form.get('returns', '') }}" placeholder="e.g., 10.0" required>
+                <small class="form-text text-muted">Expected return of the portfolio.</small>
+            </div>
+            <div class="group">
+                <label for="risk_free_rate_rar">Risk-Free Rate (%):</label>
+                <input type="number" step="0.01" name="risk_free_rate" id="risk_free_rate_rar" value="{{ request.form.get('risk_free_rate', '') }}" placeholder="e.g., 2.0" min="0" required>
+                <small class="form-text text-muted">Return of a risk-free asset (e.g., treasury bills).</small>
+            </div>
+            <div class="group">
+                <label for="beta_rar">Beta:</label>
+                <input type="number" step="0.01" name="beta" id="beta_rar" value="{{ request.form.get('beta', '') }}" placeholder="e.g., 1.2" min="0" required>
+                <small class="form-text text-muted">Measure of market risk relative to the market.</small>
+            </div>
+            <div class="group">
+                <label for="market_return_rar">Market Return (%):</label>
+                <input type="number" step="0.01" name="market_return" id="market_return_rar" value="{{ request.form.get('market_return', '') }}" placeholder="e.g., 8.0" required>
+                <small class="form-text text-muted">Expected return of the market.</small>
+            </div>
+        </div>
+
+        <!-- Buttons -->
+        <button type="submit" class="action-btn">Calculate</button>
+        <a href="{{ url_for('valuation_methods') }}" class="action-btn">Clear</a>
+        <a href="/" class="action-btn">Back to Home</a>
+    </form>
+
+    <!-- Results Section -->
+    {% if result %}
+    <div class="results">
+        <h3>Valuation Result</h3>
+        <p><strong>Method:</strong> {{ result.method }}</p>
+        <p><strong>Valuation:</strong> {{ result.value }}</p>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    function updateInputs() {
+        const method = document.getElementById('method').value;
+        // Hide all inputs
+        document.querySelectorAll('.method-input').forEach(el => el.style.display = 'none');
+        // Show relevant inputs
+        const inputId = method.toLowerCase().replace(' ', '-') + '-inputs';
+        const inputSection = document.getElementById(inputId);
+        if (inputSection) {
+            inputSection.style.display = 'block';
+        }
+
+        // Set required attributes dynamically (excluding optional fields like adjustment_factor)
+        document.querySelectorAll('.method-input input, .method-input textarea').forEach(input => {
+            if (input.id !== 'adjustment_factor_rc') {
+                input.required = false;
+            }
+        });
+        document.querySelectorAll(`#${inputId} input, #${inputId} textarea`).forEach(input => {
+            if (input.id !== 'adjustment_factor_rc') {
+                input.required = true;
+            }
+        });
+    }
+
+    // Validate comma-separated input
+    function validateInput(inputId, errorMessage) {
+        const input = document.getElementById(inputId);
+        if (!input) return false;
+        const value = input.value.trim();
+        if (!value) {
+            alert(errorMessage);
+            return false;
+        }
+        const values = value.split(',').map(v => v.trim());
+        if (values.some(v => isNaN(v) || v === '')) {
+            alert(errorMessage);
+            return false;
+        }
+        if (values.length === 0) {
+            alert(errorMessage);
+            return false;
+        }
+        return true;
+    }
+
+    // Run on page load
+    window.addEventListener('load', updateInputs);
+    // Run on method change
+    document.getElementById('method').addEventListener('change', updateInputs);
+    // Validate on form submit
+    document.querySelector('form').addEventListener('submit', function(e) {
+        const method = document.getElementById('method').value;
+        if (method === 'DCF' && !validateInput('cash_flows_dcf', 'Cash flows must be comma-separated numbers (e.g., 100000, 120000).')) {
+            e.preventDefault();
+        }
+        if (method === 'APV' && !validateInput('cash_flows_apv', 'Cash flows must be comma-separated numbers (e.g., 100000, 120000).')) {
+            e.preventDefault();
+        }
+    });
+</script>
+{% endblock %}

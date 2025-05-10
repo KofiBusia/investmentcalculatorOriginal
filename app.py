@@ -56,6 +56,44 @@ def calculate_time_weighted_inflation(monthly_inflations):
     tw_inflation = np.prod([1 + (i / 100) for i in monthly_inflations]) - 1
     return tw_inflation
 
+# Valuation Functions
+def calculate_cca(pe_ratio, earnings):
+    if pe_ratio <= 0:
+        raise ValueError("P/E ratio must be positive")
+    if earnings < 0:
+        raise ValueError("Earnings cannot be negative")
+    return pe_ratio * earnings
+
+def calculate_nav(assets, liabilities):
+    if assets < 0 or liabilities < 0:
+        raise ValueError("Assets and liabilities cannot be negative")
+    return assets - liabilities
+
+def calculate_market_cap(share_price, shares_outstanding):
+    if share_price < 0 or shares_outstanding < 0:
+        raise ValueError("Share price and shares outstanding cannot be negative")
+    return share_price * shares_outstanding
+
+def calculate_ev(market_cap, debt, cash):
+    if market_cap < 0 or debt < 0 or cash < 0:
+        raise ValueError("Market cap, debt, and cash cannot be negative")
+    return market_cap + debt - cash
+
+def calculate_replacement_cost(tangible_assets, intangible_assets, adjustment_factor):
+    if tangible_assets < 0 or intangible_assets < 0:
+        raise ValueError("Tangible and intangible assets cannot be negative")
+    if not 0 <= adjustment_factor <= 1:
+        raise ValueError("Adjustment factor must be between 0 and 1")
+    return tangible_assets + intangible_assets * adjustment_factor
+
+def calculate_risk_adjusted_return(returns, risk_free_rate, beta, market_return):
+    if risk_free_rate < 0 or market_return < 0:
+        raise ValueError("Risk-free rate and market return cannot be negative")
+    if beta < 0:
+        raise ValueError("Beta cannot be negative")
+    expected_return = risk_free_rate / 100 + beta * (market_return / 100 - risk_free_rate / 100)
+    return (returns / 100) - expected_return  # Jensen's Alpha
+
 def parse_comma_separated(text):
     """Parse a comma-separated string into a list of floats."""
     try:
@@ -446,6 +484,65 @@ def forex_calculator():
             result = f"Error: {str(e)}"
             return render_template('forex.html', result=result, form_data=request.form)
     return render_template('forex.html', form_data={})
+
+# Valuation Route
+@app.route('/valuation_methods', methods=['GET', 'POST'])
+def valuation_methods():
+    selected_method = request.form.get('method', 'CCA')  # Default to CCA
+    if request.method == 'POST':
+        try:
+            method = request.form['method']
+            result = {'method': method.replace('_', ' ').title()}
+
+            # Helper function to safely convert form input to float
+            def safe_float(value):
+                return float(value) if value.strip() else 0.0
+
+            # Handle each valuation method
+            if method == 'CCA':
+                pe_ratio = safe_float(request.form.get('pe_ratio', '0'))
+                earnings = safe_float(request.form.get('earnings', '0'))
+                result['value'] = f"GHS {calculate_cca(pe_ratio, earnings):,.2f}"
+
+            elif method == 'NAV':
+                assets = safe_float(request.form.get('assets', '0'))
+                liabilities = safe_float(request.form.get('liabilities', '0'))
+                result['value'] = f"GHS {calculate_nav(assets, liabilities):,.2f}"
+
+            elif method == 'Market Capitalization':
+                share_price = safe_float(request.form.get('share_price', '0'))
+                shares_outstanding = safe_float(request.form.get('shares_outstanding', '0'))
+                result['value'] = f"GHS {calculate_market_cap(share_price, shares_outstanding):,.2f}"
+
+            elif method == 'EV':
+                market_cap = safe_float(request.form.get('market_cap', '0'))
+                debt = safe_float(request.form.get('debt', '0'))
+                cash = safe_float(request.form.get('cash', '0'))
+                result['value'] = f"GHS {calculate_ev(market_cap, debt, cash):,.2f}"
+
+            elif method == 'Replacement Cost':
+                tangible_assets = safe_float(request.form.get('tangible_assets', '0'))
+                intangible_assets = safe_float(request.form.get('intangible_assets', '0'))
+                adjustment_factor = safe_float(request.form.get('adjustment_factor', '1'))
+                result['value'] = f"GHS {calculate_replacement_cost(tangible_assets, intangible_assets, adjustment_factor):,.2f}"
+
+            elif method == 'Risk-Adjusted Return':
+                returns = safe_float(request.form.get('returns', '0'))
+                risk_free_rate = safe_float(request.form.get('risk_free_rate', '0'))
+                beta = safe_float(request.form.get('beta', '0'))
+                market_return = safe_float(request.form.get('market_return', '0'))
+                result['value'] = f"{calculate_risk_adjusted_return(returns, risk_free_rate, beta, market_return):.2%}"
+
+            return render_template('valuation_methods.html', result=result, selected_method=method)
+
+        except ValueError as ve:
+            return render_template('valuation_methods.html', error=str(ve), selected_method=method)
+        except ZeroDivisionError:
+            return render_template('valuation_methods.html', error="Division by zero error. Please check inputs.", selected_method=method)
+        except Exception as e:
+            return render_template('valuation_methods.html', error=f"An unexpected error occurred: {str(e)}", selected_method=method)
+
+    return render_template('valuation_methods.html', selected_method=selected_method)
 
 @app.route('/esg-investments', methods=['GET', 'POST'])
 def esg_investments():
