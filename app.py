@@ -5,22 +5,46 @@ import os
 from dotenv import load_dotenv
 from dataclasses import dataclass
 from collections import namedtuple
+from flask import Flask, render_template, request, flash, redirect, url_for, session, send_file
+from flask_wtf import FlaskForm
+from wtforms import StringField, TextAreaField, SubmitField, IntegerField, SelectField, FormField, FieldList, FileField, DateTimeField
+from wtforms.validators import DataRequired, Email, Optional
+from flask_sqlalchemy import SQLAlchemy
+from flask_mail import Mail, Message
+import subprocess
+import tempfile
+import os
+import io
+import logging
+# noinspection PyUnresolvedReferences
+from werkzeug.utils import secure_filename
+from datetime import datetime
+from flask import Flask, send_from_directory
+from flask import db
+from flask import app, db
+with app.app_context():
+    db.create_all()
 
+
+db = SQLAlchemy(app)
 
 load_dotenv()  # Load variables from .env
 
 app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY', 'default_secret_key')  # Set via environment; default for local dev only
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///cleanvisionhr.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(app)
 
-# Email configuration using environment variables
-app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER')  # e.g., 'smtp.gmail.com'
-app.config['MAIL_PORT'] = int(os.getenv('MAIL_PORT', 587))  # Default to 587 if not set
-app.config['MAIL_USE_TLS'] = os.getenv('MAIL_USE_TLS', 'True') == 'True'  # Convert string to boolean
-app.config['MAIL_USERNAME'] = os.getenv('MAIL_USERNAME')  # e.g., 'your-email@gmail.com'
-app.config['MAIL_PASSWORD'] = os.getenv('MAIL_PASSWORD')  # Email password or app-specific password
-app.config['MAIL_DEFAULT_SENDER'] = os.getenv('MAIL_DEFAULT_SENDER')  # e.g., 'your-email@gmail.com'
-
+# Flask-Mail configuration for GoDaddy
+app.config['MAIL_SERVER'] = 'smtpout.secureserver.net'
+app.config['MAIL_PORT'] = 587
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USERNAME'] = 'info@cleanvisionhr.com'
+app.config['MAIL_PASSWORD'] = 'IFokbu@m@1'
+app.config['MAIL_DEFAULT_SENDER'] = 'info@cleanvisionhr.com'
 mail = Mail(app)
+
 
 # Define result structures
 DCFResult = namedtuple('DCFResult', ['total_pv', 'pv_cash_flows', 'terminal_value', 'pv_terminal', 'total_dcf'])
@@ -284,6 +308,13 @@ def calculate_intrinsic_value_full(
     - g: Growth rate used in the calculation
     - discount_rate: Discount rate calculated via CAPM
     """
+    class ContactMessage(db.Model):
+        id = db.Column(db.Integer, primary_key=True)
+        name = db.Column(db.String(100), nullable=False)
+        email = db.Column(db.String(120), nullable=False)
+        message = db.Column(db.Text, nullable=False)
+
+    
     @dataclass
     class DVMResult:
       intrinsic_value: float
@@ -1404,36 +1435,22 @@ def terms_conditions():
 
 @app.route('/contact', methods=['GET', 'POST'])
 def contact():
-    if request.method == 'POST':
-        name = request.form['name']
-        email = request.form['email']
-        message = request.form['message']
-        
-        try:
-            # Send email to info@cleanvisionhr.com
-            msg_to_admin = Message(
-                subject=f"New Contact Form Submission from {name}",
-                recipients=['info@cleanvisionhr.com'],
-                body=f"Name: {name}\nEmail: {email}\nMessage: {message}"
-            )
-            mail.send(msg_to_admin)
-            
-            # Send auto-response to the user
-            msg_to_user = Message(
-                subject="Thank you for contacting us!",
-                recipients=[email],
-                body=f"Dear {name},\n\nThank you for reaching out to us. We have received your message and will get back to you shortly.\n\nBest regards,\nInvestment Calculator Team"
-            )
-            mail.send(msg_to_user)
-            
-            flash("Your message has been sent successfully!", "success")
-        except Exception as e:
-            app.logger.error(f"Error sending email: {str(e)}")
-            flash("An error occurred while sending your message. Please try again later.", "danger")
-        
+    form = ContactForm()
+    if form.validate_on_submit():
+        contact_message = ContactMessage(name=form.name.data, email=form.email.data, message=form.message.data)
+        db.session.add(contact_message)
+        db.session.commit()
+        company_msg = Message(subject='New Contact Message', recipients=['info@cleanvisionhr.com'])
+        company_msg.body = f"Name: {contact_message.name}\nEmail: {contact_message.email}\nMessage: {contact_message.message}"
+        mail.send(company_msg)
+        user_email = contact_message.email
+        name = contact_message.name
+        html_body = render_template('contact_confirmation.html', name=name)
+        auto_response_msg = Message(subject="Thanks for Reaching Out! We’ll Get Back to You Soon", sender=("Admin", "info@cleanvisionhr.com"), recipients=[user_email], html=html_body)
+        mail.send(auto_response_msg)
+        flash('Your message has been sent successfully!', 'success')
         return redirect(url_for('contact'))
-    
-    return render_template('contact.html')
+    return render_template('contact.html', form=form)
 
 @app.route('/early_exit', methods=['GET', 'POST'])
 def early_exit():
@@ -1529,6 +1546,77 @@ def intrinsic_value():
         except ValueError:
             return render_template('intrinsic_value.html', error="Please enter valid numeric values.")
     return render_template('intrinsic_value.html')
+
+class BlogForm(FlaskForm):
+    title = StringField('Title', validators=[DataRequired()])
+    content = TextAreaField('Content', validators=[DataRequired()])
+    author = StringField('Author', validators=[DataRequired()])
+    submit = SubmitField('Post')
+
+
+class BlogPost(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    author = db.Column(db.String(100), nullable=False, default="Admin")
+    date_posted = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+
+@app.route('/blog')
+def blog():
+    posts = BlogPost.query.order_by(BlogPost.date_posted.desc()).all()
+    return render_template('blog.html', posts=posts)
+
+@app.route('/blog/<int:post_id>')
+def blog_post(post_id):
+    post = BlogPost.query.get_or_404(post_id)
+    return render_template('blog_post.html', post=post)
+
+
+@app.route('/admin/blog', methods=['GET', 'POST'])
+def admin_blog():
+    form = BlogForm()
+    if form.validate_on_submit():
+        new_post = BlogPost(
+            title=form.title.data,
+            content=form.content.data,
+            author=form.author.data
+        )
+        db.session.add(new_post)
+        db.session.commit()
+        flash('Blog post created successfully!', 'success')
+        return redirect(url_for('admin_blog'))
+    posts = BlogPost.query.order_by(BlogPost.date_posted.desc()).all()
+    return render_template('admin_blog.html', form=form, posts=posts)
+
+
+@app.route('/admin/blog/edit/<int:post_id>', methods=['GET', 'POST'])
+def edit_blog_post(post_id):
+    post = BlogPost.query.get_or_404(post_id)
+    form = BlogForm()
+    
+    if form.validate_on_submit():
+        post.title = form.title.data
+        post.content = form.content.data
+        post.author = form.author.data
+        db.session.commit()
+        flash('Blog post updated successfully!', 'success')
+        return redirect(url_for('admin_blog'))
+    elif request.method == 'GET':
+        # Pre-populate the form with existing data
+        form.title.data = post.title
+        form.content.data = post.content
+        form.author.data = post.author
+    
+    return render_template('edit_blog_post.html', form=form, post=post)
+
+@app.route('/admin/blog/delete/<int:post_id>', methods=['POST'])
+def delete_blog_post(post_id):
+    post = BlogPost.query.get_or_404(post_id)
+    db.session.delete(post)
+    db.session.commit()
+    flash('Blog post deleted successfully!', 'success')
+    return redirect(url_for('admin_blog'))
 
 if __name__ == '__main__':
     # For local development, use Waitress

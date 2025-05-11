@@ -1,0 +1,223 @@
+[33mcommit 60409dc086528ad677659146b0ae265b048507b4[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m
+Author: KofiBusia <kyeikofi@gmail.com>
+Date:   Sun May 11 16:59:27 2025 +0000
+
+    Revert "Initial commit"
+    
+    This reverts commit 3a2ac1f8b3ccd8b2ac54a10eeeefdc5eb245ffa6.
+
+[33mcommit 3a2ac1f8b3ccd8b2ac54a10eeeefdc5eb245ffa6[m[33m ([m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m
+Author: KofiBusia <kyeikofi@gmail.com>
+Date:   Sun May 11 16:52:23 2025 +0000
+
+    Initial commit
+
+[33mcommit 43840856ed60a2ca286db465aeba6268cc37193c[m
+Author: KofiBusia <kyeikofi@gmail.com>
+Date:   Sat May 10 22:53:35 2025 +0000
+
+    modified app.py, dvm.html, index.html
+
+[33mcommit f775cd2d0c32c40a113c643b4f13ecf74287fd77[m
+Author: KofiBusia <kyeikofi@gmail.com>
+Date:   Sat May 10 20:31:05 2025 +0000
+
+    added ads.txt
+
+[33mcommit 7d1d6285e9d90fb96a1c134fcba6f463dcffb948[m
+Author: KofiBusia <kyeikofi@gmail.com>
+Date:   Sat May 10 18:01:44 2025 +0000
+
+    modified dvm.html
+
+[33mcommit 1a6e60c3ad3c7f7b329eb1f820b85edb0d72027d[m
+Author: KofiBusia <kyeikofi@gmail.com>
+Date:   Sat May 10 17:42:55 2025 +0000
+
+    added dcf.html, dvm.html, modified app.py and index.html
+
+[33mcommit 81cf0e1a9999b577cd5a027006175abbcc43dca2[m
+Author: KofiBusia <kyeikofi@gmail.com>
+Date:   Sat May 10 10:59:40 2025 +0000
+
+    added valuation_methods.html
+
+[33mcommit 5dd98b55929d0424d33e0d5e24e6e0fd429eab1d[m
+Author: KofiBusia <kyeikofi@gmail.com>
+Date:   Sat May 10 02:58:28 2025 +0000
+
+    added portfolio_return.html, modified app.py and index.html
+
+[33mcommit 85f5fad72b1c8638361f5c2460676bdb35308d2e[m
+Author: KofiBusia <kyeikofi@gmail.com>
+Date:   Thu May 8 17:02:25 2025 +0000
+
+    Updated app.py, intrinsic_value.html
+
+[33mcommit d02c7615e1ae78732c5daea6ad36d751926216f4[m
+Author: KofiBusia <kyeikofi@gmail.com>
+Date:   Tue May 6 18:14:31 2025 +0000
+
+    modified: app.py, index.html; Added duration.html
+
+[33mcommit ef581fac38dce05dd2256391c66cd934cf9f531f[m
+Author: KofiBusia <kyeikofi@gmail.com>
+Date:   Tue May 6 09:16:26 2025 +0000
+
+    Updated app.py expected_return.html volatility.html
+
+[33mcommit 2facfa29a68ada8caff90df2d0dc58489e938023[m
+Author: KofiBusia <kyeikofi@gmail.com>
+Date:   Tue May 6 08:39:59 2025 +0000
+
+    Updated app.py and  intrinsic_value.html with target price
+
+[33mcommit 0b391423b560f4e6bb4e3686dad9b8fff0191aeb[m
+Author: KofiBusia <kyeikofi@gmail.com>
+Date:   Mon May 5 22:10:19 2025 +0000
+
+    added esg.html, expected_return.html, hedge_funds.html, portfolio_diversification.html, volatility.html, modified app.py, index.html
+
+[33mcommit dd9947c65b0a375ae373f18e6e3916889987b57a[m
+Author: KofiBusia <kyeikofi@gmail.com>
+Date:   Mon May 5 17:30:57 2025 +0000
+
+    added mna.html, pe_vc.html, modified app.py, requirements.txt, base.html, contact.html, intrinsic_value.html, index.html
+
+[33mcommit 94f8bd6e041def40efd2d3e1061c3af67b1eaba6[m
+Author: KofiBusia <kyeikofi@gmail.com>
+Date:   Sun May 4 20:39:21 2025 +0000
+
+    added calculate_beta.html, calculate_fcf.html, modified app.py, requirements.txt, index.html
+
+[33mcommit 07e942bddc475816530778b705a6dbebb0fbac3c[m
+Author: KofiBusia <kyeikofi@gmail.com>
+Date:   Sun May 4 19:53:43 2025 +0000
+
+    modified app.py and index.html, created intrinsic_value.html
+
+[33mcommit d586f283781e6fefd1a42088bcb32826a382b35f[m
+Author: KofiBusia <kyeikofi@gmail.com>
+Date:   Sat May 3 19:53:11 2025 +0000
+
+    Updated all investment product HTML files with descriptions
+
+[33mcommit cd19f44c0358f89f5bd3d9ebdaa3c8e1162a0081[m
+Author: KofiBusia <kyeikofi@gmail.com>
+Date:   Sat May 3 06:54:20 2025 +0000
+
+    Updated the UI
+
+[33mcommit 2d0b468cc4ac8ac43714badfeb658dd6faf4a45b[m
+Author: KofiBusia <kyeikofi@gmail.com>
+Date:   Fri May 2 18:35:15 2025 +0000
+
+    Add Flask-Mail dependency
+
+[33mcommit f89cc501dae93920b1e16c379aca07964d7a87de[m
+Author: KofiBusia <kyeikofi@gmail.com>
+Date:   Fri May 2 15:24:00 2025 +0000
+
+    Updated all project files with latest changes, including app.py and templates.
+
+[33mcommit 8982964431e9dfd89e7fed471bd090efe489e030[m
+Author: KofiBusia <kyeikofi@gmail.com>
+Date:   Fri May 2 12:16:51 2025 +0000
+
+    Updated investment logic and fixed layout issues
+
+[33mcommit 285ad2f9d913a21a186e71681bb6aba9512cdb63[m
+Author: Kofi Busia <kyeikofi@gmail.com>
+Date:   Sun Mar 2 11:36:46 2025 +0000
+
+    Removed virtual environment from tracking
+
+[33mcommit 8e6cc8f75ae96aa4812b1d3462f0ba7091d5d058[m
+Author: Kofi Busia <kyeikofi@gmail.com>
+Date:   Fri Feb 28 15:22:35 2025 +0000
+
+    Updated bonds.html and added early_exit.html
+
+[33mcommit b695c1f914410d28d41cff790dbc8d7e4d3d7236[m
+Author: Kofi Busia <kyeikofi@gmail.com>
+Date:   Fri Feb 28 12:55:54 2025 +0000
+
+    Fixed ads.txt route
+
+[33mcommit a91ad8e56499c3ff4392697bf3b8a180515cb3f6[m
+Author: Kofi Busia <kyeikofi@gmail.com>
+Date:   Fri Feb 28 11:34:25 2025 +0000
+
+    Added Google AdSense script
+
+[33mcommit cf1440ecfe4e39d51a6e7563fa4b497dcd4424e5[m
+Author: Kofi Busia <kyeikofi@gmail.com>
+Date:   Fri Feb 28 07:46:27 2025 +0000
+
+    Update Stocks calculation to include commissions and calculate Total Return, Capital Gain, and Dividend Yield percentages
+
+[33mcommit ff38d8997d4a102bc34dae084d77a2ca09698c1a[m
+Author: Kofi Busia <kyeikofi@gmail.com>
+Date:   Thu Feb 27 18:51:46 2025 +0000
+
+    Update Bonds calculation with new fields and formulas for Maturity Amount, Bond Yield, and Holding Period Return
+
+[33mcommit 914d6bd5c994f7fcf1e6c2c80d74c9220ae8a7dc[m
+Author: Kofi Busia <kyeikofi@gmail.com>
+Date:   Thu Feb 27 18:28:03 2025 +0000
+
+    Update End Balance calculation to use compounded monthly return for accuracy
+
+[33mcommit acc338d64742b78716041ae67f0ee74f658a62db[m
+Author: Kofi Busia <kyeikofi@gmail.com>
+Date:   Thu Feb 27 14:43:51 2025 +0000
+
+    Fix T-Bills calculation to use ((Principal * Tenor * Rate) / 364) + Principal
+
+[33mcommit cdd2dd816deb6d69ed75cc3f538236f2bb1cab3c[m
+Author: Kofi Busia <kyeikofi@gmail.com>
+Date:   Thu Feb 27 12:00:47 2025 +0000
+
+    Add Treasury Bills Rediscount route, template, and update index.html
+
+[33mcommit fa31799d942fe7f44916e265bacdd0e76d712c2e[m
+Author: Kofi Busia <kyeikofi@gmail.com>
+Date:   Thu Feb 27 11:56:11 2025 +0000
+
+    Update T-Bills route and template for Principal, Tenor, Rate, and Maturity Value
+
+[33mcommit e173d44f6b3e642503f2dd5edf20e58f2f0ef497[m
+Author: Kofi Busia <kyeikofi@gmail.com>
+Date:   Thu Feb 27 04:06:50 2025 +0000
+
+    Added missing pages and Flask routes
+
+[33mcommit 74bb87dbf173c072f915b1d8891cb2722406685e[m
+Author: Kofi Busia <kyeikofi@gmail.com>
+Date:   Thu Feb 27 03:51:55 2025 +0000
+
+    Added navigation menu to index.html
+
+[33mcommit 0fdc575faf97f459901f3f63e25cce8d9cdb0382[m
+Author: Kofi Busia <kyeikofi@gmail.com>
+Date:   Wed Feb 26 15:36:55 2025 +0000
+
+    Initial commit of Flask investment calculator app
+
+[33mcommit 60bb3da462d0adb94d4f883b95e5a25cabe3d0d1[m
+Author: Kofi Busia <kyeikofi@gmail.com>
+Date:   Tue Feb 25 15:56:38 2025 +0000
+
+    Initial commit - Investment Calculator V3
+
+[33mcommit 2f272e2878792c1254d19f215710741d191865ec[m
+Author: Kofi Busia <kyeikofi@gmail.com>
+Date:   Sat Feb 22 18:56:57 2025 +0000
+
+    Initial commit
+
+[33mcommit 05670c64074f25f025c24989f8acf815fd4e3f73[m
+Author: Kofi Busia Kyei <kyeikofi@gmail.com>
+Date:   Sat Feb 22 18:55:34 2025 +0000
+
+    Initial commit
