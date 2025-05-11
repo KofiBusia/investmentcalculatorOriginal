@@ -1,52 +1,93 @@
-from flask import Flask, render_template, request, send_from_directory, flash, redirect, url_for
+# Imports Block
+from flask import (
+    Flask, render_template, request, send_from_directory, flash, redirect,
+    url_for, session, send_file
+)
+from flask_sqlalchemy import SQLAlchemy
 from flask_mail import Mail, Message
+from flask_wtf import FlaskForm
+from flask_wtf.file import FileField, FileAllowed
+from wtforms import (
+    StringField, TextAreaField, SubmitField, IntegerField, SelectField,
+    FormField, FieldList, FileField, DateTimeField
+)
+from wtforms.validators import DataRequired, Email, Optional
 import numpy as np
 import os
 from dotenv import load_dotenv
 from dataclasses import dataclass
 from collections import namedtuple
-from flask import Flask, render_template, request, flash, redirect, url_for, session, send_file
-from flask_wtf import FlaskForm
-from wtforms import StringField, TextAreaField, SubmitField, IntegerField, SelectField, FormField, FieldList, FileField, DateTimeField
-from wtforms.validators import DataRequired, Email, Optional
-from flask_sqlalchemy import SQLAlchemy
-from flask_mail import Mail, Message
 import subprocess
 import tempfile
-import os
 import io
 import logging
-# noinspection PyUnresolvedReferences
 from werkzeug.utils import secure_filename
 from datetime import datetime
-from flask import Flask, send_from_directory
-from flask import db
-from flask import app, db
-with app.app_context():
-    db.create_all()
+import numpy_financial as npf  # For IRR calculations
 
-
-db = SQLAlchemy(app)
-
+# ENVIRONMENT SETUP BLOCK
+# Loads environment variables from a .env file for secure configuration
 load_dotenv()  # Load variables from .env
 
+# APP INITIALIZATION BLOCK
+# Creates the Flask app instance and sets up basic configuration
 app = Flask(__name__)
-app.secret_key = os.getenv('SECRET_KEY', 'default_secret_key')  # Set via environment; default for local dev only
+app.secret_key = os.getenv('SECRET_KEY', 'default_secret_key')  # Fallback for local development
+app.config['UPLOAD_FOLDER'] = 'static/author_photos'
+
+# CONFIGURATION BLOCK
+# Configures the Flask app for database (SQLAlchemy) and email (Flask-Mail) integrations
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///cleanvisionhr.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-db = SQLAlchemy(app)
-
-# Flask-Mail configuration for GoDaddy
 app.config['MAIL_SERVER'] = 'smtpout.secureserver.net'
 app.config['MAIL_PORT'] = 587
 app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_USERNAME'] = 'info@cleanvisionhr.com'
 app.config['MAIL_PASSWORD'] = 'IFokbu@m@1'
 app.config['MAIL_DEFAULT_SENDER'] = 'info@cleanvisionhr.com'
+
+# EXTENSIONS INITIALIZATION BLOCK
+# Initializes Flask-SQLAlchemy and Flask-Mail extensions
+db = SQLAlchemy(app)
 mail = Mail(app)
 
+# MODELS BLOCK
+# Defines database models for ContactMessage and BlogPost using Flask-SQLAlchemy
+class ContactMessage(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(120), nullable=False)
+    message = db.Column(db.Text, nullable=False)
 
-# Define result structures
+class BlogPost(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(200), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    author = db.Column(db.String(100), nullable=False, default="Admin")
+    author_photo = db.Column(db.String(100), nullable=True)  # Store photo filename
+    date_posted = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    
+    # Create database tables
+with app.app_context():
+    db.create_all()
+    
+    # FORMS BLOCK
+# Defines WTForms classes for ContactForm and BlogForm
+class ContactForm(FlaskForm):
+    name = StringField('Name', validators=[DataRequired()])
+    email = StringField('Email', validators=[DataRequired(), Email()])
+    message = TextAreaField('Message', validators=[DataRequired()])
+    submit = SubmitField('Send')
+
+class BlogForm(FlaskForm):
+    title = StringField('Title', validators=[DataRequired()])
+    author = StringField('Author', validators=[DataRequired()])
+    author_photo = FileField('Author Photo', validators=[FileAllowed(['jpg', 'png', 'jpeg'])])
+    content = TextAreaField('Content', validators=[DataRequired()])
+    submit = SubmitField('Post')
+    
+# HELPER FUNCTIONS BLOCK
+# Utility functions and namedtuples used throughout the application
 DCFResult = namedtuple('DCFResult', ['total_pv', 'pv_cash_flows', 'terminal_value', 'pv_terminal', 'total_dcf'])
 DVMResult = namedtuple('DVMResult', ['intrinsic_value', 'formula', 'pv_dividends', 'terminal_value', 'pv_terminal'])
 
@@ -87,7 +128,6 @@ def calculate_time_weighted_inflation(monthly_inflations):
     tw_inflation = np.prod([1 + (i / 100) for i in monthly_inflations]) - 1
     return tw_inflation
 
-# Valuation Functions
 def calculate_cca(pe_ratio, earnings):
     if pe_ratio <= 0:
         raise ValueError("P/E ratio must be positive")
@@ -191,7 +231,6 @@ def calculate_forex_profit(investment, initial_rate, final_rate):
     profit = final_value - base_currency
     return profit
 
-# Define CAGR calculation function
 def calculate_cagr(start_value, end_value, years):
     """Calculate Compound Annual Growth Rate (CAGR) even with negative values"""
     if start_value == 0:
@@ -308,32 +347,6 @@ def calculate_intrinsic_value_full(
     - g: Growth rate used in the calculation
     - discount_rate: Discount rate calculated via CAPM
     """
-    class ContactMessage(db.Model):
-        id = db.Column(db.Integer, primary_key=True)
-        name = db.Column(db.String(100), nullable=False)
-        email = db.Column(db.String(120), nullable=False)
-        message = db.Column(db.Text, nullable=False)
-
-    
-    @dataclass
-    class DVMResult:
-      intrinsic_value: float
-      formula: str = ""
-      pv_dividends: list = None
-      terminal_value: float = 0.0
-      pv_terminal: float = 0.0
-
-    @dataclass
-    class DCFResult:
-      total_pv: float
-      pv_cash_flows: list
-      terminal_value: float
-      pv_terminal: float
-      total_dcf: float
-      
-    @app.template_filter('commafy')
-    def commafy(value):
-        return "{:,.2f}".format(value)
     
     assert len(fcfs) == 5, "Provide exactly 5 years of historical FCF"
 
@@ -383,6 +396,9 @@ def calculate_target_price(fcf, explicit_growth, n, g, r, debt, cash, shares):
     # Target price (adjusted for debt/cash)
     target_price = (terminal_value - debt + cash) / shares
     return target_price
+
+# ROUTES BLOCK
+# Defines all route handlers for the Flask application
 
 @app.route('/ads.txt')
 def ads_txt():
@@ -559,7 +575,6 @@ def dcf_calculator():
             error = f"An unexpected error occurred: {str(e)}"
     return render_template('dcf.html', error=error, results=results)
 
-# Add these new routes
 # DVM Calculator Route
 @app.route('/dvm', methods=['GET', 'POST'])
 def dvm_calculator():
@@ -1133,8 +1148,6 @@ def mutual_funds():
 def duration():
     if request.method == 'POST':
         try:
-            print("Form data received:", request.form)  # Debugging print
-
             # Collect inputs
             num_periods = int(request.form['num_periods'])
             cash_flows = []
@@ -1189,10 +1202,8 @@ def duration():
             return render_template('duration.html', result=result)
 
         except (ValueError, ZeroDivisionError) as e:
-            print("Error:", e)  # Debugging print
             return render_template('duration.html', error="Invalid input: Please ensure all fields are valid numbers.")
         except Exception as e:
-            print("Unexpected error:", e)  # Catch all other exceptions
             return render_template('duration.html', error="An unexpected error occurred. Please try again.")
 
     return render_template('duration.html')
@@ -1201,8 +1212,6 @@ def duration():
 def portfolio_return():
     if request.method == 'POST':
         try:
-            print("Form data received:", request.form)  # Debugging print
-
             # Collect inputs
             method = request.form['method']
             data_input = request.form['data'].strip()
@@ -1277,13 +1286,10 @@ def portfolio_return():
             return render_template('portfolio_return.html', result=result)
 
         except ValueError as ve:
-            print("ValueError:", ve)  # Debugging print
             return render_template('portfolio_return.html', error=str(ve))
         except RuntimeError as re:
-            print("RuntimeError (likely IRR convergence):", re)  # Debugging print
             return render_template('portfolio_return.html', error="IRR calculation failed to converge. Please check cash flows.")
         except Exception as e:
-            print("Unexpected error:", e)  # Debugging print
             return render_template('portfolio_return.html', error=f"An unexpected error occurred: {e}")
 
     return render_template('portfolio_return.html')
@@ -1547,21 +1553,6 @@ def intrinsic_value():
             return render_template('intrinsic_value.html', error="Please enter valid numeric values.")
     return render_template('intrinsic_value.html')
 
-class BlogForm(FlaskForm):
-    title = StringField('Title', validators=[DataRequired()])
-    content = TextAreaField('Content', validators=[DataRequired()])
-    author = StringField('Author', validators=[DataRequired()])
-    submit = SubmitField('Post')
-
-
-class BlogPost(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(200), nullable=False)
-    content = db.Column(db.Text, nullable=False)
-    author = db.Column(db.String(100), nullable=False, default="Admin")
-    date_posted = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-
-
 @app.route('/blog')
 def blog():
     posts = BlogPost.query.order_by(BlogPost.date_posted.desc()).all()
@@ -1572,23 +1563,41 @@ def blog_post(post_id):
     post = BlogPost.query.get_or_404(post_id)
     return render_template('blog_post.html', post=post)
 
+def allowed_file(filename):
+    """Check if the file extension is allowed."""
+    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @app.route('/admin/blog', methods=['GET', 'POST'])
 def admin_blog():
     form = BlogForm()
     if form.validate_on_submit():
-        new_post = BlogPost(
-            title=form.title.data,
-            content=form.content.data,
-            author=form.author.data
-        )
-        db.session.add(new_post)
-        db.session.commit()
-        flash('Blog post created successfully!', 'success')
-        return redirect(url_for('admin_blog'))
+        try:
+            file = form.author_photo.data
+            filename = None
+            if file and allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            elif file and not allowed_file(file.filename):
+                flash('Invalid file type. Allowed types: PNG, JPG, JPEG, GIF.', 'danger')
+                return render_template('admin_blog.html', form=form, posts=BlogPost.query.order_by(BlogPost.date_posted.desc()).all())
+
+            new_post = BlogPost(
+                title=form.title.data,
+                content=form.content.data,
+                author=form.author.data,
+                author_photo=filename
+            )
+            db.session.add(new_post)
+            db.session.commit()
+            flash('Blog post created successfully!', 'success')
+            return redirect(url_for('admin_blog'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error creating post: {str(e)}', 'danger')
+    
     posts = BlogPost.query.order_by(BlogPost.date_posted.desc()).all()
     return render_template('admin_blog.html', form=form, posts=posts)
-
 
 @app.route('/admin/blog/edit/<int:post_id>', methods=['GET', 'POST'])
 def edit_blog_post(post_id):
@@ -1596,14 +1605,34 @@ def edit_blog_post(post_id):
     form = BlogForm()
     
     if form.validate_on_submit():
-        post.title = form.title.data
-        post.content = form.content.data
-        post.author = form.author.data
-        db.session.commit()
-        flash('Blog post updated successfully!', 'success')
-        return redirect(url_for('admin_blog'))
+        try:
+            file = form.author_photo.data
+            filename = post.author_photo  # Keep existing photo if no new upload
+            if file and allowed_file(file.filename):
+                # Remove old photo if it exists
+                if post.author_photo:
+                    try:
+                        os.remove(os.path.join(app.config['UPLOAD_FOLDER'], post.author_photo))
+                    except FileNotFoundError:
+                        pass
+                filename = secure_filename(file.filename)
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            elif file and not allowed_file(file.filename):
+                flash('Invalid file type. Allowed types: PNG, JPG, JPEG, GIF.', 'danger')
+                return render_template('edit_blog_post.html', form=form, post=post)
+
+            post.title = form.title.data
+            post.content = form.content.data
+            post.author = form.author.data
+            post.author_photo = filename
+            db.session.commit()
+            flash('Blog post updated successfully!', 'success')
+            return redirect(url_for('admin_blog'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error updating post: {str(e)}', 'danger')
+    
     elif request.method == 'GET':
-        # Pre-populate the form with existing data
         form.title.data = post.title
         form.content.data = post.content
         form.author.data = post.author
@@ -1613,10 +1642,25 @@ def edit_blog_post(post_id):
 @app.route('/admin/blog/delete/<int:post_id>', methods=['POST'])
 def delete_blog_post(post_id):
     post = BlogPost.query.get_or_404(post_id)
-    db.session.delete(post)
-    db.session.commit()
-    flash('Blog post deleted successfully!', 'success')
+    try:
+        # Remove associated photo file
+        if post.author_photo:
+            try:
+                os.remove(os.path.join(app.config['UPLOAD_FOLDER'], post.author_photo))
+            except FileNotFoundError:
+                pass
+        
+        db.session.delete(post)
+        db.session.commit()
+        flash('Blog post deleted successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error deleting post: {str(e)}', 'danger')
+    
     return redirect(url_for('admin_blog'))
+
+# APPLICATION RUNNER BLOCK
+# Code to run the Flask app with Waitress (local) or Gunicorn (production)
 
 if __name__ == '__main__':
     # For local development, use Waitress
@@ -1628,17 +1672,15 @@ else:
         from gunicorn.app.base import BaseApplication
 
         class StandaloneApplication(BaseApplication):
-            def __init__(self, intrinsic_value, formula=None, pv_dividends=None, terminal_value=None, pv_terminal=None):
-                self.intrinsic_value = intrinsic_value
-                self.formula = formula
-                self.pv_dividends = pv_dividends
-                self.terminal_value = terminal_value
-                self.pv_terminal = pv_terminal
+            def __init__(self, app, options=None):
                 self.application = app
-                super().__init__(options)
+                self.options = options or {}
+                super().__init__()
 
             def load_config(self):
-                pass
+                config = {key: value for key, value in self.options.items() if key in self.cfg.settings and value is not None}
+                for key, value in config.items():
+                    self.cfg.set(key.lower(), value)
 
             def load(self):
                 return self.application
@@ -1648,3 +1690,11 @@ else:
             'workers': 4,  # Adjust based on your needs
         }
         StandaloneApplication(app, options).run()
+
+
+# TEMPLATE FILTERS BLOCK
+# Custom Jinja2 filters for use in templates
+
+@app.template_filter('commafy')
+def commafy(value):
+    return "{:,.2f}".format(value)
