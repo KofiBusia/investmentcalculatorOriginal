@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Target Price Per Share Calculation{% endblock %}
+{% block content %}
+<div class="container">
+    <h2>Target Price Per Share Calculation for Stocks</h2>
+    <p>Calculate the expected future price per share of a stock based on earnings growth for 1 and 2 years ahead. This helps estimate what the stock might be worth in the future.</p>
+
+    <!-- Error Display -->
+    {% if error %}
+    <p style="color: red; font-weight: bold;">Error: {{ error }}</p>
+    {% endif %}
+
+    <form method="POST" action="{{ url_for('target_price') }}">
+        {% macro input_field(name, label, description='', type='number', step='1', required=True) %}
+        <div class="group">
+            <label for="{{ name }}">{{ label }}:</label>
+            <input type="{{ type }}" step="{{ step }}" name="{{ name }}" id="{{ name }}" required>
+            {% if description %}
+            <small>{{ description }}</small>
+            {% endif %}
+        </div>
+        {% endmacro %}
+
+        {{ input_field('current_eps', 'Current EPS (Earnings Per Share)', description='The company\'s current earnings per share.', step='0.01') }}
+        {{ input_field('growth_rate', 'Expected Annual EPS Growth Rate (%)', description='The expected annual growth rate of EPS.', step='0.01') }}
+        {{ input_field('pe_ratio', 'Current P/E Ratio', description='The company\'s current price-to-earnings ratio.', step='0.01') }}
+
+        <button type="submit" class="action-btn">Calculate</button>
+        <a href="{{ url_for('target_price') }}" class="action-btn">Clear</a>
+        <a href="{{ url_for('index') }}" class="action-btn">Back to Home</a>
+    </form>
+
+    <!-- Results -->
+    {% if target_price_1 and target_price_2 %}
+    <div class="results">
+        <p><strong>Target Price Per Share in 1 Year:</strong> GHS{{ target_price_1 }} <small>(Ghanaian Cedi)</small></p>
+        <p><strong>Target Price Per Share in 2 Years:</strong> GHS{{ target_price_2 }} <small>(Ghanaian Cedi)</small></p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

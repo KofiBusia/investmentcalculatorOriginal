@@ -1,87 +1,115 @@
 {% extends "base.html" %}
 
-{% block title %}Intrinsic Value and Target Price Calculation{% endblock %}
+{% block title %}Intrinsic Value Calculation{% endblock %}
 
 {% block content %}
 <div class="container">
-    <h2>Intrinsic Value and Target Price Calculation for Stocks</h2>
-    <p>Intrinsic value is an estimate of a stock's true worth based on its fundamentals, such as its earnings, assets, and growth potential. It’s calculated using a discounted cash flow (DCF) model, which projects future cash flows and discounts them back to their present value. The target price projects the stock’s future value over a selected period, adjusted for growth and risk.</p>
+    <h2>Intrinsic Value Calculation for Stocks</h2>
+    <p>Intrinsic value is an estimate of a stock's true worth based on its fundamentals, such as its earnings, assets, and growth potential. It’s calculated using a discounted cash flow (DCF) model, which projects future cash flows and discounts them back to their present value.</p>
     
     <h3>How the Intrinsic Value is Calculated</h3>
     <p>We use a perpetual growth Discounted Cash Flow (DCF) model. Here’s a simple breakdown:</p>
     <ol>
-        <li><strong>Start with Free Cash Flow (FCF)</strong>: We take the company’s most recent Free Cash Flow (FCF), which can be positive or negative.</li>
-        <li><strong>Compute Growth from Historical Data</strong>: The perpetual growth rate is calculated based on the last 5 years’ FCF, considering both positive and negative values.</li>
+        <li><strong>Start with Free Cash Flow (FCF)</strong>: We take the company’s most recent Free Cash Flow (FCF), which can be positive or negative, based on 3 to 5 years of historical data.</li>
+        <li><strong>Compute Growth</strong>: The perpetual growth rate can be manually specified or calculated from the historical FCF using CAGR (capped at ±5%).</li>
         <li><strong>Adjust for Time and Risk</strong>: Future FCFs are discounted using a discount rate (r) from the Capital Asset Pricing Model (CAPM).</li>
         <li><strong>Find the Enterprise Value</strong>: Enterprise Value = (Last FCF × (1 + g)) / (r - g).</li>
         <li><strong>Adjust for Debt and Cash</strong>: Equity Value = Enterprise Value - Total Debt + Cash and Equivalents.</li>
         <li><strong>Calculate Value per Share</strong>: Intrinsic Value per Share = Equity Value / Outstanding Shares.</li>
     </ol>
 
-    <h3>How the Target Price is Calculated</h3>
-    <p>The target price projects the stock’s value over a selected period (1 to 5 years) using a growth rate derived from historical FCF, followed by a perpetual growth rate:</p>
-    <ol>
-        <li><strong>Project FCF</strong>: FCF is grown at the historical growth rate for the selected number of years, considering both positive and negative values.</li>
-        <li><strong>Calculate Terminal Value</strong>: At the end of the period, a terminal value is calculated using the perpetual growth rate: Terminal Value = (Projected FCF × (1 + g)) / (r - g).</li>
-        <li><strong>Adjust for Debt and Cash</strong>: Target Price = (Terminal Value - Total Debt + Cash) / Outstanding Shares.</li>
-    </ol>
+    <!-- Error Display -->
+    {% if error %}
+    <p style="color: red; font-weight: bold;">Error: {{ error }}</p>
+    {% endif %}
 
-    <form method="POST">
-        <!-- Historical Free Cash Flow Section -->
-        <h3>Historical Free Cash Flow (Last 5 Years)</h3>
-        <p>Enter the Free Cash Flow for the last 5 years, with Year 1 being the earliest and Year 5 being the most recent. FCF can be positive or negative.</p>
-        <p><small>Please enter the Free Cash Flow for each year in full GHS values, not in thousands (e.g., 1,000,000 for one million GHS or -500,000 for negative FCF).</small></p>
-        {% macro input_field(name, label, type='number', step='1', required=True) %}
+    <form method="POST" action="{{ url_for('intrinsic_value') }}" id="intrinsic-form">
+        <!-- Number of FCF Years Selection -->
+        <h3>Historical Free Cash Flow</h3>
         <div class="group">
+            <label for="num_fcf_years">Number of FCF Years:</label>
+            <select name="num_fcf_years" id="num_fcf_years" onchange="toggleFCFInputs()">
+                <option value="3" {{ 'selected' if num_fcf_years == 3 else '' }}>3 Years</option>
+                <option value="4" {{ 'selected' if num_fcf_years == 4 else '' }}>4 Years</option>
+                <option value="5" {{ 'selected' if num_fcf_years == 5 else '' }}>5 Years</option>
+            </select>
+        </div>
+        <p>Enter the Free Cash Flow for the selected number of years, with Year 1 being the earliest and the last year being the most recent. FCF can be positive or negative.</p>
+        <p><small>Please enter the Free Cash Flow in full GHS values, not in thousands (e.g., 1,000,000 for one million GHS or -500,000 for negative FCF).</small></p>
+        
+        {% macro input_field(name, label, description='', type='number', step='1', min=None, max=None, required=True, default='') %}
+        <div class="group fcf-input" id="{{ name }}_group">
             <label for="{{ name }}">{{ label }}:</label>
-            <input type="{{ type }}" step="{{ step }}" name="{{ name }}" id="{{ name }}" value="{{ request.form[name] or '' }}" {{ 'required' if required else '' }}>
+            <input type="{{ type }}" step="{{ step }}" name="{{ name }}" id="{{ name }}" 
+                   value="{{ form_data[name] or default }}" 
+                   {% if min is not none %}min="{{ min }}"{% endif %}
+                   {% if max is not none %}max="{{ max }}"{% endif %}
+                   {{ 'required' if required else '' }}>
+            {% if description %}
+            <small>{{ description }}</small>
+            {% endif %}
         </div>
         {% endmacro %}
 
         {% for i in range(1, 6) %}
-        {{ input_field('fcf_' ~ i, 'Free Cash Flow (FCF) Year ' ~ i) }}
+        {{ input_field('fcf_' ~ i, 'Free Cash Flow (FCF) Year ' ~ i, step='any', required=True) }}
         {% endfor %}
 
         <!-- Valuation Parameters Section -->
         <h3>Valuation Parameters</h3>
-        <p><small>Please enter Outstanding Shares as the total number of shares, Total Debt and Cash and Equivalents in full GHS values, not in thousands (e.g., 1,000,000 for one million GHS). Enter Risk-Free Rate, Market Return, and Beta as decimals (e.g., 5 for 5%).</small></p>
-        {{ input_field('risk_free_rate', 'Risk-Free Rate (%)', step='0.01') }}
-        {{ input_field('market_return', 'Market Return (%)', step='0.01') }}
-        {{ input_field('beta', 'Beta', step='0.01') }}
-        {{ input_field('outstanding_shares', 'Outstanding Shares (most recent)', step='1') }}
-        {{ input_field('total_debt', 'Total Debt (most recent)', step='1') }}
-        {{ input_field('cash_and_equivalents', 'Cash and Equivalents (most recent)', step='1') }}
-
-        <!-- Projection Period Selection -->
-        <h3>Projection Period for Target Price</h3>
-        <div class="group">
-            <label for="projection_period">Select Projection Period (Years):</label>
-            <select name="projection_period" id="projection_period" required>
-                <option value="" disabled {{ 'selected' if not request.form['projection_period'] else '' }}>Select a period</option>
-                {% for i in range(1, 6) %}
-                <option value="{{ i }}" {{ 'selected' if request.form['projection_period']|string == i|string else '' }}>{{ i }} Year{{ 's' if i > 1 else '' }}</option>
-                {% endfor %}
-            </select>
-        </div>
+        <p><small>Enter Outstanding Shares as the total number of shares, Total Debt and Cash and Equivalents in full GHS values (e.g., 1,000,000 for one million GHS). Enter Risk-Free Rate, Market Return, Beta, and Perpetual Growth Rate as decimals (e.g., 5 for 5%).</small></p>
+        {{ input_field('risk_free_rate', 'Risk-Free Rate (%)', description='The return on a risk-free investment, like government bonds. Used in the CAPM to calculate the discount rate.', step='0.01') }}
+        {{ input_field('market_return', 'Market Return (%)', description='The expected return of the overall market. Used in the CAPM.', step='0.01') }}
+        {{ input_field('beta', 'Beta', description='Measures the stock\'s volatility relative to the market. A beta >1 indicates higher volatility.', step='0.01') }}
+        {{ input_field('outstanding_shares', 'Outstanding Shares (most recent)', description='The total number of shares currently held by shareholders.', step='1') }}
+        {{ input_field('total_debt', 'Total Debt (most recent)', description='The company\'s total debt. Optional; defaults to 0 if not provided.', step='1', required=False, default='0') }}
+        {{ input_field('cash_and_equivalents', 'Cash and Equivalents (most recent)', description='The company\'s liquid assets. Optional; defaults to 0 if not provided.', step='1', required=False, default='0') }}
+        {{ input_field('perpetual_growth_rate', 'Perpetual Growth Rate (%)', description='The long-term growth rate of FCF.', step='0.01') }}
 
         <button type="submit" class="action-btn">Calculate</button>
         <a href="{{ url_for('intrinsic_value') }}" class="action-btn">Clear</a>
-        <a href="/" class="action-btn">Back to Home</a>
+        <a href="{{ url_for('index') }}" class="action-btn">Back to Home</a>
     </form>
 
-    <!-- Results and Errors -->
-    {% if result or target_price %}
+    <!-- Results -->
+    {% if result %}
     <div class="results">
-        {% if result %}
-        <p>Intrinsic Value per Share: GHS{{ result }} <small>(Ghanaian Cedi)</small></p>
-        {% endif %}
-        {% if target_price %}
-        <p>Target Price per Share (in {{ projection_period }} Year{{ 's' if projection_period > 1 else '' }}): GHS{{ target_price }} <small>(Ghanaian Cedi)</small></p>
-        {% endif %}
+        <p><strong>Intrinsic Value per Share:</strong> GHS{{ result }} <small>(Ghanaian Cedi)</small></p>
     </div>
     {% endif %}
-    {% if error %}
-    <p style="color: red;">{{ error }}</p>
+
+    <!-- Debug Information -->
+    {% if debug %}
+    <div style="margin-top: 20px; padding: 10px; border: 1px solid #ccc;">
+        <h3>Debug Information</h3>
+        <ul>
+            <li><strong>Free Cash Flows:</strong> {{ debug.fcf }}</li>
+            <li><strong>Discount Rate:</strong> {{ (debug.discount_rate * 100)|round(2) }}%</li>
+            <li><strong>Perpetual Growth Rate:</strong> {{ (debug.perpetual_growth_rate * 100)|round(2) }}%</li>
+            <li><strong>Enterprise Value:</strong> GHS{{ debug.enterprise_value|round(2)|commafy }}</li>
+            <li><strong>Equity Value:</strong> GHS{{ debug.equity_value|round(2)|commafy }}</li>
+        </ul>
+    </div>
     {% endif %}
 </div>
+
+<script>
+function toggleFCFInputs() {
+    const numYears = parseInt(document.getElementById('num_fcf_years').value);
+    for (let i = 1; i <= 5; i++) {
+        const inputGroup = document.getElementById(`fcf_${i}_group`);
+        if (i <= numYears) {
+            inputGroup.style.display = 'block';
+            inputGroup.querySelector('input').required = true;
+        } else {
+            inputGroup.style.display = 'none';
+            inputGroup.querySelector('input').required = false;
+            inputGroup.querySelector('input').value = '';
+        }
+    }
+}
+
+// Run on page load to set initial state
+document.addEventListener('DOMContentLoaded', toggleFCFInputs);
+</script>
 {% endblock %}
