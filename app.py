@@ -1,6 +1,5 @@
-# Standard Library Imports
-# -----------------------
-# Imports for file handling, system operations, and data structures
+# STANDARD LIBRARY IMPORTS
+# ------------------------
 import io
 import logging
 import os
@@ -10,74 +9,77 @@ import tempfile
 from collections import namedtuple
 from dataclasses import dataclass
 from datetime import datetime
+from flask import Flask; app = Flask(__name__)
 
-# Third-Party Imports
+# THIRD-PARTY IMPORTS
 # -------------------
-# Flask and Extensions
-from flask import (
-    Flask, flash, redirect, render_template, request,
-    send_from_directory, send_file, session, url_for
-)
-from flask_mail import Mail, Message
-from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
-from flask_wtf import FlaskForm
-from flask_wtf.file import FileAllowed, FileField
-
-# Data & Numerical Processing
-import numpy as np
-import numpy_financial as npf  # For IRR calculations
-
-# Form Handling
-from werkzeug.utils import secure_filename
-from wtforms import (
-    DateTimeField, FieldList, FileField, FormField,
-    IntegerField, SelectField, StringField, SubmitField, TextAreaField
-)
-from wtforms.validators import DataRequired, Email, Optional
-
-# Environment Configuration
 from dotenv import load_dotenv
+from flask import (
+    Flask, abort, flash, redirect, render_template, request,
+    send_file, send_from_directory, session, url_for
+)
+from flask_bcrypt import Bcrypt
+from flask_login import (
+    LoginManager, UserMixin, current_user,
+    login_required, login_user, logout_user
+)
+from flask_migrate import Migrate
+from flask_sqlalchemy import SQLAlchemy
+from flask_uploads import UploadSet, IMAGES, configure_uploads
+from flask_wtf import FlaskForm
+from slugify import slugify
+from wtforms import (
+    DateTimeField, FieldList, FileField, FormField, IntegerField,
+    SelectField, StringField, SubmitField, TextAreaField,
+    validators
+)
+import numpy as np
+import numpy_financial as npf
+from wtforms.validators import DataRequired  # ← Add this line
 
-# ENVIRONMENT SETUP BLOCK
-# -----------------------
-# Loads environment variables from a .env file
+# ENVIRONMENT CONFIGURATION
+# --------------------------
 load_dotenv()
 
-# APP INITIALIZATION BLOCK
-# ------------------------
-# Initializes the Flask application
+# FLASK APPLICATION INITIALIZATION
+# --------------------------------
 app = Flask(__name__)
-app.secret_key = os.getenv('SECRET_KEY', 'default_secret_key')
 
-# CONFIGURATION BLOCK
-# -------------------
-# Sets up Flask app configurations for database, mail, and uploads
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///cleanvisionhr.db')
+# CONFIGURATION SETTINGS
+# ----------------------
+# Security
+app.config['SECRET_KEY'] = 'e1efa2b32b1bac66588d074bac02a168212082d8befd0b6466f5ee37a8c2836a'
+
+# Database
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['UPLOAD_FOLDER'] = 'static/author_photos'
-app.config['MAIL_SERVER'] = 'smtpout.secureserver.net'
-app.config['MAIL_PORT'] = 587
-app.config['MAIL_USE_TLS'] = True
-app.config['MAIL_USERNAME'] = 'info@cleanvisionhr.com'
-app.config['MAIL_PASSWORD'] = 'IFokbu@m@1'
-app.config['MAIL_DEFAULT_SENDER'] = 'info@cleanvisionhr.com'
 
-# EXTENSIONS INITIALIZATION BLOCK
-# -------------------------------
-# Initializes Flask extensions (SQLAlchemy, Migrate, Mail)
+# File Uploads
+app.config['UPLOAD_FOLDER'] = 'static/author_photos'
+app.config['UPLOADED_PHOTOS_DEST'] = 'static/author_photos'
+
+# Email
+# EXTENSIONS INITIALIZATION (AFTER APP CREATION)
+# ---------------------------------------------
 db = SQLAlchemy(app)
+bcrypt = Bcrypt(app)
 migrate = Migrate(app, db)
-mail = Mail(app)
+photos = UploadSet('photos', IMAGES)
+configure_uploads(app, photos)
+login_manager = LoginManager(app)
+login_manager.login_view = 'login'
+
+# (Add remaining application components like models, routes, and forms below)
+
 
 # MODELS BLOCK
 # ------------
 # Defines database models for the application
-class ContactMessage(db.Model):
+class User(db.Model, UserMixin):
+    """User model for authentication"""
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False)
-    email = db.Column(db.String(120), nullable=False)
-    message = db.Column(db.Text, nullable=False)
+    username = db.Column(db.String(20), unique=True, nullable=False)
+    password = db.Column(db.String(60), nullable=False)
 
 class BlogPost(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -88,27 +90,70 @@ class BlogPost(db.Model):
     date_posted = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     slug = db.Column(db.String(200), nullable=False, unique=True)
 
+class Article(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(100), nullable=False)
+    slug = db.Column(db.String(100), unique=True, nullable=False)
+    author = db.Column(db.String(50), nullable=False)
+    author_photo = db.Column(db.String(100), nullable=True)
+    content = db.Column(db.Text, nullable=False)
+    date_posted = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+
+    def __repr__(self):
+        return f'<Article {self.title}>'
+    
+class ArticleForm(FlaskForm):
+    title = StringField('Title', validators=[
+        validators.DataRequired(),
+        validators.Length(min=5, max=100)
+    ])
+    author = StringField('Author', validators=[
+        validators.DataRequired(),
+        validators.Length(min=2, max=50)
+    ])
+    author_photo = FileField('Author Photo')
+    content = TextAreaField('Content', validators=[validators.DataRequired()])
+    submit = SubmitField('Post Article')
+    
 # FORMS BLOCK
 # -----------
 # Defines form classes using Flask-WTF
-class ContactForm(FlaskForm):
-    name = StringField('Name', validators=[DataRequired()])
-    email = StringField('Email', validators=[DataRequired(), Email()])
-    message = TextAreaField('Message', validators=[DataRequired()])
-    submit = SubmitField('Send')
-
-class BlogForm(FlaskForm):
-    title = StringField('Title', validators=[DataRequired()])
-    author = StringField('Author', validators=[DataRequired()])
-    author_photo = FileField('Author Photo', validators=[FileAllowed(['jpg', 'png', 'jpeg'])])
-    content = TextAreaField('Content', validators=[DataRequired()])
-    submit = SubmitField('Post')
-
 # HELPER FUNCTIONS BLOCK
 # ----------------------
 # Defines utility functions and namedtuples used in the application
 DCFResult = namedtuple('DCFResult', ['total_pv', 'pv_cash_flows', 'terminal_value', 'pv_terminal', 'total_dcf'])
 DVMResult = namedtuple('DVMResult', ['intrinsic_value', 'formula', 'pv_dividends', 'terminal_value', 'pv_terminal'])
+
+# Create an admin user (run once in a Python shell)
+def create_admin_user():
+    with app.app_context():
+        admin = User.query.filter_by(username='admin').first()
+        if not admin:
+            hashed_password = bcrypt.generate_password_hash('admin_password').decode('utf-8')
+            admin = User(username='admin', password=hashed_password)
+            db.session.add(admin)
+            db.session.commit()
+            print("Admin user created!")
+
+# Login route
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        user = User.query.filter_by(username=username).first()
+        if user and bcrypt.check_password_hash(user.password, password):
+            login_user(user)
+            return redirect(url_for('admin_articles'))
+        flash('Login failed. Check your credentials.', 'danger')
+    return render_template('login.html')
+
+# Logout route
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('index'))
 
 def generate_slug(title):
     """Generate a URL-friendly slug from the title."""
@@ -120,6 +165,12 @@ def generate_slug(title):
         slug = f"{base_slug}-{counter}"
         counter += 1
     return slug
+
+def first_two_sentences(value):
+    sentences = value.split('.')
+    return Markup('. '.join(sentences[:2]) + '.')
+
+app.jinja_env.filters['first_two_sentences'] = first_two_sentences
 
 def calculate_twr(returns):
     twr = 1
@@ -374,9 +425,84 @@ def round_filter(value, decimals=2):
 def commafy(value):
     return "{:,.2f}".format(value)
 
+@login_manager.user_loader
+def load_user(user_id):
+    """Flask-Login user loader callback"""
+    return User.query.get(int(user_id))
+
 # ROUTES BLOCK
 # ------------
 # Defines all route handlers for the Flask application
+
+@app.route('/admin/articles', methods=['GET', 'POST'])
+@login_required
+def admin_articles():
+    form = ArticleForm()
+    if form.validate_on_submit():
+        slug = slugify(form.title.data)
+        if Article.query.filter_by(slug=slug).first():
+            flash('Title already exists!', 'danger')
+            return redirect(url_for('admin_articles'))
+        
+        article = Article(
+            title=form.title.data,
+            slug=slug,
+            author=form.author.data,
+            content=form.content.data
+        )
+        
+        if form.author_photo.data:
+            filename = photos.save(form.author_photo.data)
+            article.author_photo = filename
+        
+        db.session.add(article)
+        db.session.commit()
+        flash('Article created!', 'success')
+        return redirect(url_for('admin_articles'))
+    
+    articles = Article.query.order_by(Article.date_posted.desc()).all()
+    return render_template('admin_articles.html', form=form, articles=articles)
+
+@app.route('/articles')
+def articles():
+    articles = Article.query.order_by(Article.date_posted.desc()).all()
+    return render_template('articles.html', articles=articles)
+
+@app.route('/articles/<slug>')
+def article(slug):
+    article = Article.query.filter_by(slug=slug).first_or_404()
+    return render_template('article.html', article=article)
+
+@app.route('/admin/articles/edit/<slug>', methods=['GET', 'POST'])
+@login_required
+def edit_article(slug):
+    article = Article.query.filter_by(slug=slug).first_or_404()
+    form = ArticleForm()
+    if form.validate_on_submit():
+        article.title = form.title.data
+        article.author = form.author.data
+        article.content = form.content.data
+        if form.author_photo.data:
+            filename = photos.save(form.author_photo.data)
+            article.author_photo = filename
+        db.session.commit()
+        flash('Article updated successfully!', 'success')
+        return redirect(url_for('admin_articles'))
+    elif request.method == 'GET':
+        form.title.data = article.title
+        form.author.data = article.author
+        form.content.data = article.content
+    return render_template('edit_article.html', form=form, article=article)
+
+@app.route('/admin/articles/delete/<slug>', methods=['POST'])
+@login_required
+def delete_article(slug):
+    article = Article.query.filter_by(slug=slug).first_or_404()
+    db.session.delete(article)
+    db.session.commit()
+    flash('Article deleted successfully!', 'success')
+    return redirect(url_for('admin_articles'))
+
 @app.route('/ads.txt')
 def ads_txt():
     return send_from_directory('static', 'ads.txt')
@@ -630,6 +756,7 @@ def end_balance():
 @app.route('/stocks', methods=['GET', 'POST'])
 def stocks():
     result = None
+    error = None
     if request.method == 'POST':
         try:
             num_shares = float(request.form['num_shares'])
@@ -638,15 +765,30 @@ def stocks():
             selling_price = float(request.form['selling_price_per_share'])
             sale_commission = float(request.form['sale_commission']) / 100
             dividends = float(request.form['dividends'])
-            if any(x < 0 for x in [num_shares, purchase_price, purchase_commission, selling_price, sale_commission, dividends]):
-                raise ValueError("Non-negative numbers required")
+            # Prevent negative inputs
+            if any(x < 0 for x in [num_shares, purchase_price, selling_price, dividends]):
+                raise ValueError("Inputs cannot be negative")
+            # Ensure num_shares and purchase_price are positive to avoid division by zero
+            if num_shares <= 0 or purchase_price <= 0:
+                raise ValueError("Number of shares and purchase price must be greater than zero")
+            # Calculate costs and proceeds
             total_purchase_cost = num_shares * purchase_price * (1 + purchase_commission)
             net_sale_proceeds = num_shares * selling_price * (1 - sale_commission)
-            total_return = ((net_sale_proceeds - total_purchase_cost + dividends) / total_purchase_cost) * 100
-            result = {'total_return': round(total_return, 2)}
+            if total_purchase_cost <= 0:
+                raise ValueError("Total purchase cost must be positive")
+            # Calculate returns
+            capital_gain = (net_sale_proceeds - total_purchase_cost) / total_purchase_cost * 100
+            dividend_yield = (dividends / total_purchase_cost) * 100
+            total_return = capital_gain + dividend_yield
+            # Prepare result dictionary
+            result = {
+                'capital_gain': round(capital_gain, 2),
+                'dividend_yield': round(dividend_yield, 2),
+                'total_return': round(total_return, 2)
+            }
         except ValueError as e:
-            return render_template('stocks.html', error=str(e))
-    return render_template('stocks.html', result=result)
+            error = str(e)
+    return render_template('stocks.html', result=result, error=error)
 
 @app.route('/mna', methods=['GET', 'POST'])
 def mna_calculator():
@@ -945,22 +1087,9 @@ def privacy_policy():
 def terms_conditions():
     return render_template('terms_conditions.html')
 
-@app.route('/contact', methods=['GET', 'POST'])
+@app.route('/contact')
 def contact():
-    form = ContactForm()
-    if form.validate_on_submit():
-        contact_message = ContactMessage(name=form.name.data, email=form.email.data, message=form.message.data)
-        db.session.add(contact_message)
-        db.session.commit()
-        company_msg = Message(subject='New Contact Message', recipients=['info@cleanvisionhr.com'])
-        company_msg.body = f"Name: {contact_message.name}\nEmail: {contact_message.email}\nMessage: {contact_message.message}"
-        mail.send(company_msg)
-        html_body = render_template('contact_confirmation.html', name=contact_message.name)
-        auto_response_msg = Message(subject="Thanks for Reaching Out!", recipients=[contact_message.email], html=html_body)
-        mail.send(auto_response_msg)
-        flash('Message sent successfully!', 'success')
-        return redirect(url_for('contact'))
-    return render_template('contact.html', form=form)
+    return render_template('contact.html')
 
 @app.route('/early_exit', methods=['GET', 'POST'])
 def early_exit():
@@ -1229,25 +1358,40 @@ def delete_blog_post(post_id):
 
 # APPLICATION RUNNER BLOCK
 # ------------------------
-# Runs the app with Waitress locally or Gunicorn in production
+# Creates database tables and runs the application
+# Uses Waitress for local development, Gunicorn in production
 if __name__ == '__main__':
     with app.app_context():
-        db.create_all()  # Creates database tables on startup
+        db.create_all()
+        create_admin_user()
+    
     from waitress import serve
     serve(app, host="0.0.0.0", port=5000)
 else:
     if __name__ == 'app':
         from gunicorn.app.base import BaseApplication
+        
         class StandaloneApplication(BaseApplication):
             def __init__(self, app, options=None):
                 self.application = app
                 self.options = options or {}
                 super().__init__()
+            
             def load_config(self):
-                config = {key: value for key, value in self.options.items() if key in self.cfg.settings and value is not None}
+                config = {
+                    key: value for key, value in self.options.items()
+                    if key in self.cfg.settings and value is not None
+                }
                 for key, value in config.items():
                     self.cfg.set(key.lower(), value)
+            
             def load(self):
                 return self.application
-        options = {'bind': '0.0.0.0:5000', 'workers': 4}
+        
+        options = {
+            'bind': '0.0.0.0:5000',
+            'workers': 4,
+            'worker_class': 'gevent',
+            'timeout': 120
+        }
         StandaloneApplication(app, options).run()

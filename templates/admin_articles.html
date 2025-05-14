@@ -1,14 +1,14 @@
 {% extends "base.html" %}
-{% block title %}Admin Blog Panel{% endblock %}
+{% block title %}Admin Article Panel{% endblock %}
 
 {% block content %}
 <div class="container my-5">
     <div class="row">
         <div class="col-lg-8 mx-auto">
             <div class="text-center mb-5">
-                <span class="feature-badge">Admin Panel</span>
-                <h1 class="mt-2 mb-3">Blog Management</h1>
-                <p class="text-muted">Create and manage blog posts for the Investment Calculator</p>
+                <span class="badge badge-primary">Admin Panel</span>
+                <h1 class="mt-2 mb-3">Article Management</h1>
+                <p class="text-muted">Create and manage articles for Investment Insights</p>
             </div>
             
             <!-- Flash Messages -->
@@ -17,24 +17,26 @@
                     {% for category, message in messages %}
                         <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
                             {{ message }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">×</span>
+                            </button>
                         </div>
                     {% endfor %}
                 {% endif %}
             {% endwith %}
             
-            <!-- Create New Post Form -->
+            <!-- Create New Article Form -->
             <div class="card shadow-sm mb-5">
                 <div class="card-header bg-primary text-white">
-                    <h3 class="mb-0">Create New Blog Post</h3>
+                    <h3 class="mb-0">Create New Article</h3>
                 </div>
                 <div class="card-body">
-                    <form method="POST" action="{{ url_for('admin_blog') }}" enctype="multipart/form-data">
+                    <form method="POST" action="{{ url_for('admin_articles') }}" enctype="multipart/form-data">
                         {{ form.hidden_tag() }}
                         
-                        <div class="mb-3">
-                            {{ form.title.label(class="form-label") }}
-                            {{ form.title(class="form-control", placeholder="Enter post title") }}
+                        <div class="form-group">
+                            {{ form.title.label }}
+                            {{ form.title(class="form-control", placeholder="Enter article title") }}
                             {% if form.title.errors %}
                                 {% for error in form.title.errors %}
                                     <div class="text-danger">{{ error }}</div>
@@ -42,8 +44,8 @@
                             {% endif %}
                         </div>
                         
-                        <div class="mb-3">
-                            {{ form.author.label(class="form-label") }}
+                        <div class="form-group">
+                            {{ form.author.label }}
                             {{ form.author(class="form-control", placeholder="Enter author name") }}
                             {% if form.author.errors %}
                                 {% for error in form.author.errors %}
@@ -52,15 +54,21 @@
                             {% endif %}
                         </div>
                         
-                        <div class="mb-3">
-                            <label for="author_photo" class="form-label">Author Photo (Passport Size)</label>
-                            <input type="file" class="form-control" id="author_photo" name="author_photo" accept="image/*">
+                        <div class="form-group">
+                            {{ form.author_photo.label }}
+                            {{ form.author_photo(class="form-control-file") }}
+                            <small class="form-text text-muted">Upload a passport-sized photo (JPG, PNG, JPEG)</small>
+                            {% if form.author_photo.errors %}
+                                {% for error in form.author_photo.errors %}
+                                    <div class="text-danger">{{ error }}</div>
+                                {% endfor %}
+                            {% endif %}
                         </div>
                         
-                        <div class="mb-3">
-                            {{ form.content.label(class="form-label") }}
-                            <small class="text-muted d-block mb-2">You can use HTML formatting in the content</small>
-                            {{ form.content(class="form-control", rows=10, placeholder="Enter post content") }}
+                        <div class="form-group">
+                            {{ form.content.label }}
+                            <small class="form-text text-muted mb-2">You can use HTML formatting in the content</small>
+                            {{ form.content(class="form-control", rows=10, placeholder="Enter article content") }}
                             {% if form.content.errors %}
                                 {% for error in form.content.errors %}
                                     <div class="text-danger">{{ error }}</div>
@@ -69,19 +77,19 @@
                         </div>
                         
                         <div class="d-grid">
-                            {{ form.submit(class="btn btn-primary") }}
+                            {{ form.submit(class="btn btn-primary btn-block") }}
                         </div>
                     </form>
                 </div>
             </div>
             
-            <!-- Existing Posts -->
-            <h2 class="mb-4">Existing Blog Posts</h2>
+            <!-- Existing Articles -->
+            <h2 class="mb-4">Existing Articles</h2>
             
-            {% if posts %}
+            {% if articles %}
                 <div class="table-responsive">
                     <table class="table table-hover">
-                        <thead class="table-light">
+                        <thead>
                             <tr>
                                 <th>Title</th>
                                 <th>Author</th>
@@ -90,38 +98,40 @@
                             </tr>
                         </thead>
                         <tbody>
-                            {% for post in posts %}
+                            {% for article in articles %}
                                 <tr>
-                                    <td>{{ post.title }}</td>
-                                    <td>{{ post.author }}</td>
-                                    <td>{{ post.date_posted.strftime('%Y-%m-%d') }}</td>
+                                    <td>{{ article.title }}</td>
+                                    <td>{{ article.author }}</td>
+                                    <td>{{ article.date_posted.strftime('%Y-%m-%d') }}</td>
                                     <td>
                                         <div class="btn-group">
-                                            <a href="{{ url_for('blog_post', post_id=post.id) }}" class="btn btn-sm btn-info" target="_blank">
+                                            <a href="{{ url_for('article', slug=article.slug) }}" class="btn btn-sm btn-info" target="_blank">
                                                 <i class="fas fa-eye"></i> View
                                             </a>
-                                            <a href="{{ url_for('edit_blog_post', post_id=post.id) }}" class="btn btn-sm btn-warning">
+                                            <a href="{{ url_for('edit_article', slug=article.slug) }}" class="btn btn-sm btn-warning">
                                                 <i class="fas fa-edit"></i> Edit
                                             </a>
-                                            <button type="button" class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal{{ post.id }}">
+                                            <button type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#deleteModal{{ article.id }}">
                                                 <i class="fas fa-trash"></i> Delete
                                             </button>
                                         </div>
                                         
                                         <!-- Delete Confirmation Modal -->
-                                        <div class="modal fade" id="deleteModal{{ post.id }}" tabindex="-1" aria-labelledby="deleteModalLabel{{ post.id }}" aria-hidden="true">
+                                        <div class="modal fade" id="deleteModal{{ article.id }}" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel{{ article.id }}" aria-hidden="true">
                                             <div class="modal-dialog">
                                                 <div class="modal-content">
                                                     <div class="modal-header">
-                                                        <h5 class="modal-title" id="deleteModalLabel{{ post.id }}">Confirm Delete</h5>
-                                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        <h5 class="modal-title" id="deleteModalLabel{{ article.id }}">Confirm Delete</h5>
+                                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                            <span aria-hidden="true">×</span>
+                                                        </button>
                                                     </div>
                                                     <div class="modal-body">
-                                                        Are you sure you want to delete the post "{{ post.title }}"? This action cannot be undone.
+                                                        Are you sure you want to delete the article "{{ article.title }}"? This action cannot be undone.
                                                     </div>
                                                     <div class="modal-footer">
-                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                                        <form action="{{ url_for('delete_blog_post', post_id=post.id) }}" method="POST" style="display: inline;">
+                                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                                                        <form action="{{ url_for('delete_article', slug=article.slug) }}" method="POST" style="display: inline;">
                                                             <button type="submit" class="btn btn-danger">Delete</button>
                                                         </form>
                                                     </div>
@@ -136,7 +146,7 @@
                 </div>
             {% else %}
                 <div class="alert alert-info">
-                    <p class="mb-0">No blog posts available yet. Use the form above to create your first post.</p>
+                    <p class="mb-0">No articles available yet. Use the form above to create your first article.</p>
                 </div>
             {% endif %}
         </div>

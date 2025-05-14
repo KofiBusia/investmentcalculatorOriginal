@@ -3,11 +3,28 @@
 {% block title %}Stocks Calculation{% endblock %}
 
 {% block content %}
-<h2>Stocks Calculation</h2>
-<p>Stocks represent ownership in a company and entitle the holder to a share of the company's profits, usually paid as dividends. Investing in stocks can offer high returns but also carries risks due to market fluctuations.</p>
-<div class="input-section">
-    <h3>Input Details</h3>
-    <form method="POST">
+<div class="container">
+    <h2>Stocks Calculation</h2>
+    <p>Stocks represent ownership in a company and entitle the holder to a share of the company's profits, usually paid as dividends. Investing in stocks can offer high returns but also carries risks due to market fluctuations.</p>
+    
+    <h3>How the Stock Returns are Calculated</h3>
+    <p>This calculator computes the total return on your stock investment, broken down into capital gain and dividend yield:</p>
+    <ol>
+        <li><strong>Total Purchase Cost</strong>: Number of Shares × Purchase Price per Share × (1 + Purchase Commission %).</li>
+        <li><strong>Net Sale Proceeds</strong>: Number of Shares × Selling Price per Share × (1 - Sale Commission %).</li>
+        <li><strong>Capital Gain (%)</strong>: ((Net Sale Proceeds - Total Purchase Cost) / Total Purchase Cost) × 100.</li>
+        <li><strong>Dividend Yield (%)</strong>: (Dividends Earned / Total Purchase Cost) × 100.</li>
+        <li><strong>Total Return (%)</strong>: Capital Gain + Dividend Yield.</li>
+    </ol>
+    <p><small>Enter commissions as percentages (e.g., 1 for 1%), and prices and dividends in full GHS values (e.g., 100.50).</small></p>
+
+    <!-- Error Display -->
+    {% if error %}
+    <p style="color: red; font-weight: bold;">Error: {{ error }}</p>
+    {% endif %}
+
+    <form method="POST" action="{{ url_for('stocks') }}">
+        <h3>Input Details</h3>
         <div class="form-group">
             <label for="num_shares">Number of Shares:</label>
             <input type="number" class="form-control" id="num_shares" name="num_shares" placeholder="0" step="1" required>
@@ -32,23 +49,19 @@
             <label for="dividends">Dividends Earned (GHS):</label>
             <input type="number" class="form-control" id="dividends" name="dividends" placeholder="0" step="0.01" required>
         </div>
-        <div class="button-container">
-            <button class="btn btn-primary" type="submit">Calculate</button>
-            <button class="btn btn-secondary" type="reset">Clear</button>
-            <a href="/" class="btn btn-secondary">Back</a>
-        </div>
+        <button type="submit" class="action-btn">Calculate</button>
+        <a href="{{ url_for('stocks') }}" class="action-btn">Clear</a>
+        <a href="{{ url_for('index') }}" class="action-btn">Back to Home</a>
     </form>
+
+    <!-- Results -->
+    {% if result %}
+    <div class="results">
+        <h3>Results</h3>
+        <p><strong>Capital Gain:</strong> {{ result.capital_gain }}%</p>
+        <p><strong>Dividend Yield:</strong> {{ result.dividend_yield }}%</p>
+        <p><strong>Total Return:</strong> {{ result.total_return }}%</p>
+    </div>
+    {% endif %}
 </div>
-{% if error %}
-<div class="alert alert-danger mt-3" role="alert">
-    {{ error }}
-</div>
-{% elif result %}
-<div class="results mt-3">
-    <h3>Results</h3>
-    <p><strong>Total Return: {{ result.total_return }}%</strong></p>
-    <p><strong>Capital Gain: {{ result.capital_gain }}%</strong></p>
-    <p><strong>Dividend Yield: {{ result.dividend_yield }}%</strong></p>
-</div>
-{% endif %}
 {% endblock %}

@@ -1,18 +1,18 @@
 {% extends "base.html" %}
-{% block title %}{{ post.title }}{% endblock %}
+{% block title %}{{ article.title }}{% endblock %}
 
 {% block head %}
 {{ super() }}
 <!-- Open Graph Meta Tags -->
-<meta property="og:title" content="{{ post.title }}">
-<meta property="og:description" content="{{ post.content | first_two_sentences }}">
+<meta property="og:title" content="{{ article.title }}">
+<meta property="og:description" content="{{ article.content | first_two_sentences }}">
 <meta property="og:url" content="{{ request.url }}">
 <meta property="og:type" content="article">
 
 <!-- Twitter Card Meta Tags -->
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="{{ post.title }}">
-<meta name="twitter:description" content="{{ post.content | first_two_sentences }}">
+<meta name="twitter:title" content="{{ article.title }}">
+<meta name="twitter:description" content="{{ article.content | first_two_sentences }}">
 <meta name="twitter:url" content="{{ request.url }}">
 {% endblock %}
 
@@ -23,18 +23,18 @@
             <nav aria-label="breadcrumb" class="mb-4">
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="{{ url_for('index') }}">Home</a></li>
-                    <li class="breadcrumb-item"><a href="{{ url_for('blog') }}">Blog</a></li>
-                    <li class="breadcrumb-item active" aria-current="page">{{ post.title }}</li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('articles') }}">Investment Insights</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">{{ article.title }}</li>
                 </ol>
             </nav>
             
-            <article class="blog-post">
+            <article class="article">
                 <header class="mb-4">
-                    <h1 class="mb-3">{{ post.title }}</h1>
+                    <h1 class="mb-3">{{ article.title }}</h1>
                     <div class="d-flex align-items-center mb-4">
                         <div class="me-3">
-                            {% if post.author_photo %}
-                                <img src="{{ url_for('static', filename='author_photos/' + post.author_photo) }}" alt="{{ post.author }}" class="rounded-circle" style="width: 50px; height: 50px;">
+                            {% if article.author_photo %}
+                                <img src="{{ url_for('static', filename='author_photos/' + article.author_photo) }}" alt="{{ article.author }}" class="rounded-circle" style="width: 50px; height: 50px;">
                             {% else %}
                                 <i class="fas fa-user-circle fa-3x" style="color: #007bff;"></i>
                             {% endif %}
@@ -42,23 +42,23 @@
                         <div>
                             <div class="d-flex align-items-center">
                                 <i class="fas fa-user me-2" style="color: #007bff;"></i>
-                                <span>{{ post.author }}</span>
+                                <span>{{ article.author }}</span>
                             </div>
                             <div class="d-flex align-items-center mt-1">
                                 <i class="fas fa-calendar-alt me-2" style="color: #007bff;"></i>
-                                <span>{{ post.date_posted.strftime('%B %d, %Y') }}</span>
+                                <span>{{ article.date_posted.strftime('%B %d, %Y') }}</span>
                             </div>
                         </div>
                     </div>
                 </header>
                 
-                <div class="blog-content">
-                    {{ post.content | safe }}
+                <div class="article-content">
+                    {{ article.content | safe }}
                 </div>
                 
                 <div class="mt-5 pt-4 border-top">
-                    <a href="{{ url_for('blog') }}" class="btn btn-primary">
-                        <i class="fas fa-arrow-left me-2"></i> Back to Blog
+                    <a href="{{ url_for('articles') }}" class="btn btn-primary">
+                        <i class="fas fa-arrow-left me-2"></i> Back to Investment Insights
                     </a>
                 </div>
             </article>
@@ -69,13 +69,13 @@
                     <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.url }}" target="_blank" class="btn btn-outline-primary me-2">
                         <i class="fab fa-facebook-f"></i>
                     </a>
-                    <a href="https://twitter.com/intent/tweet?url={{ request.url }}&text={{ post.title }} - {{ post.content | first_two_sentences }}" target="_blank" class="btn btn-outline-primary me-2">
+                    <a href="https://twitter.com/intent/tweet?url={{ request.url }}&text={{ article.title }} - {{ article.content | first_two_sentences }}" target="_blank" class="btn btn-outline-primary me-2">
                         <i class="fab fa-twitter"></i>
                     </a>
-                    <a href="https://www.linkedin.com/shareArticle?mini=true&url={{ request.url }}&title={{ post.title }}" target="_blank" class="btn btn-outline-primary me-2">
+                    <a href="https://www.linkedin.com/shareArticle?mini=true&url={{ request.url }}&title={{ article.title }}" target="_blank" class="btn btn-outline-primary me-2">
                         <i class="fab fa-linkedin-in"></i>
                     </a>
-                    <a href="mailto:?subject={{ post.title }}&body=Check out this article: {{ post.title }}%0D%0A%0D%0A{{ post.content | first_two_sentences }}%0D%0A%0D%0A{{ request.url }}" class="btn btn-outline-primary">
+                    <a href="mailto:?subject={{ article.title }}&body=Check out this article: {{ article.title }}%0D%0A%0D%0A{{ article.content | first_two_sentences }}%0D%0A%0D%0A{{ request.url }}" class="btn btn-outline-primary">
                         <i class="fas fa-envelope"></i>
                     </a>
                 </div>

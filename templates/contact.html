@@ -3,21 +3,54 @@
 {% block title %}Contact Us{% endblock %}
 
 {% block content %}
-<h2>Contact Us</h2>
-<p>We’d love to hear from you! Please fill out the form below to get in touch.</p>
-<form method="POST" action="/contact">
-    <div class="form-group">
-        <label for="name">Name</label>
-        <input type="text" class="form-control" id="name" name="name" placeholder="Enter your name" required>
+<style>
+    .contact-container {
+        background: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        max-width: 500px;
+        width: 100%;
+        padding: 20px;
+        margin: 20px auto;
+    }
+    .contact-header {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    .contact-header h1 {
+        font-size: 24px;
+        margin: 0;
+    }
+    .contact-details {
+        margin-bottom: 20px;
+    }
+    .contact-details p {
+        margin: 10px 0;
+        line-height: 1.6;
+    }
+    .developer-link {
+        text-align: center;
+        margin-top: 20px;
+    }
+    .developer-link a {
+        color: #007BFF;
+        text-decoration: none;
+    }
+    .developer-link a:hover {
+        text-decoration: underline;
+    }
+</style>
+<div class="contact-container">
+    <div class="contact-header">
+        <h1>Contact Us</h1>
     </div>
-    <div class="form-group">
-        <label for="email">Email</label>
-        <input type="email" class="form-control" id="email" name="email" placeholder="Enter your email" required>
+    <div class="contact-details">
+        <p>Welcome to <strong>YoungInvestorCalculator.com</strong>! We aim to provide you with the tools and resources you need to make informed financial decisions. If you have any questions, concerns, or feedback, please don't hesitate to reach out.</p>
+        <p><strong>Phone:</strong> 050-356-6913</p>
+        <p><strong>Email:</strong> <a href="mailto:info@cleanvisionhr.com">info@cleanvisionhr.com</a></p>
     </div>
-    <div class="form-group">
-        <label for="message">Message</label>
-        <textarea class="form-control" id="message" name="message" rows="4" placeholder="Your message" required></textarea>
+    <div class="developer-link">
+        <p>If you'd like to connect with the developer directly, visit <a href="https://kofibusia.github.io/kofi-busia-kyei.github.io/" target="_blank">this link</a>.</p>
     </div>
-    <button type="submit" class="btn btn-primary">Send</button>
-</form>
+</div>
 {% endblock %}
