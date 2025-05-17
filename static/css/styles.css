@@ -1,159 +1,270 @@
-/* Define CSS Variables */
+/* CSS Variables for a Cohesive and Elegant Design */
 :root {
-    --primary-color: #001f3f; /* Deep navy blue */
-    --primary-dark: #001022; /* Darker navy for hover */
-    --secondary-color: #4a4a4a; /* Dark gray for secondary elements */
-    --accent-color: #ffd700; /* Gold for highlights */
-    --background-color: #ffffff; /* White background */
-    --text-color: #333333; /* Dark gray text */
-    --header-bg: #f8f9fa; /* Light grey for header */
-    --header-text-color: #333333; /* Dark text for header */
-    --footer-color: #4a4a4a; /* Dark gray for footer */
-    --nav-link-color: var(--header-text-color); /* Use header text color */
-    --nav-link-hover: var(--primary-color); /* Navy blue for hover */
-    --nav-link-bg: transparent; /* No background for nav */
+    --primary-color: #0077B6;       /* Vibrant blue for primary elements */
+    --primary-dark: #023E8A;        /* Deeper blue for depth */
+    --secondary-color: #2A9D8F;     /* Teal for secondary elements */
+    --accent-color: #F4A261;        /* Warm orange for highlights */
+    --background-color: #F8F1E9;    /* Soft cream base */
+    --text-color: #1A2526;          /* Dark charcoal for readability */
+    --header-bg: #FFFFFF;           /* Clean white header */
+    --header-text: #1A2526;         /* Matching header text */
+    --footer-color: #6B7280;        /* Muted gray for footer */
+    --nav-link: #1A2526;            /* Navigation link color */
+    --nav-link-hover: #F4A261;      /* Accent hover color */
+    --shadow-light: rgba(0, 0, 0, 0.08); /* Subtle shadow */
+    --shadow-dark: rgba(0, 0, 0, 0.12);  /* Slightly darker shadow */
 }
 
-/* Base Styles */
+/* Dark Mode Adjustments */
+body.dark-mode {
+    --background-color: #1A2526;
+    --text-color: #F8F1E9;
+    --header-bg: #1A2526;
+    --header-text: #F8F1E9;
+    --footer-color: #9CA3AF;
+    --shadow-light: rgba(255, 255, 255, 0.08);
+    --shadow-dark: rgba(255, 255, 255, 0.12);
+}
+
+/* Base Styles with Subtle Texture */
 body {
-    font-family: 'Roboto', sans-serif;
-    background-color: #f9f9f9; /* Very light gray */
+    font-family: 'Inter', sans-serif;
+    background-color: var(--background-color);
+    background-image: radial-gradient(circle, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
+    background-size: 20px 20px;
     color: var(--text-color);
     margin: 0;
     padding: 0;
-    line-height: 1.6;
+    line-height: 1.7;
+    font-size: 17px;
+    transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Header */
+/* Typography for Elegance */
+h1, h2, h3 {
+    font-family: 'Lora', serif;
+    color: var(--text-color);
+    font-weight: 600;
+    margin-bottom: 18px;
+    letter-spacing: 0.3px;
+}
+
+h1 { font-size: 2.8rem; }
+h2 { font-size: 2.2rem; }
+h3 { font-size: 1.8rem; }
+
+/* Compact Sticky Header */
 header {
-    background-color: var(--header-bg);
-    color: var(--header-text-color);
-    padding: 20px 0;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    background: linear-gradient(135deg, var(--header-bg) 0%, #F9FAFB 100%);
+    color: var(--header-text);
+    padding: 15px 0;
+    box-shadow: 0 3px 8px var(--shadow-light);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    max-height: 80px; /* Compact header height */
+    transition: box-shadow 0.3s ease;
 }
 
-header .container {
-    background-color: transparent;
+header:hover {
+    box-shadow: 0 4px 12px var(--shadow-dark);
 }
 
 .header-content {
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 20px;
+    justify-content: space-between;
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 15px;
 }
 
 .logo {
-    max-height: 80px;
-    margin-right: 20px;
+    max-height: 50px; /* Smaller logo to fit compact header */
+    transition: transform 0.3s ease;
+}
+
+.logo:hover {
+    transform: scale(1.1);
 }
 
 .header-title {
-    font-size: 28px;
-    color: var(--header-text-color);
+    font-size: 24px;
     margin: 0;
-    font-family: 'Montserrat', sans-serif;
+    font-weight: 600;
 }
 
-/* Navigation Links */
+/* Navigation with Underline Animation */
 nav {
-    background-color: var(--nav-link-bg);
+    display: flex;
+    align-items: center;
 }
 
 nav a {
-    color: var(--nav-link-color);
+    color: var(--nav-link);
     text-decoration: none;
     font-weight: 500;
-    padding: 10px 15px;
-    transition: color 0.3s ease;
+    font-size: 15px;
+    padding: 8px 14px;
+    position: relative;
+    transition: color 0.3s ease, transform 0.3s ease;
+}
+
+nav a::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    bottom: 4px;
+    left: 50%;
+    background-color: var(--nav-link-hover);
+    transition: width 0.3s ease, left 0.3s ease;
+}
+
+nav a:hover::after {
+    width: 100%;
+    left: 0;
 }
 
 nav a:hover {
     color: var(--nav-link-hover);
+    transform: translateY(-1px);
 }
 
-/* Main Container */
+nav a:focus {
+    outline: 2px solid var(--accent-color);
+    outline-offset: 3px;
+}
+
+/* Main Container with Margin to Avoid Header Overlap */
 .container {
-    max-width: 1200px;
-    margin: 40px auto;
-    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    max-width: 1280px;
+    margin: 100px auto 30px; /* Added margin-top to push content below header */
+    padding: 25px;
     background-color: var(--background-color);
     border-radius: 12px;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 8px 20px var(--shadow-light);
+    transition: transform 0.3s ease;
 }
 
-/* Headings */
-h2, h3 {
-    color: var(--text-color);
-    font-weight: 600;
+.container:hover {
+    transform: translateY(-3px);
+}
+
+/* Center the "Select Investment Product" Section */
+.select-product-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    margin: 40px 0;
+    padding: 20px;
+    background-color: #FFFFFF;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px var(--shadow-light);
+    max-width: 800px;
+    width: 100%;
+}
+
+.select-product-section h2 {
+    font-size: 2.4rem;
     margin-bottom: 20px;
-    font-family: 'Montserrat', sans-serif;
+    color: var(--primary-color);
 }
 
-h2 {
-    font-size: 2.5rem;
+.select-product-section p {
+    font-size: 1.2rem;
+    margin-bottom: 30px;
+    color: var(--text-color);
 }
 
-/* Product Grid */
+/* Product Grid with 4 Calculators per Row */
 .product-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
     gap: 20px;
     margin-top: 20px;
+    width: 100%;
 }
 
-@media (min-width: 768px) {
+@media (min-width: 1024px) {
     .product-grid {
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(4, 1fr); /* 4 calculators per row */
+    }
+}
+
+@media (max-width: 768px) {
+    .product-grid {
+        grid-template-columns: repeat(2, 1fr); /* 2 per row on medium screens */
+    }
+}
+
+@media (max-width: 480px) {
+    .product-grid {
+        grid-template-columns: 1fr; /* 1 per row on small screens */
     }
 }
 
 .product-card {
-    background-color: #fff;
-    border: 1px solid #e0e0e0;
-    border-radius: 8px;
+    background-color: #FFFFFF;
+    border: 1px solid #E5E7EB;
+    border-radius: 10px;
     padding: 20px;
     text-align: center;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
     text-decoration: none;
     color: var(--text-color);
     opacity: 0;
     transform: translateY(20px);
-    animation: fadeInUp 0.6s ease forwards;
+    animation: fadeInUp 0.6s ease-out forwards;
 }
 
 .product-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    transform: scale(1.05);
+    box-shadow: 0 8px 16px var(--shadow-dark);
+    border-color: var(--accent-color);
 }
 
 .product-card:focus {
-    outline: 2px solid var(--accent-color);
+    outline: 3px solid var(--accent-color);
     outline-offset: 2px;
 }
 
-.product-card img {
-    width: 64px;
-    height: 64px;
-    margin-bottom: 15px;
+.product-card .icon {
+    width: 60px;
+    height: 60px;
+    margin-bottom: 12px;
+    fill: var(--primary-color);
+    transition: fill 0.3s ease, transform 0.3s ease;
+}
+
+.product-card:hover .icon {
+    fill: var(--accent-color);
+    transform: rotate(8deg);
 }
 
 .product-card h3 {
     font-size: 1.4rem;
     margin: 10px 0;
     color: var(--primary-color);
+    font-weight: 500;
 }
 
 @keyframes fadeInUp {
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
-/* Form Section */
+/* Form Section with Refined Inputs */
 .input-section {
     margin-bottom: 30px;
+    width: 100%;
+    max-width: 800px;
 }
 
 .group {
@@ -171,52 +282,76 @@ h2 {
 .group select {
     padding: 10px 15px;
     width: 100%;
-    max-width: 350px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
+    border: 1px solid #D1D5DB;
+    border-radius: 6px;
     box-sizing: border-box;
     font-size: 1rem;
-    transition: border-color 0.3s ease;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease, transform 0.3s ease;
 }
 
 .group input:focus,
 .group select:focus {
     border-color: var(--primary-color);
+    box-shadow: 0 0 6px rgba(0, 119, 182, 0.2);
+    transform: scale(1.01);
     outline: none;
 }
 
-/* Buttons */
+/* Buttons with Ripple Effect */
 .action-btn {
     background-color: var(--primary-color);
-    color: white;
+    color: #FFFFFF;
     border: none;
     padding: 12px 24px;
     margin: 8px 5px;
     cursor: pointer;
     font-size: 1rem;
+    font-weight: 600;
     border-radius: 6px;
-    transition: background-color 0.3s ease, transform 0.2s ease;
-    display: inline-block;
-    text-decoration: none;
+    transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.action-btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    transition: width 0.5s ease, height 0.5s ease;
+}
+
+.action-btn:hover::before {
+    width: 250px;
+    height: 250px;
 }
 
 .action-btn:hover {
     background-color: var(--primary-dark);
-    transform: translateY(-2px);
+    transform: scale(1.05);
+    box-shadow: 0 5px 10px var(--shadow-dark);
 }
 
 .action-btn:focus {
-    outline: 2px solid var(--accent-color);
-    outline-offset: 2px;
+    outline: 3px solid var(--accent-color);
+    outline-offset: 3px;
 }
 
-/* Results */
+/* Results Section with Subtle Animation */
 .results {
     margin-top: 30px;
     padding: 20px;
-    background-color: #f8f9fa;
+    background-color: #F9FAFB;
     border-left: 6px solid var(--primary-color);
     border-radius: 8px;
+    transition: background-color 0.3s ease;
+    width: 100%;
+    max-width: 800px;
 }
 
 .results p {
@@ -225,35 +360,90 @@ h2 {
     font-size: 1.1rem;
 }
 
-/* Footer */
+.loading {
+    display: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 36px;
+    height: 36px;
+    border: 4px solid #E5E7EB;
+    border-top: 4px solid var(--accent-color);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: translate(-50%, -50%) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* Footer with Clean Design */
 footer {
     text-align: center;
     margin-top: 40px;
     padding: 20px 0;
     color: var(--footer-color);
-    border-top: 1px solid #e0e0e0;
-    background-color: #f8f9fa;
-}
-
-footer p {
-    margin: 0;
-    font-size: 0.9rem;
+    background: linear-gradient(to top, #F9FAFB, #FFFFFF);
+    border-top: 1px solid #E5E7EB;
 }
 
 footer a {
     color: var(--primary-color);
     text-decoration: none;
-    transition: color 0.3s ease;
+    font-weight: 500;
+    transition: color 0.3s ease, transform 0.3s ease;
 }
 
 footer a:hover {
     color: var(--accent-color);
+    transform: translateY(-1px);
 }
 
-/* Responsive */
-@media (max-width: 600px) {
+/* Responsive Design for Mobile */
+@media (max-width: 768px) {
+    .container {
+        margin: 80px auto 20px; /* Adjust margin for mobile */
+        padding: 20px;
+    }
+
+    .select-product-section {
+        margin: 20px 0;
+        padding: 15px;
+    }
+
+    .select-product-section h2 {
+        font-size: 2rem;
+    }
+
+    .select-product-section p {
+        font-size: 1rem;
+    }
+
+    .product-grid {
+        grid-template-columns: repeat(2, 1fr); /* 2 calculators per row on mobile */
+    }
+
+    .action-btn {
+        width: 100%;
+        text-align: center;
+    }
+}
+
+@media (max-width: 480px) {
     .header-content {
         flex-direction: column;
+        gap: 10px;
+    }
+
+    nav {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .product-grid {
+        grid-template-columns: 1fr; /* 1 calculator per row on small screens */
     }
 
     .group input,
@@ -262,12 +452,24 @@ footer a:hover {
     }
 
     .container {
-        margin: 20px 10px;
-        padding: 20px;
+        margin: 70px auto 20px;
+        padding: 15px;
+    }
+}
+
+/* Accessibility Enhancements */
+@media (prefers-reduced-motion: reduce) {
+    .product-card, .action-btn, nav a, .container {
+        transition: none;
     }
 
-    .action-btn {
-        width: 100%;
-        text-align: center;
+    @keyframes fadeInUp {
+        from { opacity: 1; transform: translateY(0); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .loading {
+        animation: none;
+        border: 4px solid var(--accent-color);
     }
 }
