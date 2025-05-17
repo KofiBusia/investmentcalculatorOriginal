@@ -34,7 +34,7 @@ body {
     background-size: 20px 20px;
     color: var(--text-color);
     margin: 0;
-    padding: 0;
+    padding-top: 100px; /* Accounts for sticky header height (~80px) plus buffer */
     line-height: 1.7;
     font-size: 17px;
     transition: background-color 0.3s ease, color 0.3s ease;
@@ -79,8 +79,13 @@ header:hover {
     padding: 0 15px;
 }
 
+/* Navigation and other header styles remain unchanged */
+.calculator-container {
+    margin-top: 12px;
+}
+
 .logo {
-    max-height: 50px; /* Smaller logo to fit compact header */
+    max-height: 50px;
     transition: transform 0.3s ease;
 }
 
@@ -94,7 +99,6 @@ header:hover {
     font-weight: 600;
 }
 
-/* Navigation with Underline Animation */
 nav {
     display: flex;
     align-items: center;
@@ -136,14 +140,14 @@ nav a:focus {
     outline-offset: 3px;
 }
 
-/* Main Container with Margin to Avoid Header Overlap */
+/* Main Container with Adjusted Margin */
 .container {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     max-width: 1280px;
-    margin: 100px auto 30px; /* Added margin-top to push content below header */
+    margin: 20px auto 30px; /* General margin, adjusted from 150px */
     padding: 25px;
     background-color: var(--background-color);
     border-radius: 12px;
@@ -155,7 +159,14 @@ nav a:focus {
     transform: translateY(-3px);
 }
 
-/* Center the "Select Investment Product" Section */
+/* Specific Adjustments for Problematic Calculators */
+.beta-calculator .container,
+.bonds-calculator .container,
+.free-cash-flow-calculator .container {
+    margin-top: 60px; /* Increased margin to push content below header */
+}
+
+/* Other sections remain unchanged */
 .select-product-section {
     display: flex;
     flex-direction: column;
@@ -183,7 +194,6 @@ nav a:focus {
     color: var(--text-color);
 }
 
-/* Product Grid with 4 Calculators per Row */
 .product-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -194,25 +204,25 @@ nav a:focus {
 
 @media (min-width: 1024px) {
     .product-grid {
-        grid-template-columns: repeat(4, 1fr); /* 4 calculators per row */
+        grid-template-columns: repeat(4, 1fr);
     }
 }
 
 @media (max-width: 768px) {
     .product-grid {
-        grid-template-columns: repeat(2, 1fr); /* 2 per row on medium screens */
+        grid-template-columns: repeat(2, 1fr);
     }
 }
 
 @media (max-width: 480px) {
     .product-grid {
-        grid-template-columns: 1fr; /* 1 per row on small screens */
+        grid-template-columns: 1fr;
     }
 }
 
 .product-card {
-    background-color: #FFFFFF;
-    border: 1px solid #E5E7EB;
+    background: linear-gradient(to bottom, #FFEC8B, #FFD700);
+    border: 1px solid #B8860B;
     border-radius: 10px;
     padding: 20px;
     text-align: center;
@@ -253,6 +263,7 @@ nav a:focus {
     margin: 10px 0;
     color: var(--primary-color);
     font-weight: 500;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.2);
 }
 
 @keyframes fadeInUp {
@@ -260,7 +271,6 @@ nav a:focus {
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* Form Section with Refined Inputs */
 .input-section {
     margin-bottom: 30px;
     width: 100%;
@@ -297,7 +307,6 @@ nav a:focus {
     outline: none;
 }
 
-/* Buttons with Ripple Effect */
 .action-btn {
     background-color: var(--primary-color);
     color: #FFFFFF;
@@ -342,7 +351,6 @@ nav a:focus {
     outline-offset: 3px;
 }
 
-/* Results Section with Subtle Animation */
 .results {
     margin-top: 30px;
     padding: 20px;
@@ -379,7 +387,6 @@ nav a:focus {
     100% { transform: translate(-50%, -50%) rotate(360deg); }
 }
 
-/* Footer with Clean Design */
 footer {
     text-align: center;
     margin-top: 40px;
@@ -401,10 +408,9 @@ footer a:hover {
     transform: translateY(-1px);
 }
 
-/* Responsive Design for Mobile */
 @media (max-width: 768px) {
     .container {
-        margin: 80px auto 20px; /* Adjust margin for mobile */
+        margin: 80px auto 20px;
         padding: 20px;
     }
 
@@ -422,12 +428,19 @@ footer a:hover {
     }
 
     .product-grid {
-        grid-template-columns: repeat(2, 1fr); /* 2 calculators per row on mobile */
+        grid-template-columns: repeat(2, 1fr);
     }
 
     .action-btn {
         width: 100%;
         text-align: center;
+    }
+
+    /* Adjust specific calculators on medium screens */
+    .beta-calculator .container,
+    .bonds-calculator .container,
+    .free-cash-flow-calculator .container {
+        margin-top: 40px;
     }
 }
 
@@ -443,7 +456,7 @@ footer a:hover {
     }
 
     .product-grid {
-        grid-template-columns: 1fr; /* 1 calculator per row on small screens */
+        grid-template-columns: 1fr;
     }
 
     .group input,
@@ -455,9 +468,15 @@ footer a:hover {
         margin: 70px auto 20px;
         padding: 15px;
     }
+
+    /* Adjust specific calculators on small screens */
+    .beta-calculator .container,
+    .bonds-calculator .container,
+    .free-cash-flow-calculator .container {
+        margin-top: 30px;
+    }
 }
 
-/* Accessibility Enhancements */
 @media (prefers-reduced-motion: reduce) {
     .product-card, .action-btn, nav a, .container {
         transition: none;
