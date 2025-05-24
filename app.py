@@ -1181,35 +1181,35 @@ def tbills_rediscount():
 # ------------
 # ROUTES BLOCK
 # ------------
-@app.route('/intrinsic_value', methods=['GET', 'POST'])
+@app.route('/intrinsic-value', methods=['GET', 'POST'])
 def intrinsic_value():
     if request.method == 'POST':
         try:
-            # Parse form data
-            num_fcf_years = int(request.form['num_fcf_years'])
+            # Parse form data with defaults
+            num_fcf_years = int(request.form.get('num_fcf_years', 3))
             fcf = [float(request.form.get(f'fcf_{i}', 0)) for i in range(1, num_fcf_years + 1)]
-            last_fcf = fcf[-1]
+            last_fcf = fcf[-1] if fcf else 0
 
-            risk_free_rate = float(request.form['risk_free_rate']) / 100
-            market_return = float(request.form['market_return']) / 100
-            beta = float(request.form['beta'])
-            outstanding_shares = float(request.form['outstanding_shares'])
+            risk_free_rate = float(request.form.get('risk_free_rate', 0)) / 100
+            market_return = float(request.form.get('market_return', 0)) / 100
+            beta = float(request.form.get('beta', 0))
+            outstanding_shares = float(request.form.get('outstanding_shares', 0))
             total_debt = float(request.form.get('total_debt', 0))
             cash_and_equivalents = float(request.form.get('cash_and_equivalents', 0))
 
-            growth_model = request.form['growth_model']
+            growth_model = request.form.get('growth_model', 'perpetual')
             if growth_model == 'perpetual':
-                perpetual_growth_rate = float(request.form['perpetual_growth_rate']) / 100
+                perpetual_growth_rate = float(request.form.get('perpetual_growth_rate', 0)) / 100
             else:  # two_stage
-                high_growth_years = int(request.form['high_growth_years'])
-                high_growth_rate = float(request.form['high_growth_rate']) / 100
-                terminal_growth_rate = float(request.form['terminal_growth_rate']) / 100
+                high_growth_years = int(request.form.get('high_growth_years', 0))
+                high_growth_rate = float(request.form.get('high_growth_rate', 0)) / 100
+                terminal_growth_rate = float(request.form.get('terminal_growth_rate', 0)) / 100
 
-            discount_rate_method = request.form['discount_rate_method']
+            discount_rate_method = request.form.get('discount_rate_method', 'capm')
             if discount_rate_method == 'capm':
                 discount_rate = risk_free_rate + beta * (market_return - risk_free_rate)
             else:
-                discount_rate = float(request.form['manual_discount_rate']) / 100
+                discount_rate = float(request.form.get('manual_discount_rate', 0)) / 100
 
             # Validate inputs
             if outstanding_shares <= 0:
@@ -1261,10 +1261,12 @@ def intrinsic_value():
             sensitivity['g_rates'] = [round(g * 100, 2) for g in g_rates]
             sensitivity['r_rates'] = [round(r * 100, 2) for r in r_rates]
 
-            # Debug information
+            # Debug information with updated keys
             debug = {
                 'fcf': fcf,
                 'discount_rate': discount_rate,
+                'growth_model': growth_model,
+                'growth_rate': perpetual_growth_rate if growth_model == 'perpetual' else terminal_growth_rate,
                 'enterprise_value': enterprise_value,
                 'equity_value': equity_value,
                 'sensitivity': sensitivity
@@ -1274,16 +1276,24 @@ def intrinsic_value():
             if last_fcf < 0:
                 debug['warning'] = "Last FCF is negative, suggesting future FCF must improve for a meaningful valuation."
 
-            return render_template('intrinsic_value.html', result=round(intrinsic_value_per_share, 2), debug=debug)
+            return render_template('intrinsic_value.html',
+                                   result=round(intrinsic_value_per_share, 2),
+                                   debug=debug,
+                                   form=request.form)
         except ValueError as e:
-            return render_template('intrinsic_value.html', error=str(e))
+            return render_template('intrinsic_value.html',
+                                   error=str(e),
+                                   form=request.form)
         except Exception as e:
-            return render_template('intrinsic_value.html', error=f"An error occurred: {str(e)}")
+            return render_template('intrinsic_value.html',
+                                   error=f"An error occurred: {str(e)}",
+                                   form=request.form)
     else:
-        return render_template('intrinsic_value.html')
+        return render_template('intrinsic_value.html', form=request.form)
 
-# Custom filter for rounding to handle potential string inputs
+# Custom filters
 app.jinja_env.filters['round'] = lambda value, decimals=2: round(float(value), decimals) if value else 0.0
+app.jinja_env.filters['commafy'] = lambda value: "{:,.2f}".format(float(value)) if value else "0.00"
 
 # Custom filter for currency formatting
 def format_currency(value):

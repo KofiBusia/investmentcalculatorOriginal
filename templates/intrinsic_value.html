@@ -8,12 +8,12 @@
     <p>Intrinsic value is an estimate of a stock's true worth based on its fundamentals, such as its earnings, assets, and growth potential. It’s calculated using a discounted cash flow (DCF) model, which projects future cash flows and discounts them back to their present value.</p>
     
     <h3>How the Intrinsic Value is Calculated</h3>
-    <p>We use a perpetual growth Discounted Cash Flow (DCF) model. Here’s a simple breakdown:</p>
+    <p>We use a perpetual or two-stage growth Discounted Cash Flow (DCF) model. Here’s a simple breakdown:</p>
     <ol>
         <li><strong>Start with Free Cash Flow (FCF)</strong>: We take the company’s most recent Free Cash Flow (FCF), which can be positive or negative, based on 3 to 5 years of historical data.</li>
-        <li><strong>Compute Growth</strong>: The perpetual growth rate can be manually specified or calculated from the historical FCF using CAGR (capped at ±5%).</li>
-        <li><strong>Adjust for Time and Risk</strong>: Future FCFs are discounted using a discount rate (r) from the Capital Asset Pricing Model (CAPM).</li>
-        <li><strong>Find the Enterprise Value</strong>: Enterprise Value = (Last FCF × (1 + g)) / (r - g).</li>
+        <li><strong>Compute Growth</strong>: Choose between perpetual growth (single rate) or two-stage growth (high growth followed by terminal growth).</li>
+        <li><strong>Adjust for Time and Risk</strong>: Future FCFs are discounted using a discount rate, either from CAPM or manually specified.</li>
+        <li><strong>Find the Enterprise Value</strong>: For perpetual: EV = (Last FCF × (1 + g)) / (r - g). For two-stage: Sum of discounted high-growth FCFs plus terminal value.</li>
         <li><strong>Adjust for Debt and Cash</strong>: Equity Value = Enterprise Value - Total Debt + Cash and Equivalents.</li>
         <li><strong>Calculate Value per Share</strong>: Intrinsic Value per Share = Equity Value / Outstanding Shares.</li>
     </ol>
@@ -29,22 +29,22 @@
         <div class="group">
             <label for="num_fcf_years">Number of FCF Years:</label>
             <select name="num_fcf_years" id="num_fcf_years" onchange="toggleFCFInputs()">
-                <option value="3" {{ 'selected' if num_fcf_years == 3 else '' }}>3 Years</option>
-                <option value="4" {{ 'selected' if num_fcf_years == 4 else '' }}>4 Years</option>
-                <option value="5" {{ 'selected' if num_fcf_years == 5 else '' }}>5 Years</option>
+                <option value="3" {{ 'selected' if form.get('num_fcf_years', '3') == '3' else '' }}>3 Years</option>
+                <option value="4" {{ 'selected' if form.get('num_fcf_years', '3') == '4' else '' }}>4 Years</option>
+                <option value="5" {{ 'selected' if form.get('num_fcf_years', '3') == '5' else '' }}>5 Years</option>
             </select>
         </div>
-        <p>Enter the Free Cash Flow for the selected number of years, with Year 1 being the earliest and the last year being the most recent. FCF can be positive or negative.</p>
-        <p><small>Please enter the Free Cash Flow in full GHS values, not in thousands (e.g., 1,000,000 for one million GHS or -500,000 for negative FCF).</small></p>
+        <p>Enter the Free Cash Flow for the selected number of years, with Year 1 being the earliest and the last year being the most recent. FCF can be positive or negative. Please enter numbers without commas or currency symbols (e.g., 1000000 for one million GHS or -500000 for negative FCF).</p>
         
-        {% macro input_field(name, label, description='', type='number', step='1', min=None, max=None, required=True, default='') %}
-        <div class="group fcf-input" id="{{ name }}_group">
+        {% macro input_field(name, label, description='', type='number', step='1', min=None, max=None, required=True, default='', placeholder='') %}
+        <div class="group" id="{{ name }}_group">
             <label for="{{ name }}">{{ label }}:</label>
-            <input type="{{ type }}" step="{{ step }}" name="{{ name }}" id="{{ name }}" 
-                   value="{{ form_data[name] or default }}" 
+            <input type="{{ type }}" step="{{ step }}" name="{{ name }}" id="{{ name }}"
+                   value="{{ form.get(name, default) }}"
                    {% if min is not none %}min="{{ min }}"{% endif %}
                    {% if max is not none %}max="{{ max }}"{% endif %}
-                   {{ 'required' if required else '' }}>
+                   {{ 'required' if required else '' }}
+                   placeholder="{{ placeholder }}">
             {% if description %}
             <small>{{ description }}</small>
             {% endif %}
@@ -52,19 +52,50 @@
         {% endmacro %}
 
         {% for i in range(1, 6) %}
-        {{ input_field('fcf_' ~ i, 'Free Cash Flow (FCF) Year ' ~ i, step='any', required=True) }}
+        {{ input_field('fcf_' ~ i, 'Free Cash Flow (FCF) Year ' ~ i, step='any', required=True, placeholder='e.g., 1000000') }}
         {% endfor %}
 
         <!-- Valuation Parameters Section -->
         <h3>Valuation Parameters</h3>
-        <p><small>Enter Outstanding Shares as the total number of shares, Total Debt and Cash and Equivalents in full GHS values (e.g., 1,000,000 for one million GHS). Enter Risk-Free Rate, Market Return, Beta, and Perpetual Growth Rate as decimals (e.g., 5 for 5%).</small></p>
-        {{ input_field('risk_free_rate', 'Risk-Free Rate (%)', description='The return on a risk-free investment, like government bonds. Used in the CAPM to calculate the discount rate.', step='0.01') }}
-        {{ input_field('market_return', 'Market Return (%)', description='The expected return of the overall market. Used in the CAPM.', step='0.01') }}
-        {{ input_field('beta', 'Beta', description='Measures the stock\'s volatility relative to the market. A beta >1 indicates higher volatility.', step='0.01') }}
-        {{ input_field('outstanding_shares', 'Outstanding Shares (most recent)', description='The total number of shares currently held by shareholders.', step='1') }}
-        {{ input_field('total_debt', 'Total Debt (most recent)', description='The company\'s total debt. Optional; defaults to 0 if not provided.', step='1', required=False, default='0') }}
-        {{ input_field('cash_and_equivalents', 'Cash and Equivalents (most recent)', description='The company\'s liquid assets. Optional; defaults to 0 if not provided.', step='1', required=False, default='0') }}
-        {{ input_field('perpetual_growth_rate', 'Perpetual Growth Rate (%)', description='The long-term growth rate of FCF.', step='0.01') }}
+        <p><small>Enter Outstanding Shares as the total number of shares, Total Debt and Cash and Equivalents as numbers without commas (e.g., 1000000 for one million GHS). Enter rates as decimals (e.g., 5 for 5%).</small></p>
+        
+        <!-- Growth Model Selection -->
+        <div class="group">
+            <label for="growth_model">Growth Model:</label>
+            <select name="growth_model" id="growth_model" onchange="toggleGrowthModelInputs()">
+                <option value="perpetual" {{ 'selected' if form.get('growth_model', 'perpetual') == 'perpetual' else '' }}>Perpetual Growth</option>
+                <option value="two_stage" {{ 'selected' if form.get('growth_model', 'perpetual') == 'two_stage' else '' }}>Two-Stage Growth</option>
+            </select>
+            <small>Choose between perpetual growth or a two-stage growth model with high-growth and terminal phases.</small>
+        </div>
+
+        <!-- Discount Rate Method Selection -->
+        <div class="group">
+            <label for="discount_rate_method">Discount Rate Method:</label>
+            <select name="discount_rate_method" id="discount_rate_method" onchange="toggleDiscountRateInputs()">
+                <option value="capm" {{ 'selected' if form.get('discount_rate_method', 'capm') == 'capm' else '' }}>CAPM</option>
+                <option value="manual" {{ 'selected' if form.get('discount_rate_method', 'capm') == 'manual' else '' }}>Manual</option>
+            </select>
+            <small>Use CAPM (Risk-Free Rate + Beta * (Market Return - Risk-Free Rate)) or specify a manual discount rate.</small>
+        </div>
+
+        <!-- CAPM Inputs -->
+        {{ input_field('risk_free_rate', 'Risk-Free Rate (%)', description='The return on a risk-free investment, like government bonds. Used in CAPM.', step='0.01', placeholder='e.g., 5') }}
+        {{ input_field('market_return', 'Market Return (%)', description='The expected return of the overall market. Used in CAPM.', step='0.01', placeholder='e.g., 10') }}
+        {{ input_field('beta', 'Beta', description='Measures the stock\'s volatility relative to the market. A beta >1 indicates higher volatility.', step='0.01', placeholder='e.g., 1.2') }}
+
+        <!-- Manual Discount Rate -->
+        {{ input_field('manual_discount_rate', 'Manual Discount Rate (%)', description='Specify a custom discount rate if not using CAPM.', step='0.01', required=False, default='0', placeholder='e.g., 8') }}
+
+        {{ input_field('outstanding_shares', 'Outstanding Shares (most recent)', description='The total number of shares currently held by shareholders.', step='1', placeholder='e.g., 10000000') }}
+        {{ input_field('total_debt', 'Total Debt (most recent)', description='The company\'s total debt. Optional; defaults to 0 if not provided.', step='1', required=False, default='0', placeholder='e.g., 5000000') }}
+        {{ input_field('cash_and_equivalents', 'Cash and Equivalents (most recent)', description='The company\'s liquid assets. Optional; defaults to 0 if not provided.', step='1', required=False, default='0', placeholder='e.g., 2000000') }}
+
+        <!-- Growth Rate Inputs -->
+        {{ input_field('perpetual_growth_rate', 'Perpetual Growth Rate (%)', description='The long-term growth rate of FCF for perpetual model.', step='0.01', placeholder='e.g., 2') }}
+        {{ input_field('high_growth_years', 'High Growth Years', description='Number of years for high-growth phase in two-stage model.', type='number', step='1', min='0', required=False, default='0', placeholder='e.g., 5') }}
+        {{ input_field('high_growth_rate', 'High Growth Rate (%)', description='Growth rate during high-growth phase in two-stage model.', step='0.01', required=False, default='0', placeholder='e.g., 10') }}
+        {{ input_field('terminal_growth_rate', 'Terminal Growth Rate (%)', description='Long-term growth rate after high-growth phase in two-stage model.', step='0.01', required=False, default='0', placeholder='e.g., 2') }}
 
         <button type="submit" class="action-btn">Calculate</button>
         <a href="{{ url_for('intrinsic_value') }}" class="action-btn">Clear</a>
@@ -74,7 +105,7 @@
     <!-- Results -->
     {% if result %}
     <div class="results">
-        <p><strong>Intrinsic Value per Share:</strong> GHS{{ result }} <small>(Ghanaian Cedi)</small></p>
+        <p><strong>Intrinsic Value per Share:</strong> GHS{{ result|round(2)|commafy }} <small>(Ghanaian Cedi)</small></p>
     </div>
     {% endif %}
 
@@ -85,9 +116,12 @@
         <ul>
             <li><strong>Free Cash Flows:</strong> {{ debug.fcf }}</li>
             <li><strong>Discount Rate:</strong> {{ (debug.discount_rate * 100)|round(2) }}%</li>
-            <li><strong>Perpetual Growth Rate:</strong> {{ (debug.perpetual_growth_rate * 100)|round(2) }}%</li>
+            <li><strong>{{ 'Perpetual Growth Rate' if debug.growth_model == 'perpetual' else 'Terminal Growth Rate' }}:</strong> {{ (debug.growth_rate * 100)|round(2) }}%</li>
             <li><strong>Enterprise Value:</strong> GHS{{ debug.enterprise_value|round(2)|commafy }}</li>
             <li><strong>Equity Value:</strong> GHS{{ debug.equity_value|round(2)|commafy }}</li>
+            {% if debug.warning %}
+            <li><strong>Warning:</strong> {{ debug.warning }}</li>
+            {% endif %}
         </ul>
     </div>
     {% endif %}
@@ -111,21 +145,72 @@
 
 <script>
 function toggleFCFInputs() {
-    const numYears = parseInt(document.getElementById('num_fcf_years').value);
+    const numYears = parseInt(document.getElementById('num_fcf_years').value) || 3;
     for (let i = 1; i <= 5; i++) {
         const inputGroup = document.getElementById(`fcf_${i}_group`);
+        const input = inputGroup.querySelector('input');
         if (i <= numYears) {
             inputGroup.style.display = 'block';
-            inputGroup.querySelector('input').required = true;
+            input.required = true;
+            input.disabled = false;
         } else {
             inputGroup.style.display = 'none';
-            inputGroup.querySelector('input').required = false;
-            inputGroup.querySelector('input').value = '';
+            input.required = false;
+            input.value = '';
+            input.disabled = true;
         }
     }
 }
 
+function toggleGrowthModelInputs() {
+    const growthModel = document.getElementById('growth_model').value;
+    const perpetualFields = ['perpetual_growth_rate_group'];
+    const twoStageFields = ['high_growth_years_group', 'high_growth_rate_group', 'terminal_growth_rate_group'];
+    
+    perpetualFields.forEach(field => {
+        const group = document.getElementById(field);
+        group.style.display = growthModel === 'perpetual' ? 'block' : 'none';
+        const input = group.querySelector('input');
+        input.required = growthModel === 'perpetual';
+        if (growthModel !== 'perpetual') input.value = '';
+    });
+    
+    twoStageFields.forEach(field => {
+        const group = document.getElementById(field);
+        group.style.display = growthModel === 'two_stage' ? 'block' : 'none';
+        const input = group.querySelector('input');
+        input.required = growthModel === 'two_stage';
+        if (growthModel !== 'two_stage') input.value = '';
+    });
+}
+
+function toggleDiscountRateInputs() {
+    const discountMethod = document.getElementById('discount_rate_method').value;
+    const capmFields = ['risk_free_rate_group', 'market_return_group', 'beta_group'];
+    const manualField = ['manual_discount_rate_group'];
+    
+    capmFields.forEach(field => {
+        const group = document.getElementById(field);
+        group.style.display = discountMethod === 'capm' ? 'block' : 'none';
+        const input = group.querySelector('input');
+        input.required = discountMethod === 'capm';
+        if (discountMethod !== 'capm') input.value = '';
+    });
+    
+    manualField.forEach(field => {
+        const group = document.getElementById(field);
+        group.style.display = discountMethod === 'manual' ? 'block' : 'none';
+        const input = group.querySelector('input');
+        input.required = discountMethod === 'manual';
+        if (discountMethod !== 'manual') input.value = '';
+    });
+}
+
 // Run on page load to set initial state
-document.addEventListener('DOMContentLoaded', toggleFCFInputs);
+document.addEventListener('DOMContentLoaded', () => {
+    toggleFCFInputs();
+    toggleGrowthModelInputs();
+    toggleDiscountRateInputs();
+});
 </script>
 {% endblock %}
