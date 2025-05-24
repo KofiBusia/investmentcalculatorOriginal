@@ -9,7 +9,10 @@ import tempfile
 from collections import namedtuple
 from dataclasses import dataclass
 from datetime import datetime
-from flask import Flask; app = Flask(__name__)
+from flask import Flask, render_template, request, redirect, url_for
+import math
+
+app = Flask(__name__)
 
 # THIRD-PARTY IMPORTS
 # -------------------
@@ -400,6 +403,49 @@ def calculate_no_growth(d, r):
     intrinsic_value = d / r
     formula = f"{d:.2f} / {r*100:.2f}%"
     return {'intrinsic_value': intrinsic_value, 'formula': formula}
+
+def calculate_ddm_intrinsic_value(dps_forecast, cost_of_equity, terminal_growth_rate, years):
+    if not all(dps >= 0 for dps in dps_forecast):
+        raise ValueError("Dividends per share must be non-negative.")
+    if cost_of_equity <= terminal_growth_rate:
+        raise ValueError("Cost of equity must be greater than terminal growth rate.")
+    if years <= 0:
+        raise ValueError("Number of years must be positive.")
+    
+    pv_dividends = sum([dps / (1 + cost_of_equity)**t for t, dps in enumerate(dps_forecast, 1)])
+    final_dps = dps_forecast[-1] * (1 + terminal_growth_rate)
+    terminal_value = final_dps / (cost_of_equity - terminal_growth_rate)
+    pv_terminal_value = terminal_value / (1 + cost_of_equity)**years
+    return pv_dividends + pv_terminal_value
+
+def calculate_rim_intrinsic_value(book_value_per_share, eps_forecast, cost_of_equity, terminal_growth_rate, years):
+    if book_value_per_share < 0:
+        raise ValueError("Book value per share must be non-negative.")
+    if not all(eps >= 0 for eps in eps_forecast):
+        raise ValueError("EPS must be non-negative.")
+    if cost_of_equity <= terminal_growth_rate:
+        raise ValueError("Cost of equity must be greater than terminal growth rate.")
+    if years <= 0:
+        raise ValueError("Number of years must be positive.")
+    
+    intrinsic_value = book_value_per_share
+    current_book_value = book_value_per_share
+    
+    for year in range(1, years + 1):
+        eps = eps_forecast[year - 1]
+        required_return = cost_of_equity * current_book_value
+        residual_income = eps - required_return
+        discount_factor = (1 + cost_of_equity) ** year
+        pv_residual_income = residual_income / discount_factor
+        intrinsic_value += pv_residual_income
+        current_book_value += eps
+    
+    final_eps = eps_forecast[-1] * (1 + terminal_growth_rate)
+    final_required_return = cost_of_equity * current_book_value
+    final_residual_income = final_eps - final_required_return
+    terminal_value = final_residual_income / (cost_of_equity - terminal_growth_rate)
+    pv_terminal_value = terminal_value / (1 + cost_of_equity)**years
+    return intrinsic_value + pv_terminal_value
 
 def allowed_file(filename):
     ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
@@ -1241,6 +1287,120 @@ def intrinsic_value():
             )
     return render_template('intrinsic_value.html', form_data={}, num_fcf_years=5)
 
+# Custom filter for rounding to handle potential string inputs
+app.jinja_env.filters['round'] = lambda value, decimals=2: round(float(value), decimals) if value else 0.0
+
+# Custom filter for currency formatting
+def format_currency(value):
+    try:
+        return "${:,.2f}".format(float(value))
+    except:
+        return "N/A"
+
+app.jinja_env.filters['currency'] = format_currency
+
+@app.route('/bank-intrinsic-value', methods=['GET', 'POST'])
+def bank_intrinsic_value():
+    form_data = {}
+    result = None
+    model = 'DDM'  # Default model
+    num_years = 5  # Default number of years
+    error = None
+    valuation_comment = ""
+
+    if request.method == 'POST':
+        try:
+            # Collect form data
+            form_data = request.form.to_dict()
+            model = form_data.get('model', 'DDM')
+            num_years = int(form_data.get('num_years', 5))
+
+            # Convert numeric inputs to floats, default to 0.0 if empty
+            for key in form_data:
+                if key not in ['model', 'num_years']:
+                    form_data[key] = float(form_data[key]) if form_data[key] else 0.0
+
+            # Input length validation
+            if model == 'DDM':
+                dividends = [form_data.get(f'dividend_{i}', 0.0) for i in range(1, num_years + 1)]
+                if len(dividends) != num_years:
+                    raise ValueError(f"Exactly {num_years} dividend forecasts required")
+            elif model == 'RIM':
+                eps_list = [form_data.get(f'eps_{i}', 0.0) for i in range(1, num_years + 1)]
+                if len(eps_list) != num_years:
+                    raise ValueError(f"Exactly {num_years} EPS forecasts required")
+
+            # CAPM: Calculate cost of equity (discount rate)
+            risk_free_rate = form_data.get('risk_free_rate', 0.0) / 100
+            market_return = form_data.get('market_return', 0.0) / 100
+            beta = form_data.get('beta', 0.0)
+            discount_rate = risk_free_rate + beta * (market_return - risk_free_rate)
+
+            terminal_growth_rate = form_data.get('terminal_growth_rate', 0.0) / 100
+
+            if model == 'DDM':
+                # DDM Calculation
+                pv_dividends = 0.0
+                for i in range(num_years):
+                    pv_dividends += dividends[i] / ((1 + discount_rate) ** (i + 1))
+
+                # Calculate terminal value and its present value
+                terminal_dividend = dividends[-1] * (1 + terminal_growth_rate)
+                terminal_value = terminal_dividend / (discount_rate - terminal_growth_rate)
+                pv_terminal_value = terminal_value / ((1 + discount_rate) ** num_years)
+
+                # Total intrinsic value
+                result = pv_dividends + pv_terminal_value
+
+            elif model == 'RIM':
+                # RIM Calculation
+                book_value = form_data.get('book_value', 0.0)
+                pv_residual_income = 0.0
+                current_book_value = book_value
+
+                # Calculate residual income for each year
+                for i in range(num_years):
+                    residual_income = eps_list[i] - (discount_rate * current_book_value)
+                    pv_residual_income += residual_income / ((1 + discount_rate) ** (i + 1))
+                    current_book_value += eps_list[i]  # Update book value for next year
+
+                # Calculate terminal value
+                terminal_eps = eps_list[-1] * (1 + terminal_growth_rate)
+                terminal_residual_income = terminal_eps - (discount_rate * current_book_value)
+                terminal_value = terminal_residual_income / (discount_rate - terminal_growth_rate)
+                pv_terminal_value = terminal_value / ((1 + discount_rate) ** num_years)
+
+                # Total intrinsic value
+                result = book_value + pv_residual_income + pv_terminal_value
+
+            # Ensure result is a float and non-negative
+            if result is not None:
+                result = max(float(result), 0.0)
+
+            # Generate valuation comment if market price is provided
+            if form_data.get('market_price'):
+                market_price = form_data['market_price']
+                if market_price < result:
+                    valuation_comment = "The stock may be <span class='font-bold text hiciera-green-600'>undervalued</span>."
+                elif market_price > result:
+                    valuation_comment = "The stock may be <span class='font-bold text-red-600'>overvalued</span>."
+                else:
+                    valuation_comment = "The stock is priced at its intrinsic value."
+
+        except (ValueError, ZeroDivisionError) as e:
+            error = str(e) if "forecasts required" in str(e) else "Invalid input or calculation error. Ensure all inputs are valid numbers and discount rate is greater than growth rate."
+            result = None
+
+    return render_template(
+        'bank_intrinsic_value.html',
+        result=result,
+        model=model,
+        num_years=num_years,
+        form_data=form_data,
+        error=error,
+        valuation_comment=valuation_comment
+    )
+        
 @app.route('/target-price', methods=['GET', 'POST'])
 def target_price():
     if request.method == 'POST':

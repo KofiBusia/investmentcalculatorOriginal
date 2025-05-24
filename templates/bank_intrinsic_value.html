@@ -1,0 +1,319 @@
+{% extends "base.html" %}
+
+{% block title %}Bank Stock Intrinsic Value Calculator{% endblock %}
+
+{% block content %}
+<div class="container mx-auto p-6 max-w-4xl">
+    <!-- Title and Introduction -->
+    <h1 class="text-3xl font-bold text-gray-800 mb-4">Bank Stock Intrinsic Value Calculator</h1>
+    <p class="text-gray-600 mb-6">Calculate the intrinsic value of a bank stock using either the Dividend Discount Model (DDM) for banks with regular dividends or the Residual Income Model (RIM) for banks with irregular dividend payments. Enter all monetary values in the stock's reporting currency (e.g., GHS for Ghanaian stocks). All values below are displayed in the stock's reporting currency.</p>
+
+    <!-- Calculation Explanation -->
+    <h2 class="text-xl font-semibold text-gray-700 mb-2">How the Intrinsic Value is Calculated</h2>
+    <p class="text-gray-600 mb-4">This calculator uses one of two models based on your selection:</p>
+    <ul class="list-disc list-inside text-gray-600 mb-6">
+        <li><strong>DDM:</strong> Discounts forecasted dividends per share using a discount rate derived from CAPM, adding a terminal value based on perpetual growth: Intrinsic Value = PV of Dividends + PV of Terminal Value.</li>
+        <li><strong>RIM:</strong> Starts with current book value per share, adds the present value of forecasted residual income (EPS - Cost of Equity × Book Value), plus a terminal value: Intrinsic Value = Book Value + PV of Residual Income + PV of Terminal Value.</li>
+    </ul>
+
+    <!-- Collapsible Help Section -->
+    <div class="bg-white p-4 rounded-lg shadow mb-6">
+        <button type="button" onclick="toggleHelpSection()" class="w-full text-left text-xl font-semibold text-gray-700 flex justify-between items-center focus:outline-none">
+            <span>How to Find EPS and Dividend Inputs</span>
+            <span id="help-toggle-icon" class="text-gray-500">➕</span>
+        </button>
+        <div id="help-section" class="hidden mt-4 text-gray-600">
+            <p class="mb-2">To estimate <strong>Earnings Per Share (EPS)</strong> and <strong>Dividends Per Share</strong>, you need historical data and future forecasts. Here’s how to get them for global and Ghanaian stocks:</p>
+            <ul class="list-disc list-inside space-y-2">
+                <li><strong>Historical Data</strong>: Check the bank’s past EPS and dividends:
+                    <ul class="list-circle list-inside ml-6">
+                        <li><strong>Yahoo Finance</strong>: Search the stock ticker (e.g., JPM for JPMorgan Chase), go to “Financials” for EPS, and “Dividends” for dividends.</li>
+                        <li><strong>Company Reports</strong>: Visit the bank’s investor relations website for annual/quarterly reports (e.g., 10-K, 10-Q for U.S. banks).</li>
+                        <li><strong>Brokerage Platforms</strong>: Use apps like Fidelity or Robinhood for historical financials.</li>
+                        <li><strong>For Ghanaian Stocks</strong>:
+                            <ul class="list-square list-inside ml-6">
+                                <li><strong>annualreportsghana.com</strong>: Access annual reports for GSE-listed companies like GCB Bank or Ecobank Ghana.</li>
+                                <li><strong>gse.com.gh</strong>: Find financial statements and company profiles under “Financial Statements” or “Listed Companies.”</li>
+                                <li><strong>afx.kwayisi.org/gse/</strong>: View historical share prices, earnings, and dividend payments for GSE stocks (e.g., Societe Generale Ghana).</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+                <li><strong>Analyst Forecasts</strong>: Get EPS and dividend predictions for 1–2 years:
+                    <ul class="list-circle list-inside ml-6">
+                        <li><strong>Yahoo Finance</strong>: Check the “Analysis” tab for EPS estimates.</li>
+                        <li><strong>Nasdaq.com</strong>: Search the ticker for “Earnings” forecasts.</li>
+                        <li><strong>Seeking Alpha</strong>: Read articles for analyst dividend predictions.</li>
+                        <li><strong>For Ghanaian Stocks</strong>: Analyst forecasts may be limited, but check <strong>afx.kwayisi.org/gse/</strong> for earnings data or <strong>gse.com.gh</strong> for company announcements.</li>
+                    </ul>
+                </li>
+                <li><strong>Estimate Future Years</strong>: For years 3–5, use historical growth:
+                    <ul class="list-circle list-inside ml-6">
+                        <li>Example: If EPS was $16 in 2024 and grew 5% annually, estimate 2025: $16 × 1.05 = $16.80, 2026: $16.80 × 1.05 = $17.64.</li>
+                        <li>Dividends: If GHS 0.30 in 2024 with 4% growth, estimate 2025: GHS 0.30 × 1.04 = GHS 0.312.</li>
+                        <li>Consider economic trends (e.g., high interest rates boost bank profits; check Bank of Ghana reports for Ghana).</li>
+                    </ul>
+                </li>
+                <li><strong>Tips</strong>:
+                    <ul class="list-circle list-inside ml-6">
+                        <li>Use modest growth rates (3–5% for EPS, 2–5% for dividends) unless specific news suggests otherwise.</li>
+                        <li>Check earnings calls or news on <strong>gse.com.gh</strong> for growth plans (e.g., loan expansion for Ghanaian banks).</li>
+                    </ul>
+                </li>
+            </ul>
+            <p class="mt-4"><strong>Examples</strong>:</p>
+            <ul class="list-disc list-inside ml-6">
+                <li><strong>JPMorgan Chase (JPM)</strong>: 2024 EPS = $16.23, Dividend = $4.60. Forecast 3 years at 5% EPS growth, 4% dividend growth: EPS ($16.80, $17.64, $18.52), Dividends ($4.78, $4.97, $5.17).</li>
+                <li><strong>GCB Bank (GSE:GCB)</strong>: 2024 EPS = GHS 0.80, Dividend = GHS 0.30 (from <strong>annualreportsghana.com</strong>). Forecast 3 years at 5% growth: EPS (GHS 0.84, GHS 0.88, GHS 0.93), Dividends (GHS 0.312, GHS 0.324, GHS 0.337).</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Error Display -->
+    {% if error %}
+    <div class="bg-red-100 text-red-700 p-4 rounded-lg mb-6">
+        <strong>Error:</strong> {{ error }}
+    </div>
+    {% endif %}
+
+    <form method="POST" action="{{ url_for('bank_intrinsic_value') }}" id="valuation-form" class="space-y-6">
+        <!-- Valuation Model Selection -->
+        <div class="bg-white p-4 rounded-lg shadow">
+            <h3 class="text-xl font-semibold text-gray-700 mb-2">Valuation Model</h3>
+            <div class="group">
+                <label for="model" class="block text-sm font-medium text-gray-700">Select Model:</label>
+                <select name="model" id="model" onchange="toggleModelInputs()" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                    <option value="DDM" {% if model == 'DDM' %}selected{% endif %}>Dividend Discount Model (DDM)</option>
+                    <option value="RIM" {% if model == 'RIM' %}selected{% endif %}>Residual Income Model (RIM)</option>
+                </select>
+                <p class="text-sm text-gray-500 mt-1">Use DDM for banks with consistent dividends (e.g., GCB Bank); RIM for banks with irregular dividends (e.g., Societe Generale Ghana).</p>
+            </div>
+        </div>
+
+        <!-- Forecast Period -->
+        <div class="bg-white p-4 rounded-lg shadow">
+            <h3 class="text-xl font-semibold text-gray-700 mb-2">Forecast Period</h3>
+            <div class="group">
+                <label for="num_years" class="block text-sm font-medium text-gray-700">Number of Forecast Years:</label>
+                <select name="num_years" id="num_years" onchange="toggleYearInputs()" class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+                    <option value="3" {% if num_years == 3 %}selected{% endif %}>3 Years</option>
+                    <option value="4" {% if num_years == 4 %}selected{% endif %}>4 Years</option>
+                    <option value="5" {% if num_years == 5 %}selected{% endif %}>5 Years</option>
+                </select>
+                <p class="text-sm text-gray-500 mt-1">Select 3-5 years based on the reliability of your forecasts.</p>
+            </div>
+        </div>
+
+        <!-- CAPM Inputs -->
+        <div class="bg-white p-4 rounded-lg shadow">
+            <h3 class="text-xl font-semibold text-gray-700 mb-2">Cost of Equity (CAPM)</h3>
+            <p class="text-sm text-gray-600 mb-4">Discount rate (r) = Risk-Free Rate + Beta × (Market Return - Risk-Free Rate).</p>
+            {{ input_field('risk_free_rate', 'Risk-Free Rate (%)', 'Yield on 10-year government bonds (e.g., Ghana T-Bill ~24% from Bank of Ghana, U.S. Treasury ~4%).', '0.01') }}
+            {{ input_field('market_return', 'Market Return (%)', 'Expected return of the market (e.g., GSE ~10–15%, S&P 500 ~8–10%).', '0.01') }}
+            {{ input_field('beta', 'Beta', 'Stock volatility relative to the market (e.g., from Yahoo Finance or afx.kwayisi.org/gse/, ~1.1 for GCB Bank).', '0.01') }}
+        </div>
+
+        <!-- DDM Inputs -->
+        {% set dividend_descriptions = [
+            "E.g., if dividend was GHS 0.30 in 2024, enter GHS 0.30 × 1.04 = GHS 0.312 with 4% growth.",
+            "E.g., if year 1 dividend is GHS 0.312, enter GHS 0.312 × 1.04 = GHS 0.324 with 4% growth.",
+            "E.g., if year 2 dividend is GHS 0.324, enter GHS 0.324 × 1.04 = GHS 0.337 with 4% growth.",
+            "E.g., if year 3 dividend is GHS 0.337, enter GHS 0.337 × 1.04 = GHS 0.350 with 4% growth.",
+            "E.g., if year 4 dividend is GHS 0.350, enter GHS 0.350 × 1.04 = GHS 0.364 with 4% growth."
+        ] %}
+        <div id="ddm-inputs" class="bg-white p-4 rounded-lg shadow" style="display: {% if model == 'DDM' %}block{% else %}none{% endif %};">
+            <h3 class="text-xl font-semibold text-gray-700 mb-2">Dividend Inputs (DDM)</h3>
+            <p class="text-sm text-gray-600 mb-4">Enter forecasted dividends per share for each year. Find historical dividends on Yahoo Finance (“Dividends” tab), annualreportsghana.com, gse.com.gh (“Financial Statements”), or afx.kwayisi.org/gse/. Estimate future dividends using historical growth (e.g., 2–5% per year) or analyst forecasts from Nasdaq.com or gse.com.gh.</p>
+            {% for i in range(1, 6) %}
+            <div class="year-input" id="ddm_year_{{ i }}_group" style="display: {% if i <= num_years|default(5) %}block{% else %}none{% endif %};">
+                {{ input_field('dividend_' + i|string, 'Dividend Year ' + i|string, dividend_descriptions[i-1], '0.01', tooltip='Find historical dividends on annualreportsghana.com, gse.com.gh, or afx.kwayisi.org/gse/. Estimate future years by applying 2–5% growth or check analyst forecasts on gse.com.gh.') }}
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- RIM Inputs -->
+        {% set eps_descriptions = [
+            "E.g., if EPS was GHS 0.80 in 2024, enter GHS 0.80 × 1.05 = GHS 0.84 with 5% growth.",
+            "E.g., if year 1 EPS is GHS 0.84, enter GHS 0.84 × 1.05 = GHS 0.882 with 5% growth.",
+            "E.g., if year 2 EPS is GHS 0.882, enter GHS 0.882 × 1.05 = GHS 0.926 with 5% growth.",
+            "E.g., if year 3 EPS is GHS 0.926, enter GHS 0.926 × 1.05 = GHS 0.972 with 5% growth.",
+            "E.g., if year 4 EPS is GHS 0.972, enter GHS 0.972 × 1.05 = GHS 1.021 with 5% growth."
+        ] %}
+        <div id="rim-inputs" class="bg-white p-4 rounded-lg shadow" style="display: {% if model == 'RIM' %}block{% else %}none{% endif %};">
+            <h3 class="text-xl font-semibold text-gray-700 mb-2">Residual Income Inputs (RIM)</h3>
+            {{ input_field('book_value', 'Current Book Value per Share', 'Total Equity ÷ Shares Outstanding from latest financials (e.g., Yahoo Finance “Balance Sheet,” annualreportsghana.com, or gse.com.gh).', '0.01', tooltip='Check the bank’s latest balance sheet on annualreportsghana.com, gse.com.gh, or Yahoo Finance for Total Equity and Shares Outstanding.') }}
+            <p class="text-sm text-gray-600 mb-4">Enter forecasted earnings per share (EPS) for each year. Find historical EPS on Yahoo Finance (“Financials” tab), annualreportsghana.com, gse.com.gh (“Financial Statements”), or afx.kwayisi.org/gse/. Estimate future EPS using historical growth (e.g., 3–5% per year) or analyst forecasts from Yahoo Finance “Analysis” tab or gse.com.gh.</p>
+            {% for i in range(1, 6) %}
+            <div class="year-input" id="rim_year_{{ i }}_group" style="display: {% if i <= num_years|default(5) %}block{% else %}none{% endif %};">
+                {{ input_field('eps_' + i|string, 'EPS Year ' + i|string, eps_descriptions[i-1], '0.01', tooltip='Find historical EPS on annualreportsghana.com, gse.com.gh, or afx.kwayisi.org/gse/. Estimate future years by applying 3–5% growth or check analyst forecasts on gse.com.gh.') }}
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Terminal Growth Rate -->
+        <div class="bg-white p-4 rounded-lg shadow">
+            <h3 class="text-xl font-semibold text-gray-700 mb-2">Terminal Growth Rate</h3>
+            {{ input_field('terminal_growth_rate', 'Terminal Growth Rate (%)', 'Long-term growth rate, e.g., GDP growth of the stock\'s country (~8% for Ghana, 2–3% for U.S., check World Bank or Bank of Ghana).', '0.01') }}
+        </div>
+
+        <!-- Optional Market Price -->
+        <div class="bg-white p-4 rounded-lg shadow">
+            <h3 class="text-xl font-semibold text-gray-700 mb-2">Current Market Price (Optional)</h3>
+            {{ input_field('market_price', 'Current Market Price per Share', 'Enter the stock\'s current price (e.g., from Yahoo Finance or afx.kwayisi.org/gse/ for GSE stocks).', '0.01', required=False) }}
+        </div>
+
+        <!-- Important Notice -->
+        <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-6" role="alert">
+            <p class="font-bold">Important Notice</p>
+            <p>If the results do not appear after clicking 'Calculate,' try selecting the other valuation method, use it, and then return to your preferred method. The results should then appear.</p>
+        </div>
+
+        <!-- Buttons -->
+        <div class="flex space-x-4">
+            <button type="submit" class="bg-indigo-600 text-white px-6 py-2 rounded-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">Calculate</button>
+            <a href="{{ url_for('bank_intrinsic_value') }}" class="bg-gray-300 text-gray-700 px-6 py-2 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500">Reset</a>
+            <a href="{{ url_for('index') }}" class="bg-gray-300 text-gray-700 px-6 py-2 rounded-md hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-500">Back to Home</a>
+        </div>
+    </form>
+
+    <!-- Results -->
+    {% if result is defined and result is not none %}
+    <div class="mt-6 bg-green-100 text-green-800 p-4 rounded-lg">
+        <h3 class="text-xl font-semibold">Valuation Results</h3>
+        <div class="mt-2 space-y-2">
+            <p><strong>Intrinsic Value per Share:</strong> {{ result | currency }}</p>
+            {% if form_data.market_price %}
+            <p><strong>Current Market Price:</strong> {{ form_data.market_price | currency }}</p>
+            <div class="pt-2 border-t border-green-200">
+                {{ valuation_comment | safe }}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+// Toggle between DDM and RIM input sections
+function toggleModelInputs() {
+    const model = document.getElementById('model').value;
+    document.getElementById('ddm-inputs').style.display = model === 'DDM' ? 'block' : 'none';
+    document.getElementById('rim-inputs').style.display = model === 'RIM' ? 'block' : 'none';
+    toggleYearInputs();
+}
+
+// Show/hide forecast year inputs based on selected number of years
+function toggleYearInputs() {
+    const model = document.getElementById('model').value;
+    const numYears = parseInt(document.getElementById('num_years').value);
+    const prefix = model === 'DDM' ? 'ddm' : 'rim';
+    for (let i = 1; i <= 5; i++) {
+        const group = document.getElementById(`${prefix}_year_${i}_group`);
+        if (i <= numYears) {
+            group.style.display = 'block';
+            group.querySelector('input').required = true;
+        } else {
+            group.style.display = 'none';
+            group.querySelector('input').required = false;
+            group.querySelector('input').value = '';
+        }
+    }
+}
+
+// Validate non-negative inputs (if min attribute is set)
+function validatePositive(inputElement) {
+    if (inputElement.hasAttribute('min') && parseFloat(inputElement.value) < parseFloat(inputElement.min)) {
+        inputElement.setCustomValidity('Value must be greater than or equal to ' + inputElement.min);
+        inputElement.reportValidity();
+    } else {
+        inputElement.setCustomValidity('');
+    }
+}
+
+// Toggle help section visibility
+function toggleHelpSection() {
+    const helpSection = document.getElementById('help-section');
+    const toggleIcon = document.getElementById('help-toggle-icon');
+    helpSection.classList.toggle('hidden');
+    toggleIcon.textContent = helpSection.classList.contains('hidden') ? '➕' : '➖';
+}
+
+// Initialize form on page load
+document.addEventListener('DOMContentLoaded', () => {
+    toggleModelInputs();
+    toggleYearInputs();
+    document.querySelectorAll('input[type="number"]').forEach(input => {
+        input.addEventListener('input', () => validatePositive(input));
+    });
+    document.getElementById('valuation-form').addEventListener('submit', (e) => {
+        const inputs = e.target.querySelectorAll('input[type="number"]');
+        let valid = true;
+        inputs.forEach(input => {
+            if (input.hasAttribute('min') && parseFloat(input.value) < parseFloat(input.min)) {
+                valid = false;
+                validatePositive(input);
+            }
+        });
+        if (!valid) e.preventDefault();
+    });
+});
+</script>
+
+<style>
+body {
+    font-family: 'Inter', sans-serif;
+}
+
+.hidden {
+    display: none;
+}
+
+.tooltip {
+    position: relative;
+    display: inline-block;
+}
+
+.tooltip .tooltip-text {
+    visibility: hidden;
+    width: 200px;
+    background-color: #555;
+    color: #fff;
+    text-align: center;
+    padding: 5px;
+    border-radius: 6px;
+    position: absolute;
+    z-index: 10;
+    bottom: 125%;
+    left: 50%;
+    margin-left: -100px;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.tooltip:hover .tooltip-text {
+    visibility: visible;
+    opacity: 1;
+}
+</style>
+{% endblock %}
+
+{% macro input_field(name, label, description='', step='1', required=True, min=None, tooltip='') %}
+<div class="mt-4 group">
+    <label for="{{ name }}" class="block text-sm font-medium text-gray-700">
+        {{ label }}
+        {% if tooltip %}
+        <span class="tooltip ml-1 text-gray-500 cursor-help">ℹ
+            <span class="tooltip-text">{{ tooltip }}</span>
+        </span>
+        {% endif %}
+    </label>
+    <input type="number" step="{{ step }}" name="{{ name }}" id="{{ name }}"
+           value="{{ form_data.get(name, '') }}"
+           {% if required %}required{% endif %}
+           {% if min is not none %}min="{{ min }}"{% endif %}
+           class="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+    {% if description %}
+    <p class="text-sm text-gray-500 mt-1">{{ description }}</p>
+    {% endif %}
+</div>
+{% endmacro %}
