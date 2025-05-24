@@ -471,6 +471,8 @@ def round_filter(value, decimals=2):
 def commafy(value):
     return "{:,.2f}".format(value)
 
+app.jinja_env.filters['commafy'] = commafy
+
 @login_manager.user_loader
 def load_user(user_id):
     """Flask-Login user loader callback"""
@@ -1179,113 +1181,106 @@ def tbills_rediscount():
 # ------------
 # ROUTES BLOCK
 # ------------
-@app.route('/intrinsic-value', methods=['GET', 'POST'])
+@app.route('/intrinsic_value', methods=['GET', 'POST'])
 def intrinsic_value():
-    """
-    Route to calculate intrinsic value using DCF.
-    Supports 3 to 5 years of FCF inputs.
-    """
     if request.method == 'POST':
         try:
-            # Helper function to safely convert form input to float
-            def safe_float(value, default=None):
-                try:
-                    return float(value) if value and value.strip() else default
-                except (ValueError, TypeError):
-                    return default
-
-            # Collect number of FCF years
-            num_fcf_years = safe_float(request.form.get('num_fcf_years'), 5)
-            num_fcf_years = int(num_fcf_years) if num_fcf_years in [3, 4, 5] else 5
-
-            # Collect FCF inputs dynamically
-            fcf = []
-            for i in range(1, num_fcf_years + 1):
-                fcf_value = safe_float(request.form.get(f'fcf_{i}'))
-                if fcf_value is None:
-                    raise ValueError(f"Free Cash Flow for year {i} is required")
-                fcf.append(fcf_value)
-
-            # Collect other inputs and convert percentages to decimals
-            risk_free_rate = safe_float(request.form.get('risk_free_rate')) / 100
-            market_return = safe_float(request.form.get('market_return')) / 100
-            beta = safe_float(request.form.get('beta'))
-            outstanding_shares = safe_float(request.form.get('outstanding_shares'))
-            total_debt = safe_float(request.form.get('total_debt'), 0)
-            cash_and_equivalents = safe_float(request.form.get('cash_and_equivalents'), 0)
-            perpetual_growth_rate = safe_float(request.form.get('perpetual_growth_rate'))
-
-            # Validate required inputs
-            required_fields = {
-                'Risk-free rate': risk_free_rate,
-                'Market return': market_return,
-                'Beta': beta,
-                'Outstanding shares': outstanding_shares
-            }
-            for name, value in required_fields.items():
-                if value is None:
-                    raise ValueError(f"{name} is required")
-                if value < 0:
-                    raise ValueError(f"{name} must be non-negative")
-
-            # Calculate discount rate using CAPM
-            discount_rate = risk_free_rate + beta * (market_return - risk_free_rate)
-
-            # Determine perpetual growth rate
-            if perpetual_growth_rate is None:
-                # Calculate CAGR-based growth rate (capped)
-                cagr_years = num_fcf_years - 1 if num_fcf_years > 1 else 1
-                perpetual_growth_rate = calculate_cagr(fcf[0], fcf[-1], cagr_years) / 100
-            else:
-                # Convert from percentage to decimal and validate
-                perpetual_growth_rate = perpetual_growth_rate / 100
-                if not -0.05 <= perpetual_growth_rate <= 0.05:
-                    raise ValueError("Perpetual growth rate must be between -5% and 5%")
-
-            # Validate discount rate vs. growth rate
-            if discount_rate <= perpetual_growth_rate:
-                raise ValueError(
-                    f"Discount rate ({discount_rate:.2%}) must exceed growth rate ({perpetual_growth_rate:.2%}). "
-                    f"Adjust risk-free rate, market return, beta, or perpetual growth rate."
-                )
-
-            # Intrinsic Value Calculation
+            # Parse form data
+            num_fcf_years = int(request.form['num_fcf_years'])
+            fcf = [float(request.form.get(f'fcf_{i}', 0)) for i in range(1, num_fcf_years + 1)]
             last_fcf = fcf[-1]
-            enterprise_value = (last_fcf * (1 + perpetual_growth_rate)) / (discount_rate - perpetual_growth_rate)
+
+            risk_free_rate = float(request.form['risk_free_rate']) / 100
+            market_return = float(request.form['market_return']) / 100
+            beta = float(request.form['beta'])
+            outstanding_shares = float(request.form['outstanding_shares'])
+            total_debt = float(request.form.get('total_debt', 0))
+            cash_and_equivalents = float(request.form.get('cash_and_equivalents', 0))
+
+            growth_model = request.form['growth_model']
+            if growth_model == 'perpetual':
+                perpetual_growth_rate = float(request.form['perpetual_growth_rate']) / 100
+            else:  # two_stage
+                high_growth_years = int(request.form['high_growth_years'])
+                high_growth_rate = float(request.form['high_growth_rate']) / 100
+                terminal_growth_rate = float(request.form['terminal_growth_rate']) / 100
+
+            discount_rate_method = request.form['discount_rate_method']
+            if discount_rate_method == 'capm':
+                discount_rate = risk_free_rate + beta * (market_return - risk_free_rate)
+            else:
+                discount_rate = float(request.form['manual_discount_rate']) / 100
+
+            # Validate inputs
+            if outstanding_shares <= 0:
+                raise ValueError("Outstanding shares must be positive.")
+            if discount_rate <= 0:
+                raise ValueError("Discount rate must be positive.")
+
+            # Calculate enterprise value
+            if growth_model == 'perpetual':
+                if discount_rate <= perpetual_growth_rate:
+                    raise ValueError("Discount rate must exceed perpetual growth rate.")
+                enterprise_value = (last_fcf * (1 + perpetual_growth_rate)) / (discount_rate - perpetual_growth_rate)
+            else:  # two_stage
+                if high_growth_years < 1:
+                    raise ValueError("High growth years must be at least 1.")
+                if discount_rate <= terminal_growth_rate:
+                    raise ValueError("Discount rate must exceed terminal growth rate.")
+                fcf_projections = [last_fcf * (1 + high_growth_rate) ** i for i in range(1, high_growth_years + 1)]
+                terminal_value = (fcf_projections[-1] * (1 + terminal_growth_rate)) / (discount_rate - terminal_growth_rate)
+                enterprise_value = sum([fcf / (1 + discount_rate) ** i for i, fcf in enumerate(fcf_projections, 1)]) + \
+                                  (terminal_value / (1 + discount_rate) ** high_growth_years)
+
+            # Calculate equity value and intrinsic value per share
             equity_value = enterprise_value - total_debt + cash_and_equivalents
-            intrinsic_value = max(equity_value / outstanding_shares, 0)
+            intrinsic_value_per_share = equity_value / outstanding_shares
+
+            # Sensitivity analysis
+            sensitivity = {}
+            base_g = perpetual_growth_rate if growth_model == 'perpetual' else terminal_growth_rate
+            g_rates = [base_g - 0.01, base_g, base_g + 0.01]
+            r_rates = [discount_rate - 0.01, discount_rate, discount_rate + 0.01]
+            sensitivity['values'] = []
+            for g in g_rates:
+                row = []
+                for r in r_rates:
+                    if r > g and r > 0:
+                        if growth_model == 'perpetual':
+                            ev = (last_fcf * (1 + g)) / (r - g)
+                        else:
+                            fcf_proj = [last_fcf * (1 + high_growth_rate) ** i for i in range(1, high_growth_years + 1)]
+                            tv = (fcf_proj[-1] * (1 + g)) / (r - g)
+                            ev = sum([fcf / (1 + r) ** i for i, fcf in enumerate(fcf_proj, 1)]) + (tv / (1 + r) ** high_growth_years)
+                        eq_val = ev - total_debt + cash_and_equivalents
+                        iv = eq_val / outstanding_shares
+                        row.append(round(iv, 2))
+                    else:
+                        row.append('N/A')
+                sensitivity['values'].append(row)
+            sensitivity['g_rates'] = [round(g * 100, 2) for g in g_rates]
+            sensitivity['r_rates'] = [round(r * 100, 2) for r in r_rates]
 
             # Debug information
             debug = {
                 'fcf': fcf,
                 'discount_rate': discount_rate,
-                'perpetual_growth_rate': perpetual_growth_rate,
                 'enterprise_value': enterprise_value,
-                'equity_value': equity_value
+                'equity_value': equity_value,
+                'sensitivity': sensitivity
             }
 
-            return render_template(
-                'intrinsic_value.html',
-                result=f"{intrinsic_value:.2f}",
-                debug=debug,
-                form_data=request.form,
-                num_fcf_years=num_fcf_years
-            )
+            # Warning for negative FCF
+            if last_fcf < 0:
+                debug['warning'] = "Last FCF is negative, suggesting future FCF must improve for a meaningful valuation."
+
+            return render_template('intrinsic_value.html', result=round(intrinsic_value_per_share, 2), debug=debug)
         except ValueError as e:
-            return render_template(
-                'intrinsic_value.html',
-                error=str(e),
-                form_data=request.form,
-                num_fcf_years=num_fcf_years
-            )
+            return render_template('intrinsic_value.html', error=str(e))
         except Exception as e:
-            return render_template(
-                'intrinsic_value.html',
-                error=f"Unexpected error: {str(e)}",
-                form_data=request.form,
-                num_fcf_years=num_fcf_years
-            )
-    return render_template('intrinsic_value.html', form_data={}, num_fcf_years=5)
+            return render_template('intrinsic_value.html', error=f"An error occurred: {str(e)}")
+    else:
+        return render_template('intrinsic_value.html')
 
 # Custom filter for rounding to handle potential string inputs
 app.jinja_env.filters['round'] = lambda value, decimals=2: round(float(value), decimals) if value else 0.0
