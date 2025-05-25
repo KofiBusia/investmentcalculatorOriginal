@@ -559,6 +559,16 @@ def ads_txt():
 def index():
     return render_template('index.html')
 
+@app.route('/help')
+def help():
+    try:
+        with open('calculators.json') as f:
+            calculators = json.load(f)
+    except FileNotFoundError:
+        calculators = []  # Fallback if file is missing
+    return render_template('help.html', calculators=calculators)
+
+
 @app.route('/expected-return', methods=['GET', 'POST'])
 def expected_return():
     if request.method == 'POST':

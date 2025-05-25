@@ -1,0 +1,298 @@
+{% extends "base.html" %}
+
+{% block title %}Help - How to Use Our Calculators{% endblock %}
+
+{% block content %}
+<div class="container mx-auto p-6 max-w-5xl">
+    <!-- Header Section -->
+    <h1 class="text-4xl font-extrabold text-gray-900 mb-4 tracking-tight">How to Use Our Calculators</h1>
+    <p class="text-gray-700 mb-4 text-lg leading-relaxed">Welcome to our help center! This guide provides detailed, step-by-step instructions to help you master our investment calculators and make informed financial decisions.</p>
+    <p class="text-gray-700 mb-8 text-lg leading-relaxed">Browse through the sections below to explore each calculator, or use the search bar to find specific tools.</p>
+
+    <!-- AdSense Banner -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1910810542133525" crossorigin="anonymous"></script>
+    <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-1910810542133525" data-ad-slot="7411041953"></ins>
+    <script>
+         (adsbygoogle = window.adsbygoogle || []).push({});
+    </script>
+
+    <!-- Search Bar -->
+    <div class="mb-8">
+        <input 
+            type="text" 
+            id="search" 
+            placeholder="Search calculators (e.g., intrinsic value, bank stock)..." 
+            class="w-full h-12 px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-200 ease-in-out text-lg" 
+            oninput="filterCalculators()" 
+            aria-label="Search for a calculator"
+        >
+    </div>
+
+    <!-- Calculator List -->
+    <div id="calculator-list" class="space-y-6">
+        <!-- Intrinsic Value Calculator for Stocks -->
+        <div id="intrinsic-value" class="calculator bg-white p-6 rounded-xl shadow-md transition-all duration-300 hover:shadow-lg">
+            <button 
+                class="w-full text-left text-xl font-semibold text-gray-800 flex justify-between items-center py-2 px-4 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded" 
+                onclick="toggleSection(this)" 
+                aria-expanded="false" 
+                aria-controls="intrinsic-value-content"
+            >
+                <span>📈 Intrinsic Value Calculator for Stocks</span>
+                <span class="toggle-icon text-xl font-bold text-blue-600">+</span>
+            </button>
+            <div id="intrinsic-value-content" class="content collapsed mt-4 text-gray-700">
+                <h3 class="text-xl font-medium mb-3 text-gray-800">What It Does</h3>
+                <p class="mb-3">This calculator estimates a stock’s true value using a Discounted Cash Flow (DCF) model. The DCF model projects future cash flows and discounts them to their present value, helping you determine if a stock is undervalued or overvalued.</p>
+                
+                <h3 class="text-xl font-medium mb-3 text-gray-800">How to Use It</h3>
+                <p class="mb-2">Follow these steps to calculate a stock’s intrinsic value accurately:</p>
+                <ol class="list-decimal pl-6 space-y-4 mb-4">
+                    <li>
+                        <strong>Choose Years of Cash Flow</strong>: Select how many years of historical Free Cash Flow (FCF) data to use (3-5 years).
+                        <ul class="list-disc list-inside space-y-2 ml-6">
+                            <li>For companies with stable cash flows, such as utility companies like GRIDCo in Ghana, 3 years might be sufficient.</li>
+                            <li>For volatile companies, like tech startups, use 5 years for a better average.</li>
+                            <li><strong>Where to Find Data</strong>: FCF is cash available after capital expenditures. Check the cash flow statement in annual reports on <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a> or <a href="https://www.annualreportsghana.com/resources/equity/gse/" class="text-indigo-600 hover:underline">annualreportsghana.com</a>. Use our <a href="https://younginvestorcalculator.com/calculate-fcf" class="text-indigo-600 hover:underline">FCF Calculator</a> if needed.</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Enter FCF Amounts</strong>: Input the FCF for each year.
+                        <ul class="list-disc list-inside space-y-2 ml-6">
+                            <li>Example: For 2022-2024, enter 1,000,000 GHS, 1,200,000 GHS, and 1,500,000 GHS.</li>
+                            <li><strong>Where to Find Data</strong>: Look under "Cash from Operating Activities" minus "Capital Expenditures" in the cash flow statement on <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a>, <a href="https://www.annualreportsghana.com/resources/equity/gse/" class="text-indigo-600 hover:underline">annualreportsghana.com</a>, or <a href="https://afx.kwayisi.org/gse/" class="text-indigo-600 hover:underline">afx.kwayisi.org/gse/</a>.</li>
+                            <li>If FCF isn’t provided, calculate it: Operating Cash Flow - Capital Expenditures.</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Select Growth Model</strong>: Choose a model for future cash flows.
+                        <ul class="list-disc list-inside space-y-2 ml-6">
+                            <li><strong>Perpetual Growth</strong>: For mature companies like GCB Bank with stable growth (e.g., 2-3%, tied to inflation or GDP).</li>
+                            <li><strong>Two-Stage Growth</strong>: For growing firms like tech startups (e.g., 10% for 5 years, then 3% long-term).</li>
+                            <li><strong>Where to Find Data</strong>: Base rates on historical growth from <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a>.</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Pick Discount Rate Method</strong>: Set the rate to discount cash flows.
+                        <ul class="list-disc list-inside space-y-2 ml-6">
+                            <li><strong>CAPM</strong>:
+                                <ul class="list-circle list-inside ml-6">
+                                    <li>Risk-Free Rate: Use Ghana’s 10-year bond yield from <a href="https://www.bog.gov.gh/" class="text-indigo-600 hover:underline">bog.gov.gh</a> (e.g., 20%).</li>
+                                    <li>Expected Market Return: Estimate 10-15% based on GSE historical returns from <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a>.</li>
+                                    <li>Beta: Find on <a href="https://afx.kwayisi.org/gse/" class="text-indigo-600 hover:underline">afx.kwayisi.org/gse/</a> or use our <a href="https://younginvestorcalculator.com/calculate-beta" class="text-indigo-600 hover:underline">Beta Calculator</a>.</li>
+                                </ul>
+                            </li>
+                            <li><strong>Manual</strong>: Enter a custom rate (e.g., 8%).</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Enter Additional Details</strong>: Add shares outstanding, debt, and cash (optional).
+                        <ul class="list-disc list-inside space-y-2 ml-6">
+                            <li>Example: 10 million shares, 500,000 GHS debt, 200,000 GHS cash.</li>
+                            <li><strong>Where to Find Data</strong>: Check the balance sheet on <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a> or <a href="https://www.annualreportsghana.com/resources/equity/gse/" class="text-indigo-600 hover:underline">annualreportsghana.com</a>.</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Set Growth Rates</strong>: Define growth based on your model.
+                        <ul class="list-disc list-inside space-y-2 ml-6">
+                            <li><strong>Perpetual Growth</strong>: One rate (e.g., 3%, tied to Ghana’s GDP from <a href="https://data.worldbank.org/indicator/NY.GDP.MKTP.KD.ZG?locations=GH" class="text-indigo-600 hover:underline">data.worldbank.org</a>).</li>
+                            <li><strong>Two-Stage Growth</strong>: High rate (e.g., 10% for 5 years), then terminal rate (e.g., 3%).</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Calculate</strong>: Get the intrinsic value per share.
+                        <ul class="list-disc list-inside space-y-2 ml-6">
+                            <li>Example: If intrinsic value is 60 GHS and market price is 50 GHS (from <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a>), the stock may be undervalued.</li>
+                        </ul>
+                    </li>
+                </ol>
+                
+                <h3 class="text-xl font-medium mb-3 text-gray-800">Tips</h3>
+                <ul class="list-disc list-inside space-y-2 mb-4">
+                    <li>Use <a href="https://www.annualreportsghana.com/resources/equity/gse/" class="text-indigo-600 hover:underline">annualreportsghana.com</a> for FCF data.</li>
+                    <li>Keep growth rates conservative (2-3%) using <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a>.</li>
+                    <li>Adjust discount rates: 10-12% for risky stocks, 6-8% for stable ones.</li>
+                </ul>
+                
+                <h3 class="text-xl font-medium mb-3 text-gray-800">Common Mistakes to Avoid</h3>
+                <ul class="list-disc list-inside space-y-2 mb-4">
+                    <li>Don’t assume high growth (e.g., 10%) forever—verify with <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a>.</li>
+                    <li>Include debt/cash from <a href="https://www.annualreportsghana.com/resources/equity/gse/" class="text-indigo-600 hover:underline">annualreportsghana.com</a>.</li>
+                    <li>Match the growth model to the company type.</li>
+                </ul>
+                
+                <p><a href="{{ url_for('intrinsic_value') }}" class="text-indigo-600 hover:text-indigo-800 font-medium transition-colors duration-200">Go to Intrinsic Value Calculator</a></p>
+            </div>
+        </div>
+
+        <!-- Bank Stock Intrinsic Value Calculator -->
+        <div id="bank-stock" class="calculator bg-white p-6 rounded-xl shadow-md transition-all duration-300 hover:shadow-lg">
+            <button 
+                class="w-full text-left text-xl font-semibold text-gray-800 flex justify-between items-center py-2 px-4 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded" 
+                onclick="toggleSection(this)" 
+                aria-expanded="false" 
+                aria-controls="bank-stock-content"
+            >
+                <span>🏦 Bank Stock Intrinsic Value Calculator</span>
+                <span class="toggle-icon text-xl font-bold text-blue-600">+</span>
+            </button>
+            <div id="bank-stock-content" class="content collapsed mt-4 text-gray-700">
+                <h3 class="text-xl font-medium mb-3 text-gray-800">What It Does</h3>
+                <p class="mb-3">This calculator estimates the intrinsic value of bank stocks using the Dividend Discount Model (DDM) for dividend-paying banks or the Residual Income Model (RIM) for growth-focused banks.</p>
+                
+                <h3 class="text-xl font-medium mb-3 text-gray-800">How to Use It</h3>
+                <p class="mb-2">Follow these steps to value a bank stock accurately:</p>
+                <ol class="list-decimal pl-6 space-y-4 mb-4">
+                    <li>
+                        <strong>Choose Valuation Model</strong>: Select based on the bank’s profile.
+                        <ul class="list-disc list-inside space-y-2 ml-6">
+                            <li><strong>DDM</strong>: For banks with consistent dividends, like Standard Chartered Ghana (check history on <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a>).</li>
+                            <li><strong>RIM</strong>: For banks reinvesting earnings, like Access Bank Ghana (verify on <a href="https://www.annualreportsghana.com/resources/equity/gse/" class="text-indigo-600 hover:underline">annualreportsghana.com</a>).</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Set Forecast Period</strong>: Choose 3-5 years for projections.
+                        <ul class="list-disc list-inside space-y-2 ml-6">
+                            <li>Use 3 years in uncertain markets (common in Ghana); 5 years if trends are stable (check <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a>).</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Enter CAPM Inputs</strong>: Provide discount rate components.
+                        <ul class="list-disc list-inside space-y-2 ml-6">
+                            <li><strong>Risk-Free Rate</strong>: Yield on 10-year government bonds (e.g., 24%) from <a href="https://www.bog.gov.gh/" class="text-indigo-600 hover:underline">bog.gov.gh</a>.</li>
+                            <li><strong>Expected Market Return</strong>: Estimate 10-15% from GSE data on <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a> or <a href="https://afx.kwayisi.org/gse/" class="text-indigo-600 hover:underline">afx.kwayisi.org/gse/</a>.</li>
+                            <li><strong>Beta</strong>: Find on <a href="https://afx.kwayisi.org/gse/" class="text-indigo-600 hover:underline">afx.kwayisi.org/gse/</a> or use our <a href="https://younginvestorcalculator.com/calculate-beta" class="text-indigo-600 hover:underline">Beta Calculator</a>.</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Input Financial Data</strong>: Enter model-specific data.
+                        <ul class="list-disc list-inside space-y-2 ml-6">
+                            <li><strong>For DDM</strong>:
+                                <ul class="list-circle list-inside ml-6">
+                                    <li>Expected dividends: e.g., 0.50 GHS (2025), 0.55 GHS (2026), 0.60 GHS (2027).</li>
+                                    <li><strong>Where to Find Data</strong>: Historical dividends on <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a>.</li>
+                                    <li>Estimate growth: If 2024 is 0.48 GHS with 4% growth, 2025 = 0.48 × 1.04 = 0.50 GHS.</li>
+                                </ul>
+                            </li>
+                            <li><strong>For RIM</strong>:
+                                <ul class="list-circle list-inside ml-6">
+                                    <li>Book value: e.g., 5.00 GHS (from balance sheet).</li>
+                                    <li>EPS: e.g., 0.80 GHS (2025), 0.90 GHS (2026), 1.00 GHS (2027).</li>
+                                    <li><strong>Where to Find Data</strong>: Balance sheet and income statement on <a href="https://www.annualreportsghana.com/resources/equity/gse/" class="text-indigo-600 hover:underline">annualreportsghana.com</a>.</li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Specify Terminal Growth Rate</strong>: Set a long-term rate.
+                        <ul class="list-disc list-inside space-y-2 ml-6">
+                            <li>Example: 3-5%, reflecting Ghana’s GDP growth from <a href="https://data.worldbank.org/indicator/NY.GDP.MKTP.KD.ZG?locations=GH" class="text-indigo-600 hover:underline">data.worldbank.org</a>.</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Optional: Current Market Price</strong>: Add for comparison.
+                        <ul class="list-disc list-inside space-y-2 ml-6">
+                            <li>Example: 10 GHS from <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a>.</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Calculate</strong>: Get the intrinsic value.
+                        <ul class="list-disc list-inside space-y-2 ml-6">
+                            <li>Example: If 12 GHS vs. 10 GHS market price, the stock may be undervalued.</li>
+                        </ul>
+                    </li>
+                </ol>
+                
+                <h3 class="text-xl font-medium mb-3 text-gray-800">Tips</h3>
+                <ul class="list-disc list-inside space-y-2 mb-4">
+                    <li>Find data on <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a> or <a href="https://afx.kwayisi.org/gse/" class="text-indigo-600 hover:underline">afx.kwayisi.org/gse/</a>.</li>
+                    <li>Use modest growth rates (2-5%).</li>
+                    <li>Match DDM to dividend payers, RIM to growth banks.</li>
+                </ul>
+                
+                <h3 class="text-xl font-medium mb-3 text-gray-800">Common Mistakes to Avoid</h3>
+                <ul class="list-disc list-inside space-y-2 mb-4">
+                    <li>Verify dividend patterns on <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a> for model choice.</li>
+                    <li>Use higher discount rates (e.g., 10-12%) in risky markets.</li>
+                    <li>Don’t overestimate growth—cap at 2-8% per <a href="https://afx.kwayisi.org/gse/" class="text-indigo-600 hover:underline">afx.kwayisi.org/gse/</a>.</li>
+                </ul>
+                
+                <p><a href="{{ url_for('bank_intrinsic_value') }}" class="text-indigo-600 hover:text-indigo-800 font-medium transition-colors duration-200">Go to Bank Stock Calculator</a></p>
+            </div>
+        </div>
+
+        <!-- More Calculators -->
+        <div id="other" class="calculator bg-white p-6 rounded-xl shadow-md transition-all duration-300 hover:shadow-lg">
+            <button 
+                class="w-full text-left text-xl font-semibold text-gray-800 flex justify-between items-center py-2 px-4 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded" 
+                onclick="toggleSection(this)" 
+                aria-expanded="false" 
+                aria-controls="other-content"
+            >
+                <span>🧮 More Calculators</span>
+                <span class="toggle-icon text-xl font-bold text-blue-600">+</span>
+            </button>
+            <div id="other-content" class="content collapsed mt-4 text-gray-700">
+                <p class="mb-3">More steps soon! Meanwhile, you can <a href="https://younginvestorcalculator.com/" class="text-indigo-600 hover:text-indigo-800 font-medium transition-colors duration-200">explore other tools</a> or <a href="https://cleanvisionhr.com/professional_training" class="text-indigo-600 hover:text-indigo-800 font-medium transition-colors duration-200">visit our HR platform to register for training</a>.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="mt-10 flex justify-center">
+        <a href="{{ url_for('index') }}" class="bg-gray-200 text-gray-800 px-8 py-3 rounded-lg hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-200 ease-in-out text-lg font-medium">Back to Home</a>
+    </div>
+</div>
+
+<!-- JavaScript -->
+<script>
+function toggleSection(button) {
+    const content = button.nextElementSibling;
+    const toggleIcon = button.querySelector('.toggle-icon');
+    const isExpanded = content.classList.contains('expanded');
+    if (isExpanded) {
+        content.classList.remove('expanded');
+        content.classList.add('collapsed');
+        toggleIcon.textContent = '+';
+    } else {
+        content.classList.remove('collapsed');
+        content.classList.add('expanded');
+        toggleIcon.textContent = '−';
+    }
+    button.setAttribute('aria-expanded', !isExpanded);
+}
+
+let timeout;
+function filterCalculators() {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => {
+        const query = document.getElementById('search').value.toLowerCase();
+        const calculators = document.querySelectorAll('.calculator');
+        calculators.forEach(calc => {
+            const title = calc.querySelector('button span').textContent.toLowerCase();
+            calc.style.display = title.includes(query) ? 'block' : 'none';
+        });
+    }, 300);
+}
+</script>
+
+<!-- Inline CSS -->
+<style>
+body {
+    font-family: 'Inter', sans-serif;
+}
+
+.content {
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+
+.content.collapsed {
+    max-height: 0;
+}
+
+.content.expanded {
+    max-height: 5000px; /* Increased to accommodate larger content */
+}
+</style>
+{% endblock %}
