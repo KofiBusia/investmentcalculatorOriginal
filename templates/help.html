@@ -221,62 +221,118 @@
             </div>
         </div>
 
+        <!-- Beta Calculator -->
+        <div id="beta-calculator" class="calculator bg-white p-6 rounded-xl shadow-md transition-all duration-300 hover:shadow-lg">
+            <button 
+                class="w-full text-left text-xl font-semibold text-gray-800 flex justify-between items-center py-2 px-4 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded" 
+                onclick="toggleSection(this)" 
+                aria-expanded="false" 
+                aria-controls="beta-calculator-content"
+            >
+                <span>📊 Beta Calculator</span>
+                <span class="toggle-icon text-xl font-bold text-blue-600">+</span>
+            </button>
+            <div id="beta-calculator-content" class="content collapsed mt-4 text-gray-700">
+                <h3 class="text-xl font-medium mb-3 text-gray-800">What It Does</h3>
+                <p class="mb-3">This calculator helps you figure out the beta of a stock, which shows how much a stock’s price moves compared to the overall market. A beta greater than 1 means the stock is more up-and-down than the market, while a beta less than 1 means it’s calmer. A beta of 1 means it moves just like the market. Beta is useful for understanding risk and is used in tools like our Intrinsic Value Calculator.</p>
+                
+                <h3 class="text-xl font-medium mb-3 text-gray-800">How to Use It</h3>
+                <p class="mb-2">Follow these simple steps to calculate beta:</p>
+                <ol class="list-decimal pl-6 space-y-4 mb-4">
+                    <li>
+                        <strong>Gather Historical Returns</strong>: Find the percentage returns for the stock and the market over the same time periods (e.g., monthly). A return is how much the price changes in percentage. For example, if a stock goes from 100 GHS to 105 GHS in a month, the return is 5%.
+                        <ul class="list-disc list-inside space-y-2 ml-6">
+                            <li>For Ghanaian stocks, visit the <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">Ghana Stock Exchange (GSE)</a> or financial news sites.</li>
+                            <li>For global stocks, check <a href="https://finance.yahoo.com/" class="text-indigo-600 hover:underline">Yahoo Finance</a> or similar sites.</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Input Stock Returns</strong>: Type the stock’s returns into the "Stock Returns" field, separated by commas. For example: 5.2, -3.1, 4.7
+                    </li>
+                    <li>
+                        <strong>Input Market Returns</strong>: Type the market’s returns into the "Market Returns" field, separated by commas. Make sure they match the stock returns in number and order. For example: 4.1, -2.8, 5.0
+                    </li>
+                    <li>
+                        <strong>Calculate Beta</strong>: Click the "Calculate Beta" button to see the beta value.
+                    </li>
+                </ol>
+                
+                <h3 class="text-xl font-medium mb-3 text-gray-800">Tips</h3>
+                <ul class="list-disc list-inside space-y-2 mb-4">
+                    <li>Use 12-24 months of data for better accuracy.</li>
+                    <li>Make sure stock and market returns are from the same time periods (e.g., all monthly).</li>
+                    <li>Pick the right market index, like the GSE All-Share Index for Ghanaian stocks or S&P 500 for US stocks.</li>
+                    <li>Use the beta in our other calculators, like the Intrinsic Value Calculator, to figure out risk-adjusted returns.</li>
+                </ul>
+                
+                <h3 class="text-xl font-medium mb-3 text-gray-800">Common Mistakes to Avoid</h3>
+                <ul class="list-disc list-inside space-y-2 mb-4">
+                    <li>Don’t use different numbers of returns for stock and market—they must match.</li>
+                    <li>Enter returns as percentages (e.g., 5 for 5%), not decimals (e.g., 0.05).</li>
+                    <li>Avoid mixing time periods, like monthly and quarterly returns.</li>
+                </ul>
+                
+                <p><a href="{{ url_for('calculate_beta') }}" class="text-indigo-600 hover:text-indigo-800 font-medium transition-colors duration-200">Go to Beta Calculator</a></p>
+            </div>
+        </div>
+
         <!-- Private Equity & Venture Capital Valuation Calculator -->
-<div id="pe-vc" class="calculator bg-white p-6 rounded-xl shadow-md transition-all duration-300 hover:shadow-lg">
-    <button 
-        class="w-full text-left text-xl font-semibold text-gray-800 flex justify-between items-center py-2 px-4 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded" 
-        onclick="toggleSection(this)" 
-        aria-expanded="false" 
-        aria-controls="pe-vc-content"
-    >
-        <span>💼 Private Equity & Venture Capital Valuation Calculator</span>
-        <span class="toggle-icon text-xl font-bold text-blue-600">+</span>
-    </button>
-    <div id="pe-vc-content" class="content collapsed mt-4 text-gray-700">
-        <h3 class="text-xl font-medium mb-3 text-gray-800">What It Does</h3>
-        <p class="mb-3">This calculator helps you estimate the value of private companies or startups using three methods: Discounted Cash Flow (DCF) for stable businesses, Venture Capital Method for high-growth startups, and ARR Multiple for subscription-based companies.</p>
-        
-        <h3 class="text-xl font-medium mb-3 text-gray-800">How to Use It</h3>
-        <p class="mb-2">Choose a valuation method and follow these steps:</p>
-        <ul class="list-disc list-inside space-y-4 mb-4">
-            <li>
-                <strong>Discounted Cash Flow (DCF)</strong> - Best for companies with predictable cash flows, like mature businesses.
-                <ol class="list-decimal pl-6 space-y-2">
-                    <li>Input Free Cash Flows for 1–5 years. Free Cash Flow (FCF) is cash generated after expenses and investments. For public companies, find FCF in the cash flow statement of their annual report on sites like Yahoo Finance (global) or <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a> (Ghana). For private companies, estimate using industry averages or consult financial advisors. Try our <a href="https://younginvestorcalculator.com/calculate-fcf" class="text-indigo-600 hover:underline">FCF Calculator</a>.</li>
-                    <li>Provide the risk-free rate (e.g., 10-year bond yield from <a href="https://www.bog.gov.gh/" class="text-indigo-600 hover:underline">bog.gov.gh</a> for Ghana or treasury.gov for the US), market return (e.g., 10-15% from historical data), and beta (a risk measure from Yahoo Finance, <a href="https://afx.kwayisi.org/gse/" class="text-indigo-600 hover:underline">afx.kwayisi.org/gse/</a> for Ghana, or our <a href="https://younginvestorcalculator.com/calculate-beta" class="text-indigo-600 hover:underline">Beta Calculator</a>).</li>
-                    <li>Enter debt, equity, tax rate, and either a growth rate for perpetual cash flows or an exit multiple for terminal value. Find debt and equity on the balance sheet, tax rates from financial statements or local tax sites.</li>
-                </ol>
-            </li>
-            <li>
-                <strong>Venture Capital Method</strong> - Ideal for early-stage startups with high growth potential but uncertain cash flows.
-                <ol class="list-decimal pl-6 space-y-2">
-                    <li>Specify the expected exit value (e.g., sale price or IPO valuation, based on comparable deals or multiples), target return (e.g., 10x investment), investment amount, exit timeline (e.g., 5 years), and dilution factor (e.g., 0.8 for 20% dilution). For private firms, use industry reports or advisor estimates.</li>
-                </ol>
-            </li>
-            <li>
-                <strong>ARR Multiple</strong> - Great for subscription-based companies with recurring revenue.
-                <ol class="list-decimal pl-6 space-y-2">
-                    <li>Input Annual Recurring Revenue (ARR), the yearly subscription revenue, and choose an ARR multiple (e.g., 10x for high-growth firms). Estimate ARR from sales data or industry benchmarks for private companies. Optionally, adjust for control premium or illiquidity discount. Find multiples in industry reports or financial news.</li>
-                </ol>
-            </li>
-        </ul>
-        
-        <h3 class="text-xl font-medium mb-3 text-gray-800">Tips</h3>
-        <ul class="list-disc list-inside space-y-2 mb-4">
-            <li>Be conservative with growth rates and exit values to avoid overvaluation.</li>
-            <li>Understand each method’s focus: DCF for stable cash flows, Venture Capital for exit potential, ARR for recurring revenue.</li>
-            <li>Cross-check results with other methods or market data for accuracy.</li>
-        </ul>
-        
-        <h3 class="text-xl font-medium mb-3 text-gray-800">Common Mistakes to Avoid</h3>
-        <ul class="list-disc list-inside space-y-2 mb-4">
-            <li>For DCF, don’t overestimate cash flows—use realistic assumptions.</li>
-            <li>For Venture Capital Method, note that exit values are uncertain and can fluctuate.</li>
-            <li>For ARR Multiple, pick multiples that match the company’s growth stage and market trends.</li>
-        </ul>
-        
-        <p><a href="{{ url_for('pe_vc_valuation') }}" class="text-indigo-600 hover:text-indigo-800 font-medium transition-colors duration-200">Go to PE & VC Valuation Calculator</a></p>
-    </div>
+        <div id="pe-vc" class="calculator bg-white p-6 rounded-xl shadow-md transition-all duration-300 hover:shadow-lg">
+            <button 
+                class="w-full text-left text-xl font-semibold text-gray-800 flex justify-between items-center py-2 px-4 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded" 
+                onclick="toggleSection(this)" 
+                aria-expanded="false" 
+                aria-controls="pe-vc-content"
+            >
+                <span>💼 Private Equity & Venture Capital Valuation Calculator</span>
+                <span class="toggle-icon text-xl font-bold text-blue-600">+</span>
+            </button>
+            <div id="pe-vc-content" class="content collapsed mt-4 text-gray-700">
+                <h3 class="text-xl font-medium mb-3 text-gray-800">What It Does</h3>
+                <p class="mb-3">This calculator helps you estimate the value of private companies or startups using three methods: Discounted Cash Flow (DCF) for stable businesses, Venture Capital Method for high-growth startups, and ARR Multiple for subscription-based companies.</p>
+                
+                <h3 class="text-xl font-medium mb-3 text-gray-800">How to Use It</h3>
+                <p class="mb-2">Choose a valuation method and follow these steps:</p>
+                <ul class="list-disc list-inside space-y-4 mb-4">
+                    <li>
+                        <strong>Discounted Cash Flow (DCF)</strong> - Best for companies with predictable cash flows, like mature businesses.
+                        <ol class="list-decimal pl-6 space-y-2">
+                            <li>Input Free Cash Flows for 1–5 years. Free Cash Flow (FCF) is cash generated after expenses and investments. For public companies, find FCF in the cash flow statement of their annual report on sites like Yahoo Finance (global) or <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a> (Ghana). For private companies, estimate using industry averages or consult financial advisors. Try our <a href="https://younginvestorcalculator.com/calculate-fcf" class="text-indigo-600 hover:underline">FCF Calculator</a>.</li>
+                            <li>Provide the risk-free rate (e.g., 10-year bond yield from <a href="https://www.bog.gov.gh/" class="text-indigo-600 hover:underline">bog.gov.gh</a> for Ghana or treasury.gov for the US), market return (e.g., 10-15% from historical data), and beta (a risk measure from Yahoo Finance, <a href="https://afx.kwayisi.org/gse/" class="text-indigo-600 hover:underline">afx.kwayisi.org/gse/</a> for Ghana, or our <a href="https://younginvestorcalculator.com/calculate-beta" class="text-indigo-600 hover:underline">Beta Calculator</a>).</li>
+                            <li>Enter debt, equity, tax rate, and either a growth rate for perpetual cash flows or an exit multiple for terminal value. Find debt and equity on the balance sheet, tax rates from financial statements or local tax sites.</li>
+                        </ol>
+                    </li>
+                    <li>
+                        <strong>Venture Capital Method</strong> - Ideal for early-stage startups with high growth potential but uncertain cash flows.
+                        <ol class="list-decimal pl-6 space-y-2">
+                            <li>Specify the expected exit value (e.g., sale price or IPO valuation, based on comparable deals or multiples), target return (e.g., 10x investment), investment amount, exit timeline (e.g., 5 years), and dilution factor (e.g., 0.8 for 20% dilution). For private firms, use industry reports or advisor estimates.</li>
+                        </ol>
+                    </li>
+                    <li>
+                        <strong>ARR Multiple</strong> - Great for subscription-based companies with recurring revenue.
+                        <ol class="list-decimal pl-6 space-y-2">
+                            <li>Input Annual Recurring Revenue (ARR), the yearly subscription revenue, and choose an ARR multiple (e.g., 10x for high-growth firms). Estimate ARR from sales data or industry benchmarks for private companies. Optionally, adjust for control premium or illiquidity discount. Find multiples in industry reports or financial news.</li>
+                        </ol>
+                    </li>
+                </ul>
+                
+                <h3 class="text-xl font-medium mb-3 text-gray-800">Tips</h3>
+                <ul class="list-disc list-inside space-y-2 mb-4">
+                    <li>Be conservative with growth rates and exit values to avoid overvaluation.</li>
+                    <li>Understand each method’s focus: DCF for stable cash flows, Venture Capital for exit potential, ARR for recurring revenue.</li>
+                    <li>Cross-check results with other methods or market data for accuracy.</li>
+                </ul>
+                
+                <h3 class="text-xl font-medium mb-3 text-gray-800">Common Mistakes to Avoid</h3>
+                <ul class="list-disc list-inside space-y-2 mb-4">
+                    <li>For DCF, don’t overestimate cash flows—use realistic assumptions.</li>
+                    <li>For Venture Capital Method, note that exit values are uncertain and can fluctuate.</li>
+                    <li>For ARR Multiple, pick multiples that match the company’s growth stage and market trends.</li>
+                </ul>
+                
+                <p><a href="{{ url_for('pe_vc_valuation') }}" class="text-indigo-600 hover:text-indigo-800 font-medium transition-colors duration-200">Go to PE & VC Valuation Calculator</a></p>
+            </div>
+        </div>
 
         <!-- More Calculators -->
         <div id="other" class="calculator bg-white p-6 rounded-xl shadow-md transition-all duration-300 hover:shadow-lg">
