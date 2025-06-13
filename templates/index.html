@@ -1,4 +1,6 @@
-{% extends "base.html" %} {% block title %}Home{% endblock %} {% block hero %}
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block hero %}
 <div class="hero">
   <div class="hero-title">Empower Your Investments</div>
   <div class="hero-desc">
@@ -7,25 +9,17 @@
   </div>
   <a href="/articles" class="btn">Explore Insights</a>
 </div>
-{% endblock %} {% block content %}
+{% endblock %}
+{% block content %}
 <div class="select-product-section">
-  {# Wrap content in this div #}
   <h2 class="centered-heading">Select Investment Product</h2>
-  <script
-    async
-    src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1910810542133525"
-    crossorigin="anonymous"
-  ></script>
-  <meta name="google-adsense-account" content="ca-pub-1910810542133525" />
   <p>
     Welcome to the Investment Calculator! Choose an investment product below to
     explore potential returns.
   </p>
 </div>
-{# Close select-product-section #}
 
 <div class="container">
-  {# Ensure product grid is within a container for proper spacing #}
   <div class="product-grid">
     <a href="/stocks" class="product-card">
       <h3>Stocks</h3>
@@ -61,7 +55,7 @@
       <h3>Free Cash Flow Calculator</h3>
     </a>
     <a href="/calculate-fcfe" class="product-card">
-        <h3>FCFE Calculator</h3>
+      <h3>FCFE Calculator</h3>
     </a>
     <a href="/calculate-beta" class="product-card">
       <h3>Beta Calculator</h3>
@@ -102,6 +96,9 @@
     <a href="/target-price" class="product-card">
       <h3>Target Price (Stocks)</h3>
     </a>
+    <a href="/multi-method-valuation" class="product-card">
+      <h3>Multi-Method Stock Valuation</h3>
+    </a>
     <a href="/mutual-funds" class="product-card">
       <h3>Mutual Funds</h3>
     </a>
@@ -120,5 +117,6 @@
     <a href="/cryptocurrency" class="product-card">
       <h3>Cryptocurrency</h3>
     </a>
+  </div>
 </div>
 {% endblock %}
