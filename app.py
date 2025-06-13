@@ -1687,46 +1687,14 @@ def press():
 
 # APPLICATION RUNNER BLOCK
 # ------------------------
-# Creates database tables and runs the application
-# Uses Waitress for local development (Windows-compatible), Gunicorn for production (Unix-based)
+# Runs the application with Waitress locally
 import os
 import platform
 
 if __name__ == '__main__':
-    with app.app_context():
-        if os.getenv('FLASK_ENV') != 'production':
+    if os.getenv('FLASK_ENV') != 'production':
+        with app.app_context():
             db.create_all()  # Only for local development
             create_admin_user()
-
-    # Local development: Use Waitress on Windows or non-production
-    if platform.system() == 'Windows' or os.getenv('FLASK_ENV') != 'production':
         from waitress import serve
         serve(app, host="0.0.0.0", port=5000)
-    else:
-        # Production: Use Gunicorn on Unix-based systems
-        from gunicorn.app.base import BaseApplication
-
-        class StandaloneApplication(BaseApplication):
-            def __init__(self, app, options=None):
-                self.application = app
-                self.options = options or {}
-                super().__init__()
-
-            def load_config(self):
-                config = {
-                    key: value for key, value in self.options.items()
-                    if key in self.cfg.settings and value is not None
-                }
-                for key, value in config.items():
-                    self.cfg.set(key.lower(), value)
-
-            def load(self):
-                return self.application
-
-        options = {
-            'bind': '0.0.0.0:5000',
-            'workers': 4,
-            'worker_class': 'gevent',
-            'timeout': 120
-        }
-        StandaloneApplication(app, options).run()
