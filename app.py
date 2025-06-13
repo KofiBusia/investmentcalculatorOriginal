@@ -17,7 +17,7 @@ import logging
 if os.getenv('FLASK_ENV') == 'production':
     logging.basicConfig(level=logging.INFO, filename='app.log', filemode='a',
                         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-
+    
 # THIRD-PARTY IMPORTS
 # -------------------
 from dotenv import load_dotenv
