@@ -34,8 +34,6 @@
             color: var(--dark);
             line-height: 1.6;
             min-height: 100vh;
-            position: relative;
-            padding-bottom: 120px;
         }
 
         .container {
@@ -528,9 +526,6 @@
             background-color: var(--dark);
             color: white;
             padding: 60px 0 30px;
-            position: absolute;
-            bottom: 0;
-            width: 100%;
         }
 
         .footer-grid {
@@ -689,8 +684,8 @@
             
             <nav class="nav-links">
                 <a href="/" class="nav-link active">Home</a>
-                <a href="/get-started" class="nav-link">Get Started Guide</a>
-                <a href="/insights" class="nav-link">Investment Insights</a>
+                <a href="/help" class="nav-link">Get Started Guide</a>
+                <a href="/articles" class="nav-link">Investment Insights</a>
             </nav>
             
             <div class="header-actions">
@@ -698,7 +693,7 @@
                     <i class="fas fa-search search-icon"></i>
                     <input type="text" class="search-input" placeholder="Search calculators...">
                 </div>
-                <a href="/signin" class="btn">Sign In</a>
+                <a href="/login" class="btn">Sign In</a>
             </div>
         </div>
     </header>
@@ -717,8 +712,8 @@
                     insights, and calculators. Make smarter financial decisions today.
                 </p>
                 <div class="hero-buttons">
-                    <a href="/insights" class="btn">Explore Insights</a>
-                    <a href="/calculators" class="btn btn-outline">View All Calculators</a>
+                    <a href="/articles" class="btn">Explore Insights</a>
+                    <a href="#calculators" class="btn btn-outline">View All Calculators</a>
                 </div>
                 
                 <div class="hero-stats">
@@ -759,7 +754,7 @@
                     <p class="feature-desc">
                         Comprehensive suite of calculators for every investment scenario with real-time results.
                     </p>
-                    <a href="/calculators" class="calculator-link">
+                    <a href="#calculators" class="calculator-link">
                         Explore Tools <i class="fas fa-arrow-right"></i>
                     </a>
                 </div>
@@ -772,7 +767,7 @@
                     <p class="feature-desc">
                         Access to market analysis, investment strategies, and expert recommendations.
                     </p>
-                    <a href="/insights" class="calculator-link">
+                    <a href="/articles" class="calculator-link">
                         Read Insights <i class="fas fa-arrow-right"></i>
                     </a>
                 </div>
@@ -794,7 +789,7 @@
     </section>
 
     <!-- Calculators Section -->
-    <section class="calculators">
+    <section id="calculators" class="calculators">
         <div class="container">
             <div class="calculators-header">
                 <div>
@@ -899,7 +894,7 @@
                         <span class="calculator-category">Bonds</span>
                         <h3 class="calculator-title">Bonds Calculator</h3>
                         <p class="calculator-desc">
-                            Calculate yield, maturity, and returns for corporate & government bonds.
+                            Calculate yield, maturity, and returns for bonds.
                         </p>
                         <a href="/bonds" class="calculator-link">
                             Calculate <i class="fas fa-arrow-right"></i>
@@ -1395,11 +1390,11 @@
                 <div class="footer-column">
                     <h3>Calculators</h3>
                     <ul class="footer-links">
-                        <li><a href="/calculators#stocks"><i class="fas fa-arrow-right"></i> Stocks</a></li>
-                        <li><a href="/calculators#bonds"><i class="fas fa-arrow-right"></i> Bonds</a></li>
-                        <li><a href="/calculators#portfolio-tools"><i class="fas fa-arrow-right"></i> Portfolio Tools</a></li>
-                        <li><a href="/calculators#advanced-valuation"><i class="fas fa-arrow-right"></i> Advanced Valuation</a></li>
-                        <li><a href="/calculators#alternative-investments"><i class="fas fa-arrow-right"></i> Alternative Investments</a></li>
+                        <li><a href="#stocks"><i class="fas fa-arrow-right"></i> Stocks</a></li>
+                        <li><a href="#bonds"><i class="fas fa-arrow-right"></i> Bonds</a></li>
+                        <li><a href="#portfolio-tools"><i class="fas fa-arrow-right"></i> Portfolio Tools</a></li>
+                        <li><a href="#advanced-valuation"><i class="fas fa-arrow-right"></i> Advanced Valuation</a></li>
+                        <li><a href="#alternative-investments"><i class="fas fa-arrow-right"></i> Alternative Investments</a></li>
                     </ul>
                 </div>
                 
@@ -1417,9 +1412,9 @@
                 <div class="footer-column">
                     <h3>Legal</h3>
                     <ul class="footer-links">
-                        <li><a href="/privacy"><i class="fas fa-arrow-right"></i> Privacy Policy</a></li>
-                        <li><a href="/terms"><i class="fas fa-arrow-right"></i> Terms & Conditions</a></li>
+                        <li><a href="/privacy-policy"><i class="fas fa-arrow-right"></i> Privacy Policy</a></li>
                         <li><a href="/cookies"><i class="fas fa-arrow-right"></i> Cookie Policy</a></li>
+                        <li><a href="/terms"><i class="fas fa-arrow-right"></i> Terms & Conditions</a></li>
                         <li><a href="/disclaimer"><i class="fas fa-arrow-right"></i> Disclaimer</a></li>
                         <li><a href="/security"><i class="fas fa-arrow-right"></i> Security</a></li>
                     </ul>

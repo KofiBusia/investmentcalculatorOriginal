@@ -1766,6 +1766,31 @@ def calculate_cost_of_equity():
     
     return render_template('cost_of_equity.html')
 
+
+@app.route('/cookies')
+def cookies():
+    return render_template('cookies.html')
+
+@app.route('/disclaimer')
+def disclaimer():
+    return render_template('disclaimer.html')
+
+@app.route('/security')
+def security():
+    return render_template('security.html')
+
+@app.route('/team')
+def team():
+    return render_template('team.html')
+
+@app.route('/careers')
+def careers():
+    return render_template('careers.html')
+
+@app.route('/press')
+def press():
+    return render_template('press.html')
+
 # APPLICATION RUNNER BLOCK
 # ------------------------
 # Creates database tables and runs the application
