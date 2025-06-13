@@ -1,103 +1,122 @@
-{% extends "base.html" %}
+{% extends "base.html" %} {% block title %}Home{% endblock %} {% block hero %}
+<div class="hero">
+  <div class="hero-title">Empower Your Investments</div>
+  <div class="hero-desc">
+    Discover, calculate, and optimize your investment journey with modern tools,
+    insights, and calculators. Make smarter financial decisions today.
+  </div>
+  <a href="/articles" class="btn">Explore Insights</a>
+</div>
+{% endblock %} {% block content %}
+<div class="select-product-section">
+  {# Wrap content in this div #}
+  <h2 class="centered-heading">Select Investment Product</h2>
+  <script
+    async
+    src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1910810542133525"
+    crossorigin="anonymous"
+  ></script>
+  <meta name="google-adsense-account" content="ca-pub-1910810542133525" />
+  <p>
+    Welcome to the Investment Calculator! Choose an investment product below to
+    explore potential returns.
+  </p>
+</div>
+{# Close select-product-section #}
 
-{% block title %}Home{% endblock %}
-
-{% block content %}
-<h2 class="centered-heading">Select Investment Product</h2>
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1910810542133525"
-     crossorigin="anonymous"></script>
-<meta name="google-adsense-account" content="ca-pub-1910810542133525">
-<p>Welcome to the Investment Calculator! Choose an investment product below to explore potential returns.</p>
-<div class="product-grid">
+<div class="container">
+  {# Ensure product grid is within a container for proper spacing #}
+  <div class="product-grid">
     <a href="/stocks" class="product-card">
-        <h3>Stocks</h3>
+      <h3>Stocks</h3>
     </a>
     <a href="/intrinsic-value" class="product-card">
-        <h3>Intrinsic Value (Stocks)</h3>
+      <h3>Intrinsic Value (Stocks)</h3>
     </a>
     <a href="/bank-intrinsic-value" class="product-card">
-        <h3>Bank Stock Valuation</h3>
+      <h3>Bank Stock Valuation</h3>
     </a>
     <a href="/bonds" class="product-card">
-        <h3>Bonds (Corporate & Government)</h3>
+      <h3>Bonds (Corporate & Government)</h3>
     </a>
     <a href="/duration" class="product-card">
-        <h3>Duration Calculator (Bonds)</h3>
+      <h3>Duration Calculator (Bonds)</h3>
     </a>
     <a href="/tbills" class="product-card">
-        <h3>Treasury Bills (T-Bills)</h3>
+      <h3>Treasury Bills (T-Bills)</h3>
     </a>
     <a href="/tbills-rediscount" class="product-card">
-        <h3>Treasury Bills Rediscount</h3>
+      <h3>Treasury Bills Rediscount</h3>
     </a>
     <a href="/money-market" class="product-card">
-        <h3>Money Market Accounts</h3>
+      <h3>Money Market Accounts</h3>
     </a>
     <a href="/end-balance" class="product-card">
-        <h3>End Balance</h3>
+      <h3>End Balance</h3>
     </a>
     <a href="/monthly-contribution" class="product-card">
-        <h3>Monthly Contribution</h3>
+      <h3>Monthly Contribution</h3>
     </a>
     <a href="/calculate-fcf" class="product-card">
-        <h3>Free Cash Flow Calculator</h3>
+      <h3>Free Cash Flow Calculator</h3>
     </a>
     <a href="/calculate-beta" class="product-card">
-        <h3>Beta Calculator</h3>
+      <h3>Beta Calculator</h3>
     </a>
     <a href="/mna" class="product-card">
-        <h3>M&A (Mergers & Acquisitions)</h3>
+      <h3>M&A (Mergers & Acquisitions)</h3>
     </a>
     <a href="/pe-vc" class="product-card">
-        <h3>Private Equity & Venture Capital Valuation</h3>
+      <h3>Private Equity & Venture Capital Valuation</h3>
     </a>
     <a href="/portfolio-diversification" class="product-card">
-        <h3>Portfolio Diversification</h3>
+      <h3>Portfolio Diversification</h3>
     </a>
     <a href="/expected-return" class="product-card">
-        <h3>Expected Return</h3>
+      <h3>Expected Return</h3>
     </a>
     <a href="/volatility" class="product-card">
-        <h3>Portfolio Volatility</h3>
+      <h3>Portfolio Volatility</h3>
     </a>
     <a href="/forex" class="product-card">
-        <h3>Forex Calculator</h3>
+      <h3>Forex Calculator</h3>
     </a>
     <a href="/esg-investments" class="product-card">
-        <h3>ESG Investment Tool</h3>
+      <h3>ESG Investment Tool</h3>
     </a>
     <a href="/hedge-funds" class="product-card">
-        <h3>Hedge Fund Calculator</h3>
+      <h3>Hedge Fund Calculator</h3>
     </a>
     <a href="/portfolio_return" class="product-card">
-        <h3>Portfolio Return Calculator</h3>
+      <h3>Portfolio Return Calculator</h3>
     </a>
     <a href="/valuation_methods" class="product-card">
-        <h3>ValueMaster</h3>
+      <h3>ValueMaster</h3>
     </a>
     <a href="/dcf" class="product-card">
-        <h3>DCF Valuation Calculator</h3>
+      <h3>DCF Valuation Calculator</h3>
     </a>
     <a href="/target-price" class="product-card">
-        <h3>Target Price (Stocks)</h3>
+      <h3>Target Price (Stocks)</h3>
     </a>
     <a href="/mutual-funds" class="product-card">
-        <h3>Mutual Funds</h3>
+      <h3>Mutual Funds</h3>
     </a>
     <a href="/etfs" class="product-card">
-        <h3>ETFs (Exchange-Traded Funds)</h3>
+      <h3>ETFs (Exchange-Traded Funds)</h3>
     </a>
     <a href="/cds" class="product-card">
-        <h3>CDs (Certificates of Deposit)</h3>
+      <h3>CDs (Certificates of Deposit)</h3>
     </a>
     <a href="/options" class="product-card">
-        <h3>Options (Call & Put)</h3>
+      <h3>Options (Call & Put)</h3>
     </a>
     <a href="/futures" class="product-card">
-        <h3>Futures</h3>
+      <h3>Futures</h3>
     </a>
     <a href="/cryptocurrency" class="product-card">
-        <h3>Cryptocurrency</h3>
+      <h3>Cryptocurrency</h3>
     </a>
+  </div>
 </div>
-{% endblock %}
+{# Close container #} {% endblock %}
