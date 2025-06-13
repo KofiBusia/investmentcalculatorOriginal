@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block title %}Cost of Equity Calculator{% endblock %}
+
+{% block content %}
+<div class="container mx-auto p-6">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4">Cost of Equity Calculator</h2>
+    <p class="text-gray-700 mb-4 text-lg">Estimate the cost of equity using the Capital Asset Pricing Model (CAPM) and Dividend Discount Model (DDM). CAPM: <span class="font-mono">Cost = Risk-Free Rate + Beta * (Market Return - Risk-Free Rate)</span>. DDM: <span class="font-mono">Cost = (Dividend per Share / Stock Price) + Growth Rate</span>.</p>
+    <p class="text-gray-600 mb-6 text-sm">Enter values in Ghanaian Cedi (GHS) for dividends and stock price, and percentages for rates. Example: Use data for Access Bank Ghana (174 million shares). See <a href="/help#cost-of-equity-calculator" class="text-indigo-600 hover:underline">Help</a> for guidance.</p>
+
+    <!-- Error Message Display -->
+    {% if error %}
+    <div class="error" style="color: red; background-color: #ffe6e6; padding: 10px; margin-bottom: 20px; border: 1px solid red;">
+        <p><strong>Error:</strong> {{ error }}</p>
+    </div>
+    {% endif %}
+
+    <form method="POST" class="space-y-6">
+        <h3 class="text-xl font-semibold text-gray-800 mb-4">Input Parameters</h3>
+
+        <!-- CAPM Parameters -->
+        <div class="bg-white p-4 rounded-lg shadow-sm">
+            <h4 class="text-lg font-medium text-gray-800 mb-3">CAPM Parameters</h4>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                <div class="group relative">
+                    <label for="risk_free_rate" class="block text-gray-700 font-medium mb-1">Risk-Free Rate (%):</label>
+                    <input type="number" step="0.01" min="0" max="100" name="risk_free_rate" id="risk_free_rate" value="{{ request.form.get('risk_free_rate', '25.0') }}" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" aria-describedby="risk_free_rate_tip">
+                    <span class="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded p-2 mt-1 w-64 z-10" id="risk_free_rate_tip">Yield on 10-year Ghana government bond (e.g., 25% in 2024).</span>
+                </div>
+                <div class="group relative">
+                    <label for="beta" class="block text-gray-700 font-medium mb-1">Beta:</label>
+                    <input type="number" step="0.01" min="0" name="beta" id="beta" value="{{ request.form.get('beta', '1.2') }}" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" aria-describedby="beta_tip">
+                    <span class="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded p-2 mt-1 w-64 z-10" id="beta_tip">Stock’s volatility relative to the market (e.g., 1.2 for Access Bank).</span>
+                </div>
+                <div class="group relative">
+                    <label for="market_return" class="block text-gray-700 font-medium mb-1">Market Return (%):</label>
+                    <input type="number" step="0.01" min="0" max="100" name="market_return" id="market_return" value="{{ request.form.get('market_return', '15.0') }}" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" aria-describedby="market_return_tip">
+                    <span class="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded p-2 mt-1 w-64 z-10" id="market_return_tip">Expected return of the Ghana Stock Exchange (e.g., 15%).</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- DDM Parameters -->
+        <div class="bg-white p-4 rounded-lg shadow-sm">
+            <h4 class="text-lg font-medium text-gray-800 mb-3">DDM Parameters</h4>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                <div class="group relative">
+                    <label for="dividend_per_share" class="block text-gray-700 font-medium mb-1">Dividend per Share (GHS):</label>
+                    <input type="number" step="0.01" min="0" name="dividend_per_share" id="dividend_per_share" value="{{ request.form.get('dividend_per_share', '0.12') }}" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" aria-describedby="dividend_per_share_tip">
+                    <span class="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded p-2 mt-1 w-64 z-10" id="dividend_per_share_tip">Annual dividend per share (e.g., 0.12 GHS for Access Bank).</span>
+                </div>
+                <div class="group relative">
+                    <label for="stock_price" class="block text-gray-700 font-medium mb-1">Current Stock Price (GHS):</label>
+                    <input type="number" step="0.01" min="0" name="stock_price" id="stock_price" value="{{ request.form.get('stock_price', '2.83') }}" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" aria-describedby="stock_price_tip">
+                    <span class="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded p-2 mt-1 w-64 z-10" id="stock_price_tip">Current market price per share (e.g., 2.83 GHS).</span>
+                </div>
+                <div class="group relative">
+                    <label for="dividend_growth_rate" class="block text-gray-700 font-medium mb-1">Dividend Growth Rate (%):</label>
+                    <input type="number" step="0.01" min="0" max="100" name="dividend_growth_rate" id="dividend_growth_rate" value="{{ request.form.get('dividend_growth_rate', '5.0') }}" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" aria-describedby="dividend_growth_rate_tip">
+                    <span class="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded p-2 mt-1 w-64 z-10" id="dividend_growth_rate_tip">Expected growth rate of dividends (e.g., 5%).</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Weighting Parameters -->
+        <div class="bg-white p-4 rounded-lg shadow-sm">
+            <h4 class="text-lg font-medium text-gray-800 mb-3">Weighting Parameters</h4>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div class="group relative">
+                    <label for="capm_weight" class="block text-gray-700 font-medium mb-1">CAPM Weight (%):</label>
+                    <input type="number" step="1" min="0" max="100" name="capm_weight" id="capm_weight" value="{{ request.form.get('capm_weight', '60') }}" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" aria-describedby="capm_weight_tip">
+                    <span class="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded p-2 mt-1 w-64 z-10" id="capm_weight_tip">Weight for CAPM result (e.g., 60%). Total weights must sum to 100%.</span>
+                </div>
+                <div class="group relative">
+                    <label for="ddm_weight" class="block text-gray-700 font-medium mb-1">DDM Weight (%):</label>
+                    <input type="number" step="1" min="0" max="100" name="ddm_weight" id="ddm_weight" value="{{ request.form.get('ddm_weight', '40') }}" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" aria-describedby="ddm_weight_tip">
+                    <span class="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded p-2 mt-1 w-64 z-10" id="ddm_weight_tip">Weight for DDM result (e.g., 40%). Total weights must sum to 100%.</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="flex gap-2">
+            <button type="submit" class="action-btn bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-200 text-lg font-medium">Calculate</button>
+            <a href="{{ url_for('calculate_cost_of_equity') }}" class="action-btn bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-200 text-lg font-medium">Clear</a>
+            <a href="/" class="action-btn bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-200 text-lg font-medium">Back to Home</a>
+        </div>
+    </form>
+
+    {% if results %}
+    <div class="results mt-8">
+        <h3 class="text-xl font-semibold text-gray-800 mb-4">Results</h3>
+        <div class="overflow-x-auto">
+            <table style="width: 100%; border-collapse: collapse;" class="w-full bg-white rounded-lg shadow-sm">
+                <thead>
+                    <tr style="background-color: #f2f2f2;" class="text-gray-700">
+                        <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Method</th>
+                        <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Cost of Equity (%)</th>
+                        <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Weight (%)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr style="border: 1px solid #ddd;">
+                        <td style="padding: 8px;">CAPM</td>
+                        <td style="padding: 8px;">{{ "{:.2f}".format(results.capm) }}</td>
+                        <td style="padding: 8px;">{{ results.capm_weight }}</td>
+                    </tr>
+                    <tr style="border: 1px solid #ddd;">
+                        <td style="padding: 8px;">DDM</td>
+                        <td style="padding: 8px;">{{ "{:.2f}".format(results.ddm) }}</td>
+                        <td style="padding: 8px;">{{ results.ddm_weight }}</td>
+                    </tr>
+                    <tr style="border: 1px solid #ddd; font-weight: bold;">
+                        <td style="padding: 8px;">Weighted Average</td>
+                        <td style="padding: 8px;">{{ "{:.2f}".format(results.weighted_average) }}</td>
+                        <td style="padding: 8px;">100</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <p class="text-gray-700 mt-4">The weighted average cost of equity is {{ "{:.2f}".format(results.weighted_average) }}%. Use this in DCF or WACC calculations. See <a href="/help#cost-of-equity-calculator" class="text-indigo-600 hover:underline">Help</a> for more details.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

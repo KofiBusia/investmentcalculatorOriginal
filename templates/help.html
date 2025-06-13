@@ -474,6 +474,87 @@
                 <p><a href="{{ url_for('multi_method_valuation') }}" class="text-indigo-600 hover:text-indigo-800 font-medium transition-colors duration-200">Go to Multi-Method Stock Valuation Calculator</a></p>
             </div>
         </div>
+
+<!-- Cost of Equity Calculator -->
+<div id="cost-of-equity-calculator" class="calculator bg-white p-6 rounded-xl shadow-md transition-all duration-300 hover:shadow-lg">
+    <button 
+        class="w-full text-left text-xl font-semibold text-gray-800 flex justify-between items-center py-2 px-4 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded" 
+        onclick="toggleSection(this)" 
+        aria-expanded="false" 
+        aria-controls="cost-of-equity-calculator-content"
+    >
+        <span>📈 Cost of Equity Calculator</span>
+        <span class="toggle-icon text-xl font-bold text-blue-600">+</span>
+    </button>
+    <div id="cost-of-equity-calculator-content" class="content collapsed mt-4 text-gray-700 text-lg">
+        <h3 class="text-xl font-medium mb-3 text-gray-800">What It Does</h3>
+        <p class="mb-3">This calculator estimates the cost of equity, the return shareholders require for investing in a stock. It uses two methods: CAPM (<span class="font-mono">Cost = Risk-Free Rate + Beta * (Market Return - Risk-Free Rate)</span>) and DDM (<span class="font-mono">Cost = (Dividend per Share / Stock Price) + Growth Rate</span>). The cost of equity is key for DCF valuations and WACC calculations.</p>
+        
+        <h3 class="text-xl font-medium mb-3 text-gray-800">How to Use It</h3>
+        <p class="mb-2">Follow these steps to calculate the cost of equity for a company like Access Bank Ghana (174 million shares):</p>
+        <ol class="list-decimal pl-6 space-y-4 mb-4">
+            <li>
+                <strong>Access the Calculator</strong>: Navigate to <a href="{{ url_for('calculate_cost_of_equity') }}" class="text-indigo-600 hover:underline">younginvestorcalculator.com/calculate-cost-of-equity</a> or select “Cost of Equity Calculator” from the homepage.
+            </li>
+            <li>
+                <strong>Gather Financial Data</strong>: Collect data for CAPM and DDM inputs.
+                <ul class="list-disc list-inside space-y-2 ml-6">
+                    <li>
+                        <strong>CAPM Inputs</strong>:
+                        <ul class="list-circle list-inside ml-6 space-y-1">
+                            <li><strong>Risk-Free Rate</strong>: Yield on 10-year Ghana government bond, found on <a href="https://www.bog.gov.gh/" class="text-indigo-600 hover:underline">bog.gov.gh</a>. Example: 25% in 2024.</li>
+                            <li><strong>Beta</strong>: Stock’s volatility, from <a href="https://afx.kwayisi.org/gse/" class="text-indigo-600 hover:underline">afx.kwayisi.org/gse/</a> or your Beta Calculator. Example: 1.2 for Access Bank.</li>
+                            <li><strong>Market Return</strong>: Historical GSE return, estimated at 12–15%. Example: 15%.</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>DDM Inputs</strong>:
+                        <ul class="list-circle list-inside ml-6 space-y-1">
+                            <li><strong>Dividend per Share</strong>: Annual dividend, from annual reports on <a href="https://www.annualreportsghana.com/resources/equity/gse/" class="text-indigo-600 hover:underline">annualreportsghana.com</a>. Example: 0.12 GHS.</li>
+                            <li><strong>Current Stock Price</strong>: Market price from <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a>. Example: 2.83 GHS.</li>
+                            <li><strong>Dividend Growth Rate</strong>: Historical or projected growth, estimated at 5%.</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Weights</strong>: Assign weights to CAPM and DDM (e.g., 60% CAPM, 40% DDM). Total must be 100%.
+                    </li>
+                </ul>
+            </li>
+            <li>
+                <strong>Enter Data</strong>: Input values in the form.
+                <ul class="list-disc list-inside space-y-2 ml-6">
+                    <li>Example: Risk-Free Rate: 25%, Beta: 1.2, Market Return: 15%, Dividend: 0.12 GHS, Stock Price: 2.83 GHS, Growth Rate: 5%, CAPM Weight: 60%, DDM Weight: 40%.</li>
+                </ul>
+            </li>
+            <li>
+                <strong>Calculate</strong>: Click “Calculate” to view results.
+                <ul class="list-disc list-inside space-y-2 ml-6">
+                    <li><strong>Output</strong>: Table shows CAPM cost (e.g., 30%), DDM cost (e.g., 9.24%), and weighted average (e.g., 21.7%).</li>
+                </ul>
+            </li>
+            <li>
+                <strong>Use Results</strong>: Apply the weighted cost of equity as the discount rate in DCF or WACC models, or compare to expected returns.
+            </li>
+        </ol>
+        
+        <h3 class="text-xl font-medium mb-3 text-gray-800">Tips</h3>
+        <ul class="list-disc list-inside space-y-2 mb-4">
+            <li>Use reliable sources like <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a> or <a href="https://www.bog.gov.gh/" class="text-indigo-600 hover:underline">bog.gov.gh</a> for data.</li>
+            <li>For banks, verify dividends for stability; for growth firms, rely more on CAPM.</li>
+            <li>Adjust weights based on data reliability (e.g., higher CAPM weight if dividends are inconsistent).</li>
+        </ul>
+        
+        <h3 class="text-xl font-medium mb-3 text-gray-800">Common Mistakes to Avoid</h3>
+        <ul class="list-disc list-inside space-y-2 mb-4">
+            <li>Don’t use outdated data—check 2024/2025 figures on <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a>.</li>
+            <li>Ensure weights sum to 100%.</li>
+            <li>Avoid zero stock price in DDM calculations.</li>
+        </ul>
+        
+        <p><a href="{{ url_for('calculate_cost_of_equity') }}" class="text-indigo-600 hover:text-indigo-800 font-medium transition-colors duration-200">Go to Cost of Equity Calculator</a></p>
+    </div>
+</div>
+        
 <!-- FCFE Calculator -->
 <div id="fcfe-calculator" class="calculator bg-white p-6 rounded-xl shadow-md transition-all duration-300 hover:shadow-lg">
     <button 
