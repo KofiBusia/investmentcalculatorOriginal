@@ -13,6 +13,10 @@ from flask import Flask, render_template, request, redirect, url_for
 import math
 
 app = Flask(__name__)
+import logging
+if os.getenv('FLASK_ENV') == 'production':
+    logging.basicConfig(level=logging.INFO, filename='app.log', filemode='a',
+                        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 
 # THIRD-PARTY IMPORTS
 # -------------------
@@ -50,12 +54,19 @@ app = Flask(__name__)
 
 # CONFIGURATION SETTINGS
 # ----------------------
+import os
+
 # Security
-app.config['SECRET_KEY'] = 'e1efa2b32b1bac66588d074bac02a168212082d8befd0b6466f5ee37a8c2836a'
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'e1efa2b32b1bac66588d074bac02a168212082d8befd0b6466f5ee37a8c2836a')
 
 # Database
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'mysql+pymysql://root:IFokbu%40m%401@localhost/investment_insights')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    'pool_size': 10,
+    'pool_timeout': 30,
+    'pool_recycle': 1800,
+}
 
 # File Uploads
 app.config['UPLOAD_FOLDER'] = 'static/author_photos'
@@ -1448,123 +1459,6 @@ def target_price():
             return render_template('target_price.html', error="Invalid input. Please enter numeric values.")
     return render_template('target_price.html')
 
-@app.route('/blog')
-def blog():
-    posts = BlogPost.query.order_by(BlogPost.date_posted.desc()).all()
-    return render_template('blog.html', posts=posts)
-
-@app.route('/blog/<int:post_id>')
-def blog_post(post_id):
-    post = BlogPost.query.get_or_404(post_id)
-    return render_template('blog_post.html', post=post)
-
-@app.route('/admin/blog', methods=['GET', 'POST'])
-def admin_blog():
-    form = BlogForm()
-    if form.validate_on_submit():
-        try:
-            file = form.author_photo.data
-            filename = None
-            if file and allowed_file(file.filename):
-                filename = secure_filename(file.filename)
-                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            elif file:
-                flash('Invalid file type', 'danger')
-                return render_template('admin_blog.html', form=form, posts=BlogPost.query.order_by(BlogPost.date_posted.desc()).all())
-            # Handle main image upload
-            main_image_file = request.files.get('main_image')
-            main_image_filename = None
-            if main_image_file and allowed_file(main_image_file.filename):
-                main_image_filename = secure_filename(main_image_file.filename)
-                main_image_file.save(os.path.join(app.config['UPLOAD_FOLDER'], main_image_filename))
-            elif main_image_file and main_image_file.filename:
-                flash('Invalid main image file type', 'danger')
-                return render_template('admin_blog.html', form=form, posts=BlogPost.query.order_by(BlogPost.date_posted.desc()).all())
-            new_post = BlogPost(
-                title=form.title.data,
-                slug=generate_slug(form.title.data),
-                content=form.content.data,
-                author=form.author.data,
-                author_photo=filename,
-                main_image=main_image_filename
-            )
-            db.session.add(new_post)
-            db.session.commit()
-            flash('Blog post created!', 'success')
-            return redirect(url_for('admin_blog'))
-        except Exception as e:
-            db.session.rollback()
-            flash(f'Error: {str(e)}', 'danger')
-    posts = BlogPost.query.order_by(BlogPost.date_posted.desc()).all()
-    return render_template('admin_blog.html', form=form, posts=posts)
-
-@app.route('/admin/blog/edit/<int:post_id>', methods=['GET', 'POST'])
-def edit_blog_post(post_id):
-    post = BlogPost.query.get_or_404(post_id)
-    form = BlogForm()
-    if form.validate_on_submit():
-        try:
-            file = form.author_photo.data
-            filename = post.author_photo
-            if file and allowed_file(file.filename):
-                if post.author_photo:
-                    try:
-                        os.remove(os.path.join(app.config['UPLOAD_FOLDER'], post.author_photo))
-                    except FileNotFoundError:
-                        pass
-                filename = secure_filename(file.filename)
-                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            elif file:
-                flash('Invalid file type', 'danger')
-                return render_template('edit_blog_post.html', form=form, post=post)
-            # Handle main image upload
-            main_image_file = request.files.get('main_image')
-            main_image_filename = post.main_image
-            if main_image_file and allowed_file(main_image_file.filename):
-                if post.main_image:
-                    try:
-                        os.remove(os.path.join(app.config['UPLOAD_FOLDER'], post.main_image))
-                    except FileNotFoundError:
-                        pass
-                main_image_filename = secure_filename(main_image_file.filename)
-                main_image_file.save(os.path.join(app.config['UPLOAD_FOLDER'], main_image_filename))
-            elif main_image_file and main_image_file.filename:
-                flash('Invalid main image file type', 'danger')
-                return render_template('edit_blog_post.html', form=form, post=post)
-            post.title = form.title.data
-            post.content = form.content.data
-            post.author = form.author.data
-            post.author_photo = filename
-            post.main_image = main_image_filename
-            db.session.commit()
-            flash('Post updated!', 'success')
-            return redirect(url_for('admin_blog'))
-        except Exception as e:
-            db.session.rollback()
-            flash(f'Error: {str(e)}', 'danger')
-    elif request.method == 'GET':
-        form.title.data = post.title
-        form.content.data = post.content
-        form.author.data = post.author
-    return render_template('edit_blog_post.html', form=form, post=post)
-
-@app.route('/admin/blog/delete/<int:post_id>', methods=['POST'])
-def delete_blog_post(post_id):
-    post = BlogPost.query.get_or_404(post_id)
-    try:
-        if post.author_photo:
-            try:
-                os.remove(os.path.join(app.config['UPLOAD_FOLDER'], post.author_photo))
-            except FileNotFoundError:
-                pass
-        db.session.delete(post)
-        db.session.commit()
-        flash('Post deleted!', 'success')
-    except Exception as e:
-        db.session.rollback()
-        flash(f'Error: {str(e)}', 'danger')
-    return redirect(url_for('admin_blog'))
-
 #Additional FUNCTIONS ADDED 13TH JUNE 2025
 
 @app.route('/calculate-fcfe', methods=['GET', 'POST'])
@@ -1794,24 +1688,30 @@ def press():
 # APPLICATION RUNNER BLOCK
 # ------------------------
 # Creates database tables and runs the application
-# Uses Waitress for local development, Gunicorn in production
+# Uses Waitress for local development (Windows-compatible), Gunicorn for production (Unix-based)
+import os
+import platform
+
 if __name__ == '__main__':
     with app.app_context():
-        db.create_all()
-        create_admin_user()
-    
-    from waitress import serve
-    serve(app, host="0.0.0.0", port=5000)
-else:
-    if __name__ == 'app':
+        if os.getenv('FLASK_ENV') != 'production':
+            db.create_all()  # Only for local development
+            create_admin_user()
+
+    # Local development: Use Waitress on Windows or non-production
+    if platform.system() == 'Windows' or os.getenv('FLASK_ENV') != 'production':
+        from waitress import serve
+        serve(app, host="0.0.0.0", port=5000)
+    else:
+        # Production: Use Gunicorn on Unix-based systems
         from gunicorn.app.base import BaseApplication
-        
+
         class StandaloneApplication(BaseApplication):
             def __init__(self, app, options=None):
                 self.application = app
                 self.options = options or {}
                 super().__init__()
-            
+
             def load_config(self):
                 config = {
                     key: value for key, value in self.options.items()
@@ -1819,10 +1719,10 @@ else:
                 }
                 for key, value in config.items():
                     self.cfg.set(key.lower(), value)
-            
+
             def load(self):
                 return self.application
-        
+
         options = {
             'bind': '0.0.0.0:5000',
             'workers': 4,
