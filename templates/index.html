@@ -1,125 +1,1483 @@
-{% extends "base.html" %}
-{% block title %}Home{% endblock %}
-{% block hero %}
-<div class="hero">
-  <div class="hero-title">Empower Your Investments</div>
-  <div class="hero-desc">
-    Discover, calculate, and optimize your investment journey with modern tools,
-    insights, and calculators. Make smarter financial decisions today.
-  </div>
-  <a href="/articles" class="btn">Explore Insights</a>
-</div>
-{% endblock %}
-{% block content %}
-<div class="select-product-section">
-  <h2 class="centered-heading">Select Investment Product</h2>
-  <p>
-    Welcome to the Investment Calculator! Choose an investment product below to
-    explore potential returns.
-  </p>
-</div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>InvestIQ | Empower Your Investments</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary: #0ea5e9;
+            --accent: #8b5cf6;
+            --dark: #0f172a;
+            --light: #f8fafc;
+            --gray: #64748b;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --card-bg: #ffffff;
+            --card-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --transition: all 0.3s ease;
+        }
 
-<div class="container">
-  <div class="product-grid">
-    <a href="/stocks" class="product-card">
-      <h3>Stocks</h3>
-    </a>
-    <a href="/intrinsic-value" class="product-card">
-      <h3>Intrinsic Value (Stocks)</h3>
-    </a>
-    <a href="/bank-intrinsic-value" class="product-card">
-      <h3>Bank Stock Valuation</h3>
-    </a>
-    <a href="/bonds" class="product-card">
-      <h3>Bonds (Corporate & Government)</h3>
-    </a>
-    <a href="/duration" class="product-card">
-      <h3>Duration Calculator (Bonds)</h3>
-    </a>
-    <a href="/tbills" class="product-card">
-      <h3>Treasury Bills (T-Bills)</h3>
-    </a>
-    <a href="/tbills-rediscount" class="product-card">
-      <h3>Treasury Bills Rediscount</h3>
-    </a>
-    <a href="/money-market" class="product-card">
-      <h3>Money Market Accounts</h3>
-    </a>
-    <a href="/end-balance" class="product-card">
-      <h3>End Balance</h3>
-    </a>
-    <a href="/monthly-contribution" class="product-card">
-      <h3>Monthly Contribution</h3>
-    </a>
-    <a href="/calculate-fcf" class="product-card">
-      <h3>Free Cash Flow Calculator</h3>
-    </a>
-    <a href="/calculate-fcfe" class="product-card">
-      <h3>FCFE Calculator</h3>
-    </a>
-    <a href="/calculate-beta" class="product-card">
-      <h3>Beta Calculator</h3>
-    </a>
-    <a href="/mna" class="product-card">
-      <h3>M&A (Mergers & Acquisitions)</h3>
-    </a>
-    <a href="/pe-vc" class="product-card">
-      <h3>Private Equity & Venture Capital Valuation</h3>
-    </a>
-    <a href="/portfolio-diversification" class="product-card">
-      <h3>Portfolio Diversification</h3>
-    </a>
-    <a href="/expected-return" class="product-card">
-      <h3>Expected Return</h3>
-    </a>
-    <a href="/volatility" class="product-card">
-      <h3>Portfolio Volatility</h3>
-    </a>
-    <a href="/forex" class="product-card">
-      <h3>Forex Calculator</h3>
-    </a>
-    <a href="/esg-investments" class="product-card">
-      <h3>ESG Investment Tool</h3>
-    </a>
-    <a href="/hedge-funds" class="product-card">
-      <h3>Hedge Fund Calculator</h3>
-    </a>
-    <a href="/portfolio_return" class="product-card">
-      <h3>Portfolio Return Calculator</h3>
-    </a>
-    <a href="/valuation_methods" class="product-card">
-      <h3>ValueMaster</h3>
-    </a>
-    <a href="/dcf" class="product-card">
-      <h3>DCF Valuation Calculator</h3>
-    </a>
-    <a href="/target-price" class="product-card">
-      <h3>Target Price (Stocks)</h3>
-    </a>
-    <a href="/multi-method-valuation" class="product-card">
-      <h3>Multi-Method Stock Valuation</h3>
-    </a>
-    <a href="/calculate-cost-of-equity" class="product-card">
-      <h3>Cost of Equity Calculator</h3>
-    </a>
-    <a href="/mutual-funds" class="product-card">
-      <h3>Mutual Funds</h3>
-    </a>
-    <a href="/etfs" class="product-card">
-      <h3>ETFs (Exchange-Traded Funds)</h3>
-    </a>
-    <a href="/cds" class="product-card">
-      <h3>CDs (Certificates of Deposit)</h3>
-    </a>
-    <a href="/options" class="product-card">
-      <h3>Options (Call & Put)</h3>
-    </a>
-    <a href="/futures" class="product-card">
-      <h3>Futures</h3>
-    </a>
-    <a href="/cryptocurrency" class="product-card">
-      <h3>Cryptocurrency</h3>
-    </a>
-  </div>
-</div>
-{% endblock %}
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            color: var(--dark);
+            line-height: 1.6;
+            min-height: 100vh;
+            position: relative;
+            padding-bottom: 120px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* Header Styles */
+        header {
+            background-color: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            color: var(--primary);
+            font-size: 28px;
+        }
+
+        .logo-text {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 800;
+            font-size: 24px;
+            color: var(--dark);
+        }
+
+        .logo-text span {
+            color: var(--primary);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: var(--dark);
+            font-weight: 500;
+            padding: 8px 0;
+            position: relative;
+            transition: var(--transition);
+        }
+
+        .nav-link:hover {
+            color: var(--primary);
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background-color: var(--primary);
+            transition: var(--transition);
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        .nav-link.active {
+            color: var(--primary);
+        }
+
+        .nav-link.active::after {
+            width: 100%;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .search-container {
+            position: relative;
+        }
+
+        .search-input {
+            width: 280px;
+            padding: 10px 20px 10px 40px;
+            border: none;
+            background-color: #f1f5f9;
+            border-radius: 30px;
+            font-size: 14px;
+            transition: var(--transition);
+        }
+
+        .search-input:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px var(--primary);
+            background-color: white;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray);
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 10px 24px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+            text-align: center;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-outline:hover {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        /* Hero Section */
+        .hero {
+            padding: 100px 0 80px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50px;
+            right: -50px;
+            width: 500px;
+            height: 500px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(37, 99, 235, 0.1) 0%, rgba(37, 99, 235, 0) 70%);
+            z-index: -1;
+        }
+
+        .hero-content {
+            max-width: 700px;
+        }
+
+        .hero-subtitle {
+            color: var(--primary);
+            font-weight: 600;
+            font-size: 18px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .hero-title {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 800;
+            font-size: 56px;
+            line-height: 1.1;
+            margin-bottom: 20px;
+            color: var(--dark);
+        }
+
+        .hero-title span {
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-desc {
+            font-size: 18px;
+            color: var(--gray);
+            margin-bottom: 40px;
+            max-width: 600px;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 20px;
+        }
+
+        .hero-stats {
+            display: flex;
+            gap: 40px;
+            margin-top: 50px;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-value {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 36px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: var(--gray);
+        }
+
+        /* Features Section */
+        .features {
+            padding: 40px 0;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .section-subtitle {
+            color: var(--primary);
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .section-title {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 36px;
+            font-weight: 800;
+            margin-bottom: 20px;
+        }
+
+        .section-desc {
+            color: var(--gray);
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .feature-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .feature-card {
+            background-color: var(--card-bg);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: var(--card-shadow);
+            transition: var(--transition);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .feature-icon i {
+            font-size: 24px;
+            color: white;
+        }
+
+        .feature-title {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 15px;
+        }
+
+        .feature-desc {
+            color: var(--gray);
+            margin-bottom: 20px;
+        }
+
+        /* Calculators Section */
+        .calculators {
+            padding: 80px 0;
+        }
+
+        .calculators-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .category-filters {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .category-filter {
+            padding: 8px 20px;
+            background-color: #e2e8f0;
+            border-radius: 30px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .category-filter:hover, .category-filter.active {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .calculator-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+        }
+
+        .calculator-card {
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: var(--card-shadow);
+            transition: var(--transition);
+        }
+
+        .calculator-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        .calculator-icon {
+            height: 120px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .calculator-icon i {
+            font-size: 40px;
+            color: white;
+        }
+
+        .calculator-content {
+            padding: 20px;
+        }
+
+        .calculator-category {
+            font-size: 12px;
+            color: var(--primary);
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: inline-block;
+            background-color: #dbeafe;
+            padding: 4px 12px;
+            border-radius: 30px;
+        }
+
+        .calculator-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .calculator-desc {
+            font-size: 14px;
+            color: var(--gray);
+            margin-bottom: 20px;
+        }
+
+        .calculator-link {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--primary);
+            font-weight: 500;
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .calculator-link:hover {
+            gap: 12px;
+        }
+
+        /* Testimonials */
+        .testimonials {
+            padding: 80px 0;
+            background-color: #f1f5f9;
+        }
+
+        .testimonial-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 30px;
+        }
+
+        .testimonial-card {
+            background-color: var(--card-bg);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: var(--card-shadow);
+        }
+
+        .testimonial-content {
+            font-size: 16px;
+            font-style: italic;
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        .testimonial-content::before {
+            content: '"';
+            position: absolute;
+            top: -20px;
+            left: -10px;
+            font-size: 80px;
+            color: var(--primary);
+            opacity: 0.1;
+            font-family: serif;
+        }
+
+        .testimonial-author {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .author-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--accent));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        .author-info h4 {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .author-info p {
+            color: var(--gray);
+            font-size: 14px;
+        }
+
+        /* Footer */
+        footer {
+            background-color: var(--dark);
+            color: white;
+            padding: 60px 0 30px;
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 40px;
+            margin-bottom: 40px;
+        }
+
+        .footer-column h3 {
+            font-size: 18px;
+            margin-bottom: 25px;
+            position: relative;
+            padding-bottom: 10px;
+        }
+
+        .footer-column h3::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 40px;
+            height: 2px;
+            background-color: var(--primary);
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 15px;
+        }
+
+        .footer-links a {
+            color: #cbd5e1;
+            text-decoration: none;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .footer-links a:hover {
+            color: white;
+            gap: 15px;
+        }
+
+        .footer-links i {
+            width: 20px;
+        }
+
+        .social-links {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .social-link {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #1e293b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .social-link:hover {
+            background-color: var(--primary);
+            transform: translateY(-3px);
+        }
+
+        .footer-bottom {
+            border-top: 1px solid #1e293b;
+            padding-top: 30px;
+            text-align: center;
+            color: #94a3b8;
+            font-size: 14px;
+        }
+
+        /* Responsive Styles */
+        @media (max-width: 992px) {
+            .hero-title {
+                font-size: 46px;
+            }
+            
+            .nav-links {
+                gap: 20px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header-container {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .hero {
+                padding: 70px 0 50px;
+            }
+            
+            .hero-title {
+                font-size: 36px;
+            }
+            
+            .hero-buttons {
+                flex-direction: column;
+            }
+            
+            .hero-stats {
+                flex-wrap: wrap;
+                gap: 20px;
+            }
+            
+            .search-input {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .nav-links {
+                gap: 15px;
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+            
+            .section-title {
+                font-size: 28px;
+            }
+            
+            .category-filters {
+                gap: 10px;
+            }
+            
+            .category-filter {
+                padding: 6px 15px;
+                font-size: 13px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container header-container">
+            <a href="/" class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="logo-text">Invest<span>IQ</span></div>
+            </a>
+            
+            <nav class="nav-links">
+                <a href="/" class="nav-link active">Home</a>
+                <a href="/get-started" class="nav-link">Get Started Guide</a>
+                <a href="/insights" class="nav-link">Investment Insights</a>
+            </nav>
+            
+            <div class="header-actions">
+                <div class="search-container">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" class="search-input" placeholder="Search calculators...">
+                </div>
+                <a href="/signin" class="btn">Sign In</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-subtitle">
+                    <i class="fas fa-rocket"></i>
+                    <span>THE ULTIMATE INVESTMENT PLATFORM</span>
+                </div>
+                <h1 class="hero-title">Empower Your <span>Financial Future</span></h1>
+                <p class="hero-desc">
+                    Discover, calculate, and optimize your investment journey with modern tools, 
+                    insights, and calculators. Make smarter financial decisions today.
+                </p>
+                <div class="hero-buttons">
+                    <a href="/insights" class="btn">Explore Insights</a>
+                    <a href="/calculators" class="btn btn-outline">View All Calculators</a>
+                </div>
+                
+                <div class="hero-stats">
+                    <div class="stat-item">
+                        <div class="stat-value">50+</div>
+                        <div class="stat-label">Investment Calculators</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">500K+</div>
+                        <div class="stat-label">Active Users</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">97%</div>
+                        <div class="stat-label">Satisfaction Rate</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-subtitle">WHY CHOOSE US</div>
+                <h2 class="section-title">Powerful Tools For Investors</h2>
+                <p class="section-desc">
+                    Our platform provides everything you need to analyze, calculate, and optimize your investment portfolio
+                </p>
+            </div>
+            
+            <div class="feature-cards">
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-calculator"></i>
+                    </div>
+                    <h3 class="feature-title">Advanced Calculators</h3>
+                    <p class="feature-desc">
+                        Comprehensive suite of calculators for every investment scenario with real-time results.
+                    </p>
+                    <a href="/calculators" class="calculator-link">
+                        Explore Tools <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-lightbulb"></i>
+                    </div>
+                    <h3 class="feature-title">Expert Insights</h3>
+                    <p class="feature-desc">
+                        Access to market analysis, investment strategies, and expert recommendations.
+                    </p>
+                    <a href="/insights" class="calculator-link">
+                        Read Insights <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+                
+                <div class="feature-card">
+                    <div class="feature-icon">
+                        <i class="fas fa-chart-pie"></i>
+                    </div>
+                    <h3 class="feature-title">Portfolio Analysis</h3>
+                    <p class="feature-desc">
+                        Visualize your portfolio performance, diversification, and risk exposure.
+                    </p>
+                    <a href="/portfolio-analysis" class="calculator-link">
+                        Analyze Portfolio <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Calculators Section -->
+    <section class="calculators">
+        <div class="container">
+            <div class="calculators-header">
+                <div>
+                    <div class="section-subtitle">INVESTMENT TOOLS</div>
+                    <h2 class="section-title">Financial Calculators</h2>
+                </div>
+                
+                <div class="category-filters">
+                    <div class="category-filter active">All</div>
+                    <div class="category-filter">Stocks</div>
+                    <div class="category-filter">Bonds</div>
+                    <div class="category-filter">Portfolio Tools</div>
+                    <div class="category-filter">Advanced Valuation</div>
+                    <div class="category-filter">Alternative Investments</div>
+                </div>
+            </div>
+            
+            <div class="calculator-grid">
+                <!-- Stocks Calculators -->
+                <div class="calculator-card">
+                    <div class="calculator-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="calculator-content">
+                        <span class="calculator-category">Stocks</span>
+                        <h3 class="calculator-title">Stocks Calculator</h3>
+                        <p class="calculator-desc">
+                            Calculate returns, dividends, and growth potential for stock investments.
+                        </p>
+                        <a href="/stocks" class="calculator-link">
+                            Calculate <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="calculator-card">
+                    <div class="calculator-icon">
+                        <i class="fas fa-balance-scale"></i>
+                    </div>
+                    <div class="calculator-content">
+                        <span class="calculator-category">Stocks</span>
+                        <h3 class="calculator-title">Intrinsic Value (Stocks)</h3>
+                        <p class="calculator-desc">
+                            Determine the true value of stocks based on fundamental analysis.
+                        </p>
+                        <a href="/intrinsic-value" class="calculator-link">
+                            Calculate <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="calculator-card">
+                    <div class="calculator-icon">
+                        <i class="fas fa-university"></i>
+                    </div>
+                    <div class="calculator-content">
+                        <span class="calculator-category">Stocks</span>
+                        <h3 class="calculator-title">Bank Stock Valuation</h3>
+                        <p class="calculator-desc">
+                            Specialized valuation for banking sector stocks.
+                        </p>
+                        <a href="/bank-intrinsic-value" class="calculator-link">
+                            Calculate <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="calculator-card">
+                    <div class="calculator-icon">
+                        <i class="fas fa-bullseye"></i>
+                    </div>
+                    <div class="calculator-content">
+                        <span class="calculator-category">Stocks</span>
+                        <h3 class="calculator-title">Target Price (Stocks)</h3>
+                        <p class="calculator-desc">
+                            Estimate the future price of stocks based on various factors.
+                        </p>
+                        <a href="/target-price" class="calculator-link">
+                            Calculate <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="calculator-card">
+                    <div class="calculator-icon">
+                        <i class="fas fa-layer-group"></i>
+                    </div>
+                    <div class="calculator-content">
+                        <span class="calculator-category">Stocks</span>
+                        <h3 class="calculator-title">Multi-Method Stock Valuation</h3>
+                        <p class="calculator-desc">
+                            Comprehensive valuation using multiple methodologies.
+                        </p>
+                        <a href="/multi-method-valuation" class="calculator-link">
+                            Calculate <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Bonds Calculators -->
+                <div class="calculator-card">
+                    <div class="calculator-icon">
+                        <i class="fas fa-file-invoice-dollar"></i>
+                    </div>
+                    <div class="calculator-content">
+                        <span class="calculator-category">Bonds</span>
+                        <h3 class="calculator-title">Bonds Calculator</h3>
+                        <p class="calculator-desc">
+                            Calculate yield, maturity, and returns for corporate & government bonds.
+                        </p>
+                        <a href="/bonds" class="calculator-link">
+                            Calculate <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="calculator-card">
+                    <div class="calculator-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="calculator-content">
+                        <span class="calculator-category">Bonds</span>
+                        <h3 class="calculator-title">Duration Calculator</h3>
+                        <p class="calculator-desc">
+                            Measure bond price sensitivity to interest rate changes.
+                        </p>
+                        <a href="/duration" class="calculator-link">
+                            Calculate <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="calculator-card">
+                    <div class="calculator-icon">
+                        <i class="fas fa-landmark"></i>
+                    </div>
+                    <div class="calculator-content">
+                        <span class="calculator-category">Bonds</span>
+                        <h3 class="calculator-title">Treasury Bills (T-Bills)</h3>
+                        <p class="calculator-desc">
+                            Calculate returns on short-term government securities.
+                        </p>
+                        <a href="/tbills" class="calculator-link">
+                            Calculate <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="calculator-card">
+                    <div class="calculator-icon">
+                        <i class="fas fa-redo"></i>
+                    </div>
+                    <div class="calculator-content">
+                        <span class="calculator-category">Bonds</span>
+                        <h3 class="calculator-title">Treasury Bills Rediscount</h3>
+                        <p class="calculator-desc">
+                            Calculate rediscount rates for T-Bills.
+                        </p>
+                        <a href="/tbills-rediscount" class="calculator-link">
+                            Calculate <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Portfolio Tools Calculators -->
+                <div class="calculator-card">
+                    <div class="calculator-icon">
+                        <i class="fas fa-project-diagram"></i>
+                    </div>
+                    <div class="calculator-content">
+                        <span class="calculator-category">Portfolio Tools</span>
+                        <h3 class="calculator-title">Portfolio Diversification</h3>
+                        <p class="calculator-desc">
+                            Analyze and optimize your investment diversification strategy.
+                        </p>
+                        <a href="/portfolio-diversification" class="calculator-link">
+                            Calculate <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="calculator-card">
+                    <div class="calculator-icon">
+                        <i class="fas fa-chart-bar"></i>
+                    </div>
+                    <div class="calculator-content">
+                        <span class="calculator-category">Portfolio Tools</span>
+                        <h3 class="calculator-title">Expected Return</h3>
+                        <p class="calculator-desc">
+                            Estimate potential returns based on your portfolio composition.
+                        </p>
+                        <a href="/expected-return" class="calculator-link">
+                            Calculate <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="calculator-card">
+                    <div class="calculator-icon">
+                        <i class="fas fa-wave-square"></i>
+                    </div>
+                    <div class="calculator-content">
+                        <span class="calculator-category">Portfolio Tools</span>
+                        <h3 class="calculator-title">Portfolio Volatility</h3>
+                        <p class="calculator-desc">
+                            Measure the risk and volatility of your investment portfolio.
+                        </p>
+                        <a href="/volatility" class="calculator-link">
+                            Calculate <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="calculator-card">
+                    <div class="calculator-icon">
+                        <i class="fas fa-percentage"></i>
+                    </div>
+                    <div class="calculator-content">
+                        <span class="calculator-category">Portfolio Tools</span>
+                        <h3 class="calculator-title">Portfolio Return Calculator</h3>
+                        <p class="calculator-desc">
+                            Calculate overall returns for your investment portfolio.
+                        </p>
+                        <a href="/portfolio_return" class="calculator-link">
+                            Calculate <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Advanced Valuation Calculators -->
+                <div class="calculator-card">
+                    <div class="calculator-icon">
+                        <i class="fas fa-money-bill-wave"></i>
+                    </div>
+                    <div class="calculator-content">
+                        <span class="calculator-category">Advanced Valuation</span>
+                        <h3 class="calculator-title">Free Cash Flow Calculator</h3>
+                        <p class="calculator-desc">
+                            Calculate a company's free cash flow for valuation purposes.
+                        </p>
+                        <a href="/calculate-fcf" class="calculator-link">
+                            Calculate <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="calculator-card">
+                    <div class="calculator-icon">
+                        <i class="fas fa-hand-holding-usd"></i>
+                    </div>
+                    <div class="calculator-content">
+                        <span class="calculator-category">Advanced Valuation</span>
+                        <h3 class="calculator-title">FCFE Calculator</h3>
+                        <p class="calculator-desc">
+                            Calculate free cash flow to equity for stock valuation.
+                        </p>
+                        <a href="/calculate-fcfe" class="calculator-link">
+                            Calculate <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="calculator-card">
+                    <div class="calculator-icon">
+                        <i class="fas fa-chart-area"></i>
+                    </div>
+                    <div class="calculator-content">
+                        <span class="calculator-category">Advanced Valuation</span>
+                        <h3 class="calculator-title">Beta Calculator</h3>
+                        <p class="calculator-desc">
+                            Measure a stock's volatility relative to the market.
+                        </p>
+                        <a href="/calculate-beta" class="calculator-link">
+                            Calculate <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="calculator-card">
+                    <div class="calculator-icon">
+                        <i class="fas fa-handshake"></i>
+                    </div>
+                    <div class="calculator-content">
+                        <span class="calculator-category">Advanced Valuation</span>
+                        <h3 class="calculator-title">M&A Valuation</h3>
+                        <p class="calculator-desc">
+                            Analyze mergers and acquisitions with specialized tools.
+                        </p>
+                        <a href="/mna" class="calculator-link">
+                            Calculate <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="calculator-card">
+                    <div class="calculator-icon">
+                        <i class="fas fa-building"></i>
+                    </div>
+                    <div class="calculator-content">
+                        <span class="calculator-category">Advanced Valuation</span>
+                        <h3 class="calculator-title">Private Equity & VC Valuation</h3>
+                        <p class="calculator-desc">
+                            Valuation tools for private investments.
+                        </p>
+                        <a href="/pe-vc" class="calculator-link">
+                            Calculate <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="calculator-card">
+                    <div class="calculator-icon">
+                        <i class="fas fa-gavel"></i>
+                    </div>
+                    <div class="calculator-content">
+                        <span class="calculator-category">Advanced Valuation</span>
+                        <h3 class="calculator-title">ValueMaster</h3>
+                        <p class="calculator-desc">
+                            Comprehensive valuation toolkit.
+                        </p>
+                        <a href="/valuation_methods" class="calculator-link">
+                            Calculate <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="calculator-card">
+                    <div class="calculator-icon">
+                        <i class="fas fa-cogs"></i>
+                    </div>
+                    <div class="calculator-content">
+                        <span class="calculator-category">Advanced Valuation</span>
+                        <h3 class="calculator-title">DCF Valuation</h3>
+                        <p class="calculator-desc">
+                            Discounted cash flow valuation for comprehensive analysis.
+                        </p>
+                        <a href="/dcf" class="calculator-link">
+                            Calculate <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="calculator-card">
+                    <div class="calculator-icon">
+                        <i class="fas fa-percentage"></i>
+                    </div>
+                    <div class="calculator-content">
+                        <span class="calculator-category">Advanced Valuation</span>
+                        <h3 class="calculator-title">Cost of Equity Calculator</h3>
+                        <p class="calculator-desc">
+                            Calculate the cost of equity for valuation models.
+                        </p>
+                        <a href="/calculate-cost-of-equity" class="calculator-link">
+                            Calculate <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Alternative Investments Calculators -->
+                <div class="calculator-card">
+                    <div class="calculator-icon">
+                        <i class="fas fa-piggy-bank"></i>
+                    </div>
+                    <div class="calculator-content">
+                        <span class="calculator-category">Alternative Investments</span>
+                        <h3 class="calculator-title">Money Market Accounts</h3>
+                        <p class="calculator-desc">
+                            Calculate returns on money market investments.
+                        </p>
+                        <a href="/money-market" class="calculator-link">
+                            Calculate <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="calculator-card">
+                    <div class="calculator-icon">
+                        <i class="fas fa-hand-holding-usd"></i>
+                    </div>
+                    <div class="calculator-content">
+                        <span class="calculator-category">Alternative Investments</span>
+                        <h3 class="calculator-title">Mutual Funds</h3>
+                        <p class="calculator-desc">
+                            Analyze and calculate returns for mutual fund investments.
+                        </p>
+                        <a href="/mutual-funds" class="calculator-link">
+                            Calculate <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="calculator-card">
+                    <div class="calculator-icon">
+                        <i class="fas fa-chart-pie"></i>
+                    </div>
+                    <div class="calculator-content">
+                        <span class="calculator-category">Alternative Investments</span>
+                        <h3 class="calculator-title">ETFs</h3>
+                        <p class="calculator-desc">
+                            Calculate returns and analyze ETF investments.
+                        </p>
+                        <a href="/etfs" class="calculator-link">
+                            Calculate <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="calculator-card">
+                    <div class="calculator-icon">
+                        <i class="fas fa-certificate"></i>
+                    </div>
+                    <div class="calculator-content">
+                        <span class="calculator-category">Alternative Investments</span>
+                        <h3 class="calculator-title">CDs</h3>
+                        <p class="calculator-desc">
+                            Calculate interest and returns on Certificates of Deposit.
+                        </p>
+                        <a href="/cds" class="calculator-link">
+                            Calculate <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="calculator-card">
+                    <div class="calculator-icon">
+                        <i class="fas fa-chess-knight"></i>
+                    </div>
+                    <div class="calculator-content">
+                        <span class="calculator-category">Alternative Investments</span>
+                        <h3 class="calculator-title">Options (Call & Put)</h3>
+                        <p class="calculator-desc">
+                            Calculate options pricing and potential returns.
+                        </p>
+                        <a href="/options" class="calculator-link">
+                            Calculate <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="calculator-card">
+                    <div class="calculator-icon">
+                        <i class="fas fa-forward"></i>
+                    </div>
+                    <div class="calculator-content">
+                        <span class="calculator-category">Alternative Investments</span>
+                        <h3 class="calculator-title">Futures</h3>
+                        <p class="calculator-desc">
+                            Analyze and calculate futures contracts.
+                        </p>
+                        <a href="/futures" class="calculator-link">
+                            Calculate <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="calculator-card">
+                    <div class="calculator-icon">
+                        <i class="fab fa-bitcoin"></i>
+                    </div>
+                    <div class="calculator-content">
+                        <span class="calculator-category">Alternative Investments</span>
+                        <h3 class="calculator-title">Cryptocurrency</h3>
+                        <p class="calculator-desc">
+                            Calculate returns and analyze cryptocurrency investments.
+                        </p>
+                        <a href="/cryptocurrency" class="calculator-link">
+                            Calculate <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="calculator-card">
+                    <div class="calculator-icon">
+                        <i class="fas fa-globe"></i>
+                    </div>
+                    <div class="calculator-content">
+                        <span class="calculator-category">Alternative Investments</span>
+                        <h3 class="calculator-title">Forex Calculator</h3>
+                        <p class="calculator-desc">
+                            Calculate foreign exchange rates and potential returns.
+                        </p>
+                        <a href="/forex" class="calculator-link">
+                            Calculate <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="calculator-card">
+                    <div class="calculator-icon">
+                        <i class="fas fa-leaf"></i>
+                    </div>
+                    <div class="calculator-content">
+                        <span class="calculator-category">Alternative Investments</span>
+                        <h3 class="calculator-title">ESG Investment Tool</h3>
+                        <p class="calculator-desc">
+                            Analyze environmental, social, and governance investments.
+                        </p>
+                        <a href="/esg-investments" class="calculator-link">
+                            Calculate <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="calculator-card">
+                    <div class="calculator-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <div class="calculator-content">
+                        <span class="calculator-category">Alternative Investments</span>
+                        <h3 class="calculator-title">Hedge Fund Calculator</h3>
+                        <p class="calculator-desc">
+                            Calculate returns and analyze hedge fund strategies.
+                        </p>
+                        <a href="/hedge-funds" class="calculator-link">
+                            Calculate <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="calculator-card">
+                    <div class="calculator-icon">
+                        <i class="fas fa-money-check-alt"></i>
+                    </div>
+                    <div class="calculator-content">
+                        <span class="calculator-category">Alternative Investments</span>
+                        <h3 class="calculator-title">End Balance</h3>
+                        <p class="calculator-desc">
+                            Calculate the final balance of your investment over time.
+                        </p>
+                        <a href="/end-balance" class="calculator-link">
+                            Calculate <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="calculator-card">
+                    <div class="calculator-icon">
+                        <i class="fas fa-hand-holding-usd"></i>
+                    </div>
+                    <div class="calculator-content">
+                        <span class="calculator-category">Alternative Investments</span>
+                        <h3 class="calculator-title">Monthly Contribution</h3>
+                        <p class="calculator-desc">
+                            Determine growth with regular monthly investments.
+                        </p>
+                        <a href="/monthly-contribution" class="calculator-link">
+                            Calculate <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Testimonials -->
+    <section class="testimonials">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-subtitle">USER TESTIMONIALS</div>
+                <h2 class="section-title">What Investors Say</h2>
+                <p class="section-desc">
+                    Hear from our community of successful investors
+                </p>
+            </div>
+            
+            <div class="testimonial-grid">
+                <div class="testimonial-card">
+                    <p class="testimonial-content">
+                        "The intrinsic value calculator completely changed how I evaluate stocks. I've avoided several overvalued investments thanks to this tool."
+                    </p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">MK</div>
+                        <div class="author-info">
+                            <h4>Michael K.</h4>
+                            <p>Portfolio Manager</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="testimonial-card">
+                    <p class="testimonial-content">
+                        "As a financial advisor, I use these calculators daily with my clients. The portfolio diversification tool is particularly valuable for risk management."
+                    </p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">SR</div>
+                        <div class="author-info">
+                            <h4>Sarah R.</h4>
+                            <p>Financial Advisor</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="testimonial-card">
+                    <p class="testimonial-content">
+                        "The DCF calculator saved me hours of manual calculations. The interface is intuitive and the results are incredibly accurate."
+                    </p>
+                    <div class="testimonial-author">
+                        <div class="author-avatar">DJ</div>
+                        <div class="author-info">
+                            <h4>David J.</h4>
+                            <p>Investment Analyst</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-column">
+                    <h3>InvestIQ</h3>
+                    <p style="color: #cbd5e1; margin-bottom: 20px; max-width: 300px;">
+                        Empowering investors with advanced tools, insights, and calculators to make smarter financial decisions.
+                    </p>
+                    <div class="social-links">
+                        <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+                        <a href="https://www.linkedin.com/in/kofi-busia-kyei-24a6661b8/" class="social-link"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+                
+                <div class="footer-column">
+                    <h3>Calculators</h3>
+                    <ul class="footer-links">
+                        <li><a href="/calculators#stocks"><i class="fas fa-arrow-right"></i> Stocks</a></li>
+                        <li><a href="/calculators#bonds"><i class="fas fa-arrow-right"></i> Bonds</a></li>
+                        <li><a href="/calculators#portfolio-tools"><i class="fas fa-arrow-right"></i> Portfolio Tools</a></li>
+                        <li><a href="/calculators#advanced-valuation"><i class="fas fa-arrow-right"></i> Advanced Valuation</a></li>
+                        <li><a href="/calculators#alternative-investments"><i class="fas fa-arrow-right"></i> Alternative Investments</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h3>Company</h3>
+                    <ul class="footer-links">
+                        <li><a href="/about"><i class="fas fa-arrow-right"></i> About Us</a></li>
+                        <li><a href="/team"><i class="fas fa-arrow-right"></i> Our Team</a></li>
+                        <li><a href="/careers"><i class="fas fa-arrow-right"></i> Careers</a></li>
+                        <li><a href="/press"><i class="fas fa-arrow-right"></i> Press</a></li>
+                        <li><a href="/contact"><i class="fas fa-arrow-right"></i> Contact Us</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h3>Legal</h3>
+                    <ul class="footer-links">
+                        <li><a href="/privacy"><i class="fas fa-arrow-right"></i> Privacy Policy</a></li>
+                        <li><a href="/terms"><i class="fas fa-arrow-right"></i> Terms & Conditions</a></li>
+                        <li><a href="/cookies"><i class="fas fa-arrow-right"></i> Cookie Policy</a></li>
+                        <li><a href="/disclaimer"><i class="fas fa-arrow-right"></i> Disclaimer</a></li>
+                        <li><a href="/security"><i class="fas fa-arrow-right"></i> Security</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>© 2025 InvestIQ. All rights reserved. Designed with ❤️ for investors worldwide.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Simple search functionality
+        document.querySelector('.search-input').addEventListener('input', function(e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const calculatorCards = document.querySelectorAll('.calculator-card');
+            
+            calculatorCards.forEach(card => {
+                const title = card.querySelector('.calculator-title').textContent.toLowerCase();
+                const desc = card.querySelector('.calculator-desc').textContent.toLowerCase();
+                const category = card.querySelector('.calculator-category').textContent.toLowerCase();
+                
+                if (title.includes(searchTerm) || desc.includes(searchTerm) || category.includes(searchTerm)) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        });
+        
+        // Category filter functionality
+        const categoryFilters = document.querySelectorAll('.category-filter');
+        categoryFilters.forEach(filter => {
+            filter.addEventListener('click', function() {
+                categoryFilters.forEach(f => f.classList.remove('active'));
+                this.classList.add('active');
+                
+                const category = this.textContent.toLowerCase();
+                const calculatorCards = document.querySelectorAll('.calculator-card');
+                
+                if (category === 'all') {
+                    calculatorCards.forEach(card => {
+                        card.style.display = 'block';
+                    });
+                    return;
+                }
+                
+                calculatorCards.forEach(card => {
+                    const cardCategory = card.querySelector('.calculator-category').textContent.toLowerCase();
+                    if (cardCategory === category) {
+                        card.style.display = 'block';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
