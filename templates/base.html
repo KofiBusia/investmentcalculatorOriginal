@@ -1,53 +1,106 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{% block title %}{% endblock %} - Investment Calculator</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Montserrat:wght@700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1910810542133525" crossorigin="anonymous"></script>
-</head>
-<body>
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/styles.css') }}"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Montserrat:wght@700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
+    />
+    <script
+      async
+      src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1910810542133525"
+      crossorigin="anonymous"
+    ></script>
+  </head>
+  <body>
     <header>
-        <div class="container">
-            <div class="d-flex justify-content-between align-items-center">
-                <div class="header-content">
-                    <img src="{{ url_for('static', filename='images/umb_logo.png') }}" alt="UMB Logo" class="logo">
-                    <h1 class="header-title">Investment Calculator</h1>
-                </div>
-                <nav>
-                    <ul class="nav">
-                        <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
-                        <li class="nav-item"><a class="nav-link" href="/about">About Us</a></li>
-                        <li class="nav-item"><a class="nav-link" href="/contact">Contact Us</a></li>
-                        <li class="nav-item"><a class="nav-link" href="/privacy-policy">Privacy Policy</a></li>
-                        <li class="nav-item"><a class="nav-link" href="/terms">Terms & Conditions</a></li>
-                        <li class="nav-item"><a class="nav-link" href="/help">Get Started Guide</a></li>
-                    </ul>
-                </nav>
-            </div>
+      <div class="header-content">
+        <div class="d-flex align-items-center">
+          <img
+            src="{{ url_for('static', filename='images/umb_logo.png') }}"
+            alt="UMB Logo"
+            class="logo"
+          />
         </div>
+        <nav>
+          <ul class="nav">
+            <li class="nav-item">
+              <a class="nav-link" href="/">Home</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/about">About Us</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/contact">Contact Us</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/privacy-policy">Privacy Policy</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/terms">Terms & Conditions</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/help">Get Started Guide</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/articles"
+                ><i class="fas fa-lightbulb mr-1"></i>Investment Insights &
+                Articles</a
+              >
+            </li>
+          </ul>
+        </nav>
+        <div class="header-action">
+          <a href="/login" class="btn">Sign In</a>
+        </div>
+      </div>
     </header>
+    {% block hero %}{% endblock %}
     <div class="container mt-4">
-        {% with messages = get_flashed_messages(with_categories=true) %}
-          {% if messages %}
-            <div class="alerts">
-              {% for category, message in messages %}
-                <div class="alert alert-{{ category }}">{{ message }}</div>
-              {% endfor %}
-            </div>
-          {% endif %}
-        {% endwith %}
-        {% block content %}{% endblock %}
+      {% with messages = get_flashed_messages(with_categories=true) %} {% if
+      messages %}
+      <div class="alerts">
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+      {% endif %} {% endwith %} {% block content %}{% endblock %}
     </div>
     <footer class="text-center mt-4">
-        <p>Created by <a href="https://kofibusia.github.io/kofi-busia-kyei.github.io/" target="_blank">Kofi Busia Kyei</a></p>
+      <div class="mb-2">
+        <a href="/about">About</a> &nbsp;|&nbsp;
+        <a href="/contact">Contact</a> &nbsp;|&nbsp;
+        <a href="/privacy-policy">Privacy Policy</a> &nbsp;|&nbsp;
+        <a href="/terms">Terms</a>
+      </div>
+      <div class="mb-2">
+        <a
+          href="https://kofibusia.github.io/kofi-busia-kyei.github.io/"
+          target="_blank"
+          rel="noopener"
+          >Kofi Busia Kyei</a
+        >
+      </div>
+      <div style="font-size: 0.95em; color: #b0a8c9">
+        &copy; {{ 2024 }} Investment Calculator. All rights reserved.
+      </div>
     </footer>
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-</body>
+  </body>
 </html>

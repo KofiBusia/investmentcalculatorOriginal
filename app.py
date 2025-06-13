@@ -90,6 +90,7 @@ class BlogPost(db.Model):
     content = db.Column(db.Text, nullable=False)
     author = db.Column(db.String(100), nullable=False, default="Admin")
     author_photo = db.Column(db.String(100), nullable=True)
+    main_image = db.Column(db.String(100), nullable=True)  # New field for main image
     date_posted = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
     slug = db.Column(db.String(200), nullable=False, unique=True)
 
@@ -117,6 +118,14 @@ class ArticleForm(FlaskForm):
     author_photo = FileField('Author Photo')
     content = TextAreaField('Content', validators=[validators.DataRequired()])
     submit = SubmitField('Post Article')
+    
+class BlogForm(FlaskForm):
+    title = StringField('Title', validators=[validators.DataRequired(), validators.Length(min=5, max=200)])
+    author = StringField('Author', validators=[validators.DataRequired(), validators.Length(min=2, max=100)])
+    author_photo = FileField('Author Photo')
+    main_image = FileField('Main Image')  # New field for main image
+    content = TextAreaField('Content', validators=[validators.DataRequired()])
+    submit = SubmitField('Post Blog')
     
 # FORMS BLOCK
 # -----------
@@ -1462,12 +1471,22 @@ def admin_blog():
             elif file:
                 flash('Invalid file type', 'danger')
                 return render_template('admin_blog.html', form=form, posts=BlogPost.query.order_by(BlogPost.date_posted.desc()).all())
+            # Handle main image upload
+            main_image_file = request.files.get('main_image')
+            main_image_filename = None
+            if main_image_file and allowed_file(main_image_file.filename):
+                main_image_filename = secure_filename(main_image_file.filename)
+                main_image_file.save(os.path.join(app.config['UPLOAD_FOLDER'], main_image_filename))
+            elif main_image_file and main_image_file.filename:
+                flash('Invalid main image file type', 'danger')
+                return render_template('admin_blog.html', form=form, posts=BlogPost.query.order_by(BlogPost.date_posted.desc()).all())
             new_post = BlogPost(
                 title=form.title.data,
                 slug=generate_slug(form.title.data),
                 content=form.content.data,
                 author=form.author.data,
-                author_photo=filename
+                author_photo=filename,
+                main_image=main_image_filename
             )
             db.session.add(new_post)
             db.session.commit()
@@ -1498,10 +1517,25 @@ def edit_blog_post(post_id):
             elif file:
                 flash('Invalid file type', 'danger')
                 return render_template('edit_blog_post.html', form=form, post=post)
+            # Handle main image upload
+            main_image_file = request.files.get('main_image')
+            main_image_filename = post.main_image
+            if main_image_file and allowed_file(main_image_file.filename):
+                if post.main_image:
+                    try:
+                        os.remove(os.path.join(app.config['UPLOAD_FOLDER'], post.main_image))
+                    except FileNotFoundError:
+                        pass
+                main_image_filename = secure_filename(main_image_file.filename)
+                main_image_file.save(os.path.join(app.config['UPLOAD_FOLDER'], main_image_filename))
+            elif main_image_file and main_image_file.filename:
+                flash('Invalid main image file type', 'danger')
+                return render_template('edit_blog_post.html', form=form, post=post)
             post.title = form.title.data
             post.content = form.content.data
             post.author = form.author.data
             post.author_photo = filename
+            post.main_image = main_image_filename
             db.session.commit()
             flash('Post updated!', 'success')
             return redirect(url_for('admin_blog'))
