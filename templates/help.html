@@ -21,7 +21,7 @@
         <input 
             type="text" 
             id="search" 
-            placeholder="Search calculators (e.g., intrinsic value, bank stock)..." 
+            placeholder="Search calculators (e.g., intrinsic value, bank stock, multi-method)..." 
             class="w-full h-12 px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-200 ease-in-out text-lg" 
             oninput="filterCalculators()" 
             aria-label="Search for a calculator"
@@ -51,23 +51,23 @@
                     <li>
                         <strong>Choose Years of Cash Flow</strong>: Select how many years of historical Free Cash Flow (FCF) data to use (3-5 years).
                         <ul class="list-disc list-inside space-y-2 ml-6">
-                            <li>For companies with stable cash flows, such as utility companies like GRIDCo in Ghana, 3 years might be sufficient.</li>
-                            <li>For volatile companies, like tech startups, use 5 years for a better average.</li>
-                            <li><strong>Where to Find Data</strong>: FCF is cash available after capital expenditures. Check the cash flow statement in annual reports on <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a> or <a href="https://www.annualreportsghana.com/resources/equity/gse/" class="text-indigo-600 hover:underline">annualreportsghana.com</a>. Use our <a href="https://younginvestorcalculator.com/calculate-fcf" class="text-indigo-600 hover:underline">FCF Calculator</a> if needed.</li>
+                            <li>For stable companies, like utility firms such as GRIDCo in Ghana, 3 years may suffice.</li>
+                            <li>For volatile companies, like tech startups, use 5 years for a reliable average.</li>
+                            <li><strong>Where to Find Data</strong>: FCF is cash available after capital expenditures. Check cash flow statements in annual reports on <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a> or <a href="https://www.annualreportsghana.com/resources/equity/gse/" class="text-indigo-600 hover:underline">annualreportsghana.com</a>. Use our <a href="https://younginvestorcalculator.com/calculate-fcf" class="text-indigo-600 hover:underline">FCF Calculator</a> if needed.</li>
                         </ul>
                     </li>
                     <li>
                         <strong>Enter FCF Amounts</strong>: Input the FCF for each year.
                         <ul class="list-disc list-inside space-y-2 ml-6">
-                            <li>Example: For 2022-2024, enter 1,000,000 GHS, 1,200,000 GHS, and 1,500,000 GHS.</li>
-                            <li><strong>Where to Find Data</strong>: Look under "Cash from Operating Activities" minus "Capital Expenditures" in the cash flow statement on <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a>, <a href="https://www.annualreportsghana.com/resources/equity/gse/" class="text-indigo-600 hover:underline">annualreportsghana.com</a>, or <a href="https://afx.kwayisi.org/gse/" class="text-indigo-600 hover:underline">afx.kwayisi.org/gse/</a>.</li>
-                            <li>If FCF isn’t provided, calculate it: Operating Cash Flow - Capital Expenditures.</li>
+                            <li>Example: For 2022-2024, enter 1,000,000 GHS, 1,200,000 GHS, 1,500,000 GHS.</li>
+                            <li><strong>Where to Find Data</strong>: Look under "Cash from Operating Activities" minus "Capital Expenditures" in cash flow statements on <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a>, <a href="https://www.annualreportsghana.com/resources/equity/gse/" class="text-indigo-600 hover:underline">annualreportsghana.com</a>, or <a href="https://afx.kwayisi.org/gse/" class="text-indigo-600 hover:underline">afx.kwayisi.org/gse/</a>.</li>
+                            <li>If FCF isn’t listed, calculate it: Operating Cash Flow - Capital Expenditures.</li>
                         </ul>
                     </li>
                     <li>
                         <strong>Select Growth Model</strong>: Choose a model for future cash flows.
                         <ul class="list-disc list-inside space-y-2 ml-6">
-                            <li><strong>Perpetual Growth</strong>: For mature companies like GCB Bank with stable growth (e.g., 2-3%, tied to inflation or GDP).</li>
+                            <li><strong>Perpetual Growth</strong>: For mature firms like GCB Bank with stable growth (e.g., 2-3%, tied to inflation or GDP).</li>
                             <li><strong>Two-Stage Growth</strong>: For growing firms like tech startups (e.g., 10% for 5 years, then 3% long-term).</li>
                             <li><strong>Where to Find Data</strong>: Base rates on historical growth from <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a>.</li>
                         </ul>
@@ -77,8 +77,8 @@
                         <ul class="list-disc list-inside space-y-2 ml-6">
                             <li><strong>CAPM</strong>:
                                 <ul class="list-circle list-inside ml-6">
-                                    <li>Risk-Free Rate: Use Ghana’s 10-year bond yield from <a href="https://www.bog.gov.gh/" class="text-indigo-600 hover:underline">bog.gov.gh</a> (e.g., 20%).</li>
-                                    <li>Expected Market Return: Estimate 10-15% based on GSE historical returns from <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a>.</li>
+                                    <li>Risk-Free Rate: Ghana’s 10-year bond yield (e.g., 20%) from <a href="https://www.bog.gov.gh/" class="text-indigo-600 hover:underline">bog.gov.gh</a>.</li>
+                                    <li>Expected Market Return: Estimate 10-15% from GSE historical returns on <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a>.</li>
                                     <li>Beta: Find on <a href="https://afx.kwayisi.org/gse/" class="text-indigo-600 hover:underline">afx.kwayisi.org/gse/</a> or use our <a href="https://younginvestorcalculator.com/calculate-beta" class="text-indigo-600 hover:underline">Beta Calculator</a>.</li>
                                 </ul>
                             </li>
@@ -89,7 +89,7 @@
                         <strong>Enter Additional Details</strong>: Add shares outstanding, debt, and cash (optional).
                         <ul class="list-disc list-inside space-y-2 ml-6">
                             <li>Example: 10 million shares, 500,000 GHS debt, 200,000 GHS cash.</li>
-                            <li><strong>Where to Find Data</strong>: Check the balance sheet on <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a> or <a href="https://www.annualreportsghana.com/resources/equity/gse/" class="text-indigo-600 hover:underline">annualreportsghana.com</a>.</li>
+                            <li><strong>Where to Find Data</strong>: Check balance sheets on <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a> or <a href="https://www.annualreportsghana.com/resources/equity/gse/" class="text-indigo-600 hover:underline">annualreportsghana.com</a>.</li>
                         </ul>
                     </li>
                     <li>
@@ -102,7 +102,7 @@
                     <li>
                         <strong>Calculate</strong>: Get the intrinsic value per share.
                         <ul class="list-disc list-inside space-y-2 ml-6">
-                            <li>Example: If intrinsic value is 60 GHS and market price is 50 GHS (from <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a>), the stock may be undervalued.</li>
+                            <li>Example: If intrinsic value is 60 GHS and market price is 50 GHS from <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a>, the stock may be undervalued.</li>
                         </ul>
                     </li>
                 </ol>
@@ -234,42 +234,42 @@
             </button>
             <div id="beta-calculator-content" class="content collapsed mt-4 text-gray-700">
                 <h3 class="text-xl font-medium mb-3 text-gray-800">What It Does</h3>
-                <p class="mb-3">This calculator helps you figure out the beta of a stock, which shows how much a stock’s price moves compared to the overall market. A beta greater than 1 means the stock is more up-and-down than the market, while a beta less than 1 means it’s calmer. A beta of 1 means it moves just like the market. Beta is useful for understanding risk and is used in tools like our Intrinsic Value Calculator.</p>
+                <p class="mb-3">This calculator computes a stock’s beta, measuring its price volatility relative to the market. A beta > 1 indicates higher volatility, < 1 indicates lower volatility, and = 1 matches market movement. Beta is key for risk assessment in tools like our Intrinsic Value Calculator.</p>
                 
                 <h3 class="text-xl font-medium mb-3 text-gray-800">How to Use It</h3>
-                <p class="mb-2">Follow these simple steps to calculate beta:</p>
+                <p class="mb-2">Follow these steps to calculate beta:</p>
                 <ol class="list-decimal pl-6 space-y-4 mb-4">
                     <li>
-                        <strong>Gather Historical Returns</strong>: Find the percentage returns for the stock and the market over the same time periods (e.g., monthly). A return is how much the price changes in percentage. For example, if a stock goes from 100 GHS to 105 GHS in a month, the return is 5%.
+                        <strong>Gather Historical Returns</strong>: Collect percentage returns for the stock and market over matching periods (e.g., monthly). A return is the percentage price change (e.g., from 100 GHS to 105 GHS = 5%).
                         <ul class="list-disc list-inside space-y-2 ml-6">
-                            <li>For Ghanaian stocks, visit the <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">Ghana Stock Exchange (GSE)</a> or financial news sites.</li>
-                            <li>For global stocks, check <a href="https://finance.yahoo.com/" class="text-indigo-600 hover:underline">Yahoo Finance</a> or similar sites.</li>
+                            <li>For Ghanaian stocks, use <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a> or financial news sites.</li>
+                            <li>For global stocks, check <a href="https://finance.yahoo.com/" class="text-indigo-600 hover:underline">finance.yahoo.com</a>.</li>
                         </ul>
                     </li>
                     <li>
-                        <strong>Input Stock Returns</strong>: Type the stock’s returns into the "Stock Returns" field, separated by commas. For example: 5.2, -3.1, 4.7
+                        <strong>Input Stock Returns</strong>: Enter stock returns, comma-separated (e.g., 5.2, -3.1, 4.7).
                     </li>
                     <li>
-                        <strong>Input Market Returns</strong>: Type the market’s returns into the "Market Returns" field, separated by commas. Make sure they match the stock returns in number and order. For example: 4.1, -2.8, 5.0
+                        <strong>Input Market Returns</strong>: Enter market returns, comma-separated, matching stock returns (e.g., 4.1, -2.8, 5.0).
                     </li>
                     <li>
-                        <strong>Calculate Beta</strong>: Click the "Calculate Beta" button to see the beta value.
+                        <strong>Calculate Beta</strong>: Click “Calculate Beta” to view the result.
                     </li>
                 </ol>
                 
                 <h3 class="text-xl font-medium mb-3 text-gray-800">Tips</h3>
                 <ul class="list-disc list-inside space-y-2 mb-4">
-                    <li>Use 12-24 months of data for better accuracy.</li>
-                    <li>Make sure stock and market returns are from the same time periods (e.g., all monthly).</li>
-                    <li>Pick the right market index, like the GSE All-Share Index for Ghanaian stocks or S&P 500 for US stocks.</li>
-                    <li>Use the beta in our other calculators, like the Intrinsic Value Calculator, to figure out risk-adjusted returns.</li>
+                    <li>Use 12-24 months of data for accuracy.</li>
+                    <li>Ensure stock and market returns align in time periods (e.g., all monthly).</li>
+                    <li>Select the right market index (e.g., GSE All-Share Index for Ghana, S&P 500 for US).</li>
+                    <li>Use beta in our calculators for risk-adjusted returns.</li>
                 </ul>
                 
                 <h3 class="text-xl font-medium mb-3 text-gray-800">Common Mistakes to Avoid</h3>
                 <ul class="list-disc list-inside space-y-2 mb-4">
-                    <li>Don’t use different numbers of returns for stock and market—they must match.</li>
+                    <li>Ensure equal numbers of stock and market returns.</li>
                     <li>Enter returns as percentages (e.g., 5 for 5%), not decimals (e.g., 0.05).</li>
-                    <li>Avoid mixing time periods, like monthly and quarterly returns.</li>
+                    <li>Avoid mixing time periods (e.g., monthly and quarterly).</li>
                 </ul>
                 
                 <p><a href="{{ url_for('calculate_beta') }}" class="text-indigo-600 hover:text-indigo-800 font-medium transition-colors duration-200">Go to Beta Calculator</a></p>
@@ -289,50 +289,343 @@
             </button>
             <div id="pe-vc-content" class="content collapsed mt-4 text-gray-700">
                 <h3 class="text-xl font-medium mb-3 text-gray-800">What It Does</h3>
-                <p class="mb-3">This calculator helps you estimate the value of private companies or startups using three methods: Discounted Cash Flow (DCF) for stable businesses, Venture Capital Method for high-growth startups, and ARR Multiple for subscription-based companies.</p>
+                <p class="mb-3">This calculator estimates the value of private companies or startups using three methods: Discounted Cash Flow (DCF) for stable businesses, Venture Capital Method for high-growth startups, and ARR Multiple for subscription-based firms.</p>
                 
                 <h3 class="text-xl font-medium mb-3 text-gray-800">How to Use It</h3>
                 <p class="mb-2">Choose a valuation method and follow these steps:</p>
                 <ul class="list-disc list-inside space-y-4 mb-4">
                     <li>
-                        <strong>Discounted Cash Flow (DCF)</strong> - Best for companies with predictable cash flows, like mature businesses.
+                        <strong>Discounted Cash Flow (DCF)</strong> - Best for firms with predictable cash flows.
                         <ol class="list-decimal pl-6 space-y-2">
-                            <li>Input Free Cash Flows for 1–5 years. Free Cash Flow (FCF) is cash generated after expenses and investments. For public companies, find FCF in the cash flow statement of their annual report on sites like Yahoo Finance (global) or <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a> (Ghana). For private companies, estimate using industry averages or consult financial advisors. Try our <a href="https://younginvestorcalculator.com/calculate-fcf" class="text-indigo-600 hover:underline">FCF Calculator</a>.</li>
-                            <li>Provide the risk-free rate (e.g., 10-year bond yield from <a href="https://www.bog.gov.gh/" class="text-indigo-600 hover:underline">bog.gov.gh</a> for Ghana or treasury.gov for the US), market return (e.g., 10-15% from historical data), and beta (a risk measure from Yahoo Finance, <a href="https://afx.kwayisi.org/gse/" class="text-indigo-600 hover:underline">afx.kwayisi.org/gse/</a> for Ghana, or our <a href="https://younginvestorcalculator.com/calculate-beta" class="text-indigo-600 hover:underline">Beta Calculator</a>).</li>
-                            <li>Enter debt, equity, tax rate, and either a growth rate for perpetual cash flows or an exit multiple for terminal value. Find debt and equity on the balance sheet, tax rates from financial statements or local tax sites.</li>
+                            <li>Input Free Cash Flows for 1–5 years. FCF is cash after expenses and investments. For public firms, find FCF in cash flow statements on <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a> or <a href="https://finance.yahoo.com/" class="text-indigo-600 hover:underline">finance.yahoo.com</a>. For private firms, estimate using industry averages or advisors. Try our <a href="https://younginvestorcalculator.com/calculate-fcf" class="text-indigo-600 hover:underline">FCF Calculator</a>.</li>
+                            <li>Provide risk-free rate (e.g., 10-year bond yield from <a href="https://www.bog.gov.gh/" class="text-indigo-600 hover:underline">bog.gov.gh</a>), market return (e.g., 10-15%), and beta (from <a href="https://afx.kwayisi.org/gse/" class="text-indigo-600 hover:underline">afx.kwayisi.org/gse/</a> or our <a href="https://younginvestorcalculator.com/calculate-beta" class="text-indigo-600 hover:underline">Beta Calculator</a>).</li>
+                            <li>Enter debt, equity, tax rate, and growth rate or exit multiple for terminal value. Find debt and equity on balance sheets, tax rates from financials.</li>
                         </ol>
                     </li>
                     <li>
-                        <strong>Venture Capital Method</strong> - Ideal for early-stage startups with high growth potential but uncertain cash flows.
+                        <strong>Venture Capital Method</strong> - Ideal for early-stage startups.
                         <ol class="list-decimal pl-6 space-y-2">
-                            <li>Specify the expected exit value (e.g., sale price or IPO valuation, based on comparable deals or multiples), target return (e.g., 10x investment), investment amount, exit timeline (e.g., 5 years), and dilution factor (e.g., 0.8 for 20% dilution). For private firms, use industry reports or advisor estimates.</li>
+                            <li>Specify expected exit value (e.g., sale or IPO valuation), target return (e.g., 10x), investment amount, exit timeline (e.g., 5 years), and dilution factor (e.g., 0.8 for 20% dilution). Use industry reports or advisor estimates.</li>
                         </ol>
                     </li>
                     <li>
-                        <strong>ARR Multiple</strong> - Great for subscription-based companies with recurring revenue.
+                        <strong>ARR Multiple</strong> - Suitable for subscription-based firms.
                         <ol class="list-decimal pl-6 space-y-2">
-                            <li>Input Annual Recurring Revenue (ARR), the yearly subscription revenue, and choose an ARR multiple (e.g., 10x for high-growth firms). Estimate ARR from sales data or industry benchmarks for private companies. Optionally, adjust for control premium or illiquidity discount. Find multiples in industry reports or financial news.</li>
+                            <li>Input Annual Recurring Revenue (ARR) and ARR multiple (e.g., 10x for high-growth). Estimate ARR from sales data or benchmarks. Adjust for control premium or illiquidity discount. Find multiples in industry reports.</li>
                         </ol>
                     </li>
                 </ul>
                 
                 <h3 class="text-xl font-medium mb-3 text-gray-800">Tips</h3>
                 <ul class="list-disc list-inside space-y-2 mb-4">
-                    <li>Be conservative with growth rates and exit values to avoid overvaluation.</li>
-                    <li>Understand each method’s focus: DCF for stable cash flows, Venture Capital for exit potential, ARR for recurring revenue.</li>
-                    <li>Cross-check results with other methods or market data for accuracy.</li>
+                    <li>Use conservative growth rates and exit values.</li>
+                    <li>Match method to company type: DCF for stable firms, Venture Capital for startups, ARR for subscription models.</li>
+                    <li>Cross-check results with other methods or market data.</li>
                 </ul>
                 
                 <h3 class="text-xl font-medium mb-3 text-gray-800">Common Mistakes to Avoid</h3>
                 <ul class="list-disc list-inside space-y-2 mb-4">
-                    <li>For DCF, don’t overestimate cash flows—use realistic assumptions.</li>
-                    <li>For Venture Capital Method, note that exit values are uncertain and can fluctuate.</li>
-                    <li>For ARR Multiple, pick multiples that match the company’s growth stage and market trends.</li>
+                    <li>For DCF, avoid overestimating cash flows.</li>
+                    <li>For Venture Capital, note exit value uncertainty.</li>
+                    <li>For ARR, choose multiples matching growth stage and market trends.</li>
                 </ul>
                 
                 <p><a href="{{ url_for('pe_vc_valuation') }}" class="text-indigo-600 hover:text-indigo-800 font-medium transition-colors duration-200">Go to PE & VC Valuation Calculator</a></p>
             </div>
         </div>
+
+        <!-- Multi-Method Stock Valuation Calculator -->
+        <div id="multi-method-valuation" class="calculator bg-white p-6 rounded-xl shadow-md transition-all duration-300 hover:shadow-lg">
+            <button 
+                class="w-full text-left text-xl font-semibold text-gray-800 flex justify-between items-center py-2 px-4 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded" 
+                onclick="toggleSection(this)" 
+                aria-expanded="false" 
+                aria-controls="multi-method-valuation-content"
+            >
+                <span>📊 Multi-Method Stock Valuation Calculator</span>
+                <span class="toggle-icon text-xl font-bold text-blue-600">+</span>
+            </button>
+            <div id="multi-method-valuation-content" class="content collapsed mt-4 text-gray-700 text-lg">
+                <h3 class="text-xl font-medium mb-3 text-gray-800">What It Does</h3>
+                <p class="mb-3">The Multi-Method Stock Valuation Calculator estimates a stock’s intrinsic value per share using three methods: Dividend Discount Model (DDM), Discounted Cash Flow (DCF), and Price-to-Earnings (P/E). It combines these with customizable weights to produce a weighted average intrinsic value, helping you determine if a stock is overvalued or undervalued against its market price. A sensitivity toggle offers three weighting scenarios—Conservative (dividend and cash flow focus), Balanced (cash flow emphasis), and Growth (market potential focus)—to suit different investment perspectives.</p>
+                
+                <h3 class="text-xl font-medium mb-3 text-gray-800">How to Use It</h3>
+                <p class="mb-2">Follow these steps to calculate a stock’s intrinsic value, using examples like Access Bank Ghana (174 million shares) or MTN Ghana (13.2 billion shares):</p>
+                <ol class="list-decimal pl-6 space-y-4 mb-4">
+                    <li>
+                        <strong>Access the Calculator</strong>: Go to <a href="https://younginvestorcalculator.com/multi-method-valuation" class="text-indigo-600 hover:underline">younginvestorcalculator.com/multi-method-valuation</a> or select “Multi-Method Stock Valuation” from the homepage.
+                    </li>
+                    <li>
+                        <strong>Choose Weighting Scenario</strong>: Select a scenario from the dropdown to set method weights.
+                        <ul class="list-disc list-inside space-y-2 ml-6">
+                            <li><strong>Conservative</strong>: 30% DDM Base, 20% DDM Sensitivity, 30% DCF, 20% P/E. Suits dividend-focused firms like Standard Chartered Ghana.</li>
+                            <li><strong>Balanced</strong>: 20% DDM Base, 20% DDM Sensitivity, 40% DCF, 20% P/E. Ideal for cash flow-strong firms like MTN Ghana.</li>
+                            <li><strong>Growth</strong>: 20% DDM Base, 20% DDM Sensitivity, 30% DCF, 30% P/E. Best for growth stocks like Access Bank Ghana.</li>
+                            <li><strong>Tip</strong>: Test all scenarios to assess how weights impact the intrinsic value, especially for banks (DDM-heavy) or growth firms (P/E-heavy).</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Enter General Parameters</strong>: Input market and growth assumptions.
+                        <ul class="list-disc list-inside space-y-2 ml-6">
+                            <li><strong>Current Stock Price (GHS)</strong>: Obtain from <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a>. Example: 9.20 GHS for Access Bank (2025 estimate).</li>
+                            <li><strong>Number of Years for High Growth</strong>: Choose 3–5 years based on growth phase. Use 5 years for expanding firms like Access Bank or MTN Ghana.</li>
+                            <li><strong>High-Growth Rate (%)</strong>: Estimate from historical revenue or earnings growth on <a href="https://www.annualreportsghana.com/resources/equity/gse/" class="text-indigo-600 hover:underline">annualreportsghana.com</a>. Example: 12% for Access Bank (bank sector), 15% for MTN Ghana.</li>
+                            <li><strong>Terminal Growth Rate (%)</strong>: Align with Ghana’s GDP growth (e.g., 5.7% in 2025, <a href="https://data.worldbank.org/indicator/NY.GDP.MKTP.KD.ZG?locations=GH" class="text-indigo-600 hover:underline">data.worldbank.org</a>) or industry average. Example: 4% for MTN Ghana.</li>
+                            <li><strong>Discount Rate (%)</strong>: Calculate cost of equity using CAPM:
+                                <ul class="list-circle list-inside ml-6">
+                                    <li><span class="font-mono">Discount Rate = Risk-Free Rate + Beta × (Market Return - Risk-Free Rate)</span></li>
+                                    <li>Risk-Free Rate: Ghana’s 10-year bond yield (e.g., 9.9%) from <a href="https://www.bog.gov.gh/" class="text-indigo-600 hover:underline">bog.gov.gh</a>.</li>
+                                    <li>Market Return: GSE historical returns (e.g., 22%) from <a href="https://afx.kwayisi.org/gse/" class="text-indigo-600 hover:underline">afx.kwayisi.org/gse/</a>.</li>
+                                    <li>Beta: Obtain from <a href="https://afx.kwayisi.org/gse/" class="text-indigo-600 hover:underline">afx.kwayisi.org/gse/</a> or our <a href="https://younginvestorcalculator.com/calculate-beta" class="text-indigo-600 hover:underline">Beta Calculator</a>. Example: 0.50 for Access Bank (low risk), 1.314 for MTN Ghana.</li>
+                                    <li>Example: For Access Bank, <span class="font-mono">9.9% + 0.50 × (22% - 9.9%) ≈ 16%</span>; for MTN Ghana, 31.01%.</li>
+                                </ul>
+                            </li>
+                            <li><strong>Where to Find Data</strong>: Financial reports on <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a> or analyst estimates.</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Enter DDM Parameters</strong>: Input dividend data for the Dividend Discount Model.
+                        <ul class="list-disc list-inside space-y-2 ml-6">
+                            <li><strong>Base Dividend per Share (GHS)</strong>: Current or projected dividend per share from <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a>. Example: 0.50 GHS for Access Bank (40% payout on EPS of 1.25 GHS), 0.12 GHS for MTN Ghana.</li>
+                            <li><strong>Sensitivity Dividend per Share (GHS)</strong>: Higher dividend scenario (e.g., special dividend). Example: 0.75 GHS for Access Bank, 0.2208 GHS for MTN Ghana (147.2% payout).</li>
+                            <li><strong>Where to Find Data</strong>: Dividend history in annual reports on <a href="https://www.annualreportsghana.com/resources/equity/gse/" class="text-indigo-600 hover:underline">annualreportsghana.com</a>. Calculate as: <span class="font-mono">Total Dividends ÷ Shares Outstanding</span> (e.g., Access Bank: 174 million; MTN Ghana: 13.2 billion).</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Enter DCF Parameters</strong>: Input free cash flow data for the Discounted Cash Flow model.
+                        <ul class="list-disc list-inside space-y-2 ml-6">
+                            <li><strong>Current FCFE per Share (GHS)</strong>: Free Cash Flow to Equity per share, calculated as:
+                                <ul class="list-circle list-inside ml-6">
+                                    <li><span class="font-mono">FCFE = Net Income - Net Capex - Change in Working Capital + Net Borrowing</span></li>
+                                    <li><span class="font-mono">FCFE per Share = FCFE ÷ Shares Outstanding</span></li>
+                                </ul>
+                            </li>
+                            <li>Example: 0.80 GHS for Access Bank (estimated), 0.0430 GHS for MTN Ghana.</li>
+                            <li><strong>Where to Find Data</strong>: Income statement, cash flow statement, and balance sheet on <a href="https://www.annualreportsghana.com/resources/equity/gse/" class="text-indigo-600 hover:underline">annualreportsghana.com</a>. Use our <a href="https://younginvestorcalculator.com/calculate-fcf" class="text-indigo-600 hover:underline">FCF Calculator</a> for guidance.</li>
+                            <li><strong>Note</strong>: For banks like Access Bank, adjust FCFE for loan provisions and regulatory capital; for telecoms like MTN Ghana, account for high capex.</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Enter P/E Parameters</strong>: Input earnings data for the Price-to-Earnings approach.
+                        <ul class="list-disc list-inside space-y-2 ml-6">
+                            <li><strong>Current EPS (GHS)</strong>: Earnings per Share = <span class="font-mono">Net Income ÷ Shares Outstanding</span>. Example: 1.25 GHS for Access Bank, 0.15 GHS for MTN Ghana.</li>
+                            <li><strong>EPS Growth Rate (%)</strong>: Align with high-growth rate or historical earnings growth. Example: 12% for Access Bank, 15% for MTN Ghana.</li>
+                            <li><strong>P/E Multiple</strong>: Reflects market valuation of earnings. Obtain as follows:
+                                <ul class="list-circle list-inside ml-6">
+                                    <li><strong>Industry Average</strong>: Check sector P/E ratios on <a href="https://afx.kwayisi.org/gse/" class="text-indigo-600 hover:underline">afx.kwayisi.org/gse/</a> or financial platforms like <a href="https://finance.yahoo.com/" class="text-indigo-600 hover:underline">finance.yahoo.com</a>. Example: 8–12x for banks (Access Bank), 15–20x for telecoms (MTN Ghana).</li>
+                                    <li><strong>Historical P/E</strong>: Review the company’s past P/E ratios on <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a> or <a href="https://afx.kwayisi.org/gse/" class="text-indigo-600 hover:underline">afx.kwayisi.org/gse/</a>. Use the average over 3–5 years.</li>
+                                    <li><strong>Analyst Targets</strong>: Use forward P/E from analyst reports or platforms like Bloomberg. Example: 10x for Access Bank, 20x for MTN Ghana.</li>
+                                    <li><strong>Tip</strong>: Choose a conservative multiple for stable firms, higher for growth firms.</li>
+                                </ul>
+                            </li>
+                            <li><strong>Projection Years for P/E</strong>: Number of years to project EPS growth, typically 1–3 years. Determine as follows:
+                                <ul class="list-circle list-inside ml-6">
+                                    <li><strong>Short-Term (1 Year)</strong>: Default for stable firms or uncertain markets. Use if analyst forecasts are reliable for 1 year (check <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a>).</li>
+                                    <li><strong>Medium-Term (2–3 Years)</strong>: Suitable for growth firms with predictable earnings trends. Base on historical growth stability or analyst projections from <a href="https://www.annualreportsghana.com/resources/equity/gse/" class="text-indigo-600 hover:underline">annualreportsghana.com</a>.</li>
+                                    <li>Example: 1 year for Access Bank (bank sector volatility), 1 year for MTN Ghana (default).</li>
+                                    <li><strong>Tip</strong>: Shorter periods reduce forecasting errors; longer periods suit high-growth firms.</li>
+                                </ul>
+                            </li>
+                            <li><strong>Where to Find Data</strong>: Income statement for EPS, market data for P/E on <a href="https://www.annualreportsghana.com/resources/equity/gse/" class="text-indigo-600 hover:underline">annualreportsghana.com</a> or <a href="https://afx.kwayisi.org/gse/" class="text-indigo-600 hover:underline">afx.kwayisi.org/gse/</a>.</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Calculate</strong>: Click “Calculate” to generate results.
+                        <ul class="list-disc list-inside space-y-2 ml-6">
+                            <li><strong>Output</strong>: “Table 1: Intrinsic Value Summary” displays:
+                                <ul class="list-circle list-inside ml-6">
+                                    <li>Intrinsic values per share for DDM Base, DDM Sensitivity, DCF, and P/E.</li>
+                                    <li>Weights (e.g., 20%, 20%, 40%, 20% for Balanced).</li>
+                                    <li>Weighted average intrinsic value per share.</li>
+                                    <li>Over/undervaluation percentage: <span class="font-mono">((Current Price ÷ Intrinsic Value) - 1) × 100%</span>.</li>
+                                </ul>
+                            </li>
+                            <li>Example: For Access Bank, intrinsic value of 12.50 GHS vs. 9.20 GHS suggests ~35.9% undervaluation. For MTN Ghana, 1.6862 GHS vs. 2.83 GHS indicates ~67.8% overvaluation.</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Interpret Results</strong>: Analyze the output to make decisions.
+                        <ul class="list-disc list-inside space-y-2 ml-6">
+                            <li>If intrinsic value > market price, the stock may be undervalued (buy opportunity).</li>
+                            <li>If intrinsic value < market price, the stock may be overvalued (sell or hold).</li>
+                            <li>Compare across scenarios (Conservative, Balanced, Growth) to gauge sensitivity.</li>
+                        </ul>
+                    </li>
+                </ol>
+                
+                <h3 class="text-xl font-medium mb-3 text-gray-800">Tips</h3>
+                <ul class="list-disc list-inside space-y-2 mb-4">
+                    <li>Use accurate per-share data from <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a> or <a href="https://www.annualreportsghana.com/resources/equity/gse/" class="text-indigo-600 hover:underline">annualreportsghana.com</a>. Divide financials by shares outstanding (e.g., 174 million for Access Bank, 13.2 billion for MTN Ghana) to get EPS, FCFE, dividends per share.</li>
+                    <li>Keep growth rates conservative: 5–15% for high growth, 3–6% for terminal, per <a href="https://data.worldbank.org/indicator/NY.GDP.MKTP.KD.ZG?locations=GH" class="text-indigo-600 hover:underline">data.worldbank.org</a>.</li>
+                    <li>Use sector-specific P/E multiples: 8–12x for banks, 15–20x for telecoms.</li>
+                    <li>For banks like Access Bank, adjust FCFE for loan provisions and regulatory capital; for telecoms like MTN Ghana, account for high capex.</li>
+                    <li>Test all weighting scenarios to understand valuation range in volatile markets (e.g., GSE’s 56.17% return in 2024).</li>
+                </ul>
+                
+                <h3 class="text-xl font-medium mb-3 text-gray-800">Common Mistakes to Avoid</h3>
+                <ul class="list-disc list-inside space-y-2 mb-4">
+                    <li>Use current financials (2024 or 2025) from <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a>, not outdated data.</li>
+                    <li>Justify high discount rates (e.g., 31.01% for MTN Ghana due to beta 1.314; 16% for Access Bank is typical).</li>
+                    <li>Avoid overestimating dividends or FCFE, especially for banks with regulatory constraints.</li>
+                    <li>Ensure P/E multiples align with industry and market conditions on <a href="https://afx.kwayisi.org/gse/" class="text-indigo-600 hover:underline">afx.kwayisi.org/gse/</a>.</li>
+                    <li>Enter positive monetary values and rates between 0–100%, as the calculator validates inputs.</li>
+                </ul>
+                
+                <p><a href="{{ url_for('multi_method_valuation') }}" class="text-indigo-600 hover:text-indigo-800 font-medium transition-colors duration-200">Go to Multi-Method Stock Valuation Calculator</a></p>
+            </div>
+        </div>
+<!-- FCFE Calculator -->
+<div id="fcfe-calculator" class="calculator bg-white p-6 rounded-xl shadow-md transition-all duration-300 hover:shadow-lg">
+    <button 
+        class="w-full text-left text-xl font-semibold text-gray-800 flex justify-between items-center py-2 px-4 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded" 
+        onclick="toggleSection(this)" 
+        aria-expanded="false" 
+        aria-controls="fcfe-calculator-content"
+    >
+        <span>📊 FCFE Calculator</span>
+        <span class="toggle-icon text-xl font-bold text-blue-600">+</span>
+    </button>
+    <div id="fcfe-calculator-content" class="content collapsed mt-4 text-gray-700 text-lg">
+        <h3 class="text-xl font-medium mb-3 text-gray-800">What It Does</h3>
+        <p class="mb-3">This calculator computes Free Cash Flow to Equity (FCFE), the cash available to shareholders after all expenses, investments, and debt obligations. It uses the formula: <span class="font-mono">FCFE = Net Income - Net Capex - Change in Working Capital + Net Borrowing</span>. FCFE is key for valuing stocks, especially in DCF models.</p>
+        
+        <h3 class="text-xl font-medium mb-3 text-gray-800">How to Use It</h3>
+        <p class="mb-2">Follow these steps to calculate FCFE for a company like Access Bank Ghana listed on the Ghana Stock Exchange :</p>
+        <ol class="list-decimal pl-6 space-y-4 mb-4">
+            <li>
+                <strong>Access the Calculator</strong>: Navigate to <a href="{{ url_for('calculate_fcfe') }}" class="text-indigo-600 hover:underline">younginvestorcalculator.com/calculate-fcfe</a> or select “FCFE Calculator” from the homepage.
+            </li>
+            <li>
+                <strong>Gather Financial Data</strong>: You’ll need five years of data (e.g., 2020–2024) for four key metrics: Net Income, Net Capex, Change in Working Capital, and Net Borrowing. These feed into the FCFE formula: <span class="font-mono">FCFE = Net Income - Net Capex - Change in Working Capital + Net Borrowing</span>. Here’s how to find and understand each one, using Access Bank Ghana as an example:
+                <ul class="list-disc list-inside space-y-2 ml-6">
+                    <li>
+                        <strong>Net Income</strong>: This is the company’s profit after all expenses, taxes, and interest, found in the income statement (often called “Profit After Tax”). It’s the starting point for FCFE, showing earnings available to shareholders.
+                        <ul class="list-circle list-inside ml-6 space-y-1">
+                            <li><strong>Where to Find It</strong>: Check annual reports on <a href="https://www.annualreportsghana.com/resources/equity/gse/" class="text-indigo-600 hover:underline">annualreportsghana.com</a> or <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a>. Look for “Net Profit” or “Profit for the Year.” Alternatively, use <a href="https://afx.kwayisi.org/gse/" class="text-indigo-600 hover:underline">afx.kwayisi.org/gse/</a> for summaries.</li>
+                            <li><strong>Example</strong>: Access Bank’s 2023 Net Income might be 200 million GHS (based on 174 million shares and 1.15 GHS EPS).</li>
+                            <li><strong>For Banks</strong>: Adjust for loan loss provisions (check financial statement notes), as these can reduce reported profit.</li>
+                            <li><strong>Tip</strong>: Ensure values are in Ghanaian Cedi (GHS). If projecting 2024, use historical growth (e.g., 10% annual increase).</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Net Capex</strong>: This is the cash spent on long-term assets (Capital Expenditures, or Capex) minus cash from selling assets. It shows how much the company invests in growth or maintenance, reducing cash for shareholders.
+                        <ul class="list-circle list-inside ml-6 space-y-1">
+                            <li><strong>Where to Find It</strong>: In the cash flow statement (Investing Activities), find “Purchases of Property, Plant, and Equipment” (Capex) and “Proceeds from Sale of Assets.” Calculate: <span class="font-mono">Net Capex = Capex - Asset Sales</span>. Sources: <a href="https://www.annualreportsghana.com/resources/equity/gse/" class="text-indigo-600 hover:underline">annualreportsghana.com</a>, <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a>, or <a href="https://afx.kwayisi.org/gse/" class="text-indigo-600 hover:underline">afx.kwayisi.org/gse/</a>.</li>
+                            <li><strong>Example</strong>: In 2024, Access Bank spends 600,000 GHS on new branches and IT systems (Capex) and sells old equipment for 100,000 GHS, so Net Capex is 500,000 GHS.</li>
+                            <li><strong>For Banks</strong>: Capex is often lower, focusing on software or branches. Include intangible assets (e.g., IT licenses).</li>
+                            <li><strong>Tip</strong>: If asset sales are zero, Net Capex equals Capex. For projections, assume steady Capex or check management plans in reports.</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Change in Working Capital</strong>: This tracks year-over-year changes in current assets (e.g., cash, receivables) minus current liabilities (e.g., payables). An increase ties up cash (reducing FCFE); a decrease frees it.
+                        <ul class="list-circle list-inside ml-6 space-y-1">
+                            <li><strong>Where to Find It</strong>: Use the cash flow statement (Operating Activities) for “Change in Working Capital” or line items like “Increase in Receivables.” Alternatively, calculate from balance sheets: <span class="font-mono">Change = (Current Assets - Current Liabilities)_year - (Current Assets - Current Liabilities)_previous year</span>. Sources: <a href="https://www.annualreportsghana.com/resources/equity/gse/" class="text-indigo-600 hover:underline">annualreportsghana.com</a>, <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a>.</li>
+                            <li><strong>Example</strong>: In 2024, Access Bank’s working capital rises from 1.2 million GHS (2023) to 1.4 million GHS, so Change is +200,000 GHS (cash outflow).</li>
+                            <li><strong>For Banks</strong>: Working capital is less relevant, as loans (assets) and deposits (liabilities) dominate. Focus on cash flow statement changes in receivables or payables.</li>
+                            <li><strong>Tip</strong>: In FCFE, increases are subtracted, decreases added. Use annual data to avoid seasonal fluctuations.</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Net Borrowing</strong>: This is new debt issued minus debt repaid, showing cash from borrowing (added to FCFE) or repayments (reducing FCFE).
+                        <ul class="list-circle list-inside ml-6 space-y-1">
+                            <li><strong>Where to Find It</strong>: In the cash flow statement (Financing Activities), find “Proceeds from Borrowings” and “Repayment of Borrowings.” Calculate: <span class="font-mono">Net Borrowing = New Debt - Repayments</span>. Sources: <a href="https://www.annualreportsghana.com/resources/equity/gse/" class="text-indigo-600 hover:underline">annualreportsghana.com</a>, <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a>.</li>
+                            <li><strong>Example</strong>: In 2024, Access Bank issues 400,000 GHS in bonds and repays 100,000 GHS, so Net Borrowing is 300,000 GHS.</li>
+                            <li><strong>For Banks</strong>: Focus on external borrowings (e.g., bonds, interbank loans), not customer deposits. Check financial statement notes for debt details.</li>
+                            <li><strong>Tip</strong>: Cross-check with balance sheet debt changes. For projections, assume stable debt unless reports suggest otherwise.</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Organize Your Data</strong>: Create a table for clarity, e.g.:
+                        <table class="table-auto w-full text-left border-collapse border border-gray-300 mt-2 mb-2">
+                            <thead>
+                                <tr class="bg-gray-100">
+                                    <th class="border border-gray-300 px-4 py-2">Year</th>
+                                    <th class="border border-gray-300 px-4 py-2">Net Income (GHS)</th>
+                                    <th class="border border-gray-300 px-4 py-2">Net Capex (GHS)</th>
+                                    <th class="border border-gray-300 px-4 py-2">Change in WC (GHS)</th>
+                                    <th class="border border-gray-300 px-4 py-2">Net Borrowing (GHS)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="border border-gray-300 px-4 py-2">2020</td>
+                                    <td class="border border-gray-300 px-4 py-2">150,000,000</td>
+                                    <td class="border border-gray-300 px-4 py-2">400,000</td>
+                                    <td class="border border-gray-300 px-4 py-2">150,000</td>
+                                    <td class="border border-gray-300 px-4 py-2">250,000</td>
+                                </tr>
+                                <tr>
+                                    <td class="border border-gray-300 px-4 py-2">2021</td>
+                                    <td class="border border-gray-300 px-4 py-2">165,000,000</td>
+                                    <td class="border border-gray-300 px-4 py-2">420,000</td>
+                                    <td class="border border-gray-300 px-4 py-2">180,000</td>
+                                    <td class="border border-gray-300 px-4 py-2">270,000</td>
+                                </tr>
+                                <tr>
+                                    <td class="border border-gray-300 px-4 py-2">2022</td>
+                                    <td class="border border-gray-300 px-4 py-2">180,000,000</td>
+                                    <td class="border border-gray-300 px-4 py-2">450,000</td>
+                                    <td class="border border-gray-300 px-4 py-2">190,000</td>
+                                    <td class="border border-gray-300 px-4 py-2">280,000</td>
+                                </tr>
+                                <tr>
+                                    <td class="border border-gray-300 px-4 py-2">2023</td>
+                                    <td class="border border-gray-300 px-4 py-2">200,000,000</td>
+                                    <td class="border border-gray-300 px-4 py-2">480,000</td>
+                                    <td class="border border-gray-300 px-4 py-2">200,000</td>
+                                    <td class="border border-gray-300 px-4 py-2">290,000</td>
+                                </tr>
+                                <tr>
+                                    <td class="border border-gray-300 px-4 py-2">2024</td>
+                                    <td class="border border-gray-300 px-4 py-2">217,500,000</td>
+                                    <td class="border border-gray-300 px-4 py-2">500,000</td>
+                                    <td class="border border-gray-300 px-4 py-2">200,000</td>
+                                    <td class="border border-gray-300 px-4 py-2">300,000</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </li>
+                    <li>
+                        <strong>Handle Missing Data</strong>: If reports are incomplete, estimate using quarterly reports, interpolate from trends, or check <a href="https://afx.kwayisi.org/gse/" class="text-indigo-600 hover:underline">afx.kwayisi.org/gse/</a>. For projections, use conservative growth rates (e.g., 5–10% based on past data or GDP from <a href="https://data.worldbank.org/indicator/NY.GDP.MKTP.KD.ZG?locations=GH" class="text-indigo-600 hover:underline">data.worldbank.org</a>).
+                    </li>
+                </ul>
+            </li>
+            <li>
+                <strong>Enter Data</strong>: Input values for each year.
+                <ul class="list-disc list-inside space-y-2 ml-6">
+                    <li>Example for Year 1: Net Income: 1,000,000 GHS, Net Capex: 500,000 GHS, Change in Working Capital: 200,000 GHS, Net Borrowing: 300,000 GHS.</li>
+                    <li>Repeat for Years 2–5, using historical or projected data.</li>
+                </ul>
+            </li>
+            <li>
+                <strong>Calculate</strong>: Click “Calculate FCFE” to view results.
+                <ul class="list-disc list-inside space-y-2 ml-6">
+                    <li><strong>Output</strong>: A table shows Net Income, Net Capex, Change in Working Capital, Net Borrowing, and FCFE for each year.</li>
+                    <li>Example: <span class="font-mono">FCFE = 1,000,000 - 500,000 - 200,000 + 300,000 = 600,000 GHS</span> for Year 1.</li>
+                </ul>
+            </li>
+            <li>
+                <strong>Use Results</strong>: Apply FCFE in valuation models (e.g., DCF) or divide by shares outstanding (e.g., 174 million for Access Bank) to get FCFE per share.
+            </li>
+        </ol>
+        
+        <h3 class="text-xl font-medium mb-3 text-gray-800">Tips</h3>
+        <ul class="list-disc list-inside space-y-2 mb-4">
+            <li>Use reliable sources like <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a> or <a href="https://www.annualreportsghana.com/resources/equity/gse/" class="text-indigo-600 hover:underline">annualreportsghana.com</a> for accurate financials.</li>
+            <li>For banks, adjust Net Income for loan provisions; for capital-intensive firms, verify Net Capex carefully.</li>
+            <li>Use 5 years of data for stable trends, or 3 years in volatile markets.</li>
+        </ul>
+        
+        <h3 class="text-xl font-medium mb-3 text-gray-800">Common Mistakes to Avoid</h3>
+        <ul class="list-disc list-inside space-y-2 mb-4">
+            <li>Don’t use outdated financials—verify 2024 or 2025 data on <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a>.</li>
+            <li>Ensure all inputs are in the same currency (e.g., GHS).</li>
+            <li>Double-check Change in Working Capital sign: increases are negative, decreases are positive.</li>
+        </ul>
+        
+        <p><a href="{{ url_for('calculate_fcfe') }}" class="text-indigo-600 hover:text-indigo-800 font-medium transition-colors duration-200">Go to FCFE Calculator</a></p>
+    </div>
+</div>
 
         <!-- More Calculators -->
         <div id="other" class="calculator bg-white p-6 rounded-xl shadow-md transition-all duration-300 hover:shadow-lg">
@@ -405,7 +698,14 @@ body {
 }
 
 .content.expanded {
-    max-height: 5000px; /* Increased to accommodate larger content */
+    max-height: 5000px;
+}
+
+.font-mono {
+    font-family: 'Courier New', Courier, monospace;
+    background-color: #f3f4f6;
+    padding: 2px 4px;
+    border-radius: 3px;
 }
 </style>
 {% endblock %}

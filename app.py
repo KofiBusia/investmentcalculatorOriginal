@@ -1531,6 +1531,161 @@ def delete_blog_post(post_id):
         flash(f'Error: {str(e)}', 'danger')
     return redirect(url_for('admin_blog'))
 
+#Additional FUNCTIONS ADDED 13TH JUNE 2025
+
+@app.route('/calculate-fcfe', methods=['GET', 'POST'])
+def calculate_fcfe():
+    currency_symbol = 'GHS '  # Adjust as needed
+    if request.method == 'POST':
+        try:
+            net_incomes = []
+            net_capexes = []
+            changes_wc = []
+            net_borrowings = []
+            fcfe_results = []
+
+            for i in range(1, 6):
+                net_income = float(request.form.get(f'net_income_{i}', 0))
+                net_capex = float(request.form.get(f'net_capex_{i}', 0))
+                change_wc = float(request.form.get(f'change_wc_{i}', 0))
+                net_borrowing = float(request.form.get(f'net_borrowing_{i}', 0))
+
+                net_incomes.append(net_income)
+                net_capexes.append(net_capex)
+                changes_wc.append(change_wc)
+                net_borrowings.append(net_borrowing)
+
+                fcfe = net_income - net_capex - change_wc + net_borrowing
+                fcfe_results.append(fcfe)
+
+            return render_template('FCFE.html', 
+                                 net_incomes=net_incomes, 
+                                 net_capexes=net_capexes, 
+                                 changes_wc=changes_wc, 
+                                 net_borrowings=net_borrowings, 
+                                 fcfe_results=fcfe_results, 
+                                 currency_symbol=currency_symbol)
+        except ValueError:
+            error = "Please enter valid numerical values for all fields."
+            return render_template('FCFE.html', error=error, currency_symbol=currency_symbol)
+    
+    return render_template('FCFE.html', currency_symbol=currency_symbol)
+
+# Helper functions for valuation calculations
+def calculate_two_stage_ddm(dividend, g_high, years_high, g_terminal, r):
+    g_high = g_high / 100
+    g_terminal = g_terminal / 100
+    r = r / 100
+    pv_dividends = 0
+    current_dividend = dividend
+    for t in range(1, years_high + 1):
+        current_dividend *= (1 + g_high)
+        pv_dividends += current_dividend / (1 + r)**t
+    terminal_dividend = current_dividend * (1 + g_terminal)
+    if r <= g_terminal:
+        raise ValueError("Discount rate must exceed terminal growth rate")
+    terminal_value = terminal_dividend / (r - g_terminal)
+    pv_terminal = terminal_value / (1 + r)**years_high
+    return pv_dividends + pv_terminal
+
+def calculate_two_stage_dcf(fcfe, g_high, years_high, g_terminal, r):
+    g_high = g_high / 100
+    g_terminal = g_terminal / 100
+    r = r / 100
+    pv_fcfes = 0
+    current_fcf = fcfe
+    for t in range(1, years_high + 1):
+        current_fcf *= (1 + g_high)
+        pv_fcfes += current_fcf / (1 + r)**t
+    terminal_fcf = current_fcf * (1 + g_terminal)
+    if r <= g_terminal:
+        raise ValueError("Discount rate must exceed terminal growth rate")
+    terminal_value = terminal_fcf / (r - g_terminal)
+    pv_terminal = terminal_value / (1 + r)**years_high
+    return pv_fcfes + pv_terminal
+
+def calculate_pe_target(eps, g, years, pe):
+    g = g / 100
+    projected_eps = eps * (1 + g)**years
+    return projected_eps * pe
+
+@app.route('/multi-method-valuation', methods=['GET', 'POST'])
+def multi_method_valuation():
+    if request.method == 'POST':
+        try:
+            # Parse form inputs
+            weight_scenario = request.form['weight_scenario']
+            current_price = float(request.form['current_price'])
+            years_high = int(request.form['years_high'])
+            growth_high = float(request.form['growth_high'])
+            growth_terminal = float(request.form['growth_terminal'])
+            discount_rate = float(request.form['discount_rate'])
+            ddm_base_dividend = float(request.form['ddm_base_dividend'])
+            ddm_sensitivity_dividend = float(request.form['ddm_sensitivity_dividend'])
+            dcf_fcfe = float(request.form['dcf_fcfe'])
+            pe_eps = float(request.form['pe_eps'])
+            pe_growth = float(request.form['pe_growth'])
+            pe_multiple = float(request.form['pe_multiple'])
+            pe_years = int(request.form['pe_years'])
+
+            # Validate inputs
+            if any(x < 0 for x in [current_price, years_high, ddm_base_dividend, ddm_sensitivity_dividend, dcf_fcfe, pe_eps, pe_multiple, pe_years]):
+                raise ValueError("All monetary values and years must be positive")
+            if any(x < 0 or x > 100 for x in [growth_high, growth_terminal, discount_rate, pe_growth]):
+                raise ValueError("Rates must be between 0 and 100")
+            if weight_scenario not in ['conservative', 'balanced', 'growth']:
+                raise ValueError("Invalid weighting scenario")
+
+            # Perform calculations
+            ddm_base = calculate_two_stage_ddm(ddm_base_dividend, growth_high, years_high, growth_terminal, discount_rate)
+            ddm_sensitivity = calculate_two_stage_ddm(ddm_sensitivity_dividend, growth_high, years_high, growth_terminal, discount_rate)
+            dcf_value = calculate_two_stage_dcf(dcf_fcfe, growth_high, years_high, growth_terminal, discount_rate)
+            pe_target = calculate_pe_target(pe_eps, pe_growth, pe_years, pe_multiple)
+
+            # Set weights based on scenario
+            if weight_scenario == 'conservative':
+                weights = [30, 20, 30, 20]  # DDM Base, DDM Sensitivity, DCF, P/E
+                weight_priority = 'DDM Base and DCF'
+                weight_rationale = 'emphasis on dividend stability and cash flow reliability'
+                weight_max_index = 0  # or 2, as both are 30%
+            elif weight_scenario == 'balanced':
+                weights = [20, 20, 40, 20]  # DDM Base, DDM Sensitivity, DCF, P/E
+                weight_priority = 'DCF'
+                weight_rationale = 'cash flow focus'
+                weight_max_index = 2
+            else:  # growth
+                weights = [20, 20, 30, 30]  # DDM Base, DDM Sensitivity, DCF, P/E
+                weight_priority = 'DCF and P/E'
+                weight_rationale = 'growth potential and market alignment'
+                weight_max_index = 2  # or 3, as both are 30%
+
+            # Weighted average
+            values = [ddm_base, ddm_sensitivity, dcf_value, pe_target]
+            weighted_average = sum(v * w / 100 for v, w in zip(values, weights))
+
+            # Implied metrics
+            over_under_valuation = (current_price / weighted_average - 1) * 100 if weighted_average > 0 else float('inf')
+
+            # Prepare results
+            result = {
+                'ddm_base': round(ddm_base, 4),
+                'ddm_sensitivity': round(ddm_sensitivity, 4),
+                'dcf': round(dcf_value, 4),
+                'pe_target': round(pe_target, 4),
+                'weighted_average': round(weighted_average, 4),
+                'over_under_valuation': round(over_under_valuation, 2),
+                'pe_years': pe_years,
+                'current_price': round(current_price, 2),
+                'weights': weights,
+                'weight_priority': weight_priority,
+                'weight_rationale': weight_rationale,
+                'weight_max_index': weight_max_index
+            }
+            return render_template('multi_method_valuation.html', result=result)
+        except ValueError as e:
+            return render_template('multi_method_valuation.html', error=str(e))
+    return render_template('multi_method_valuation.html')
+
 # APPLICATION RUNNER BLOCK
 # ------------------------
 # Creates database tables and runs the application

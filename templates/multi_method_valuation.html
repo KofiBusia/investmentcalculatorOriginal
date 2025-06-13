@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+
+{% block title %}Multi-Method Stock Valuation Calculator{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Multi-Method Stock Valuation Calculator</h2>
+    <p>This calculator estimates a stock's intrinsic value using the Dividend Discount Model (DDM), Discounted Cash Flow (DCF), and Price-to-Earnings (P/E) methods. Choose a weighting scenario: Conservative (30% DDM Base, 30% DCF, 20% DDM Sensitivity, 20% P/E), Balanced (40% DCF, 20% each for DDM Base, DDM Sensitivity, P/E), or Growth (30% P/E, 30% DCF, 20% each for DDM Base, DDM Sensitivity).</p>
+
+    <!-- Error Message Display -->
+    {% if error %}
+    <div class="error" style="color: red; background-color: #ffe6e6; padding: 10px; margin-bottom: 20px; border: 1px solid red;">
+        <p><strong>Error:</strong> {{ error }}</p>
+    </div>
+    {% endif %}
+
+    <form method="POST" action="/multi-method-valuation">
+        <h3>General Parameters</h3>
+        <p>Enter values as numbers (e.g., 2.83 for Current Stock Price, 15 for Growth Rate %).</p>
+        <div class="group">
+            <label for="weight_scenario">Weighting Scenario:</label>
+            <select name="weight_scenario" id="weight_scenario" required>
+                <option value="balanced" {{ 'selected' if request.form.get('weight_scenario', 'balanced') == 'balanced' else '' }}>Balanced</option>
+                <option value="conservative" {{ 'selected' if request.form.get('weight_scenario') == 'conservative' else '' }}>Conservative</option>
+                <option value="growth" {{ 'selected' if request.form.get('weight_scenario') == 'growth' else '' }}>Growth</option>
+            </select>
+        </div>
+        <div class="group">
+            <label for="current_price">Current Stock Price (GHS):</label>
+            <input type="number" step="0.01" name="current_price" id="current_price" value="{{ request.form.get('current_price', '2.83') }}" required min="0">
+        </div>
+        <div class="group">
+            <label for="years_high">Number of Years for High Growth:</label>
+            <input type="number" step="1" name="years_high" id="years_high" value="{{ request.form.get('years_high', '5') }}" required min="1">
+        </div>
+        <div class="group">
+            <label for="growth_high">High-Growth Rate (%):</label>
+            <input type="number" step="0.01" name="growth_high" id="growth_high" value="{{ request.form.get('growth_high', '15') }}" required min="0" max="100">
+        </div>
+        <div class="group">
+            <label for="growth_terminal">Terminal Growth Rate (%):</label>
+            <input type="number" step="0.01" name="growth_terminal" id="growth_terminal" value="{{ request.form.get('growth_terminal', '4') }}" required min="0" max="100">
+        </div>
+        <div class="group">
+            <label for="discount_rate">Discount Rate (%):</label>
+            <input type="number" step="0.01" name="discount_rate" id="discount_rate" value="{{ request.form.get('discount_rate', '31.01') }}" required min="0" max="100">
+        </div>
+
+        <h3>DDM Parameters</h3>
+        <div class="group">
+            <label for="ddm_base_dividend">Base Dividend per Share (GHS):</label>
+            <input type="number" step="0.01" name="ddm_base_dividend" id="ddm_base_dividend" value="{{ request.form.get('ddm_base_dividend', '0.12') }}" required min="0">
+        </div>
+        <div class="group">
+            <label for="ddm_sensitivity_dividend">Sensitivity Dividend per Share (GHS):</label>
+            <input type="number" step="0.01" name="ddm_sensitivity_dividend" id="ddm_sensitivity_dividend" value="{{ request.form.get('ddm_sensitivity_dividend', '0.2208') }}" required min="0">
+        </div>
+
+        <h3>DCF Parameters</h3>
+        <div class="group">
+            <label for="dcf_fcfe">Current FCFE per Share (GHS):</label>
+            <input type="number" step="0.01" name="dcf_fcfe" id="dcf_fcfe" value="{{ request.form.get('dcf_fcfe', '0.0430') }}" required min="0">
+        </div>
+
+        <h3>P/E Parameters</h3>
+        <div class="group">
+            <label for="pe_eps">Current EPS (GHS):</label>
+            <input type="number" step="0.01" name="pe_eps" id="pe_eps" value="{{ request.form.get('pe_eps', '0.15') }}" required min="0">
+        </div>
+        <div class="group">
+            <label for="pe_growth">EPS Growth Rate (%):</label>
+            <input type="number" step="0.01" name="pe_growth" id="pe_growth" value="{{ request.form.get('pe_growth', '15') }}" required min="0" max="100">
+        </div>
+        <div class="group">
+            <label for="pe_multiple">P/E Multiple:</label>
+            <input type="number" step="0.01" name="pe_multiple" id="pe_multiple" value="{{ request.form.get('pe_multiple', '20') }}" required min="0">
+        </div>
+        <div class="group">
+            <label for="pe_years">Projection Years for P/E:</label>
+            <input type="number" step="1" name="pe_years" id="pe_years" value="{{ request.form.get('pe_years', '1') }}" required min="1">
+        </div>
+
+        <button type="submit" class="action-btn">Calculate</button>
+        <a href="{{ url_for('multi_method_valuation') }}" class="action-btn">Clear</a>
+        <a href="/" class="action-btn">Back to Home</a>
+    </form>
+
+    <!-- Results Display -->
+    {% if result %}
+    <div class="results">
+        <h3>Synthesis of Valuations</h3>
+        <h4>Table 1: Intrinsic Value Summary</h4>
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 20px;">
+            <thead>
+                <tr style="background-color: #f2f2f2;">
+                    <th style="border: 1px solid #ddd; padding: 8px;">Valuation Method</th>
+                    <th style="border: 1px solid #ddd; padding: 8px;">Intrinsic Value (GHS)</th>
+                    <th style="border: 1px solid #ddd; padding: 8px;">Weight</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="border: 1px solid #ddd; padding: 8px;">DDM (Base Div)</td>
+                    <td style="border: 1px solid #ddd; padding: 8px;">{{ result.ddm_base }}</td>
+                    <td style="border: 1px solid #ddd; padding: 8px;">{{ result.weights[0] }}%</td>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid #ddd; padding: 8px;">DDM (Sensitivity)</td>
+                    <td style="border: 1px solid #ddd; padding: 8px;">{{ result.ddm_sensitivity }}</td>
+                    <td style="border: 1px solid #ddd; padding: 8px;">{{ result.weights[1] }}%</td>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid #ddd; padding: 8px;">DCF</td>
+                    <td style="border: 1px solid #ddd; padding: 8px;">{{ result.dcf }}</td>
+                    <td style="border: 1px solid #ddd; padding: 8px;">{{ result.weights[2] }}%</td>
+                </tr>
+                <tr>
+                    <td style="border: 1px solid #ddd; padding: 8px;">P/E ({{ result.pe_years }}-month)</td>
+                    <td style="border: 1px solid #ddd; padding: 8px;">{{ result.pe_target }}</td>
+                    <td style="border: 1px solid #ddd; padding: 8px;">{{ result.weights[3] }}%</td>
+                </tr>
+                <tr style="font-weight: bold;">
+                    <td style="border: 1px solid #ddd; padding: 8px;">Weighted Average</td>
+                    <td style="border: 1px solid #ddd; padding: 8px;">{{ result.weighted_average }}</td>
+                    <td style="border: 1px solid #ddd; padding: 8px;">100%</td>
+                </tr>
+            </tbody>
+        </table>
+        <p>The weighted average intrinsic value is {{ result.weighted_average }} GHS, with {{ result.weight_priority }} weighted highest ({{ result.weights[result.weight_max_index] }}%) due to its {{ result.weight_rationale }}. Compared to the current price ({{ result.current_price }} GHS), the stock appears {{ 'overvalued' if result.over_under_valuation > 0 else 'undervalued' }} by {{ result.over_under_valuation|abs }}%.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

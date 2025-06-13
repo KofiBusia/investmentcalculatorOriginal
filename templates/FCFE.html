@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Free Cash Flow to Equity (FCFE) Calculator{% endblock %}
+
+{% block content %}
+<div class="container mx-auto p-6">
+    <h2 class="text-2xl font-bold text-gray-800 mb-4">Free Cash Flow to Equity (FCFE) Calculator</h2>
+    <p class="text-gray-700 mb-4 text-lg">Use this tool to calculate Free Cash Flow to Equity using the formula: <span class="font-mono">FCFE = Net Income - Net Capex - Change in Working Capital + Net Borrowing</span>.</p>
+    <p class="text-gray-600 mb-6 text-sm">Enter all values in Ghanaian Cedi (GHS). For guidance, see the <a href="/help#fcfe-calculator" class="text-indigo-600 hover:underline">Help section</a>. Example: Use data for Access Bank Ghana (174 million shares).</p>
+
+    <!-- Error Message Display -->
+    {% if error %}
+    <div class="error" style="color: red; background-color: #ffe6e6; padding: 10px; margin-bottom: 20px; border: 1px solid red;">
+        <p><strong>Error:</strong> {{ error }}</p>
+    </div>
+    {% endif %}
+
+    <form method="POST" class="space-y-6">
+        <h3 class="text-xl font-semibold text-gray-800 mb-4">Input Parameters</h3>
+        {% for i in range(1, 6) %}
+        <div class="bg-white p-4 rounded-lg shadow-sm">
+            <h4 class="text-lg font-medium text-gray-800 mb-3">Year {{ i }}</h4>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                <div class="group relative">
+                    <label for="net_income_{{ i }}" class="block text-gray-700 font-medium mb-1">Net Income:</label>
+                    <input type="number" step="0.01" min="0" name="net_income_{{ i }}" id="net_income_{{ i }}" value="{{ request.form.get('net_income_' + i|string, [150000000, 165000000, 180000000, 200000000, 217500000][i-1]) }}" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" aria-describedby="net_income_tip_{{ i }}">
+                    <span class="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded p-2 mt-1 w-64 z-10" id="net_income_tip_{{ i }}">Profit after taxes from the income statement (e.g., 217.5M GHS for Access Bank 2024).</span>
+                </div>
+                <div class="group relative">
+                    <label for="net_capex_{{ i }}" class="block text-gray-700 font-medium mb-1">Net Capex:</label>
+                    <input type="number" step="0.01" min="0" name="net_capex_{{ i }}" id="net_capex_{{ i }}" value="{{ request.form.get('net_capex_' + i|string, [400000, 420000, 450000, 480000, 500000][i-1]) }}" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" aria-describedby="net_capex_tip_{{ i }}">
+                    <span class="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded p-2 mt-1 w-64 z-10" id="net_capex_tip_{{ i }}">Capital expenditures minus asset sales from cash flow statement (e.g., 500K GHS).</span>
+                </div>
+                <div class="group relative">
+                    <label for="change_wc_{{ i }}" class="block text-gray-700 font-medium mb-1">Change in Working Capital:</label>
+                    <input type="number" step="0.01" name="change_wc_{{ i }}" id="change_wc_{{ i }}" value="{{ request.form.get('change_wc_' + i|string, [150000, 180000, 190000, 200000, 200000][i-1]) }}" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" aria-describedby="change_wc_tip_{{ i }}">
+                    <span class="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded p-2 mt-1 w-64 z-10" id="change_wc_tip_{{ i }}">Year-over-year change in current assets minus liabilities (e.g., 200K GHS increase).</span>
+                </div>
+                <div class="group relative">
+                    <label for="net_borrowing_{{ i }}" class="block text-gray-700 font-medium mb-1">Net Borrowing:</label>
+                    <input type="number" step="0.01" name="net_borrowing_{{ i }}" id="net_borrowing_{{ i }}" value="{{ request.form.get('net_borrowing_' + i|string, [250000, 270000, 280000, 290000, 300000][i-1]) }}" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" aria-describedby="net_borrowing_tip_{{ i }}">
+                    <span class="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded p-2 mt-1 w-64 z-10" id="net_borrowing_tip_{{ i }}">New debt minus repayments from cash flow statement (e.g., 300K GHS).</span>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+
+        <div class="flex gap-2">
+            <button type="submit" class="action-btn bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-200 text-lg font-medium">Calculate</button>
+            <a href="{{ url_for('calculate_fcfe') }}" class="action-btn bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-200 text-lg font-medium">Clear</a>
+            <a href="/" class="action-btn bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-200 text-lg font-medium">Back to Home</a>
+        </div>
+    </form>
+
+    {% if fcfe_results %}
+    <div class="results mt-8">
+        <h3 class="text-xl font-semibold text-gray-800 mb-4">Results</h3>
+        <div class="overflow-x-auto">
+            <table style="width: 100%; border-collapse: collapse;" class="w-full bg-white rounded-lg shadow-sm">
+                <thead>
+                    <tr style="background-color: #f2f2f2;" class="text-gray-700">
+                        <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Year</th>
+                        <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Net Income</th>
+                        <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Net Capex</th>
+                        <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Change in Working Capital</th>
+                        <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Net Borrowing</th>
+                        <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">FCFE</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for i in range(5) %}
+                    <tr style="border: 1px solid #ddd;">
+                        <td style="padding: 8px;">Year {{ i + 1 }}</td>
+                        <td style="padding: 8px;">{{ currency_symbol }}{{ "{:,.2f}".format(net_incomes[i]) }}</td>
+                        <td style="padding: 8px;">{{ currency_symbol }}{{ "{:,.2f}".format(net_capexes[i]) }}</td>
+                        <td style="padding: 8px;">{{ currency_symbol }}{{ "{:,.2f}".format(changes_wc[i]) }}</td>
+                        <td style="padding: 8px;">{{ currency_symbol }}{{ "{:,.2f}".format(net_borrowings[i]) }}</td>
+                        <td style="padding: 8px; font-weight: bold;">{{ currency_symbol }}{{ "{:,.2f}".format(fcfe_results[i]) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <p class="text-gray-700 mt-4">Use these FCFE values in DCF models or divide by shares outstanding (e.g., 174 million for Access Bank Ghana) to get FCFE per share. See <a href="/help#fcfe-calculator" class="text-indigo-600 hover:underline">Help</a> for more details.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
