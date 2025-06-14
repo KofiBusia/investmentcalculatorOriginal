@@ -78,11 +78,30 @@
     @media (max-width: 1024px) {
         .sidebar { position: static; margin-top: 2rem; }
     }
+    @media (max-width: 640px) {
+        .article header h1 {
+            font-size: 1.5rem; /* Reduced title size for mobile */
+            line-height: 1.3;
+        }
+        .container {
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+        .article {
+            padding: 1.5rem; /* Reduced padding for mobile */
+        }
+        .article header {
+            margin-bottom: 1.5rem;
+        }
+        .article-content {
+            font-size: 1rem; /* Slightly smaller text for better fit */
+        }
+    }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container mx-auto px-4 py-10 max-w-7xl">
+<div class="container mx-auto px-4 py-8 max-w-7xl">
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <!-- Main Article Content -->
         <div class="col-span-1 lg:col-span-2">
@@ -102,7 +121,7 @@
 
             <article class="bg-white rounded-lg shadow-lg p-8 fade-in">
                 <header class="mb-6">
-                    <h1 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">{{ article.title }}</h1>
+                    <h1 class="text-3xl sm:text-3xl md:text-4xl font-bold text-gray-800 mb-4">{{ article.title }}</h1>
                     <div class="flex items-center mb-4">
                         {% if article.author_photo %}
                             <img src="{{ url_for('static', filename='author_photos/' + article.author_photo) }}" alt="{{ article.author }}" class="w-12 h-12 rounded-full mr-4 object-cover">
