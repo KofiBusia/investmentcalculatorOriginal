@@ -65,7 +65,7 @@
     }
     .sidebar {
         position: sticky;
-        top: 100px;
+        top: 80px;
         height: fit-content;
     }
     .fade-in {
@@ -76,36 +76,47 @@
         to { opacity: 1; transform: translateY(0); }
     }
     @media (max-width: 1024px) {
-        .sidebar { position: static; margin-top: 2rem; }
+        .sidebar { position: static; margin-top: 1.5rem; }
     }
     @media (max-width: 640px) {
         .article header h1 {
-            font-size: 1.5rem; /* Reduced title size for mobile */
+            font-size: 1.25rem; /* Further reduced title size for mobile */
             line-height: 1.3;
+            margin-bottom: 0.75rem;
         }
         .container {
-            padding-left: 1rem;
-            padding-right: 1rem;
+            padding-left: 0.75rem;
+            padding-right: 0.75rem;
         }
         .article {
-            padding: 1.5rem; /* Reduced padding for mobile */
+            padding: 1rem; /* Further reduced padding */
         }
         .article header {
-            margin-bottom: 1.5rem;
+            margin-bottom: 1rem; /* Tighter header spacing */
         }
         .article-content {
-            font-size: 1rem; /* Slightly smaller text for better fit */
+            font-size: 0.95rem; /* Slightly smaller content text */
+        }
+        .article header .flex.items-center {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+        .article header .flex.items-center img,
+        .article header .flex.items-center i {
+            width: 32px;
+            height: 32px;
         }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container mx-auto px-4 py-8 max-w-7xl">
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<div class="container mx-auto px-4 py-6 max-w-7xl">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <!-- Main Article Content -->
         <div class="col-span-1 lg:col-span-2">
-            <nav aria-label="breadcrumb" class="mb-6">
+            <nav aria-label="breadcrumb" class="mb-4">
                 <ol class="flex flex-wrap text-sm text-gray-600">
                     <li class="flex items-center">
                         <a href="{{ url_for('index') }}" class="hover:text-blue-600">Home</a>
@@ -119,14 +130,14 @@
                 </ol>
             </nav>
 
-            <article class="bg-white rounded-lg shadow-lg p-8 fade-in">
-                <header class="mb-6">
-                    <h1 class="text-3xl sm:text-3xl md:text-4xl font-bold text-gray-800 mb-4">{{ article.title }}</h1>
-                    <div class="flex items-center mb-4">
+            <article class="bg-white rounded-lg shadow-lg p-6 fade-in">
+                <header class="mb-4">
+                    <h1 class="text-2xl sm:text-2xl md:text-3xl font-bold text-gray-800 mb-3">{{ article.title }}</h1>
+                    <div class="flex items-center mb-3">
                         {% if article.author_photo %}
-                            <img src="{{ url_for('static', filename='author_photos/' + article.author_photo) }}" alt="{{ article.author }}" class="w-12 h-12 rounded-full mr-4 object-cover">
+                            <img src="{{ url_for('static', filename='author_photos/' + article.author_photo) }}" alt="{{ article.author }}" class="w-10 h-10 rounded-full mr-3 object-cover">
                         {% else %}
-                            <i class="fas fa-user-circle fa-3x text-blue-600 mr-4"></i>
+                            <i class="fas fa-user-circle fa-2x text-blue-600 mr-3"></i>
                         {% endif %}
                         <div>
                             <div class="flex items-center">
@@ -141,11 +152,11 @@
                     </div>
                 </header>
 
-                <div class="article-content prose prose-lg text-gray-700">
+                <div class="article-content prose prose-md text-gray-700">
                     {{ article.content | safe }}
                 </div>
 
-                <div class="mt-8 pt-6 border-t border-gray-200">
+                <div class="mt-6 pt-4 border-t border-gray-200">
                     <a href="{{ url_for('articles') }}" class="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition">
                         <i class="fas fa-arrow-left mr-2"></i> Back to Investment Insights
                     </a>
@@ -156,12 +167,12 @@
         <!-- Sidebar -->
         <aside class="sidebar col-span-1">
             <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
-                <h3 class="text-xl font-semibold text-gray-800 mb-4">About the Author</h3>
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">About the Author</h3>
                 <div class="flex items-center mb-4">
                     {% if article.author_photo %}
-                        <img src="{{ url_for('static', filename='author_photos/' + article.author_photo) }}" alt="{{ article.author }}" class="w-16 h-16 rounded-full mr-4 object-cover">
+                        <img src="{{ url_for('static', filename='author_photos/' + article.author_photo) }}" alt="{{ article.author }}" class="w-14 h-14 rounded-full mr-4 object-cover">
                     {% else %}
-                        <i class="fas fa-user-circle fa-4x text-blue-600 mr-4"></i>
+                        <i class="fas fa-user-circle fa-3x text-blue-600 mr-4"></i>
                     {% endif %}
                     <div>
                         <p class="font-medium text-gray-700">{{ article.author }}</p>
@@ -172,7 +183,7 @@
             </div>
 
             <div class="bg-white rounded-lg shadow-lg p-6">
-                <h3 class="text-xl font-semibold text-gray-800 mb-4">Share This Article</h3>
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Share This Article</h3>
                 <div class="flex flex-wrap gap-2">
                     <a href="https://www.facebook.com/sharer/sharer.php?u={{ request.url }}" target="_blank" class="bg-blue-600 text-white p-2 rounded-full hover:bg-blue-700 transition" aria-label="Share on Facebook">
                         <i class="fab fa-facebook-f"></i>
