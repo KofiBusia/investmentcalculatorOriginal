@@ -3,12 +3,12 @@
 
 {% block content %}
 <div class="container my-5">
-    <div class="row">
-        <div class="col-lg-8 mx-auto">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
             <div class="text-center mb-5">
                 <span class="badge badge-primary">Admin Panel</span>
                 <h1 class="mt-2 mb-3">Edit Article</h1>
-                <p class="text-muted">Update article details for Investment Insights</p>
+                <p class="text-muted">Update the details of the article below</p>
             </div>
             
             <!-- Flash Messages -->
@@ -25,10 +25,9 @@
                 {% endif %}
             {% endwith %}
             
-            <!-- Edit Article Form -->
-            <div class="card shadow-sm mb-5">
+            <div class="card shadow-sm">
                 <div class="card-header bg-primary text-white">
-                    <h3 class="mb-0">Edit Article</h3>
+                    <h3 class="mb-0">Edit Article: {{ article.title }}</h3>
                 </div>
                 <div class="card-body">
                     <form method="POST" action="{{ url_for('edit_article', slug=article.slug) }}" enctype="multipart/form-data">
@@ -36,7 +35,7 @@
                         
                         <div class="form-group">
                             {{ form.title.label }}
-                            {{ form.title(class="form-control", placeholder="Enter article title") }}
+                            {{ form.title(class="form-control", value=article.title) }}
                             {% if form.title.errors %}
                                 {% for error in form.title.errors %}
                                     <div class="text-danger">{{ error }}</div>
@@ -46,7 +45,7 @@
                         
                         <div class="form-group">
                             {{ form.author.label }}
-                            {{ form.author(class="form-control", placeholder="Enter author name") }}
+                            {{ form.author(class="form-control", value=article.author) }}
                             {% if form.author.errors %}
                                 {% for error in form.author.errors %}
                                     <div class="text-danger">{{ error }}</div>
@@ -57,7 +56,10 @@
                         <div class="form-group">
                             {{ form.author_photo.label }}
                             {{ form.author_photo(class="form-control-file") }}
-                            <small class="form-text text-muted">Upload a new passport-sized photo (JPG, PNG, JPEG) to replace the current one</small>
+                            <small class="form-text text-muted">Leave blank to keep current photo</small>
+                            {% if article.author_photo %}
+                                <p>Current photo: <img src="{{ url_for('static', filename='author_photos/' + article.author_photo) }}" alt="Current photo" style="width: 50px; height: 50px;"></p>
+                            {% endif %}
                             {% if form.author_photo.errors %}
                                 {% for error in form.author_photo.errors %}
                                     <div class="text-danger">{{ error }}</div>
@@ -66,20 +68,9 @@
                         </div>
                         
                         <div class="form-group">
-                            {{ form.youtube_link.label }}
-                            {{ form.youtube_link(class="form-control", placeholder="Enter YouTube link (e.g., https://www.youtube.com/watch?v=video_id)") }}
-                            <small class="form-text text-muted">Optional: Paste a YouTube link to embed a video</small>
-                            {% if form.youtube_link.errors %}
-                                {% for error in form.youtube_link.errors %}
-                                    <div class="text-danger">{{ error }}</div>
-                                {% endfor %}
-                            {% endif %}
-                        </div>
-                        
-                        <div class="form-group">
                             {{ form.content.label }}
-                            <small class="form-text text-muted mb-2">You can use Markdown formatting in the content</small>
-                            {{ form.content(class="form-control", rows=10, placeholder="Enter article content") }}
+                            <small class="form-text text-muted mb-2">You can use HTML formatting in the content</small>
+                            {{ form.content(class="form-control", rows=10, value=article.content) }}
                             {% if form.content.errors %}
                                 {% for error in form.content.errors %}
                                     <div class="text-danger">{{ error }}</div>
@@ -87,8 +78,9 @@
                             {% endif %}
                         </div>
                         
-                        <div class="d-grid">
-                            {{ form.submit(class="btn btn-primary btn-block", value="Update Article") }}
+                        <div class="d-flex justify-content-end">
+                            <a href="{{ url_for('admin_articles') }}" class="btn btn-secondary mr-2">Cancel</a>
+                            {{ form.submit(class="btn btn-primary") }}
                         </div>
                     </form>
                 </div>
