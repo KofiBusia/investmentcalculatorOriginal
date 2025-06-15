@@ -14,6 +14,11 @@
         {% for article in articles %}
         <div class="col-md-6 mb-4">
             <div class="card h-100 shadow-sm">
+                {% if article.youtube_link %}
+                    <div class="card-img-top">
+                        <img src="https://img.youtube.com/vi/{{ article.youtube_link | youtube_id }}/hqdefault.jpg" alt="YouTube Thumbnail" class="img-fluid w-100" style="border-top-left-radius: 8px; border-top-right-radius: 8px;">
+                    </div>
+                {% endif %}
                 <div class="card-body">
                     <h5 class="card-title">{{ article.title }}</h5>
                     <div class="d-flex align-items-center mb-3">
@@ -27,6 +32,11 @@
                         <span class="text-muted">{{ article.date_posted.strftime('%b %d, %Y') }}</span>
                     </div>
                     <p class="card-text">{{ article.content|striptags|truncate(200) }}</p>
+                    {% if article.youtube_link %}
+                        <a href="{{ article.youtube_link }}" target="_blank" class="text-blue-600 hover:underline">
+                            <i class="fab fa-youtube mr-1"></i> Watch Video
+                        </a>
+                    {% endif %}
                 </div>
                 <div class="card-footer bg-white border-0">
                     <a href="{{ url_for('article', slug=article.slug) }}" class="btn btn-primary btn-sm">

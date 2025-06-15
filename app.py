@@ -30,6 +30,8 @@ from flask_login import (
     LoginManager, UserMixin, current_user,
     login_required, login_user, logout_user
 )
+from werkzeug.utils import secure_filename
+from markdown2 import markdown
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
 from flask_uploads import UploadSet, IMAGES, configure_uploads
@@ -42,7 +44,7 @@ from wtforms import (
 )
 import numpy as np
 import numpy_financial as npf
-from wtforms.validators import DataRequired  # ← Add this line
+from wtforms.validators import DataRequired, Length, Optional, URL  # ← Add this line
 
 # ENVIRONMENT CONFIGURATION
 # --------------------------
@@ -113,6 +115,7 @@ class Article(db.Model):
     author_photo = db.Column(db.String(100), nullable=True)
     content = db.Column(db.Text, nullable=False)
     date_posted = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    youtube_link = db.Column(db.String(200), nullable=True)  # New field for YouTube link
 
     def __repr__(self):
         return f'<Article {self.title}>'
@@ -128,6 +131,7 @@ class ArticleForm(FlaskForm):
     ])
     author_photo = FileField('Author Photo')
     content = TextAreaField('Content', validators=[validators.DataRequired()])
+    youtube_link = StringField('YouTube Link', validators=[Optional(), URL(), Length(max=200)])  # New field
     submit = SubmitField('Post Article')
     
 class BlogForm(FlaskForm):
@@ -146,6 +150,23 @@ class BlogForm(FlaskForm):
 # Defines utility functions and namedtuples used in the application
 DCFResult = namedtuple('DCFResult', ['total_pv', 'pv_cash_flows', 'terminal_value', 'pv_terminal', 'total_dcf'])
 DVMResult = namedtuple('DVMResult', ['intrinsic_value', 'formula', 'pv_dividends', 'terminal_value', 'pv_terminal'])
+
+# YouTube ID Filter
+def youtube_id(value):
+    if not value:
+        return ''
+    # Match YouTube URLs (e.g., https://www.youtube.com/watch?v=video_id, https://youtu.be/video_id)
+    patterns = [
+        r'(?:https?:\/\/)?(?:www\.)?youtube\.com\/watch\?v=([^&]+)',
+        r'(?:https?:\/\/)?youtu\.be\/([^?]+)'
+    ]
+    for pattern in patterns:
+        match = re.match(pattern, value)
+        if match:
+            return match.group(1)
+    return ''
+
+app.jinja_env.filters['youtube_id'] = youtube_id
 
 # Create an admin user (run once in a Python shell)
 def create_admin_user():
@@ -539,6 +560,7 @@ def articles():
 @app.route('/articles/<slug>')
 def article(slug):
     article = Article.query.filter_by(slug=slug).first_or_404()
+    article.content = markdown(article.content)  # Convert Markdown to HTML
     return render_template('article.html', article=article)
 
 @app.route('/admin/articles/edit/<slug>', methods=['GET', 'POST'])

@@ -80,7 +80,7 @@
     }
     @media (max-width: 640px) {
         .article header h1 {
-            font-size: 1.25rem; /* Further reduced title size for mobile */
+            font-size: 1.25rem;
             line-height: 1.3;
             margin-bottom: 0.75rem;
         }
@@ -89,13 +89,13 @@
             padding-right: 0.75rem;
         }
         .article {
-            padding: 1rem; /* Further reduced padding */
+            padding: 1rem;
         }
         .article header {
-            margin-bottom: 1rem; /* Tighter header spacing */
+            margin-bottom: 1rem;
         }
         .article-content {
-            font-size: 0.95rem; /* Slightly smaller content text */
+            font-size: 0.95rem;
         }
         .article header .flex.items-center {
             flex-direction: column;
@@ -106,6 +106,9 @@
         .article header .flex.items-center i {
             width: 32px;
             height: 32px;
+        }
+        .youtube-embed {
+            height: 200px;
         }
     }
 </style>
@@ -152,6 +155,12 @@
                     </div>
                 </header>
 
+                {% if article.youtube_link %}
+                    <div class="mb-6">
+                        <iframe class="youtube-embed w-full h-96 rounded-lg" src="https://www.youtube.com/embed/{{ article.youtube_link | youtube_id }}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                    </div>
+                {% endif %}
+
                 <div class="article-content prose prose-md text-gray-700">
                     {{ article.content | safe }}
                 </div>
@@ -167,7 +176,7 @@
         <!-- Sidebar -->
         <aside class="sidebar col-span-1">
             <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
-                <h3 class="text-lg font-semibold text-gray-800 mb-4">About the Author</h3>
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">About the Developer</h3>
                 <div class="flex items-center mb-4">
                     {% if article.author_photo %}
                         <img src="{{ url_for('static', filename='author_photos/' + article.author_photo) }}" alt="{{ article.author }}" class="w-14 h-14 rounded-full mr-4 object-cover">
