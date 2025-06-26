@@ -1,792 +1,1264 @@
-{% extends "base.html" %}
-
-{% block title %}Help - How to Use Our Calculators{% endblock %}
-
-{% block content %}
-<div class="container mx-auto p-6 max-w-5xl">
-    <!-- Header Section -->
-    <h1 class="text-4xl font-extrabold text-gray-900 mb-4 tracking-tight">How to Use Our Calculators</h1>
-    <p class="text-gray-700 mb-4 text-lg leading-relaxed">Welcome to our help center! This guide provides detailed, step-by-step instructions to help you master our investment calculators and make informed financial decisions.</p>
-    <p class="text-gray-700 mb-8 text-lg leading-relaxed">Browse through the sections below to explore each calculator, or use the search bar to find specific tools.</p>
-
-    <!-- AdSense Banner -->
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1910810542133525" crossorigin="anonymous"></script>
-    <ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-1910810542133525" data-ad-slot="7411041953"></ins>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Help Center - Investment Calculators</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script>
-         (adsbygoogle = window.adsbygoogle || []).push({});
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4f46e5',
+                        secondary: '#818cf8',
+                        accent: '#a5b4fc',
+                        dark: '#1e293b',
+                        light: '#f8fafc',
+                        success: '#10b981',
+                        info: '#0ea5e9',
+                        warning: '#f59e0b',
+                        danger: '#ef4444'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
     </script>
-
-    <!-- Search Bar -->
-    <div class="mb-8">
-        <input 
-            type="text" 
-            id="search" 
-            placeholder="Search calculators (e.g., intrinsic value, bank stock, multi-method)..." 
-            class="w-full h-12 px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-200 ease-in-out text-lg" 
-            oninput="filterCalculators()" 
-            aria-label="Search for a calculator"
-        >
+    <style>
+        :root {
+            --header-height: 70px;
+            --sidebar-width: 300px;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f0f4f8 0%, #e6e9ff 100%);
+            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+        }
+        
+        .calculator-item {
+            transition: all 0.3s ease;
+            border-left: 4px solid #4f46e5;
+        }
+        
+        .calculator-item:hover {
+            border-left-color: #7c3aed;
+        }
+        
+        .search-input {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+        
+        .search-input:focus {
+            border-color: #a5b4fc;
+            box-shadow: 0 0 0 4px rgba(165, 180, 252, 0.25);
+        }
+        
+        .toggle-icon {
+            transition: transform 0.3s ease;
+        }
+        
+        .content {
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            transition: max-height 0.5s ease, opacity 0.3s ease 0.1s;
+        }
+        
+        .content.expanded {
+            max-height: 5000px;
+            opacity: 1;
+        }
+        
+        .sticky-header {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        }
+        
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+        }
+        
+        .back-to-top.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .highlight {
+            background-color: rgba(255, 235, 59, 0.3);
+            padding: 0 2px;
+            border-radius: 4px;
+        }
+        
+        @media (max-width: 768px) {
+            :root {
+                --sidebar-width: 0;
+            }
+            
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+            
+            .sidebar.open {
+                transform: translateX(0);
+            }
+            
+            .overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: rgba(0, 0, 0, 0.5);
+                z-index: 20;
+                opacity: 0;
+                pointer-events: none;
+                transition: opacity 0.3s ease;
+            }
+            
+            .overlay.visible {
+                opacity: 1;
+                pointer-events: all;
+            }
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+    <!-- Mobile Menu Button -->
+    <div class="sticky-header md:hidden flex items-center justify-between px-4 py-3">
+        <h1 class="text-xl font-bold text-primary">Help Center</h1>
+        <button id="menuToggle" class="text-gray-700">
+            <i class="fas fa-bars text-2xl"></i>
+        </button>
     </div>
 
-    <!-- Calculator List -->
-    <div id="calculator-list" class="space-y-6">
-        <!-- Intrinsic Value Calculator for Stocks -->
-        <div id="intrinsic-value" class="calculator bg-white p-6 rounded-xl shadow-md transition-all duration-300 hover:shadow-lg">
-            <button 
-                class="w-full text-left text-xl font-semibold text-gray-800 flex justify-between items-center py-2 px-4 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded" 
-                onclick="toggleSection(this)" 
-                aria-expanded="false" 
-                aria-controls="intrinsic-value-content"
-            >
-                <span>📈 Intrinsic Value Calculator for Stocks</span>
-                <span class="toggle-icon text-xl font-bold text-blue-600">+</span>
-            </button>
-            <div id="intrinsic-value-content" class="content collapsed mt-4 text-gray-700">
-                <h3 class="text-xl font-medium mb-3 text-gray-800">What It Does</h3>
-                <p class="mb-3">This calculator estimates a stock’s true value using a Discounted Cash Flow (DCF) model. The DCF model projects future cash flows and discounts them to their present value, helping you determine if a stock is undervalued or overvalued.</p>
-                
-                <h3 class="text-xl font-medium mb-3 text-gray-800">How to Use It</h3>
-                <p class="mb-2">Follow these steps to calculate a stock’s intrinsic value accurately:</p>
-                <ol class="list-decimal pl-6 space-y-4 mb-4">
-                    <li>
-                        <strong>Choose Years of Cash Flow</strong>: Select how many years of historical Free Cash Flow (FCF) data to use (3-5 years).
-                        <ul class="list-disc list-inside space-y-2 ml-6">
-                            <li>For stable companies, like utility firms such as GRIDCo in Ghana, 3 years may suffice.</li>
-                            <li>For volatile companies, like tech startups, use 5 years for a reliable average.</li>
-                            <li><strong>Where to Find Data</strong>: FCF is cash available after capital expenditures. Check cash flow statements in annual reports on <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a> or <a href="https://www.annualreportsghana.com/resources/equity/gse/" class="text-indigo-600 hover:underline">annualreportsghana.com</a>. Use our <a href="https://younginvestorcalculator.com/calculate-fcf" class="text-indigo-600 hover:underline">FCF Calculator</a> if needed.</li>
-                        </ul>
-                    </li>
-                    <li>
-                        <strong>Enter FCF Amounts</strong>: Input the FCF for each year.
-                        <ul class="list-disc list-inside space-y-2 ml-6">
-                            <li>Example: For 2022-2024, enter 1,000,000 GHS, 1,200,000 GHS, 1,500,000 GHS.</li>
-                            <li><strong>Where to Find Data</strong>: Look under "Cash from Operating Activities" minus "Capital Expenditures" in cash flow statements on <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a>, <a href="https://www.annualreportsghana.com/resources/equity/gse/" class="text-indigo-600 hover:underline">annualreportsghana.com</a>, or <a href="https://afx.kwayisi.org/gse/" class="text-indigo-600 hover:underline">afx.kwayisi.org/gse/</a>.</li>
-                            <li>If FCF isn’t listed, calculate it: Operating Cash Flow - Capital Expenditures.</li>
-                        </ul>
-                    </li>
-                    <li>
-                        <strong>Select Growth Model</strong>: Choose a model for future cash flows.
-                        <ul class="list-disc list-inside space-y-2 ml-6">
-                            <li><strong>Perpetual Growth</strong>: For mature firms like GCB Bank with stable growth (e.g., 2-3%, tied to inflation or GDP).</li>
-                            <li><strong>Two-Stage Growth</strong>: For growing firms like tech startups (e.g., 10% for 5 years, then 3% long-term).</li>
-                            <li><strong>Where to Find Data</strong>: Base rates on historical growth from <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a>.</li>
-                        </ul>
-                    </li>
-                    <li>
-                        <strong>Pick Discount Rate Method</strong>: Set the rate to discount cash flows.
-                        <ul class="list-disc list-inside space-y-2 ml-6">
-                            <li><strong>CAPM</strong>:
-                                <ul class="list-circle list-inside ml-6">
-                                    <li>Risk-Free Rate: Ghana’s 10-year bond yield (e.g., 20%) from <a href="https://www.bog.gov.gh/" class="text-indigo-600 hover:underline">bog.gov.gh</a>.</li>
-                                    <li>Expected Market Return: Estimate 10-15% from GSE historical returns on <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a>.</li>
-                                    <li>Beta: Find on <a href="https://afx.kwayisi.org/gse/" class="text-indigo-600 hover:underline">afx.kwayisi.org/gse/</a> or use our <a href="https://younginvestorcalculator.com/calculate-beta" class="text-indigo-600 hover:underline">Beta Calculator</a>.</li>
-                                </ul>
-                            </li>
-                            <li><strong>Manual</strong>: Enter a custom rate (e.g., 8%).</li>
-                        </ul>
-                    </li>
-                    <li>
-                        <strong>Enter Additional Details</strong>: Add shares outstanding, debt, and cash (optional).
-                        <ul class="list-disc list-inside space-y-2 ml-6">
-                            <li>Example: 10 million shares, 500,000 GHS debt, 200,000 GHS cash.</li>
-                            <li><strong>Where to Find Data</strong>: Check balance sheets on <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a> or <a href="https://www.annualreportsghana.com/resources/equity/gse/" class="text-indigo-600 hover:underline">annualreportsghana.com</a>.</li>
-                        </ul>
-                    </li>
-                    <li>
-                        <strong>Set Growth Rates</strong>: Define growth based on your model.
-                        <ul class="list-disc list-inside space-y-2 ml-6">
-                            <li><strong>Perpetual Growth</strong>: One rate (e.g., 3%, tied to Ghana’s GDP from <a href="https://data.worldbank.org/indicator/NY.GDP.MKTP.KD.ZG?locations=GH" class="text-indigo-600 hover:underline">data.worldbank.org</a>).</li>
-                            <li><strong>Two-Stage Growth</strong>: High rate (e.g., 10% for 5 years), then terminal rate (e.g., 3%).</li>
-                        </ul>
-                    </li>
-                    <li>
-                        <strong>Calculate</strong>: Get the intrinsic value per share.
-                        <ul class="list-disc list-inside space-y-2 ml-6">
-                            <li>Example: If intrinsic value is 60 GHS and market price is 50 GHS from <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a>, the stock may be undervalued.</li>
-                        </ul>
-                    </li>
-                </ol>
-                
-                <h3 class="text-xl font-medium mb-3 text-gray-800">Tips</h3>
-                <ul class="list-disc list-inside space-y-2 mb-4">
-                    <li>Use <a href="https://www.annualreportsghana.com/resources/equity/gse/" class="text-indigo-600 hover:underline">annualreportsghana.com</a> for FCF data.</li>
-                    <li>Keep growth rates conservative (2-3%) using <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a>.</li>
-                    <li>Adjust discount rates: 10-12% for risky stocks, 6-8% for stable ones.</li>
-                </ul>
-                
-                <h3 class="text-xl font-medium mb-3 text-gray-800">Common Mistakes to Avoid</h3>
-                <ul class="list-disc list-inside space-y-2 mb-4">
-                    <li>Don’t assume high growth (e.g., 10%) forever—verify with <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a>.</li>
-                    <li>Include debt/cash from <a href="https://www.annualreportsghana.com/resources/equity/gse/" class="text-indigo-600 hover:underline">annualreportsghana.com</a>.</li>
-                    <li>Match the growth model to the company type.</li>
-                </ul>
-                
-                <p><a href="{{ url_for('intrinsic_value') }}" class="text-indigo-600 hover:text-indigo-800 font-medium transition-colors duration-200">Go to Intrinsic Value Calculator</a></p>
+    <!-- Overlay for mobile menu -->
+    <div id="overlay" class="overlay md:hidden"></div>
+
+    <!-- Sidebar Navigation -->
+    <div id="sidebar" class="sidebar fixed top-0 left-0 h-screen w-[var(--sidebar-width)] bg-white z-30 pt-[var(--header-height)] overflow-y-auto">
+        <div class="p-6">
+            <h2 class="text-lg font-bold mb-4 text-gray-700">Calculator Categories</h2>
+            <ul class="space-y-2">
+                <li>
+                    <a href="#intrinsic-value" class="flex items-center py-2 px-4 rounded-lg text-gray-700 hover:bg-indigo-50 hover:text-primary">
+                        <i class="fas fa-chart-line mr-3"></i>
+                        Intrinsic Value
+                    </a>
+                </li>
+                <li>
+                    <a href="#bank-stock" class="flex items-center py-2 px-4 rounded-lg text-gray-700 hover:bg-indigo-50 hover:text-primary">
+                        <i class="fas fa-university mr-3"></i>
+                        Bank Stocks
+                    </a>
+                </li>
+                <li>
+                    <a href="#beta-calculator" class="flex items-center py-2 px-4 rounded-lg text-gray-700 hover:bg-indigo-50 hover:text-primary">
+                        <i class="fas fa-calculator mr-3"></i>
+                        Beta Calculator
+                    </a>
+                </li>
+                <li>
+                    <a href="#pe-vc" class="flex items-center py-2 px-4 rounded-lg text-gray-700 hover:bg-indigo-50 hover:text-primary">
+                        <i class="fas fa-handshake mr-3"></i>
+                        Private Equity & VC
+                    </a>
+                </li>
+                <li>
+                    <a href="#multi-method-valuation" class="flex items-center py-2 px-4 rounded-lg text-gray-700 hover:bg-indigo-50 hover:text-primary">
+                        <i class="fas fa-layer-group mr-3"></i>
+                        Multi-Method Valuation
+                    </a>
+                </li>
+                <li>
+                    <a href="#cost-of-equity-calculator" class="flex items-center py-2 px-4 rounded-lg text-gray-700 hover:bg-indigo-50 hover:text-primary">
+                        <i class="fas fa-percent mr-3"></i>
+                        Cost of Equity
+                    </a>
+                </li>
+                <li>
+                    <a href="#fcfe-calculator" class="flex items-center py-2 px-4 rounded-lg text-gray-700 hover:bg-indigo-50 hover:text-primary">
+                        <i class="fas fa-coins mr-3"></i>
+                        FCFE Calculator
+                    </a>
+                </li>
+                <li>
+                    <a href="#mna-calculator" class="flex items-center py-2 px-4 rounded-lg text-gray-700 hover:bg-indigo-50 hover:text-primary">
+                        <i class="fas fa-hand-holding-usd mr-3"></i>
+                        M&A Calculator
+                    </a>
+                </li>
+            </ul>
+
+            <div class="mt-8">
+                <h2 class="text-lg font-bold mb-4 text-gray-700">Popular Topics</h2>
+                <div class="space-y-3">
+                    <a href="#" class="block py-2 px-4 bg-indigo-50 rounded-lg text-primary font-medium">
+                        How to calculate intrinsic value
+                    </a>
+                    <a href="#" class="block py-2 px-4 bg-indigo-50 rounded-lg text-primary font-medium">
+                        Understanding DCF models
+                    </a>
+                    <a href="#" class="block py-2 px-4 bg-indigo-50 rounded-lg text-primary font-medium">
+                        Bank valuation methods
+                    </a>
+                    <a href="#" class="block py-2 px-4 bg-indigo-50 rounded-lg text-primary font-medium">
+                        Calculating beta for stocks
+                    </a>
+                </div>
+
+                <div class="mt-8">
+                    <h2 class="text-lg font-bold mb-4 text-gray-700">Need more help?</h2>
+                    <a href="/contact" class="inline-flex items-center py-2 px-4 bg-primary text-white rounded-lg hover:bg-indigo-700 transition-colors">
+                        <i class="fas fa-headset mr-2"></i>
+                        Contact Support
+                    </a>
+                </div>
             </div>
         </div>
+    </div>
 
-        <!-- Bank Stock Intrinsic Value Calculator -->
-        <div id="bank-stock" class="calculator bg-white p-6 rounded-xl shadow-md transition-all duration-300 hover:shadow-lg">
-            <button 
-                class="w-full text-left text-xl font-semibold text-gray-800 flex justify-between items-center py-2 px-4 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded" 
-                onclick="toggleSection(this)" 
-                aria-expanded="false" 
-                aria-controls="bank-stock-content"
-            >
-                <span>🏦 Bank Stock Intrinsic Value Calculator</span>
-                <span class="toggle-icon text-xl font-bold text-blue-600">+</span>
-            </button>
-            <div id="bank-stock-content" class="content collapsed mt-4 text-gray-700">
-                <h3 class="text-xl font-medium mb-3 text-gray-800">What It Does</h3>
-                <p class="mb-3">This calculator estimates the intrinsic value of bank stocks using the Dividend Discount Model (DDM) for dividend-paying banks or the Residual Income Model (RIM) for growth-focused banks.</p>
+    <!-- Main Content -->
+    <div class="ml-0 md:ml-[var(--sidebar-width)] min-h-screen">
+        <!-- Header -->
+        <header class="gradient-bg text-white py-8 px-4 md:px-8">
+            <div class="max-w-6xl mx-auto">
+                <nav class="hidden md:flex justify-between items-center mb-6">
+                    <div class="flex items-center space-x-4">
+                        <a href="/" class="text-white hover:text-indigo-200 transition-colors">Home</a>
+                        <a href="/#calculators" class="text-white hover:text-indigo-200 transition-colors">Calculators</a>
+                        <a href="/help" class="text-white font-medium border-b-2 border-white">Help Center</a>
+                        <a href="/articles" class="text-white hover:text-indigo-200 transition-colors">Resources</a>
+                    </div>
+                    <div>
+                        <a href="#" class="bg-white text-primary px-4 py-2 rounded-lg font-medium hover:bg-indigo-50 transition-colors">
+                            Get Started
+                        </a>
+                    </div>
+                </nav>
                 
-                <h3 class="text-xl font-medium mb-3 text-gray-800">How to Use It</h3>
-                <p class="mb-2">Follow these steps to value a bank stock accurately:</p>
-                <ol class="list-decimal pl-6 space-y-4 mb-4">
-                    <li>
-                        <strong>Choose Valuation Model</strong>: Select based on the bank’s profile.
-                        <ul class="list-disc list-inside space-y-2 ml-6">
-                            <li><strong>DDM</strong>: For banks with consistent dividends, like Standard Chartered Ghana (check history on <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a>).</li>
-                            <li><strong>RIM</strong>: For banks reinvesting earnings, like Access Bank Ghana (verify on <a href="https://www.annualreportsghana.com/resources/equity/gse/" class="text-indigo-600 hover:underline">annualreportsghana.com</a>).</li>
-                        </ul>
-                    </li>
-                    <li>
-                        <strong>Set Forecast Period</strong>: Choose 3-5 years for projections.
-                        <ul class="list-disc list-inside space-y-2 ml-6">
-                            <li>Use 3 years in uncertain markets (common in Ghana); 5 years if trends are stable (check <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a>).</li>
-                        </ul>
-                    </li>
-                    <li>
-                        <strong>Enter CAPM Inputs</strong>: Provide discount rate components.
-                        <ul class="list-disc list-inside space-y-2 ml-6">
-                            <li><strong>Risk-Free Rate</strong>: Yield on 10-year government bonds (e.g., 24%) from <a href="https://www.bog.gov.gh/" class="text-indigo-600 hover:underline">bog.gov.gh</a>.</li>
-                            <li><strong>Expected Market Return</strong>: Estimate 10-15% from GSE data on <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a> or <a href="https://afx.kwayisi.org/gse/" class="text-indigo-600 hover:underline">afx.kwayisi.org/gse/</a>.</li>
-                            <li><strong>Beta</strong>: Find on <a href="https://afx.kwayisi.org/gse/" class="text-indigo-600 hover:underline">afx.kwayisi.org/gse/</a> or use our <a href="https://younginvestorcalculator.com/calculate-beta" class="text-indigo-600 hover:underline">Beta Calculator</a>.</li>
-                        </ul>
-                    </li>
-                    <li>
-                        <strong>Input Financial Data</strong>: Enter model-specific data.
-                        <ul class="list-disc list-inside space-y-2 ml-6">
-                            <li><strong>For DDM</strong>:
-                                <ul class="list-circle list-inside ml-6">
-                                    <li>Expected dividends: e.g., 0.50 GHS (2025), 0.55 GHS (2026), 0.60 GHS (2027).</li>
-                                    <li><strong>Where to Find Data</strong>: Historical dividends on <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a>.</li>
-                                    <li>Estimate growth: If 2024 is 0.48 GHS with 4% growth, 2025 = 0.48 × 1.04 = 0.50 GHS.</li>
+                <div class="max-w-3xl">
+                    <h1 class="text-4xl md:text-5xl font-bold mb-4">How to Use Our Calculators</h1>
+                    <p class="text-xl md:text-2xl text-indigo-100 mb-6">
+                        Master our investment tools with step-by-step guides and expert tips
+                    </p>
+                    
+                    <div class="flex flex-wrap gap-3">
+                        <div class="bg-white/20 px-4 py-2 rounded-full flex items-center">
+                            <i class="fas fa-lightbulb mr-2"></i>
+                            <span>Beginner Friendly</span>
+                        </div>
+                        <div class="bg-white/20 px-4 py-2 rounded-full flex items-center">
+                            <i class="fas fa-video mr-2"></i>
+                            <span>Video Tutorials</span>
+                        </div>
+                        <div class="bg-white/20 px-4 py-2 rounded-full flex items-center">
+                            <i class="fas fa-download mr-2"></i>
+                            <span>Downloadable Guides</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content Container -->
+        <div class="max-w-6xl mx-auto px-4 py-8">
+            <!-- Search Section -->
+            <div class="card p-6 mb-8">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                    <div>
+                        <h2 class="text-2xl font-bold text-gray-800">Find what you need</h2>
+                        <p class="text-gray-600">Search our help center or browse by category</p>
+                    </div>
+                    <div class="flex gap-3">
+                        <button class="px-4 py-2 bg-indigo-50 text-primary rounded-lg font-medium flex items-center">
+                            <i class="fas fa-download mr-2"></i>
+                            PDF Guide
+                        </button>
+                        <button class="px-4 py-2 bg-primary text-white rounded-lg font-medium flex items-center">
+                            <i class="fas fa-video mr-2"></i>
+                            Video Tutorials
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="relative">
+                    <input 
+                        type="text" 
+                        id="search" 
+                        placeholder="Search calculators (e.g., intrinsic value, bank stock, multi-method)..." 
+                        class="search-input w-full h-14 px-4 py-3 rounded-lg shadow-sm text-lg pl-12 focus:outline-none"
+                        aria-label="Search for a calculator"
+                    >
+                    <i class="fas fa-search absolute left-4 top-4 text-gray-400 text-xl"></i>
+                    <button id="clearSearch" class="absolute right-4 top-4 text-gray-400 hover:text-gray-600 hidden">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Calculator List -->
+            <div id="calculator-list" class="space-y-6">
+                <!-- Intrinsic Value Calculator for Stocks -->
+                <div id="intrinsic-value" class="calculator-item card p-6">
+                    <button class="w-full text-left flex justify-between items-center py-2 px-4 focus:outline-none" aria-expanded="false">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-lg bg-indigo-100 flex items-center justify-center">
+                                <i class="fas fa-chart-line text-primary text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-gray-800">Intrinsic Value Calculator for Stocks</h3>
+                                <p class="text-gray-600">Estimate a stock's true value using DCF models</p>
+                            </div>
+                        </div>
+                        <span class="toggle-icon text-xl font-bold text-primary">
+                            <i class="fas fa-chevron-down"></i>
+                        </span>
+                    </button>
+                    <div class="content mt-4 pl-16 border-l-2 border-indigo-200">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div class="bg-indigo-50 p-4 rounded-lg">
+                                <h4 class="font-bold text-gray-800 mb-2 flex items-center">
+                                    <i class="fas fa-info-circle text-primary mr-2"></i>
+                                    What It Does
+                                </h4>
+                                <p class="text-gray-700">
+                                    This calculator estimates a stock's true value using a Discounted Cash Flow (DCF) model. 
+                                    The DCF model projects future cash flows and discounts them to their present value, helping 
+                                    you determine if a stock is undervalued or overvalued.
+                                </p>
+                            </div>
+                            
+                            <div class="bg-green-50 p-4 rounded-lg">
+                                <h4 class="font-bold text-gray-800 mb-2 flex items-center">
+                                    <i class="fas fa-lightbulb text-green-600 mr-2"></i>
+                                    Pro Tip
+                                </h4>
+                                <p class="text-gray-700">
+                                    Use 5 years of data for volatile companies and 3 years for stable ones. Always verify growth 
+                                    rates with historical data from reliable sources.
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <h4 class="text-lg font-semibold text-gray-800 mb-3">How to Use It</h4>
+                        <ol class="list-decimal pl-6 space-y-4 mb-6">
+                            <li>
+                                <strong>Choose Years of Cash Flow</strong>
+                                <p>Determine how many years of historical Free Cash Flow (FCF) data you want to include in your calculation. A range of 3 to 5 years is typically recommended depending on the company's stability.</p>
+                                <ul class="list-disc pl-6 mt-2 space-y-2">
+                                    <li>For <strong>stable companies</strong> such as utility firms or well-established consumer goods companies, 3 years of FCF data is often sufficient due to their predictable cash flow patterns.</li>
+                                    <li>For <strong>volatile companies</strong> like tech startups or firms in emerging industries, opt for 5 years to account for fluctuations and obtain a more reliable average.</li>
+                                    <li><strong>Tip</strong>: If you're uncertain about the company's stability, selecting 5 years provides a more conservative and comprehensive baseline.</li>
                                 </ul>
                             </li>
-                            <li><strong>For RIM</strong>:
-                                <ul class="list-circle list-inside ml-6">
-                                    <li>Book value: e.g., 5.00 GHS (from balance sheet).</li>
-                                    <li>EPS: e.g., 0.80 GHS (2025), 0.90 GHS (2026), 1.00 GHS (2027).</li>
-                                    <li><strong>Where to Find Data</strong>: Balance sheet and income statement on <a href="https://www.annualreportsghana.com/resources/equity/gse/" class="text-indigo-600 hover:underline">annualreportsghana.com</a>.</li>
+                            <li>
+                                <strong>Enter FCF Amounts</strong>
+                                <p>Input the Free Cash Flow (FCF) amounts for each of the selected years. FCF represents the cash a company generates after accounting for capital expenditures, available for distribution to shareholders.</p>
+                                <ul class="list-disc pl-6 mt-2 space-y-2">
+                                    <li><strong>Where to find FCF data</strong>: Obtain these figures from the company’s annual reports, financial statements, or trusted financial data platforms like Yahoo Finance, Bloomberg, or the company’s investor relations website.</li>
+                                    <li><strong>Example</strong>: For a 3-year period from 2022 to 2024, you might enter 1,000,000 GHS for 2022, 1,200,000 GHS for 2023, and 1,500,000 GHS for 2024.</li>
+                                    <li><strong>Note</strong>: Ensure all amounts are in the same currency to maintain consistency in your calculations.</li>
                                 </ul>
                             </li>
-                        </ul>
-                    </li>
-                    <li>
-                        <strong>Specify Terminal Growth Rate</strong>: Set a long-term rate.
-                        <ul class="list-disc list-inside space-y-2 ml-6">
-                            <li>Example: 3-5%, reflecting Ghana’s GDP growth from <a href="https://data.worldbank.org/indicator/NY.GDP.MKTP.KD.ZG?locations=GH" class="text-indigo-600 hover:underline">data.worldbank.org</a>.</li>
-                        </ul>
-                    </li>
-                    <li>
-                        <strong>Optional: Current Market Price</strong>: Add for comparison.
-                        <ul class="list-disc list-inside space-y-2 ml-6">
-                            <li>Example: 10 GHS from <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a>.</li>
-                        </ul>
-                    </li>
-                    <li>
-                        <strong>Calculate</strong>: Get the intrinsic value.
-                        <ul class="list-disc list-inside space-y-2 ml-6">
-                            <li>Example: If 12 GHS vs. 10 GHS market price, the stock may be undervalued.</li>
-                        </ul>
-                    </li>
-                </ol>
-                
-                <h3 class="text-xl font-medium mb-3 text-gray-800">Tips</h3>
-                <ul class="list-disc list-inside space-y-2 mb-4">
-                    <li>Find data on <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a> or <a href="https://afx.kwayisi.org/gse/" class="text-indigo-600 hover:underline">afx.kwayisi.org/gse/</a>.</li>
-                    <li>Use modest growth rates (2-5%).</li>
-                    <li>Match DDM to dividend payers, RIM to growth banks.</li>
-                </ul>
-                
-                <h3 class="text-xl font-medium mb-3 text-gray-800">Common Mistakes to Avoid</h3>
-                <ul class="list-disc list-inside space-y-2 mb-4">
-                    <li>Verify dividend patterns on <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a> for model choice.</li>
-                    <li>Use higher discount rates (e.g., 10-12%) in risky markets.</li>
-                    <li>Don’t overestimate growth—cap at 2-8% per <a href="https://afx.kwayisi.org/gse/" class="text-indigo-600 hover:underline">afx.kwayisi.org/gse/</a>.</li>
-                </ul>
-                
-                <p><a href="{{ url_for('bank_intrinsic_value') }}" class="text-indigo-600 hover:text-indigo-800 font-medium transition-colors duration-200">Go to Bank Stock Calculator</a></p>
-            </div>
-        </div>
-
-        <!-- Beta Calculator -->
-        <div id="beta-calculator" class="calculator bg-white p-6 rounded-xl shadow-md transition-all duration-300 hover:shadow-lg">
-            <button 
-                class="w-full text-left text-xl font-semibold text-gray-800 flex justify-between items-center py-2 px-4 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded" 
-                onclick="toggleSection(this)" 
-                aria-expanded="false" 
-                aria-controls="beta-calculator-content"
-            >
-                <span>📊 Beta Calculator</span>
-                <span class="toggle-icon text-xl font-bold text-blue-600">+</span>
-            </button>
-            <div id="beta-calculator-content" class="content collapsed mt-4 text-gray-700">
-                <h3 class="text-xl font-medium mb-3 text-gray-800">What It Does</h3>
-                <p class="mb-3">This calculator computes a stock’s beta, measuring its price volatility relative to the market. A beta > 1 indicates higher volatility, < 1 indicates lower volatility, and = 1 matches market movement. Beta is key for risk assessment in tools like our Intrinsic Value Calculator.</p>
-                
-                <h3 class="text-xl font-medium mb-3 text-gray-800">How to Use It</h3>
-                <p class="mb-2">Follow these steps to calculate beta:</p>
-                <ol class="list-decimal pl-6 space-y-4 mb-4">
-                    <li>
-                        <strong>Gather Historical Returns</strong>: Collect percentage returns for the stock and market over matching periods (e.g., monthly). A return is the percentage price change (e.g., from 100 GHS to 105 GHS = 5%).
-                        <ul class="list-disc list-inside space-y-2 ml-6">
-                            <li>For Ghanaian stocks, use <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a> or financial news sites.</li>
-                            <li>For global stocks, check <a href="https://finance.yahoo.com/" class="text-indigo-600 hover:underline">finance.yahoo.com</a>.</li>
-                        </ul>
-                    </li>
-                    <li>
-                        <strong>Input Stock Returns</strong>: Enter stock returns, comma-separated (e.g., 5.2, -3.1, 4.7).
-                    </li>
-                    <li>
-                        <strong>Input Market Returns</strong>: Enter market returns, comma-separated, matching stock returns (e.g., 4.1, -2.8, 5.0).
-                    </li>
-                    <li>
-                        <strong>Calculate Beta</strong>: Click “Calculate Beta” to view the result.
-                    </li>
-                </ol>
-                
-                <h3 class="text-xl font-medium mb-3 text-gray-800">Tips</h3>
-                <ul class="list-disc list-inside space-y-2 mb-4">
-                    <li>Use 12-24 months of data for accuracy.</li>
-                    <li>Ensure stock and market returns align in time periods (e.g., all monthly).</li>
-                    <li>Select the right market index (e.g., GSE All-Share Index for Ghana, S&P 500 for US).</li>
-                    <li>Use beta in our calculators for risk-adjusted returns.</li>
-                </ul>
-                
-                <h3 class="text-xl font-medium mb-3 text-gray-800">Common Mistakes to Avoid</h3>
-                <ul class="list-disc list-inside space-y-2 mb-4">
-                    <li>Ensure equal numbers of stock and market returns.</li>
-                    <li>Enter returns as percentages (e.g., 5 for 5%), not decimals (e.g., 0.05).</li>
-                    <li>Avoid mixing time periods (e.g., monthly and quarterly).</li>
-                </ul>
-                
-                <p><a href="{{ url_for('calculate_beta') }}" class="text-indigo-600 hover:text-indigo-800 font-medium transition-colors duration-200">Go to Beta Calculator</a></p>
-            </div>
-        </div>
-
-        <!-- Private Equity & Venture Capital Valuation Calculator -->
-        <div id="pe-vc" class="calculator bg-white p-6 rounded-xl shadow-md transition-all duration-300 hover:shadow-lg">
-            <button 
-                class="w-full text-left text-xl font-semibold text-gray-800 flex justify-between items-center py-2 px-4 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded" 
-                onclick="toggleSection(this)" 
-                aria-expanded="false" 
-                aria-controls="pe-vc-content"
-            >
-                <span>💼 Private Equity & Venture Capital Valuation Calculator</span>
-                <span class="toggle-icon text-xl font-bold text-blue-600">+</span>
-            </button>
-            <div id="pe-vc-content" class="content collapsed mt-4 text-gray-700">
-                <h3 class="text-xl font-medium mb-3 text-gray-800">What It Does</h3>
-                <p class="mb-3">This calculator estimates the value of private companies or startups using three methods: Discounted Cash Flow (DCF) for stable businesses, Venture Capital Method for high-growth startups, and ARR Multiple for subscription-based firms.</p>
-                
-                <h3 class="text-xl font-medium mb-3 text-gray-800">How to Use It</h3>
-                <p class="mb-2">Choose a valuation method and follow these steps:</p>
-                <ul class="list-disc list-inside space-y-4 mb-4">
-                    <li>
-                        <strong>Discounted Cash Flow (DCF)</strong> - Best for firms with predictable cash flows.
-                        <ol class="list-decimal pl-6 space-y-2">
-                            <li>Input Free Cash Flows for 1–5 years. FCF is cash after expenses and investments. For public firms, find FCF in cash flow statements on <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a> or <a href="https://finance.yahoo.com/" class="text-indigo-600 hover:underline">finance.yahoo.com</a>. For private firms, estimate using industry averages or advisors. Try our <a href="https://younginvestorcalculator.com/calculate-fcf" class="text-indigo-600 hover:underline">FCF Calculator</a>.</li>
-                            <li>Provide risk-free rate (e.g., 10-year bond yield from <a href="https://www.bog.gov.gh/" class="text-indigo-600 hover:underline">bog.gov.gh</a>), market return (e.g., 10-15%), and beta (from <a href="https://afx.kwayisi.org/gse/" class="text-indigo-600 hover:underline">afx.kwayisi.org/gse/</a> or our <a href="https://younginvestorcalculator.com/calculate-beta" class="text-indigo-600 hover:underline">Beta Calculator</a>).</li>
-                            <li>Enter debt, equity, tax rate, and growth rate or exit multiple for terminal value. Find debt and equity on balance sheets, tax rates from financials.</li>
+                            <li>
+                                <strong>Select Growth Model</strong>
+                                <p>Choose the growth model that best fits the company’s future cash flow projections, which will be used to estimate the stock’s intrinsic value.</p>
+                                <ul class="list-disc pl-6 mt-2 space-y-2">
+                                    <li><strong>Perpetual Growth Model</strong>: Appropriate for mature companies with stable and predictable growth rates. This model assumes cash flows grow at a constant rate indefinitely. Use this for firms in well-established industries with consistent performance.</li>
+                                    <li><strong>Two-Stage Growth Model</strong>: Suitable for companies with an initial high-growth phase followed by a stable growth period. This model allows you to specify different growth rates for two distinct stages. Use this for firms in growth sectors like technology or biotech.</li>
+                                    <li><strong>Tip</strong>: Research the company’s historical growth rates and industry trends to choose the most suitable model for accurate projections.</li>
+                                </ul>
+                            </li>
                         </ol>
-                    </li>
-                    <li>
-                        <strong>Venture Capital Method</strong> - Ideal for early-stage startups.
-                        <ol class="list-decimal pl-6 space-y-2">
-                            <li>Specify expected exit value (e.g., sale or IPO valuation), target return (e.g., 10x), investment amount, exit timeline (e.g., 5 years), and dilution factor (e.g., 0.8 for 20% dilution). Use industry reports or advisor estimates.</li>
+                        
+                        <div class="flex flex-wrap gap-3 mb-6">
+                            <a href="#" class="px-4 py-2 bg-primary text-white rounded-lg font-medium flex items-center">
+                                <i class="fas fa-play-circle mr-2"></i>
+                                Watch Tutorial
+                            </a>
+                            <a href="/intrinsic-value" class="px-4 py-2 bg-white border border-primary text-primary rounded-lg font-medium flex items-center">
+                                <i class="fas fa-calculator mr-2"></i>
+                                Use Calculator
+                            </a>
+                            <a href="#" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium flex items-center">
+                                <i class="fas fa-download mr-2"></i>
+                                Download Guide
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bank Stock Intrinsic Value Calculator -->
+                <div id="bank-stock" class="calculator-item card p-6">
+                    <button class="w-full text-left flex justify-between items-center py-2 px-4 focus:outline-none" aria-expanded="false">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-lg bg-indigo-100 flex items-center justify-center">
+                                <i class="fas fa-university text-primary text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-gray-800">Bank Stock Intrinsic Value Calculator</h3>
+                                <p class="text-gray-600">Value bank stocks using DDM or RIM models</p>
+                            </div>
+                        </div>
+                        <span class="toggle-icon text-xl font-bold text-primary">
+                            <i class="fas fa-chevron-down"></i>
+                        </span>
+                    </button>
+                    <div class="content mt-4 pl-16 border-l-2 border-indigo-200">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div class="bg-indigo-50 p-4 rounded-lg">
+                                <h4 class="font-bold text-gray-800 mb-2 flex items-center">
+                                    <i class="fas fa-info-circle text-primary mr-2"></i>
+                                    What It Does
+                                </h4>
+                                <p class="text-gray-700">
+                                    This calculator estimates the intrinsic value of bank stocks using the Dividend Discount Model 
+                                    (DDM) for dividend-paying banks or the Residual Income Model (RIM) for growth-focused banks.
+                                </p>
+                            </div>
+                            
+                            <div class="bg-green-50 p-4 rounded-lg">
+                                <h4 class="font-bold text-gray-800 mb-2 flex items-center">
+                                    <i class="fas fa-lightbulb text-green-600 mr-2"></i>
+                                    Pro Tip
+                                </h4>
+                                <p class="text-gray-700">
+                                    Use DDM for banks with consistent dividend history and RIM for banks that reinvest earnings 
+                                    for growth. Always verify dividend patterns before choosing a model.
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <h4 class="text-lg font-semibold text-gray-800 mb-3">How to Use It</h4>
+                        <ol class="list-decimal pl-6 space-y-4 mb-6">
+                            <li>
+                                <strong>Choose Valuation Model</strong>
+                                <p>Select the valuation model that aligns with the bank’s financial profile and dividend policy to estimate its intrinsic value.</p>
+                                <ul class="list-disc pl-6 mt-2 space-y-2">
+                                    <li><strong>Dividend Discount Model (DDM)</strong>: Ideal for banks that consistently pay dividends. This model calculates value based on the present value of expected future dividends. Use this if the bank has a reliable history of dividend payments.</li>
+                                    <li><strong>Residual Income Model (RIM)</strong>: Best for banks that reinvest earnings into growth rather than distributing dividends. This model uses book value and excess returns over the cost of equity. Use this for growth-oriented banks or those with irregular dividends.</li>
+                                    <li><strong>Tip</strong>: Check the bank’s dividend history and strategic focus (e.g., growth vs. income) to select the most appropriate model.</li>
+                                </ul>
+                            </li>
+                            <li>
+                                <strong>Set Forecast Period</strong>
+                                <p>Specify the number of years for projecting the bank’s future financial performance, typically between 3 and 5 years.</p>
+                                <ul class="list-disc pl-6 mt-2 space-y-2">
+                                    <li><strong>3 years</strong>: Choose this in uncertain or volatile market conditions where long-term forecasts are less reliable due to economic instability.</li>
+                                    <li><strong>5 years</strong>: Opt for this when market trends are stable and the bank’s financial performance is predictable over a longer period.</li>
+                                    <li><strong>Tip</strong>: Consider current economic conditions and the bank’s historical performance to determine the most suitable forecast period.</li>
+                                </ul>
+                            </li>
+                            <li>
+                                <strong>Enter CAPM Inputs</strong>
+                                <p>Provide the components required for the Capital Asset Pricing Model (CAPM) to calculate the discount rate, which adjusts future cash flows to present value.</p>
+                                <ul class="list-disc pl-6 mt-2 space-y-2">
+                                    <li><strong>Risk-Free Rate</strong>: Use the current yield on 10-year government bonds as a baseline. For example, in Ghana, find this rate on the Bank of Ghana website or financial news outlets.</li>
+                                    <li><strong>Expected Market Return</strong>: Estimate the average annual return of the broader stock market, typically ranging from 10-15%, adjusted based on historical data or local market conditions.</li>
+                                    <li><strong>Beta</strong>: Input the stock’s volatility relative to the market, available from financial websites or calculated using historical price data.</li>
+                                    <li><strong>Tip</strong>: Use up-to-date and region-specific data for each input to ensure accuracy in your discount rate calculation.</li>
+                                </ul>
+                            </li>
                         </ol>
-                    </li>
-                    <li>
-                        <strong>ARR Multiple</strong> - Suitable for subscription-based firms.
-                        <ol class="list-decimal pl-6 space-y-2">
-                            <li>Input Annual Recurring Revenue (ARR) and ARR multiple (e.g., 10x for high-growth). Estimate ARR from sales data or benchmarks. Adjust for control premium or illiquidity discount. Find multiples in industry reports.</li>
+                        
+                        <div class="flex flex-wrap gap-3 mb-6">
+                            <a href="#" class="px-4 py-2 bg-primary text-white rounded-lg font-medium flex items-center">
+                                <i class="fas fa-play-circle mr-2"></i>
+                                Watch Tutorial
+                            </a>
+                            <a href="/bank-intrinsic-value" class="px-4 py-2 bg-white border border-primary text-primary rounded-lg font-medium flex items-center">
+                                <i class="fas fa-calculator mr-2"></i>
+                                Use Calculator
+                            </a>
+                            <a href="#" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium flex items-center">
+                                <i class="fas fa-download mr-2"></i>
+                                Download Guide
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Beta Calculator -->
+                <div id="beta-calculator" class="calculator-item card p-6">
+                    <button class="w-full text-left flex justify-between items-center py-2 px-4 focus:outline-none" aria-expanded="false">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-lg bg-indigo-100 flex items-center justify-center">
+                                <i class="fas fa-calculator text-primary text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-gray-800">Beta Calculator</h3>
+                                <p class="text-gray-600">Measure stock volatility relative to the market</p>
+                            </div>
+                        </div>
+                        <span class="toggle-icon text-xl font-bold text-primary">
+                            <i class="fas fa-chevron-down"></i>
+                        </span>
+                    </button>
+                    <div class="content mt-4 pl-16 border-l-2 border-indigo-200">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div class="bg-indigo-50 p-4 rounded-lg">
+                                <h4 class="font-bold text-gray-800 mb-2 flex items-center">
+                                    <i class="fas fa-info-circle text-primary mr-2"></i>
+                                    What It Does
+                                </h4>
+                                <p class="text-gray-700">
+                                    This calculator computes a stock's beta, measuring its price volatility relative to the market. 
+                                    A beta > 1 indicates higher volatility, < 1 indicates lower volatility, and = 1 matches market movement.
+                                </p>
+                            </div>
+                            
+                            <div class="bg-green-50 p-4 rounded-lg">
+                                <h4 class="font-bold text-gray-800 mb-2 flex items-center">
+                                    <i class="fas fa-lightbulb text-green-600 mr-2"></i>
+                                    Pro Tip
+                                </h4>
+                                <p class="text-gray-700">
+                                    Use 12-24 months of data for accuracy. Ensure stock and market returns align in time periods 
+                                    (e.g., all monthly). Select the right market index for comparison.
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <h4 class="text-lg font-semibold text-gray-800 mb-3">How to Use It</h4>
+                        <ol class="list-decimal pl-6 space-y-4 mb-6">
+                            <li>
+                                <strong>Gather Historical Returns</strong>
+                                <p>Collect historical percentage returns for both the stock and the market index over consistent time periods (e.g., monthly or weekly) to calculate beta accurately.</p>
+                                <ul class="list-disc pl-6 mt-2 space-y-2">
+                                    <li>For <strong>public stocks</strong>, access return data from financial platforms like Yahoo Finance, Google Finance, or Bloomberg.</li>
+                                    <li>For <strong>global stocks</strong>, check financial news sites, stock exchange websites, or market data providers specific to the region.</li>
+                                    <li><strong>Tip</strong>: Use 12-24 months of data to balance accuracy and relevance, ensuring the periods align for both stock and market.</li>
+                                </ul>
+                            </li>
+                            <li>
+                                <strong>Input Stock Returns</strong>
+                                <p>Enter the stock’s historical returns as a series of comma-separated percentage values, reflecting the chosen time periods.</p>
+                                <ul class="list-disc pl-6 mt-2 space-y-2">
+                                    <li><strong>Example</strong>: For monthly returns over three months, you might input "5.2, -3.1, 4.7" (representing +5.2%, -3.1%, and +4.7%).</li>
+                                    <li><strong>Note</strong>: Ensure the data is in percentage form and corresponds to the same intervals as the market returns.</li>
+                                </ul>
+                            </li>
+                            <li>
+                                <strong>Input Market Returns</strong>
+                                <p>Enter the market index’s historical returns as comma-separated percentage values, matching the stock return periods.</p>
+                                <ul class="list-disc pl-6 mt-2 space-y-2">
+                                    <li><strong>Example</strong>: For the same three months, input "4.1, -2.8, 5.0" if those are the market’s returns.</li>
+                                    <li><strong>Tip</strong>: Select an appropriate market index (e.g., GSE All-Share Index for Ghana, S&P 500 for the U.S.) based on the stock’s market.</li>
+                                </ul>
+                            </li>
+                            <li>
+                                <strong>Calculate Beta</strong>
+                                <p>Click the "Calculate Beta" button to compute the stock’s beta value, which indicates its volatility relative to the market.</p>
+                                <ul class="list-disc pl-6 mt-2 space-y-2">
+                                    <li><strong>Result</strong>: The calculator will output a number (e.g., 1.2 means the stock is 20% more volatile than the market).</li>
+                                    <li><strong>Tip</strong>: Verify the result aligns with the stock’s expected risk profile based on its industry and past performance.</li>
+                                </ul>
+                            </li>
                         </ol>
-                    </li>
-                </ul>
-                
-                <h3 class="text-xl font-medium mb-3 text-gray-800">Tips</h3>
-                <ul class="list-disc list-inside space-y-2 mb-4">
-                    <li>Use conservative growth rates and exit values.</li>
-                    <li>Match method to company type: DCF for stable firms, Venture Capital for startups, ARR for subscription models.</li>
-                    <li>Cross-check results with other methods or market data.</li>
-                </ul>
-                
-                <h3 class="text-xl font-medium mb-3 text-gray-800">Common Mistakes to Avoid</h3>
-                <ul class="list-disc list-inside space-y-2 mb-4">
-                    <li>For DCF, avoid overestimating cash flows.</li>
-                    <li>For Venture Capital, note exit value uncertainty.</li>
-                    <li>For ARR, choose multiples matching growth stage and market trends.</li>
-                </ul>
-                
-                <p><a href="{{ url_for('pe_vc_valuation') }}" class="text-indigo-600 hover:text-indigo-800 font-medium transition-colors duration-200">Go to PE & VC Valuation Calculator</a></p>
+                        
+                        <div class="flex flex-wrap gap-3 mb-6">
+                            <a href="#" class="px-4 py-2 bg-primary text-white rounded-lg font-medium flex items-center">
+                                <i class="fas fa-play-circle mr-2"></i>
+                                Watch Tutorial
+                            </a>
+                            <a href="/calculate-beta" class="px-4 py-2 bg-white border border-primary text-primary rounded-lg font-medium flex items-center">
+                                <i class="fas fa-calculator mr-2"></i>
+                                Use Calculator
+                            </a>
+                            <a href="#" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium flex items-center">
+                                <i class="fas fa-download mr-2"></i>
+                                Download Guide
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Private Equity & Venture Capital Valuation Calculator -->
+                <div id="pe-vc" class="calculator-item card p-6">
+                    <button class="w-full text-left flex justify-between items-center py-2 px-4 focus:outline-none" aria-expanded="false">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-lg bg-indigo-100 flex items-center justify-center">
+                                <i class="fas fa-handshake text-primary text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-gray-800">Private Equity & VC Valuation Calculator</h3>
+                                <p class="text-gray-600">Value private companies using multiple methods</p>
+                            </div>
+                        </div>
+                        <span class="toggle-icon text-xl font-bold text-primary">
+                            <i class="fas fa-chevron-down"></i>
+                        </span>
+                    </button>
+                    <div class="content mt-4 pl-16 border-l-2 border-indigo-200">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div class="bg-indigo-50 p-4 rounded-lg">
+                                <h4 class="font-bold text-gray-800 mb-2 flex items-center">
+                                    <i class="fas fa-info-circle text-primary mr-2"></i>
+                                    What It Does
+                                </h4>
+                                <p class="text-gray-700">
+                                    This calculator estimates the value of private companies or startups using three methods: 
+                                    Discounted Cash Flow (DCF) for stable businesses, Venture Capital Method for high-growth startups, 
+                                    and ARR Multiple for subscription-based firms.
+                                </p>
+                            </div>
+                            
+                            <div class="bg-green-50 p-4 rounded-lg">
+                                <h4 class="font-bold text-gray-800 mb-2 flex items-center">
+                                    <i class="fas fa-lightbulb text-green-600 mr-2"></i>
+                                    Pro Tip
+                                </h4>
+                                <p class="text-gray-700">
+                                    Use conservative growth rates and exit values. Match method to company type: DCF for stable firms, 
+                                    Venture Capital for startups, ARR for subscription models.
+                                </p>
+                            </div>
+                        </div>
+                        
+                        <h4 class="text-lg font-semibold text-gray-800 mb-3">How to Use It</h4>
+                        <ul class="list-disc pl-6 space-y-4 mb-6">
+                            <li>
+                                <strong>Discounted Cash Flow (DCF) - Best for firms with predictable cash flows</strong>
+                                <p>Use this method for private companies with stable and predictable revenue streams to estimate their value based on discounted future cash flows.</p>
+                                <ol class="list-decimal pl-6 mt-2 space-y-2">
+                                    <li><strong>Input Free Cash Flows for 1–5 years</strong>: Enter projected FCF amounts for each year, sourced from financial forecasts or historical data if available.</li>
+                                    <li><strong>Provide risk-free rate, market return, and beta</strong>: Input these CAPM components to calculate the discount rate (e.g., risk-free rate from government bonds, market return estimate, beta based on industry peers).</li>
+                                    <li><strong>Enter debt, equity, tax rate, and growth rate</strong>: Specify the company’s capital structure, tax rate, and expected long-term growth rate to finalize the valuation.</li>
+                                    <li><strong>Tip</strong>: Use conservative FCF projections and verify inputs with industry benchmarks for accuracy.</li>
+                                </ol>
+                            </li>
+                            <li>
+                                <strong>Venture Capital Method - Ideal for early-stage startups</strong>
+                                <p>Apply this method to value high-growth startups by estimating their worth at exit, commonly used by venture capitalists.</p>
+                                <ol class="list-decimal pl-6 mt-2 space-y-2">
+                                    <li><strong>Specify expected exit value, target return, investment amount, exit timeline, and dilution factor</strong>: Input the anticipated sale value at exit (e.g., based on comparable exits), desired return rate (e.g., 10x), initial investment, years to exit, and ownership dilution percentage.</li>
+                                    <li><strong>Tip</strong>: Research recent startup exits in the same sector to set a realistic exit value and adjust for market conditions.</li>
+                                </ol>
+                            </li>
+                            <li>
+                                <strong>ARR Multiple - Suitable for subscription-based firms</strong>
+                                <p>Use this method for companies with recurring revenue models, such as SaaS businesses, to estimate value based on revenue multiples.</p>
+                                <ol class="list-decimal pl-6 mt-2 space-y-2">
+                                    <li><strong>Input Annual Recurring Revenue (ARR) and ARR multiple</strong>: Enter the company’s current ARR (e.g., from financial reports) and an industry-standard ARR multiple (e.g., 5x–10x, depending on growth stage).</li>
+                                    <li><strong>Tip</strong>: Benchmark the ARR multiple against similar subscription businesses to ensure a market-relevant valuation.</li>
+                                </ol>
+                            </li>
+                        </ul>
+                        
+                        <div class="flex flex-wrap gap-3 mb-6">
+                            <a href="#" class="px-4 py-2 bg-primary text-white rounded-lg font-medium flex items-center">
+                                <i class="fas fa-play-circle mr-2"></i>
+                                Watch Tutorial
+                            </a>
+                            <a href="/pe-vc" class="px-4 py-2 bg-white border border-primary text-primary rounded-lg font-medium flex items-center">
+                                <i class="fas fa-calculator mr-2"></i>
+                                Use Calculator
+                            </a>
+                            <a href="#" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium flex items-center">
+                                <i class="fas fa-download mr-2"></i>
+                                Download Guide
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Multi-Method Stock Valuation Calculator -->
+                <div id="multi-method-valuation" class="calculator-item card p-6">
+                    <button class="w-full text-left flex justify-between items-center py-2 px-4 focus:outline-none" aria-expanded="false">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-lg bg-indigo-100 flex items-center justify-center">
+                                <i class="fas fa-layer-group text-primary text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-gray-800">Multi-Method Stock Valuation Calculator</h3>
+                                <p class="text-gray-600">Combine DDM, DCF, and P/E for comprehensive stock valuation</p>
+                            </div>
+                        </div>
+                        <span class="toggle-icon text-xl font-bold text-primary">
+                            <i class="fas fa-chevron-down"></i>
+                        </span>
+                    </button>
+                    <div class="content mt-4 pl-16 border-l-2 border-indigo-200">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div class="bg-indigo-50 p-4 rounded-lg">
+                                <h4 class="font-bold text-gray-800 mb-2 flex items-center">
+                                    <i class="fas fa-info-circle text-primary mr-2"></i>
+                                    What It Does
+                                </h4>
+                                <p class="text-gray-700">
+                                    The Multi-Method Stock Valuation Calculator estimates a stock’s intrinsic value per share using three methods: Dividend Discount Model (DDM), Discounted Cash Flow (DCF), and Price-to-Earnings (P/E). It combines these with customizable weights to produce a weighted average intrinsic value, helping you determine if a stock is overvalued or undervalued against its market price. A sensitivity toggle offers three weighting scenarios—Conservative (dividend and cash flow focus), Balanced (cash flow emphasis), and Growth (market potential focus)—to suit different investment perspectives.
+                                </p>
+                            </div>
+                            <div class="bg-green-50 p-4 rounded-lg">
+                                <h4 class="font-bold text-gray-800 mb-2 flex items-center">
+                                    <i class="fas fa-lightbulb text-green-600 mr-2"></i>
+                                    Pro Tip
+                                </h4>
+                                <p class="text-gray-700">
+                                    Use accurate per-share data from reliable sources like <a href="https://gse.com.gh/" class="text-primary hover:underline">gse.com.gh</a>. Test all weighting scenarios to understand valuation range in volatile markets.
+                                </p>
+                            </div>
+                        </div>
+                        <h4 class="text-lg font-semibold text-gray-800 mb-3">How to Use It</h4>
+                        <ol class="list-decimal pl-6 space-y-4 mb-6">
+                            <li>
+                                <strong>Access the Calculator</strong>
+                                <p>Visit the calculator online to begin the valuation process.</p>
+                                <ul class="list-disc pl-6 mt-2 space-y-2">
+                                    <li>Go to <a href="https://younginvestorcalculator.com/multi-method-valuation" class="text-primary hover:underline">younginvestorcalculator.com/multi-method-valuation</a> or select “Multi-Method Stock Valuation” from the homepage.</li>
+                                </ul>
+                            </li>
+                            <li>
+                                <strong>Choose Weighting Scenario</strong>
+                                <p>Select a predefined weighting scenario to determine how much each valuation method (DDM, DCF, P/E) contributes to the final intrinsic value.</p>
+                                <ul class="list-disc pl-6 mt-2 space-y-2">
+                                    <li><strong>Conservative</strong>: Weights are 30% DDM Base, 20% DDM Sensitivity, 30% DCF, 20% P/E. Best for dividend-focused firms with stable cash flows.</li>
+                                    <li><strong>Balanced</strong>: Weights are 20% DDM Base, 20% DDM Sensitivity, 40% DCF, 20% P/E. Ideal for companies with strong cash flows and moderate growth.</li>
+                                    <li><strong>Growth</strong>: Weights are 20% DDM Base, 20% DDM Sensitivity, 30% DCF, 30% P/E. Suited for growth stocks with high market potential.</li>
+                                    <li><strong>Tip</strong>: Choose based on the stock’s characteristics (e.g., Conservative for mature firms, Growth for tech startups).</li>
+                                </ul>
+                            </li>
+                            <li>
+                                <strong>Enter General Parameters</strong>
+                                <p>Input market and growth assumptions that apply across all valuation methods.</p>
+                                <ul class="list-disc pl-6 mt-2 space-y-2">
+                                    <li><strong>Current Stock Price (GHS)</strong>: Find the latest price on <a href="https://gse.com.gh/" class="text-primary hover:underline">gse.com.gh</a>.</li>
+                                    <li><strong>Number of Years for High Growth</strong>: Select 3–5 years based on the company’s growth phase.</li>
+                                    <li><strong>High-Growth Rate (%)</strong>: Estimate using historical data from <a href="https://www.annualreportsghana.com/resources/equity/gse/" class="text-primary hover:underline">annualreportsghana.com</a>.</li>
+                                    <li><strong>Terminal Growth Rate (%)</strong>: Set to match long-term GDP growth, sourced from <a href="https://data.worldbank.org/indicator/NY.GDP.MKTP.KD.ZG?locations=GH" class="text-primary hover:underline">data.worldbank.org</a>.</li>
+                                    <li><strong>Discount Rate (%)</strong>: Calculate via CAPM using Risk-Free Rate from <a href="https://www.bog.gov.gh/" class="text-primary hover:underline">bog.gov.gh</a> and Beta from <a href="https://afx.kwayisi.org/gse/" class="text-primary hover:underline">afx.kwayisi.org/gse/</a>.</li>
+                                </ul>
+                            </li>
+                            <li>
+                                <strong>Enter DDM Parameters</strong>
+                                <p>Provide dividend-related inputs for the Dividend Discount Model.</p>
+                                <ul class="list-disc pl-6 mt-2 space-y-2">
+                                    <li><strong>Base Dividend per Share (GHS)</strong>: Current dividend from <a href="https://gse.com.gh/" class="text-primary hover:underline">gse.com.gh</a>.</li>
+                                    <li><strong>Sensitivity Dividend per Share (GHS)</strong>: Enter a higher dividend scenario for sensitivity analysis.</li>
+                                    <li><strong>Tip</strong>: Use historical dividend trends to inform your inputs.</li>
+                                </ul>
+                            </li>
+                            <li>
+                                <strong>Enter DCF Parameters</strong>
+                                <p>Input cash flow data for the Discounted Cash Flow model.</p>
+                                <ul class="list-disc pl-6 mt-2 space-y-2">
+                                    <li><strong>Current FCFE per Share (GHS)</strong>: Calculate Free Cash Flow to Equity per share from financials on <a href="https://www.annualreportsghana.com/resources/equity/gse/" class="text-primary hover:underline">annualreportsghana.com</a>.</li>
+                                    <li><strong>Tip</strong>: Ensure FCFE reflects the most recent fiscal year for accuracy.</li>
+                                </ul>
+                            </li>
+                            <li>
+                                <strong>Enter P/E Parameters</strong>
+                                <p>Provide earnings data for the Price-to-Earnings method.</p>
+                                <ul class="list-disc pl-6 mt-2 space-y-2">
+                                    <li><strong>Current EPS (GHS)</strong>: Earnings per Share from <a href="https://www.annualreportsghana.com/resources/equity/gse/" class="text-primary hover:underline">annualreportsghana.com</a>.</li>
+                                    <li><strong>EPS Growth Rate (%)</strong>: Base this on historical earnings growth.</li>
+                                    <li><strong>P/E Multiple</strong>: Use an industry average from <a href="https://afx.kwayisi.org/gse/" class="text-primary hover:underline">afx.kwayisi.org/gse/</a>.</li>
+                                    <li><strong>Projection Years for P/E</strong>: Choose 1–3 years for earnings projection.</li>
+                                </ul>
+                            </li>
+                            <li>
+                                <strong>Calculate</strong>
+                                <p>Click “Calculate” to process all inputs and generate the weighted average intrinsic value per share.</p>
+                                <ul class="list-disc pl-6 mt-2 space-y-2">
+                                    <li><strong>Result</strong>: Displays individual valuations from DDM, DCF, and P/E, plus the weighted average.</li>
+                                </ul>
+                            </li>
+                            <li>
+                                <strong>Interpret Results</strong>
+                                <p>Analyze the calculated intrinsic value against the current stock price to determine if the stock is overvalued (price > intrinsic value) or undervalued (price < intrinsic value).</p>
+                                <ul class="list-disc pl-6 mt-2 space-y-2">
+                                    <li><strong>Tip</strong>: Test different weighting scenarios to see how sensitive the valuation is to method emphasis.</li>
+                                </ul>
+                            </li>
+                        </ol>
+                        <div class="flex flex-wrap gap-3 mb-6">
+                            <a href="#" class="px-4 py-2 bg-primary text-white rounded-lg font-medium flex items-center">
+                                <i class="fas fa-play-circle mr-2"></i>
+                                Watch Tutorial
+                            </a>
+                            <a href="/multi-method-valuation" class="px-4 py-2 bg-white border border-primary text-primary rounded-lg font-medium flex items-center">
+                                <i class="fas fa-calculator mr-2"></i>
+                                Use Calculator
+                            </a>
+                            <a href="#" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium flex items-center">
+                                <i class="fas fa-download mr-2"></i>
+                                Download Guide
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Cost of Equity Calculator -->
+                <div id="cost-of-equity-calculator" class="calculator-item card p-6">
+                    <button class="w-full text-left flex justify-between items-center py-2 px-4 focus:outline-none" aria-expanded="false">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-lg bg-indigo-100 flex items-center justify-center">
+                                <i class="fas fa-percent text-primary text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-gray-800">Cost of Equity Calculator</h3>
+                                <p class="text-gray-600">Calculate required return for shareholders using CAPM and DDM</p>
+                            </div>
+                        </div>
+                        <span class="toggle-icon text-xl font-bold text-primary">
+                            <i class="fas fa-chevron-down"></i>
+                        </span>
+                    </button>
+                    <div class="content mt-4 pl-16 border-l-2 border-indigo-200">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div class="bg-indigo-50 p-4 rounded-lg">
+                                <h4 class="font-bold text-gray-800 mb-2 flex items-center">
+                                    <i class="fas fa-info-circle text-primary mr-2"></i>
+                                    What It Does
+                                </h4>
+                                <p class="text-gray-700">
+                                    This calculator estimates the cost of equity, the return shareholders require, using CAPM (<code>Cost = Risk-Free Rate + Beta × (Market Return - Risk-Free Rate)</code>) and DDM (<code>Cost = (Dividend per Share / Stock Price) + Growth Rate</code>). It’s key for DCF valuations and WACC calculations.
+                                </p>
+                            </div>
+                            <div class="bg-green-50 p-4 rounded-lg">
+                                <h4 class="font-bold text-gray-800 mb-2 flex items-center">
+                                    <i class="fas fa-lightbulb text-green-600 mr-2"></i>
+                                    Pro Tip
+                                </h4>
+                                <p class="text-gray-700">
+                                    Use reliable sources like <a href="https://gse.com.gh/" class="text-primary hover:underline">gse.com.gh</a>. Adjust weights based on data reliability (e.g., higher CAPM weight if dividends are inconsistent).
+                                </p>
+                            </div>
+                        </div>
+                        <h4 class="text-lg font-semibold text-gray-800 mb-3">How to Use It</h4>
+                        <ol class="list-decimal pl-6 space-y-4 mb-6">
+                            <li>
+                                <strong>Access the Calculator</strong>
+                                <p>Navigate to the Cost of Equity Calculator to start calculating the required return for shareholders.</p>
+                                <ul class="list-disc pl-6 mt-2 space-y-2">
+                                    <li>Go to <a href="https://younginvestorcalculator.com/calculate-cost-of-equity" class="text-primary hover:underline">younginvestorcalculator.com/calculate-cost-of-equity</a> or select “Cost of Equity Calculator” from the homepage.</li>
+                                </ul>
+                            </li>
+                            <li>
+                                <strong>Gather Financial Data</strong>
+                                <p>Collect the necessary financial data to compute the cost of equity using both CAPM and DDM methods.</p>
+                                <ul class="list-disc pl-6 mt-2 space-y-2">
+                                    <li><strong>CAPM Inputs</strong>: Obtain the Risk-Free Rate from <a href="https://www.bog.gov.gh/" class="text-primary hover:underline">bog.gov.gh</a>, Beta from <a href="https://afx.kwayisi.org/gse/" class="text-primary hover:underline">afx.kwayisi.org/gse/</a>, and estimate Market Return (e.g., 12–15%) based on historical market performance.</li>
+                                    <li><strong>DDM Inputs</strong>: Source Dividend per Share and Stock Price from <a href="https://gse.com.gh/" class="text-primary hover:underline">gse.com.gh</a>, and estimate Dividend Growth Rate (e.g., 5%) from historical dividend trends.</li>
+                                    <li><strong>Weights</strong>: Assign weights to CAPM and DDM results (e.g., 60% CAPM, 40% DDM, totaling 100%) based on data reliability.</li>
+                                    <li><strong>Tip</strong>: Use recent data to reflect current market conditions accurately.</li>
+                                </ul>
+                            </li>
+                            <li>
+                                <strong>Enter Data</strong>
+                                <p>Input the gathered values into the calculator’s form to compute the cost of equity.</p>
+                                <ul class="list-disc pl-6 mt-2 space-y-2">
+                                    <li><strong>Example</strong>: Enter Risk-Free Rate: 25%, Beta: 1.2, Market Return: 15%, Dividend: 0.12 GHS, Stock Price: 2.83 GHS, Growth Rate: 5%.</li>
+                                    <li><strong>Note</strong>: Ensure all inputs are consistent (e.g., percentages for rates, same currency for monetary values).</li>
+                                </ul>
+                            </li>
+                            <li>
+                                <strong>Calculate</strong>
+                                <p>Click “Calculate” to generate the cost of equity based on the provided inputs.</p>
+                                <ul class="list-disc pl-6 mt-2 space-y-2">
+                                    <li><strong>Result</strong>: Outputs individual CAPM and DDM values (e.g., CAPM: 30%, DDM: 9.24%) and a weighted average (e.g., 21.7%).</li>
+                                    <li><strong>Tip</strong>: Verify results align with industry norms for the stock’s sector.</li>
+                                </ul>
+                            </li>
+                            <li>
+                                <strong>Use Results</strong>
+                                <p>Apply the calculated cost of equity in financial models to assess investment viability.</p>
+                                <ul class="list-disc pl-6 mt-2 space-y-2">
+                                    <li>Use the weighted cost as the discount rate in DCF valuations or as part of Weighted Average Cost of Capital (WACC) calculations.</li>
+                                    <li><strong>Tip</strong>: Adjust weights if one method’s data (e.g., dividends) is less reliable.</li>
+                                </ul>
+                            </li>
+                        </ol>
+                        <div class="flex flex-wrap gap-3 mb-6">
+                            <a href="#" class="px-4 py-2 bg-primary text-white rounded-lg font-medium flex items-center">
+                                <i class="fas fa-play-circle mr-2"></i>
+                                Watch Tutorial
+                            </a>
+                            <a href="/calculate-cost-of-equity" class="px-4 py-2 bg-white border border-primary text-primary rounded-lg font-medium flex items-center">
+                                <i class="fas fa-calculator mr-2"></i>
+                                Use Calculator
+                            </a>
+                            <a href="#" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium flex items-center">
+                                <i class="fas fa-download mr-2"></i>
+                                Download Guide
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FCFE Calculator -->
+                <div id="fcfe-calculator" class="calculator-item card p-6">
+                    <button class="w-full text-left flex justify-between items-center py-2 px-4 focus:outline-none" aria-expanded="false">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-lg bg-indigo-100 flex items-center justify-center">
+                                <i class="fas fa-coins text-primary text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-gray-800">FCFE Calculator</h3>
+                                <p class="text-gray-600">Compute Free Cash Flow to Equity for valuation</p>
+                            </div>
+                        </div>
+                        <span class="toggle-icon text-xl font-bold text-primary">
+                            <i class="fas fa-chevron-down"></i>
+                        </span>
+                    </button>
+                    <div class="content mt-4 pl-16 border-l-2 border-indigo-200">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div class="bg-indigo-50 p-4 rounded-lg">
+                                <h4 class="font-bold text-gray-800 mb-2 flex items-center">
+                                    <i class="fas fa-info-circle text-primary mr-2"></i>
+                                    What It Does
+                                </h4>
+                                <p class="text-gray-700">
+                                    This calculator computes Free Cash Flow to Equity (FCFE), the cash available to shareholders after expenses, investments, and debt obligations, using: <code>FCFE = Net Income - Net Capex - Change in Working Capital + Net Borrowing</code>. It’s key for DCF valuations.
+                                </p>
+                            </div>
+                            <div class="bg-green-50 p-4 rounded-lg">
+                                <h4 class="font-bold text-gray-800 mb-2 flex items-center">
+                                    <i class="fas fa-lightbulb text-green-600 mr-2"></i>
+                                    Pro Tip
+                                </h4>
+                                <p class="text-gray-700">
+                                    Use 5 years of data for stable trends, or 3 years in volatile markets. Verify financials from <a href="https://gse.com.gh/" class="text-primary hover:underline">gse.com.gh</a>.
+                                </p>
+                            </div>
+                        </div>
+                        <h4 class="text-lg font-semibold text-gray-800 mb-3">How to Use It</h4>
+                        <ol class="list-decimal pl-6 space-y-4 mb-6">
+                            <li>
+                                <strong>Access the Calculator</strong>
+                                <p>Navigate to the FCFE Calculator to compute cash flow available to equity holders.</p>
+                                <ul class="list-disc pl-6 mt-2 space-y-2">
+                                    <li>Go to <a href="https://younginvestorcalculator.com/calculate-fcfe" class="text-primary hover:underline">younginvestorcalculator.com/calculate-fcfe</a> or select “FCFE Calculator” from the homepage.</li>
+                                </ul>
+                            </li>
+                            <li>
+                                <strong>Gather Financial Data</strong>
+                                <p>Collect financial data over a chosen period (typically 3–5 years) to calculate FCFE accurately.</p>
+                                <ul class="list-disc pl-6 mt-2 space-y-2">
+                                    <li>For years (e.g., 2020–2024), gather Net Income, Net Capital Expenditures (Capex), Change in Working Capital, and Net Borrowing from sources like <a href="https://www.annualreportsghana.com/resources/equity/gse/" class="text-primary hover:underline">annualreportsghana.com</a>.</li>
+                                    <li><strong>Tip</strong>: Use 5 years for stable companies or 3 years in volatile markets to balance trend reliability and relevance.</li>
+                                </ul>
+                            </li>
+                            <li>
+                                <strong>Enter Data</strong>
+                                <p>Input the financial data for each year into the calculator to compute FCFE.</p>
+                                <ul class="list-disc pl-6 mt-2 space-y-2">
+                                    <li><strong>Example</strong>: For Year 1, enter Net Income: 1,000,000 GHS, Net Capex: 500,000 GHS, Change in Working Capital: 200,000 GHS, Net Borrowing: 300,000 GHS.</li>
+                                    <li><strong>Note</strong>: Ensure all values are in the same currency and reflect the same fiscal period.</li>
+                                </ul>
+                            </li>
+                            <li>
+                                <strong>Calculate</strong>
+                                <p>Click “Calculate FCFE” to process the inputs and obtain the Free Cash Flow to Equity for each year.</p>
+                                <ul class="list-disc pl-6 mt-2 space-y-2">
+                                    <li><strong>Result</strong>: For Year 1 example, FCFE might be 600,000 GHS (1,000,000 - 500,000 - 200,000 + 300,000).</li>
+                                    <li><strong>Tip</strong>: Check calculations against company financials to ensure accuracy.</li>
+                                </ul>
+                            </li>
+                            <li>
+                                <strong>Use Results</strong>
+                                <p>Utilize the calculated FCFE values in financial analysis or valuation models.</p>
+                                <ul class="list-disc pl-6 mt-2 space-y-2">
+                                    <li>Apply FCFE in Discounted Cash Flow (DCF) models to estimate stock value or calculate FCFE per share by dividing by outstanding shares.</li>
+                                    <li><strong>Tip</strong>: Use multiple years’ FCFE to identify trends and inform long-term investment decisions.</li>
+                                </ul>
+                            </li>
+                        </ol>
+                        <div class="flex flex-wrap gap-3 mb-6">
+                            <a href="#" class="px-4 py-2 bg-primary text-white rounded-lg font-medium flex items-center">
+                                <i class="fas fa-play-circle mr-2"></i>
+                                Watch Tutorial
+                            </a>
+                            <a href="/calculate-fcfe" class="px-4 py-2 bg-white border border-primary text-primary rounded-lg font-medium flex items-center">
+                                <i class="fas fa-calculator mr-2"></i>
+                                Use Calculator
+                            </a>
+                            <a href="#" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium flex items-center">
+                                <i class="fas fa-download mr-2"></i>
+                                Download Guide
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- M&A Calculator -->
+                <div id="mna-calculator" class="calculator-item card p-6">
+                    <button class="w-full text-left flex justify-between items-center py-2 px-4 focus:outline-none" aria-expanded="false">
+                        <div class="flex items-center gap-4">
+                            <div class="w-12 h-12 rounded-lg bg-indigo-100 flex items-center justify-center">
+                                <i class="fas fa-hand-holding-usd text-primary text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-gray-800">M&A Calculator</h3>
+                                <p class="text-gray-600">Evaluate mergers and acquisitions for EPS accretion/dilution</p>
+                            </div>
+                        </div>
+                        <span class="toggle-icon text-xl font-bold text-primary">
+                            <i class="fas fa-chevron-down"></i>
+                        </span>
+                    </button>
+                    <div class="content mt-4 pl-16 border-l-2 border-indigo-200">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                            <div class="bg-indigo-50 p-4 rounded-lg">
+                                <h4 class="font-bold text-gray-800 mb-2 flex items-center">
+                                    <i class="fas fa-info-circle text-primary mr-2"></i>
+                                    What It Does
+                                </h4>
+                                <p class="text-gray-700">
+                                    The M&A Calculator analyzes the financial impact of mergers and acquisitions by calculating the accretion or dilution of Earnings Per Share (EPS). It combines the acquirer’s and target’s earnings, adjusts for synergies and new shares issued, and determines if the deal enhances or reduces shareholder value.
+                                </p>
+                            </div>
+                            <div class="bg-green-50 p-4 rounded-lg">
+                                <h4 class="font-bold text-gray-800 mb-2 flex items-center">
+                                    <i class="fas fa-lightbulb text-green-600 mr-2"></ 2"></i>
+                                    Pro Tip
+                                </h4>
+                                <p class="text-gray-700">
+                                    Use current financial data from reliable sources like <a href="https://gse.com.gh/" class="text-primary hover:underline">gse.com.gh</a>. Estimate synergies conservatively to avoid over-optimism and verify share counts for accuracy.
+                                </p>
+                            </div>
+                        </div>
+                        <h4 class="text-lg font-semibold text-gray-800 mb-3">How to Use It</h4>
+                        <ol class="list-decimal pl-6 space-y-4 mb-6">
+                            <li>
+                                <strong>Access the Calculator</strong>
+                                <p>Navigate to the M&A Calculator to evaluate the financial impact of a merger or acquisition.</p>
+                                <ul class="list-disc pl-6 mt-2 space-y-2">
+                                    <li>Visit the M&A Calculator on our website or select it from the homepage.</li>
+                                </ul>
+                            </li>
+                            <li>
+                                <strong>Gather Financial Data</strong>
+                                <p>Collect financial data for both the acquiring and target companies to assess the deal’s impact on EPS.</p>
+                                <ul class="list-disc pl-6 mt-2 space-y-2">
+                                    <li>Obtain EPS, shares outstanding, and expected synergies from financial statements or databases like <a href="https://www.annualreportsghana.com/resources/equity/gse/" class="text-primary hover:underline">annualreportsghana.com</a>.</li>
+                                    <li><strong>Tip</strong>: Use the most recent annual or quarterly reports for up-to-date figures.</li>
+                                </ul>
+                            </li>
+                            <li>
+                                <strong>Enter Input Values</strong>
+                                <p>Input the required financial metrics for both companies and the deal structure into the calculator.</p>
+                                <ul class="list-disc pl-6 mt-2 space-y-2">
+                                    <li><strong>Acquirer EPS</strong>: Pre-deal Earnings Per Share of the acquiring company (Net Income ÷ Shares Outstanding).</li>
+                                    <li><strong>Acquirer Shares Outstanding</strong>: Total shares issued by the acquirer before the merger.</li>
+                                    <li><strong>Target EPS</strong>: Pre-deal EPS of the target company (Net Income ÷ Shares Outstanding).</li>
+                                    <li><strong>Target Shares Outstanding</strong>: Total shares issued by the target before the merger.</li>
+                                    <li><strong>New Shares Issued in Deal</strong>: Number of new shares the acquirer will issue to finance or complete the merger.</li>
+                                    <li><strong>Expected Annual Synergy Value (GHS)</strong>: Estimated annual earnings boost from cost savings or revenue increases due to the merger.</li>
+                                    <li><strong>Tip</strong>: Estimate synergies conservatively to reflect realistic post-merger benefits.</li>
+                                </ul>
+                            </li>
+                            <li>
+                                <strong>Calculate</strong>
+                                <p>Click the “Calculate” button to process the inputs and determine the deal’s effect on EPS.</p>
+                                <ul class="list-disc pl-6 mt-2 space-y-2">
+                                    <li><strong>Result</strong>: Outputs combined earnings, total shares post-deal, and pro-forma EPS.</li>
+                                </ul>
+                            </li>
+                            <li>
+                                <strong>Interpret Results</strong>
+                                <p>Analyze the results to assess whether the merger or acquisition is accretive or dilutive to EPS.</p>
+                                <ul class="list-disc pl-6 mt-2 space-y-2">
+                                    <li><strong>Accretive</strong>: If pro-forma EPS exceeds the acquirer’s pre-deal EPS, the deal increases shareholder value.</li>
+                                    <li><strong>Dilutive</strong>: If pro-forma EPS is lower than the acquirer’s pre-deal EPS, the deal reduces shareholder value.</li>
+                                    <li><strong>Tip</strong>: Consider synergies and deal structure adjustments if the result is dilutive to explore value-enhancing options.</li>
+                                </ul>
+                            </li>
+                        </ol>
+                        <div class="flex flex-wrap gap-3 mb-6">
+                            <a href="#" class="px-4 py-2 bg-primary text-white rounded-lg font-medium flex items-center">
+                                <i class="fas fa-play-circle mr-2"></i>
+                                Watch Tutorial
+                            </a>
+                            <a href="/mna" class="px-4 py-2 bg-white border border-primary text-primary rounded-lg font-medium flex items-center">
+                                <i class="fas fa-calculator mr-2"></i>
+                                Use Calculator
+                            </a>
+                            <a href="#" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium flex items-center">
+                                <i class="fas fa-download mr-2"></i>
+                                Download Guide
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Support Section -->
+                <div class="card p-8 mt-12 text-center">
+                    <div class="max-w-2xl mx-auto">
+                        <div class="w-20 h-20 rounded-full bg-indigo-100 flex items-center justify-center mx-auto mb-6">
+                            <i class="fas бір
+
+<div class="fas fa-headset text-primary text-3xl"></i>
+                        </div>
+                        <h2 class="text-3xl font-bold text-gray-800 mb-4">Need more help?</h2>
+                        <p class="text-gray-600 text-lg mb-6">
+                            Our support team is ready to assist you with any questions about our calculators.
+                        </p>
+                        <div class="flex flex-col sm:flex-row justify-center gap-4">
+                            <a href="/contact" class="px-6 py-3 bg-primary text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors">
+                                <i class="fas fa-comments mr-2"></i>
+                                Chat with Support
+                            </a>
+                            <a href="/contact" class="px-6 py-3 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium hover:bg-gray-50 transition-colors">
+                                <i class="fas fa-envelope mr-2"></i>
+                                Email Support
+                            </a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
+    </div>
 
-        <!-- Multi-Method Stock Valuation Calculator -->
-        <div id="multi-method-valuation" class="calculator bg-white p-6 rounded-xl shadow-md transition-all duration-300 hover:shadow-lg">
-            <button 
-                class="w-full text-left text-xl font-semibold text-gray-800 flex justify-between items-center py-2 px-4 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded" 
-                onclick="toggleSection(this)" 
-                aria-expanded="false" 
-                aria-controls="multi-method-valuation-content"
-            >
-                <span>📊 Multi-Method Stock Valuation Calculator</span>
-                <span class="toggle-icon text-xl font-bold text-blue-600">+</span>
-            </button>
-            <div id="multi-method-valuation-content" class="content collapsed mt-4 text-gray-700 text-lg">
-                <h3 class="text-xl font-medium mb-3 text-gray-800">What It Does</h3>
-                <p class="mb-3">The Multi-Method Stock Valuation Calculator estimates a stock’s intrinsic value per share using three methods: Dividend Discount Model (DDM), Discounted Cash Flow (DCF), and Price-to-Earnings (P/E). It combines these with customizable weights to produce a weighted average intrinsic value, helping you determine if a stock is overvalued or undervalued against its market price. A sensitivity toggle offers three weighting scenarios—Conservative (dividend and cash flow focus), Balanced (cash flow emphasis), and Growth (market potential focus)—to suit different investment perspectives.</p>
-                
-                <h3 class="text-xl font-medium mb-3 text-gray-800">How to Use It</h3>
-                <p class="mb-2">Follow these steps to calculate a stock’s intrinsic value, using examples like Access Bank Ghana (174 million shares) or MTN Ghana (13.2 billion shares):</p>
-                <ol class="list-decimal pl-6 space-y-4 mb-4">
-                    <li>
-                        <strong>Access the Calculator</strong>: Go to <a href="https://younginvestorcalculator.com/multi-method-valuation" class="text-indigo-600 hover:underline">younginvestorcalculator.com/multi-method-valuation</a> or select “Multi-Method Stock Valuation” from the homepage.
-                    </li>
-                    <li>
-                        <strong>Choose Weighting Scenario</strong>: Select a scenario from the dropdown to set method weights.
-                        <ul class="list-disc list-inside space-y-2 ml-6">
-                            <li><strong>Conservative</strong>: 30% DDM Base, 20% DDM Sensitivity, 30% DCF, 20% P/E. Suits dividend-focused firms like Standard Chartered Ghana.</li>
-                            <li><strong>Balanced</strong>: 20% DDM Base, 20% DDM Sensitivity, 40% DCF, 20% P/E. Ideal for cash flow-strong firms like MTN Ghana.</li>
-                            <li><strong>Growth</strong>: 20% DDM Base, 20% DDM Sensitivity, 30% DCF, 30% P/E. Best for growth stocks like Access Bank Ghana.</li>
-                            <li><strong>Tip</strong>: Test all scenarios to assess how weights impact the intrinsic value, especially for banks (DDM-heavy) or growth firms (P/E-heavy).</li>
-                        </ul>
-                    </li>
-                    <li>
-                        <strong>Enter General Parameters</strong>: Input market and growth assumptions.
-                        <ul class="list-disc list-inside space-y-2 ml-6">
-                            <li><strong>Current Stock Price (GHS)</strong>: Obtain from <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a>. Example: 9.20 GHS for Access Bank (2025 estimate).</li>
-                            <li><strong>Number of Years for High Growth</strong>: Choose 3–5 years based on growth phase. Use 5 years for expanding firms like Access Bank or MTN Ghana.</li>
-                            <li><strong>High-Growth Rate (%)</strong>: Estimate from historical revenue or earnings growth on <a href="https://www.annualreportsghana.com/resources/equity/gse/" class="text-indigo-600 hover:underline">annualreportsghana.com</a>. Example: 12% for Access Bank (bank sector), 15% for MTN Ghana.</li>
-                            <li><strong>Terminal Growth Rate (%)</strong>: Align with Ghana’s GDP growth (e.g., 5.7% in 2025, <a href="https://data.worldbank.org/indicator/NY.GDP.MKTP.KD.ZG?locations=GH" class="text-indigo-600 hover:underline">data.worldbank.org</a>) or industry average. Example: 4% for MTN Ghana.</li>
-                            <li><strong>Discount Rate (%)</strong>: Calculate cost of equity using CAPM:
-                                <ul class="list-circle list-inside ml-6">
-                                    <li><span class="font-mono">Discount Rate = Risk-Free Rate + Beta × (Market Return - Risk-Free Rate)</span></li>
-                                    <li>Risk-Free Rate: Ghana’s 10-year bond yield (e.g., 9.9%) from <a href="https://www.bog.gov.gh/" class="text-indigo-600 hover:underline">bog.gov.gh</a>.</li>
-                                    <li>Market Return: GSE historical returns (e.g., 22%) from <a href="https://afx.kwayisi.org/gse/" class="text-indigo-600 hover:underline">afx.kwayisi.org/gse/</a>.</li>
-                                    <li>Beta: Obtain from <a href="https://afx.kwayisi.org/gse/" class="text-indigo-600 hover:underline">afx.kwayisi.org/gse/</a> or our <a href="https://younginvestorcalculator.com/calculate-beta" class="text-indigo-600 hover:underline">Beta Calculator</a>. Example: 0.50 for Access Bank (low risk), 1.314 for MTN Ghana.</li>
-                                    <li>Example: For Access Bank, <span class="font-mono">9.9% + 0.50 × (22% - 9.9%) ≈ 16%</span>; for MTN Ghana, 31.01%.</li>
-                                </ul>
-                            </li>
-                            <li><strong>Where to Find Data</strong>: Financial reports on <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a> or analyst estimates.</li>
-                        </ul>
-                    </li>
-                    <li>
-                        <strong>Enter DDM Parameters</strong>: Input dividend data for the Dividend Discount Model.
-                        <ul class="list-disc list-inside space-y-2 ml-6">
-                            <li><strong>Base Dividend per Share (GHS)</strong>: Current or projected dividend per share from <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a>. Example: 0.50 GHS for Access Bank (40% payout on EPS of 1.25 GHS), 0.12 GHS for MTN Ghana.</li>
-                            <li><strong>Sensitivity Dividend per Share (GHS)</strong>: Higher dividend scenario (e.g., special dividend). Example: 0.75 GHS for Access Bank, 0.2208 GHS for MTN Ghana (147.2% payout).</li>
-                            <li><strong>Where to Find Data</strong>: Dividend history in annual reports on <a href="https://www.annualreportsghana.com/resources/equity/gse/" class="text-indigo-600 hover:underline">annualreportsghana.com</a>. Calculate as: <span class="font-mono">Total Dividends ÷ Shares Outstanding</span> (e.g., Access Bank: 174 million; MTN Ghana: 13.2 billion).</li>
-                        </ul>
-                    </li>
-                    <li>
-                        <strong>Enter DCF Parameters</strong>: Input free cash flow data for the Discounted Cash Flow model.
-                        <ul class="list-disc list-inside space-y-2 ml-6">
-                            <li><strong>Current FCFE per Share (GHS)</strong>: Free Cash Flow to Equity per share, calculated as:
-                                <ul class="list-circle list-inside ml-6">
-                                    <li><span class="font-mono">FCFE = Net Income - Net Capex - Change in Working Capital + Net Borrowing</span></li>
-                                    <li><span class="font-mono">FCFE per Share = FCFE ÷ Shares Outstanding</span></li>
-                                </ul>
-                            </li>
-                            <li>Example: 0.80 GHS for Access Bank (estimated), 0.0430 GHS for MTN Ghana.</li>
-                            <li><strong>Where to Find Data</strong>: Income statement, cash flow statement, and balance sheet on <a href="https://www.annualreportsghana.com/resources/equity/gse/" class="text-indigo-600 hover:underline">annualreportsghana.com</a>. Use our <a href="https://younginvestorcalculator.com/calculate-fcf" class="text-indigo-600 hover:underline">FCF Calculator</a> for guidance.</li>
-                            <li><strong>Note</strong>: For banks like Access Bank, adjust FCFE for loan provisions and regulatory capital; for telecoms like MTN Ghana, account for high capex.</li>
-                        </ul>
-                    </li>
-                    <li>
-                        <strong>Enter P/E Parameters</strong>: Input earnings data for the Price-to-Earnings approach.
-                        <ul class="list-disc list-inside space-y-2 ml-6">
-                            <li><strong>Current EPS (GHS)</strong>: Earnings per Share = <span class="font-mono">Net Income ÷ Shares Outstanding</span>. Example: 1.25 GHS for Access Bank, 0.15 GHS for MTN Ghana.</li>
-                            <li><strong>EPS Growth Rate (%)</strong>: Align with high-growth rate or historical earnings growth. Example: 12% for Access Bank, 15% for MTN Ghana.</li>
-                            <li><strong>P/E Multiple</strong>: Reflects market valuation of earnings. Obtain as follows:
-                                <ul class="list-circle list-inside ml-6">
-                                    <li><strong>Industry Average</strong>: Check sector P/E ratios on <a href="https://afx.kwayisi.org/gse/" class="text-indigo-600 hover:underline">afx.kwayisi.org/gse/</a> or financial platforms like <a href="https://finance.yahoo.com/" class="text-indigo-600 hover:underline">finance.yahoo.com</a>. Example: 8–12x for banks (Access Bank), 15–20x for telecoms (MTN Ghana).</li>
-                                    <li><strong>Historical P/E</strong>: Review the company’s past P/E ratios on <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a> or <a href="https://afx.kwayisi.org/gse/" class="text-indigo-600 hover:underline">afx.kwayisi.org/gse/</a>. Use the average over 3–5 years.</li>
-                                    <li><strong>Analyst Targets</strong>: Use forward P/E from analyst reports or platforms like Bloomberg. Example: 10x for Access Bank, 20x for MTN Ghana.</li>
-                                    <li><strong>Tip</strong>: Choose a conservative multiple for stable firms, higher for growth firms.</li>
-                                </ul>
-                            </li>
-                            <li><strong>Projection Years for P/E</strong>: Number of years to project EPS growth, typically 1–3 years. Determine as follows:
-                                <ul class="list-circle list-inside ml-6">
-                                    <li><strong>Short-Term (1 Year)</strong>: Default for stable firms or uncertain markets. Use if analyst forecasts are reliable for 1 year (check <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a>).</li>
-                                    <li><strong>Medium-Term (2–3 Years)</strong>: Suitable for growth firms with predictable earnings trends. Base on historical growth stability or analyst projections from <a href="https://www.annualreportsghana.com/resources/equity/gse/" class="text-indigo-600 hover:underline">annualreportsghana.com</a>.</li>
-                                    <li>Example: 1 year for Access Bank (bank sector volatility), 1 year for MTN Ghana (default).</li>
-                                    <li><strong>Tip</strong>: Shorter periods reduce forecasting errors; longer periods suit high-growth firms.</li>
-                                </ul>
-                            </li>
-                            <li><strong>Where to Find Data</strong>: Income statement for EPS, market data for P/E on <a href="https://www.annualreportsghana.com/resources/equity/gse/" class="text-indigo-600 hover:underline">annualreportsghana.com</a> or <a href="https://afx.kwayisi.org/gse/" class="text-indigo-600 hover:underline">afx.kwayisi.org/gse/</a>.</li>
-                        </ul>
-                    </li>
-                    <li>
-                        <strong>Calculate</strong>: Click “Calculate” to generate results.
-                        <ul class="list-disc list-inside space-y-2 ml-6">
-                            <li><strong>Output</strong>: “Table 1: Intrinsic Value Summary” displays:
-                                <ul class="list-circle list-inside ml-6">
-                                    <li>Intrinsic values per share for DDM Base, DDM Sensitivity, DCF, and P/E.</li>
-                                    <li>Weights (e.g., 20%, 20%, 40%, 20% for Balanced).</li>
-                                    <li>Weighted average intrinsic value per share.</li>
-                                    <li>Over/undervaluation percentage: <span class="font-mono">((Current Price ÷ Intrinsic Value) - 1) × 100%</span>.</li>
-                                </ul>
-                            </li>
-                            <li>Example: For Access Bank, intrinsic value of 12.50 GHS vs. 9.20 GHS suggests ~35.9% undervaluation. For MTN Ghana, 1.6862 GHS vs. 2.83 GHS indicates ~67.8% overvaluation.</li>
-                        </ul>
-                    </li>
-                    <li>
-                        <strong>Interpret Results</strong>: Analyze the output to make decisions.
-                        <ul class="list-disc list-inside space-y-2 ml-6">
-                            <li>If intrinsic value > market price, the stock may be undervalued (buy opportunity).</li>
-                            <li>If intrinsic value < market price, the stock may be overvalued (sell or hold).</li>
-                            <li>Compare across scenarios (Conservative, Balanced, Growth) to gauge sensitivity.</li>
-                        </ul>
-                    </li>
-                </ol>
-                
-                <h3 class="text-xl font-medium mb-3 text-gray-800">Tips</h3>
-                <ul class="list-disc list-inside space-y-2 mb-4">
-                    <li>Use accurate per-share data from <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a> or <a href="https://www.annualreportsghana.com/resources/equity/gse/" class="text-indigo-600 hover:underline">annualreportsghana.com</a>. Divide financials by shares outstanding (e.g., 174 million for Access Bank, 13.2 billion for MTN Ghana) to get EPS, FCFE, dividends per share.</li>
-                    <li>Keep growth rates conservative: 5–15% for high growth, 3–6% for terminal, per <a href="https://data.worldbank.org/indicator/NY.GDP.MKTP.KD.ZG?locations=GH" class="text-indigo-600 hover:underline">data.worldbank.org</a>.</li>
-                    <li>Use sector-specific P/E multiples: 8–12x for banks, 15–20x for telecoms.</li>
-                    <li>For banks like Access Bank, adjust FCFE for loan provisions and regulatory capital; for telecoms like MTN Ghana, account for high capex.</li>
-                    <li>Test all weighting scenarios to understand valuation range in volatile markets (e.g., GSE’s 56.17% return in 2024).</li>
-                </ul>
-                
-                <h3 class="text-xl font-medium mb-3 text-gray-800">Common Mistakes to Avoid</h3>
-                <ul class="list-disc list-inside space-y-2 mb-4">
-                    <li>Use current financials (2024 or 2025) from <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a>, not outdated data.</li>
-                    <li>Justify high discount rates (e.g., 31.01% for MTN Ghana due to beta 1.314; 16% for Access Bank is typical).</li>
-                    <li>Avoid overestimating dividends or FCFE, especially for banks with regulatory constraints.</li>
-                    <li>Ensure P/E multiples align with industry and market conditions on <a href="https://afx.kwayisi.org/gse/" class="text-indigo-600 hover:underline">afx.kwayisi.org/gse/</a>.</li>
-                    <li>Enter positive monetary values and rates between 0–100%, as the calculator validates inputs.</li>
-                </ul>
-                
-                <p><a href="{{ url_for('multi_method_valuation') }}" class="text-indigo-600 hover:text-indigo-800 font-medium transition-colors duration-200">Go to Multi-Method Stock Valuation Calculator</a></p>
-            </div>
-        </div>
-
-<!-- Cost of Equity Calculator -->
-<div id="cost-of-equity-calculator" class="calculator bg-white p-6 rounded-xl shadow-md transition-all duration-300 hover:shadow-lg">
-    <button 
-        class="w-full text-left text-xl font-semibold text-gray-800 flex justify-between items-center py-2 px-4 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded" 
-        onclick="toggleSection(this)" 
-        aria-expanded="false" 
-        aria-controls="cost-of-equity-calculator-content"
-    >
-        <span>📈 Cost of Equity Calculator</span>
-        <span class="toggle-icon text-xl font-bold text-blue-600">+</span>
+    <!-- Back to Top Button -->
+    <button id="backToTop" class="back-to-top w-12 h-12 bg-primary text-white rounded-full shadow-lg flex items-center justify-center">
+        <i class="fas fa-arrow-up"></i>
     </button>
-    <div id="cost-of-equity-calculator-content" class="content collapsed mt-4 text-gray-700 text-lg">
-        <h3 class="text-xl font-medium mb-3 text-gray-800">What It Does</h3>
-        <p class="mb-3">This calculator estimates the cost of equity, the return shareholders require for investing in a stock. It uses two methods: CAPM (<span class="font-mono">Cost = Risk-Free Rate + Beta * (Market Return - Risk-Free Rate)</span>) and DDM (<span class="font-mono">Cost = (Dividend per Share / Stock Price) + Growth Rate</span>). The cost of equity is key for DCF valuations and WACC calculations.</p>
-        
-        <h3 class="text-xl font-medium mb-3 text-gray-800">How to Use It</h3>
-        <p class="mb-2">Follow these steps to calculate the cost of equity for a company like Access Bank Ghana (174 million shares):</p>
-        <ol class="list-decimal pl-6 space-y-4 mb-4">
-            <li>
-                <strong>Access the Calculator</strong>: Navigate to <a href="{{ url_for('calculate_cost_of_equity') }}" class="text-indigo-600 hover:underline">younginvestorcalculator.com/calculate-cost-of-equity</a> or select “Cost of Equity Calculator” from the homepage.
-            </li>
-            <li>
-                <strong>Gather Financial Data</strong>: Collect data for CAPM and DDM inputs.
-                <ul class="list-disc list-inside space-y-2 ml-6">
-                    <li>
-                        <strong>CAPM Inputs</strong>:
-                        <ul class="list-circle list-inside ml-6 space-y-1">
-                            <li><strong>Risk-Free Rate</strong>: Yield on 10-year Ghana government bond, found on <a href="https://www.bog.gov.gh/" class="text-indigo-600 hover:underline">bog.gov.gh</a>. Example: 25% in 2024.</li>
-                            <li><strong>Beta</strong>: Stock’s volatility, from <a href="https://afx.kwayisi.org/gse/" class="text-indigo-600 hover:underline">afx.kwayisi.org/gse/</a> or your Beta Calculator. Example: 1.2 for Access Bank.</li>
-                            <li><strong>Market Return</strong>: Historical GSE return, estimated at 12–15%. Example: 15%.</li>
-                        </ul>
-                    </li>
-                    <li>
-                        <strong>DDM Inputs</strong>:
-                        <ul class="list-circle list-inside ml-6 space-y-1">
-                            <li><strong>Dividend per Share</strong>: Annual dividend, from annual reports on <a href="https://www.annualreportsghana.com/resources/equity/gse/" class="text-indigo-600 hover:underline">annualreportsghana.com</a>. Example: 0.12 GHS.</li>
-                            <li><strong>Current Stock Price</strong>: Market price from <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a>. Example: 2.83 GHS.</li>
-                            <li><strong>Dividend Growth Rate</strong>: Historical or projected growth, estimated at 5%.</li>
-                        </ul>
-                    </li>
-                    <li>
-                        <strong>Weights</strong>: Assign weights to CAPM and DDM (e.g., 60% CAPM, 40% DDM). Total must be 100%.
-                    </li>
-                </ul>
-            </li>
-            <li>
-                <strong>Enter Data</strong>: Input values in the form.
-                <ul class="list-disc list-inside space-y-2 ml-6">
-                    <li>Example: Risk-Free Rate: 25%, Beta: 1.2, Market Return: 15%, Dividend: 0.12 GHS, Stock Price: 2.83 GHS, Growth Rate: 5%, CAPM Weight: 60%, DDM Weight: 40%.</li>
-                </ul>
-            </li>
-            <li>
-                <strong>Calculate</strong>: Click “Calculate” to view results.
-                <ul class="list-disc list-inside space-y-2 ml-6">
-                    <li><strong>Output</strong>: Table shows CAPM cost (e.g., 30%), DDM cost (e.g., 9.24%), and weighted average (e.g., 21.7%).</li>
-                </ul>
-            </li>
-            <li>
-                <strong>Use Results</strong>: Apply the weighted cost of equity as the discount rate in DCF or WACC models, or compare to expected returns.
-            </li>
-        </ol>
-        
-        <h3 class="text-xl font-medium mb-3 text-gray-800">Tips</h3>
-        <ul class="list-disc list-inside space-y-2 mb-4">
-            <li>Use reliable sources like <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a> or <a href="https://www.bog.gov.gh/" class="text-indigo-600 hover:underline">bog.gov.gh</a> for data.</li>
-            <li>For banks, verify dividends for stability; for growth firms, rely more on CAPM.</li>
-            <li>Adjust weights based on data reliability (e.g., higher CAPM weight if dividends are inconsistent).</li>
-        </ul>
-        
-        <h3 class="text-xl font-medium mb-3 text-gray-800">Common Mistakes to Avoid</h3>
-        <ul class="list-disc list-inside space-y-2 mb-4">
-            <li>Don’t use outdated data—check 2024/2025 figures on <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a>.</li>
-            <li>Ensure weights sum to 100%.</li>
-            <li>Avoid zero stock price in DDM calculations.</li>
-        </ul>
-        
-        <p><a href="{{ url_for('calculate_cost_of_equity') }}" class="text-indigo-600 hover:text-indigo-800 font-medium transition-colors duration-200">Go to Cost of Equity Calculator</a></p>
-    </div>
-</div>
-        
-<!-- FCFE Calculator -->
-<div id="fcfe-calculator" class="calculator bg-white p-6 rounded-xl shadow-md transition-all duration-300 hover:shadow-lg">
-    <button 
-        class="w-full text-left text-xl font-semibold text-gray-800 flex justify-between items-center py-2 px-4 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded" 
-        onclick="toggleSection(this)" 
-        aria-expanded="false" 
-        aria-controls="fcfe-calculator-content"
-    >
-        <span>📊 FCFE Calculator</span>
-        <span class="toggle-icon text-xl font-bold text-blue-600">+</span>
-    </button>
-    <div id="fcfe-calculator-content" class="content collapsed mt-4 text-gray-700 text-lg">
-        <h3 class="text-xl font-medium mb-3 text-gray-800">What It Does</h3>
-        <p class="mb-3">This calculator computes Free Cash Flow to Equity (FCFE), the cash available to shareholders after all expenses, investments, and debt obligations. It uses the formula: <span class="font-mono">FCFE = Net Income - Net Capex - Change in Working Capital + Net Borrowing</span>. FCFE is key for valuing stocks, especially in DCF models.</p>
-        
-        <h3 class="text-xl font-medium mb-3 text-gray-800">How to Use It</h3>
-        <p class="mb-2">Follow these steps to calculate FCFE for a company like Access Bank Ghana listed on the Ghana Stock Exchange :</p>
-        <ol class="list-decimal pl-6 space-y-4 mb-4">
-            <li>
-                <strong>Access the Calculator</strong>: Navigate to <a href="{{ url_for('calculate_fcfe') }}" class="text-indigo-600 hover:underline">younginvestorcalculator.com/calculate-fcfe</a> or select “FCFE Calculator” from the homepage.
-            </li>
-            <li>
-                <strong>Gather Financial Data</strong>: You’ll need five years of data (e.g., 2020–2024) for four key metrics: Net Income, Net Capex, Change in Working Capital, and Net Borrowing. These feed into the FCFE formula: <span class="font-mono">FCFE = Net Income - Net Capex - Change in Working Capital + Net Borrowing</span>. Here’s how to find and understand each one, using Access Bank Ghana as an example:
-                <ul class="list-disc list-inside space-y-2 ml-6">
-                    <li>
-                        <strong>Net Income</strong>: This is the company’s profit after all expenses, taxes, and interest, found in the income statement (often called “Profit After Tax”). It’s the starting point for FCFE, showing earnings available to shareholders.
-                        <ul class="list-circle list-inside ml-6 space-y-1">
-                            <li><strong>Where to Find It</strong>: Check annual reports on <a href="https://www.annualreportsghana.com/resources/equity/gse/" class="text-indigo-600 hover:underline">annualreportsghana.com</a> or <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a>. Look for “Net Profit” or “Profit for the Year.” Alternatively, use <a href="https://afx.kwayisi.org/gse/" class="text-indigo-600 hover:underline">afx.kwayisi.org/gse/</a> for summaries.</li>
-                            <li><strong>Example</strong>: Access Bank’s 2023 Net Income might be 200 million GHS (based on 174 million shares and 1.15 GHS EPS).</li>
-                            <li><strong>For Banks</strong>: Adjust for loan loss provisions (check financial statement notes), as these can reduce reported profit.</li>
-                            <li><strong>Tip</strong>: Ensure values are in Ghanaian Cedi (GHS). If projecting 2024, use historical growth (e.g., 10% annual increase).</li>
-                        </ul>
-                    </li>
-                    <li>
-                        <strong>Net Capex</strong>: This is the cash spent on long-term assets (Capital Expenditures, or Capex) minus cash from selling assets. It shows how much the company invests in growth or maintenance, reducing cash for shareholders.
-                        <ul class="list-circle list-inside ml-6 space-y-1">
-                            <li><strong>Where to Find It</strong>: In the cash flow statement (Investing Activities), find “Purchases of Property, Plant, and Equipment” (Capex) and “Proceeds from Sale of Assets.” Calculate: <span class="font-mono">Net Capex = Capex - Asset Sales</span>. Sources: <a href="https://www.annualreportsghana.com/resources/equity/gse/" class="text-indigo-600 hover:underline">annualreportsghana.com</a>, <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a>, or <a href="https://afx.kwayisi.org/gse/" class="text-indigo-600 hover:underline">afx.kwayisi.org/gse/</a>.</li>
-                            <li><strong>Example</strong>: In 2024, Access Bank spends 600,000 GHS on new branches and IT systems (Capex) and sells old equipment for 100,000 GHS, so Net Capex is 500,000 GHS.</li>
-                            <li><strong>For Banks</strong>: Capex is often lower, focusing on software or branches. Include intangible assets (e.g., IT licenses).</li>
-                            <li><strong>Tip</strong>: If asset sales are zero, Net Capex equals Capex. For projections, assume steady Capex or check management plans in reports.</li>
-                        </ul>
-                    </li>
-                    <li>
-                        <strong>Change in Working Capital</strong>: This tracks year-over-year changes in current assets (e.g., cash, receivables) minus current liabilities (e.g., payables). An increase ties up cash (reducing FCFE); a decrease frees it.
-                        <ul class="list-circle list-inside ml-6 space-y-1">
-                            <li><strong>Where to Find It</strong>: Use the cash flow statement (Operating Activities) for “Change in Working Capital” or line items like “Increase in Receivables.” Alternatively, calculate from balance sheets: <span class="font-mono">Change = (Current Assets - Current Liabilities)_year - (Current Assets - Current Liabilities)_previous year</span>. Sources: <a href="https://www.annualreportsghana.com/resources/equity/gse/" class="text-indigo-600 hover:underline">annualreportsghana.com</a>, <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a>.</li>
-                            <li><strong>Example</strong>: In 2024, Access Bank’s working capital rises from 1.2 million GHS (2023) to 1.4 million GHS, so Change is +200,000 GHS (cash outflow).</li>
-                            <li><strong>For Banks</strong>: Working capital is less relevant, as loans (assets) and deposits (liabilities) dominate. Focus on cash flow statement changes in receivables or payables.</li>
-                            <li><strong>Tip</strong>: In FCFE, increases are subtracted, decreases added. Use annual data to avoid seasonal fluctuations.</li>
-                        </ul>
-                    </li>
-                    <li>
-                        <strong>Net Borrowing</strong>: This is new debt issued minus debt repaid, showing cash from borrowing (added to FCFE) or repayments (reducing FCFE).
-                        <ul class="list-circle list-inside ml-6 space-y-1">
-                            <li><strong>Where to Find It</strong>: In the cash flow statement (Financing Activities), find “Proceeds from Borrowings” and “Repayment of Borrowings.” Calculate: <span class="font-mono">Net Borrowing = New Debt - Repayments</span>. Sources: <a href="https://www.annualreportsghana.com/resources/equity/gse/" class="text-indigo-600 hover:underline">annualreportsghana.com</a>, <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a>.</li>
-                            <li><strong>Example</strong>: In 2024, Access Bank issues 400,000 GHS in bonds and repays 100,000 GHS, so Net Borrowing is 300,000 GHS.</li>
-                            <li><strong>For Banks</strong>: Focus on external borrowings (e.g., bonds, interbank loans), not customer deposits. Check financial statement notes for debt details.</li>
-                            <li><strong>Tip</strong>: Cross-check with balance sheet debt changes. For projections, assume stable debt unless reports suggest otherwise.</li>
-                        </ul>
-                    </li>
-                    <li>
-                        <strong>Organize Your Data</strong>: Create a table for clarity, e.g.:
-                        <table class="table-auto w-full text-left border-collapse border border-gray-300 mt-2 mb-2">
-                            <thead>
-                                <tr class="bg-gray-100">
-                                    <th class="border border-gray-300 px-4 py-2">Year</th>
-                                    <th class="border border-gray-300 px-4 py-2">Net Income (GHS)</th>
-                                    <th class="border border-gray-300 px-4 py-2">Net Capex (GHS)</th>
-                                    <th class="border border-gray-300 px-4 py-2">Change in WC (GHS)</th>
-                                    <th class="border border-gray-300 px-4 py-2">Net Borrowing (GHS)</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td class="border border-gray-300 px-4 py-2">2020</td>
-                                    <td class="border border-gray-300 px-4 py-2">150,000,000</td>
-                                    <td class="border border-gray-300 px-4 py-2">400,000</td>
-                                    <td class="border border-gray-300 px-4 py-2">150,000</td>
-                                    <td class="border border-gray-300 px-4 py-2">250,000</td>
-                                </tr>
-                                <tr>
-                                    <td class="border border-gray-300 px-4 py-2">2021</td>
-                                    <td class="border border-gray-300 px-4 py-2">165,000,000</td>
-                                    <td class="border border-gray-300 px-4 py-2">420,000</td>
-                                    <td class="border border-gray-300 px-4 py-2">180,000</td>
-                                    <td class="border border-gray-300 px-4 py-2">270,000</td>
-                                </tr>
-                                <tr>
-                                    <td class="border border-gray-300 px-4 py-2">2022</td>
-                                    <td class="border border-gray-300 px-4 py-2">180,000,000</td>
-                                    <td class="border border-gray-300 px-4 py-2">450,000</td>
-                                    <td class="border border-gray-300 px-4 py-2">190,000</td>
-                                    <td class="border border-gray-300 px-4 py-2">280,000</td>
-                                </tr>
-                                <tr>
-                                    <td class="border border-gray-300 px-4 py-2">2023</td>
-                                    <td class="border border-gray-300 px-4 py-2">200,000,000</td>
-                                    <td class="border border-gray-300 px-4 py-2">480,000</td>
-                                    <td class="border border-gray-300 px-4 py-2">200,000</td>
-                                    <td class="border border-gray-300 px-4 py-2">290,000</td>
-                                </tr>
-                                <tr>
-                                    <td class="border border-gray-300 px-4 py-2">2024</td>
-                                    <td class="border border-gray-300 px-4 py-2">217,500,000</td>
-                                    <td class="border border-gray-300 px-4 py-2">500,000</td>
-                                    <td class="border border-gray-300 px-4 py-2">200,000</td>
-                                    <td class="border border-gray-300 px-4 py-2">300,000</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </li>
-                    <li>
-                        <strong>Handle Missing Data</strong>: If reports are incomplete, estimate using quarterly reports, interpolate from trends, or check <a href="https://afx.kwayisi.org/gse/" class="text-indigo-600 hover:underline">afx.kwayisi.org/gse/</a>. For projections, use conservative growth rates (e.g., 5–10% based on past data or GDP from <a href="https://data.worldbank.org/indicator/NY.GDP.MKTP.KD.ZG?locations=GH" class="text-indigo-600 hover:underline">data.worldbank.org</a>).
-                    </li>
-                </ul>
-            </li>
-            <li>
-                <strong>Enter Data</strong>: Input values for each year.
-                <ul class="list-disc list-inside space-y-2 ml-6">
-                    <li>Example for Year 1: Net Income: 1,000,000 GHS, Net Capex: 500,000 GHS, Change in Working Capital: 200,000 GHS, Net Borrowing: 300,000 GHS.</li>
-                    <li>Repeat for Years 2–5, using historical or projected data.</li>
-                </ul>
-            </li>
-            <li>
-                <strong>Calculate</strong>: Click “Calculate FCFE” to view results.
-                <ul class="list-disc list-inside space-y-2 ml-6">
-                    <li><strong>Output</strong>: A table shows Net Income, Net Capex, Change in Working Capital, Net Borrowing, and FCFE for each year.</li>
-                    <li>Example: <span class="font-mono">FCFE = 1,000,000 - 500,000 - 200,000 + 300,000 = 600,000 GHS</span> for Year 1.</li>
-                </ul>
-            </li>
-            <li>
-                <strong>Use Results</strong>: Apply FCFE in valuation models (e.g., DCF) or divide by shares outstanding (e.g., 174 million for Access Bank) to get FCFE per share.
-            </li>
-        </ol>
-        
-        <h3 class="text-xl font-medium mb-3 text-gray-800">Tips</h3>
-        <ul class="list-disc list-inside space-y-2 mb-4">
-            <li>Use reliable sources like <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a> or <a href="https://www.annualreportsghana.com/resources/equity/gse/" class="text-indigo-600 hover:underline">annualreportsghana.com</a> for accurate financials.</li>
-            <li>For banks, adjust Net Income for loan provisions; for capital-intensive firms, verify Net Capex carefully.</li>
-            <li>Use 5 years of data for stable trends, or 3 years in volatile markets.</li>
-        </ul>
-        
-        <h3 class="text-xl font-medium mb-3 text-gray-800">Common Mistakes to Avoid</h3>
-        <ul class="list-disc list-inside space-y-2 mb-4">
-            <li>Don’t use outdated financials—verify 2024 or 2025 data on <a href="https://gse.com.gh/" class="text-indigo-600 hover:underline">gse.com.gh</a>.</li>
-            <li>Ensure all inputs are in the same currency (e.g., GHS).</li>
-            <li>Double-check Change in Working Capital sign: increases are negative, decreases are positive.</li>
-        </ul>
-        
-        <p><a href="{{ url_for('calculate_fcfe') }}" class="text-indigo-600 hover:text-indigo-800 font-medium transition-colors duration-200">Go to FCFE Calculator</a></p>
-    </div>
-</div>
 
-        <!-- More Calculators -->
-        <div id="other" class="calculator bg-white p-6 rounded-xl shadow-md transition-all duration-300 hover:shadow-lg">
-            <button 
-                class="w-full text-left text-xl font-semibold text-gray-800 flex justify-between items-center py-2 px-4 focus:outline-none focus:ring-2 focus:ring-indigo-500 rounded" 
-                onclick="toggleSection(this)" 
-                aria-expanded="false" 
-                aria-controls="other-content"
-            >
-                <span>🧮 More Calculators</span>
-                <span class="toggle-icon text-xl font-bold text-blue-600">+</span>
-            </button>
-            <div id="other-content" class="content collapsed mt-4 text-gray-700">
-                <p class="mb-3">More steps soon! Meanwhile, you can <a href="https://younginvestorcalculator.com/" class="text-indigo-600 hover:text-indigo-800 font-medium transition-colors duration-200">explore other tools</a> or <a href="https://cleanvisionhr.com/professional_training" class="text-indigo-600 hover:text-indigo-800 font-medium transition-colors duration-200">visit our HR platform to register for training</a>.</p>
-            </div>
-        </div>
-    </div>
-
-    <!-- Navigation -->
-    <div class="mt-10 flex justify-center">
-        <a href="{{ url_for('index') }}" class="bg-gray-200 text-gray-800 px-8 py-3 rounded-lg hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-200 ease-in-out text-lg font-medium">Back to Home</a>
-    </div>
-</div>
-
-<!-- JavaScript -->
-<script>
-function toggleSection(button) {
-    const content = button.nextElementSibling;
-    const toggleIcon = button.querySelector('.toggle-icon');
-    const isExpanded = content.classList.contains('expanded');
-    if (isExpanded) {
-        content.classList.remove('expanded');
-        content.classList.add('collapsed');
-        toggleIcon.textContent = '+';
-    } else {
-        content.classList.remove('collapsed');
-        content.classList.add('expanded');
-        toggleIcon.textContent = '−';
-    }
-    button.setAttribute('aria-expanded', !isExpanded);
-}
-
-let timeout;
-function filterCalculators() {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => {
-        const query = document.getElementById('search').value.toLowerCase();
-        const calculators = document.querySelectorAll('.calculator');
-        calculators.forEach(calc => {
-            const title = calc.querySelector('button span').textContent.toLowerCase();
-            calc.style.display = title.includes(query) ? 'block' : 'none';
+    <!-- JavaScript -->
+    <script>
+        // Toggle sections
+        document.querySelectorAll('.calculator-item button').forEach(button => {
+            button.addEventListener('click', function() {
+                const content = this.nextElementSibling;
+                const toggleIcon = this.querySelector('.toggle-icon i');
+                
+                if (content.classList.contains('expanded')) {
+                    content.classList.remove('expanded');
+                    toggleIcon.classList.remove('fa-chevron-up');
+                    toggleIcon.classList.add('fa-chevron-down');
+                } else {
+                    content.classList.add('expanded');
+                    toggleIcon.classList.remove('fa-chevron-down');
+                    toggleIcon.classList.add('fa-chevron-up');
+                }
+                
+                this.setAttribute('aria-expanded', content.classList.contains('expanded'));
+            });
         });
-    }, 300);
-}
-</script>
-
-<!-- Inline CSS -->
-<style>
-body {
-    font-family: 'Inter', sans-serif;
-}
-
-.content {
-    overflow: hidden;
-    transition: max-height 0.3s ease;
-}
-
-.content.collapsed {
-    max-height: 0;
-}
-
-.content.expanded {
-    max-height: 5000px;
-}
-
-.font-mono {
-    font-family: 'Courier New', Courier, monospace;
-    background-color: #f3f4f6;
-    padding: 2px 4px;
-    border-radius: 3px;
-}
-</style>
-{% endblock %}
+        
+        // Search functionality
+        const searchInput = document.getElementById('search');
+        const clearSearchBtn = document.getElementById('clearSearch');
+        
+        searchInput.addEventListener('input', function() {
+            const query = this.value.toLowerCase().trim();
+            clearSearchBtn.classList.toggle('hidden', !query);
+            
+            if (query === '') {
+                document.querySelectorAll('.calculator-item').forEach(item => {
+                    item.style.display = 'block';
+                });
+                return;
+            }
+            
+            document.querySelectorAll('.calculator-item').forEach(item => {
+                const title = item.querySelector('h3').textContent.toLowerCase();
+                const match = title.includes(query);
+                item.style.display = match ? 'block' : 'none';
+                
+                // Open matching calculators
+                if (match) {
+                    const content = item.querySelector('.content');
+                    if (!content.classList.contains('expanded')) {
+                        item.querySelector('button').click();
+                    }
+                }
+            });
+        });
+        
+        clearSearchBtn.addEventListener('click', function() {
+            searchInput.value = '';
+            this.classList.add('hidden');
+            document.querySelectorAll('.calculator-item').forEach(item => {
+                item.style.display = 'block';
+            });
+        });
+        
+        // Back to top button
+        const backToTopBtn = document.getElementById('backToTop');
+        
+        window.addEventListener('scroll', function() {
+            if (window.pageYOffset > 300) {
+                backToTopBtn.classList.add('visible');
+            } else {
+                backToTopBtn.classList.remove('visible');
+            }
+        });
+        
+        backToTopBtn.addEventListener('click', function() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        });
+        
+        // Mobile menu toggle
+        const menuToggle = document.getElementById('menuToggle');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('overlay');
+        
+        menuToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('visible');
+        });
+        
+        overlay.addEventListener('click', function() {
+            sidebar.classList.remove('open');
+            overlay.classList.remove('visible');
+        });
+        
+        // Keyboard support for collapsible sections
+        document.querySelectorAll('.calculator-item button').forEach(button => {
+            button.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    button.click();
+                }
+            });
+        });
+        
+        // Initialize tooltips
+        const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+        tooltipTriggerList.forEach(tooltipTriggerEl => {
+            new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    </script>
+</body>
+</html>
