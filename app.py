@@ -72,6 +72,11 @@ app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
 app.config['UPLOAD_FOLDER'] = 'static/author_photos'
 app.config['UPLOADED_PHOTOS_DEST'] = 'static/author_photos'
 
+app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, 'static', 'author_photos')
+app.config['UPLOADED_PHOTOS_DEST'] = os.path.join(app.root_path, 'static', 'author_photos')
+
+#
+
 # Email
 # EXTENSIONS INITIALIZATION (AFTER APP CREATION)
 # ---------------------------------------------
@@ -146,6 +151,11 @@ class BlogForm(FlaskForm):
 # Defines utility functions and namedtuples used in the application
 DCFResult = namedtuple('DCFResult', ['total_pv', 'pv_cash_flows', 'terminal_value', 'pv_terminal', 'total_dcf'])
 DVMResult = namedtuple('DVMResult', ['intrinsic_value', 'formula', 'pv_dividends', 'terminal_value', 'pv_terminal'])
+
+# Serve static files from author_photos
+@app.route('/static/author_photos/<path:filename>')
+def serve_author_photos(filename):
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
 # Create an admin user (run once in a Python shell)
 def create_admin_user():
