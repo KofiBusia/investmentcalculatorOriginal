@@ -157,6 +157,21 @@ from flask import send_from_directory, abort
 import os
 import logging
 
+from flask import send_from_directory
+
+@app.route('/author_photos/<filename>')
+def author_photo(filename):
+    return send_from_directory('static/author_photos', filename)
+
+# Add to your app.py
+import logging
+from logging.handlers import RotatingFileHandler
+
+# Set up logging
+handler = RotatingFileHandler('app.log', maxBytes=10000, backupCount=1)
+handler.setLevel(logging.INFO)
+app.logger.addHandler(handler)
+
 @app.route('/static/author_photos/<path:filename>')
 def serve_author_photos(filename):
     upload_folder = 'static/author_photos'  # Adjust based on your config

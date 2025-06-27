@@ -918,6 +918,7 @@
                     <div class="article-meta">
                         <div class="author-info">
                             <img src="{% if article.author_photo %}{{ url_for('static', filename='author_photos/' + article.author_photo) }}{% else %}https://randomuser.me/api/portraits/men/32.jpg{% endif %}" alt="{{ article.author }}" class="author-img">
+                            <img src="{{ url_for('static', filename='author_photos/kofi.jpg') }}">
                             <div>
                                 <div class="author-name">{{ article.author }}</div>
                                 <div class="article-date">{{ article.date_posted.strftime('%b %d, %Y') }} · 5 min read</div>
