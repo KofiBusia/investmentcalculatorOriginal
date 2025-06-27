@@ -153,10 +153,29 @@ DCFResult = namedtuple('DCFResult', ['total_pv', 'pv_cash_flows', 'terminal_valu
 DVMResult = namedtuple('DVMResult', ['intrinsic_value', 'formula', 'pv_dividends', 'terminal_value', 'pv_terminal'])
 
 # Serve static files from author_photos
+from flask import send_from_directory, abort
+import os
+import logging
+
 @app.route('/static/author_photos/<path:filename>')
 def serve_author_photos(filename):
-    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
-
+    upload_folder = 'static/author_photos'  # Adjust based on your config
+    try:
+        file_path = os.path.join(upload_folder, filename)
+        if os.path.exists(file_path):
+            return send_from_directory(upload_folder, filename)
+        else:
+            logging.error(f"Author photo not found: {file_path}")
+            default_image = 'default_author.jpg'  # Ensure this exists
+            default_path = os.path.join(upload_folder, default_image)
+            if os.path.exists(default_path):
+                return send_from_directory(upload_folder, default_image)
+            else:
+                abort(404)
+    except Exception as e:
+        logging.error(f"Error serving {filename}: {str(e)}")
+        abort(500)
+        
 # Create an admin user (run once in a Python shell)
 def create_admin_user():
     with app.app_context():
