@@ -135,7 +135,8 @@
                     <h1 class="text-2xl sm:text-2xl md:text-3xl font-bold text-gray-800 mb-3">{{ article.title }}</h1>
                     <div class="flex items-center mb-3">
                         {% if article.author_photo %}
-                            <img src="{{ url_for('serve_author_photos', filename=article.author_photo) }}" alt="{{ article.author }}" class="w-10 h-10 rounded-full mr-3 object-cover">
+                            <img src="{{ url_for('serve_author_photos', filename=article.author_photo) }}" alt="{{ article.author }}" class="w-10 h-10 rounded-full mr-3 object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                            <i class="fas fa-user-circle fa-2x text-blue-600 mr-3" style="display:none;"></i>
                         {% else %}
                             <i class="fas fa-user-circle fa-2x text-blue-600 mr-3"></i>
                         {% endif %}
@@ -170,7 +171,8 @@
                 <h3 class="text-lg font-semibold text-gray-800 mb-4">About the Developer</h3>
                 <div class="flex items-center mb-4">
                     {% if article.author_photo %}
-                        <img src="{{ url_for('serve_author_photos', filename=article.author_photo) }}" alt="{{ article.author }}" class="w-14 h-14 rounded-full mr-4 object-cover">
+                        <img src="{{ url_for('serve_author_photos', filename=article.author_photo) }}" alt="{{ article.author }}" class="w-14 h-14 rounded-full mr-4 object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                        <i class="fas fa-user-circle fa-3x text-blue-600 mr-4" style="display:none;"></i>
                     {% else %}
                         <i class="fas fa-user-circle fa-3x text-blue-600 mr-4"></i>
                     {% endif %}
