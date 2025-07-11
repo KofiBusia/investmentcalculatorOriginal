@@ -9,6 +9,7 @@ import tempfile
 from collections import namedtuple
 from dataclasses import dataclass
 from datetime import datetime
+from PIL import Image
 from flask import Flask, render_template, request, redirect, url_for
 import math
 
@@ -40,6 +41,7 @@ from wtforms import (
     SelectField, StringField, SubmitField, TextAreaField,
     validators
 )
+import pandas as pd
 import numpy as np
 import numpy_financial as npf
 from wtforms.validators import DataRequired  # ← Add this line
@@ -58,6 +60,8 @@ import os
 
 # Security
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'e1efa2b32b1bac66588d074bac02a168212082d8befd0b6466f5ee37a8c2836a')
+
+app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # 5 MB limit
 
 # Database
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'mysql+pymysql://root:IFokbu%40m%401@localhost/investment_insights')
@@ -162,6 +166,11 @@ from flask import send_from_directory
 @app.route('/author_photos/<filename>')
 def author_photo(filename):
     return send_from_directory('static/author_photos', filename)
+
+@app.errorhandler(413)
+def request_entity_too_large(error):
+    flash('File too large. Maximum size is 5 MB.', 'danger')
+    return redirect(request.url)
 
 # Add to your app.py
 import logging
@@ -565,8 +574,19 @@ def admin_articles():
         
         if form.author_photo.data:
             filename = photos.save(form.author_photo.data)
+            img_path = os.path.join(app.config['UPLOADED_PHOTOS_DEST'], filename)
             article.author_photo = filename
-        
+            try:
+                with Image.open(img_path) as img:
+                    max_size = (800, 800)  # Maximum width and height
+                    img.thumbnail(max_size, Image.Resampling.LANCZOS)  # Resize while maintaining aspect ratio
+                    img.save(img_path)  # Overwrite with resized image
+            except Exception as e:
+                app.logger.error(f'Error processing image {filename}: {str(e)}')
+                flash('Error processing image. Please try a different file.', 'danger')
+            else:
+                article.author_photo = filename
+                
         db.session.add(article)
         db.session.commit()
         flash('Article created!', 'success')
@@ -632,6 +652,162 @@ def help():
         calculators = []  # Fallback if file is missing
     return render_template('help.html', calculators=calculators)
 
+# Route for Credit Risk Calculator
+@app.route('/credit_risk', methods=['GET', 'POST'])
+def credit_risk():
+    if request.method == 'POST':
+        try:
+            # Extract form data
+            borrower = request.form.get('borrower', 'Unknown Bank')
+            ead = float(request.form.get('ead', 0))  # GHS thousands
+            net_impairment_loss = float(request.form.get('net_impairment_loss', 0))
+            loans_advances = float(request.form.get('loans_advances', 1))  # Avoid division by zero
+            liquid_assets = float(request.form.get('liquid_assets', 0))
+            total_assets = float(request.form.get('total_assets', 1))  # Avoid division by zero
+            current_assets = float(request.form.get('current_assets', 0))
+            current_liabilities = float(request.form.get('current_liabilities', 1))  # Avoid division by zero
+            non_pledged_assets = float(request.form.get('non_pledged_assets', 0))
+            profit_before_tax = float(request.form.get('profit_before_tax', 1))  # Avoid division by zero
+            interest_paid = float(request.form.get('interest_paid', 0))
+
+            # Validate inputs
+            if not borrower.strip():
+                raise ValueError("Bank Name is required.")
+            if any(x < 0 for x in [ead, net_impairment_loss, loans_advances, liquid_assets, total_assets, current_assets, current_liabilities, non_pledged_assets, profit_before_tax, interest_paid]):
+                raise ValueError("All numerical inputs must be non-negative.")
+            if loans_advances == 0 or total_assets == 0 or current_liabilities == 0:
+                raise ValueError("Loans and Advances, Total Assets, and Current Liabilities cannot be zero.")
+            if liquid_assets > total_assets:
+                raise ValueError("Liquid Assets cannot exceed Total Assets.")
+            if non_pledged_assets > current_assets:
+                raise ValueError("Non-Pledged Trading Assets cannot exceed Current Assets.")
+
+            # Store form data for persistence
+            form_data = {
+                'borrower': borrower,
+                'ead': ead,
+                'net_impairment_loss': net_impairment_loss,
+                'loans_advances': loans_advances,
+                'liquid_assets': liquid_assets,
+                'total_assets': total_assets,
+                'current_assets': current_assets,
+                'current_liabilities': current_liabilities,
+                'non_pledged_assets': non_pledged_assets,
+                'profit_before_tax': profit_before_tax,
+                'interest_paid': interest_paid
+            }
+
+            # Calculate metrics as per the document
+            pd = (net_impairment_loss / loans_advances) * 100 if loans_advances > 0 else 0  # PD in percentage
+            lgd = 100 - (liquid_assets / total_assets * 100) if total_assets > 0 else 0  # LGD in percentage
+            lgd = max(0, min(100, lgd))  # Cap LGD between 0% and 100%
+            current_ratio = current_assets / current_liabilities if current_liabilities > 0 else 0
+            quick_ratio = (current_assets - non_pledged_assets) / current_liabilities if current_liabilities > 0 else 0
+            cash_ratio = liquid_assets / current_liabilities if current_liabilities > 0 else 0
+            interest_coverage_ratio = profit_before_tax / interest_paid if interest_paid > 0 else float('inf')
+
+            # Calculate Expected Loss
+            expected_loss = (pd / 100) * (lgd / 100) * ead  # EL in GHS thousands
+            el_percentage = (expected_loss / ead * 100) if ead > 0 else 0  # EL as percentage of EAD
+            expected_loss = max(0, expected_loss)  # Ensure non-negative EL
+            el_percentage = max(0, el_percentage)  # Ensure non-negative EL percentage
+
+            # Investment recommendation
+            if el_percentage < 1 and cash_ratio > 1 and interest_coverage_ratio > 1.5:
+                recommendation = f"Low Risk: Safe to place funds with {borrower}. The bank has strong liquidity and repayment capacity."
+                recommendation_interpretation = (
+                    f"A Low Risk recommendation indicates that {borrower} is a safe investment due to a negligible Expected Loss "
+                    f"({el_percentage:.4f}% of EAD), strong liquidity (Cash Ratio of {cash_ratio:.2f}), and robust debt-servicing capacity "
+                    f"(Interest Coverage Ratio of {interest_coverage_ratio:.2f}). Funds placed in fixed deposits or repos are highly likely to be repaid."
+                )
+            elif (el_percentage >= 1 and el_percentage <= 5) or (cash_ratio >= 0.5 and cash_ratio <= 1) or (interest_coverage_ratio >= 1 and interest_coverage_ratio <= 1.5):
+                recommendation = f"Moderate Risk: Exercise caution when placing funds with {borrower}. Verify additional financial stability indicators."
+                recommendation_interpretation = (
+                    f"A Moderate Risk recommendation suggests caution when investing with {borrower}. The Expected Loss "
+                    f"({el_percentage:.4f}% of EAD), Cash Ratio ({cash_ratio:.2f}), or Interest Coverage Ratio ({interest_coverage_ratio:.2f}) "
+                    f"indicates moderate risk. Verify recent financial statements and macroeconomic conditions before placing funds."
+                )
+            else:
+                recommendation = f"High Risk: Not recommended to place funds with {borrower} due to high expected loss or low liquidity."
+                recommendation_interpretation = (
+                    f"A High Risk recommendation advises against placing funds with {borrower} due to a high Expected Loss "
+                    f"({el_percentage:.4f}% of EAD), low liquidity (Cash Ratio of {cash_ratio:.2f}), or weak debt-servicing capacity "
+                    f"(Interest Coverage Ratio of {interest_coverage_ratio:.2f}). The bank may struggle to repay obligations."
+                )
+
+            # Interpretations for each result
+            borrower_interpretation = (
+                f"This assessment evaluates the credit risk of placing funds with {borrower}, such as through fixed deposits or repos, "
+                f"based on its financial performance."
+            )
+            ead_interpretation = (
+                f"The EAD (GHS {ead:,.2f} thousand) is the amount at risk if {borrower} defaults, representing borrowings from the Statement of Financial Position. "
+                f"A lower EAD relative to Total Assets (GHS {total_assets:,.2f} thousand) suggests limited exposure."
+            )
+            pd_interpretation = (
+                f"The PD ({pd:.2f}%) is the likelihood of {borrower} defaulting, calculated as Net Impairment Loss (GHS {net_impairment_loss:,.2f} thousand) "
+                f"divided by Loans and Advances (GHS {loans_advances:,.2f} thousand). A PD below 1% indicates low default risk."
+            )
+            lgd_interpretation = (
+                f"The LGD ({lgd:.2f}%) is the percentage of EAD lost if {borrower} defaults, calculated as 100% minus Liquid Assets "
+                f"(GHS {liquid_assets:,.2f} thousand) divided by Total Assets (GHS {total_assets:,.2f} thousand). An LGD below 50% suggests moderate recovery potential."
+            )
+            current_ratio_interpretation = (
+                f"The Current Ratio ({current_ratio:.2f}) is Current Assets (GHS {current_assets:,.2f} thousand) divided by Current Liabilities "
+                f"(GHS {current_liabilities:,.2f} thousand), indicating broad short-term solvency. A ratio above 1 suggests adequate liquidity."
+            )
+            quick_ratio_interpretation = (
+                f"The Quick Ratio ({quick_ratio:.2f}) is (Current Assets - Non-Pledged Trading Assets) (GHS {current_assets - non_pledged_assets:,.2f} thousand) "
+                f"divided by Current Liabilities, measuring immediate liquidity. A ratio above 1 is preferred."
+            )
+            cash_ratio_interpretation = (
+                f"The Cash Ratio ({cash_ratio:.2f}) is Liquid Assets (GHS {liquid_assets:,.2f} thousand) divided by Current Liabilities, "
+                f"the most conservative liquidity measure. A ratio above 1 indicates strong repayment capacity."
+            )
+            interest_coverage_ratio_interpretation = (
+                f"The Interest Coverage Ratio ({interest_coverage_ratio:.2f}) is Profit Before Tax (GHS {profit_before_tax:,.2f} thousand) "
+                f"divided by Interest Paid (GHS {interest_paid:,.2f} thousand). A ratio above 1.5 confirms strong debt-servicing capacity."
+            )
+            expected_loss_interpretation = (
+                f"The Expected Loss (GHS {expected_loss:.2f} thousand, {el_percentage:.4f}% of EAD) is the average loss if {borrower} defaults, "
+                f"calculated as PD × LGD × EAD. An EL below 1% indicates low risk."
+            )
+
+            results = [{
+                'borrower': borrower,
+                'ead': round(ead, 2),
+                'pd': round(pd, 2),
+                'lgd': round(lgd, 2),
+                'current_ratio': round(current_ratio, 2),
+                'quick_ratio': round(quick_ratio, 2),
+                'cash_ratio': round(cash_ratio, 2),
+                'interest_coverage_ratio': round(interest_coverage_ratio, 2) if interest_coverage_ratio != float('inf') else 'N/A',
+                'expected_loss': round(expected_loss, 2),
+                'recommendation': recommendation,
+                'borrower_interpretation': borrower_interpretation,
+                'ead_interpretation': ead_interpretation,
+                'pd_interpretation': pd_interpretation,
+                'lgd_interpretation': lgd_interpretation,
+                'current_ratio_interpretation': current_ratio_interpretation,
+                'quick_ratio_interpretation': quick_ratio_interpretation,
+                'cash_ratio_interpretation': cash_ratio_interpretation,
+                'interest_coverage_ratio_interpretation': interest_coverage_ratio_interpretation,
+                'expected_loss_interpretation': expected_loss_interpretation,
+                'recommendation_interpretation': recommendation_interpretation
+            }]
+
+            return render_template('credit_risk.html', results=results, form_data=form_data, currency_symbol='GHS ')
+
+        except ValueError as e:
+            error = str(e) if str(e) != "Invalid input" else "Please ensure all fields are filled with valid numbers from the financial statements."
+            return render_template('credit_risk.html', error=error, form_data=request.form, currency_symbol='GHS ')
+
+    return render_template('credit_risk.html', currency_symbol='GHS ')
+
+# Route for Download Guide (Placeholder)
+@app.route('/download_guide')
+def download_guide():
+    return "Download Guide functionality to be implemented"
 
 @app.route('/expected-return', methods=['GET', 'POST'])
 def expected_return():
