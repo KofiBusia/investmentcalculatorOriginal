@@ -652,157 +652,534 @@ def help():
         calculators = []  # Fallback if file is missing
     return render_template('help.html', calculators=calculators)
 
-# Route for Credit Risk Calculator
+# Bank Credit Risk Parameters
+BANK_BETAS = [-1.5, 0.8, -0.5, -0.2, 0.3]
+BANK_PARAMS = {
+    'recovery_rate': 0.4,
+}
+BANK_THRESHOLDS = {
+    'safe': {'pd': 0.02, 'lgd': 0.3, 'current_ratio': 1.5, 'quick_ratio': 1.0, 'cash_ratio': 0.5, 'interest_coverage': 3.0},
+    'caution': {'pd': 0.1, 'lgd': 0.6, 'current_ratio': 1.0, 'quick_ratio': 0.7, 'cash_ratio': 0.3, 'interest_coverage': 1.5}
+}
+
+# Corporate Bond Credit Risk Parameters
+BOND_BETAS = [-2.5, 0.6, -0.4, -0.3, 0.5, -0.2, -0.3, -0.2, 0.3]
+BOND_PARAMS = {
+    'collateral_haircut': 0.7,
+    'liquidity_weight': 0.5,
+    'asset_recovery_rate': 0.4,
+    'seniority_adjustment': 0.9,
+    'industry_recovery_factor': 0.75,
+    'recovery_cost': 0.15,
+    'discount_rate': 0.05,
+    'time_to_recovery': 2
+}
+BOND_CRISIS_PARAMS = {
+    'peak_default_rate': 0.12,
+    'average_default_rate': 0.04,
+    'crisis_recovery_rate': 0.35,
+    'average_recovery_rate': 0.60,
+    'lgd_increment': 0.22
+}
+BOND_THRESHOLDS = {
+    'manufacturing': {
+        'safe': {'pd': 0.018, 'lgd': 0.28, 'current_ratio': 1.5, 'interest_coverage': 3, 'debt_to_assets': 0.3, 'stressed_cash_flow': 0.4},
+        'caution': {'pd': 0.085, 'lgd': 0.55, 'current_ratio': 1, 'interest_coverage': 1.5, 'debt_to_assets': 0.6}
+    },
+    'financials': {
+        'safe': {'pd': 0.015, 'lgd': 0.25, 'current_ratio': 1.2, 'interest_coverage': 4, 'debt_to_assets': 0.4, 'stressed_cash_flow': 0.5},
+        'caution': {'pd': 0.08, 'lgd': 0.50, 'current_ratio': 0.8, 'interest_coverage': 2, 'debt_to_assets': 0.7}
+    }
+}
+
+# Helper function to format numbers
+def format_number(value, decimal_places=2, is_percentage=False, is_currency=False):
+    if isinstance(value, (int, float)):
+        if is_currency:
+            return f"GHS {value:,.{decimal_places}f}"
+        elif is_percentage:
+            return f"{value:.{decimal_places}f}%"
+        else:
+            # Format with commas for thousands and specified decimal places
+            return f"{value:,.{decimal_places}f}" if abs(value) >= 1000 else f"{value:.{decimal_places}f}"
+    return value
+
+# Bank Credit Risk Calculations
+def calculate_bank_pd(data, betas):
+    # Handle division by zero
+    npl_ratio = data['net_impairment_loss'] / data['loans_advances'] if data['loans_advances'] > 0 else 0
+    liquid_to_total_assets = data['liquid_assets'] / data['total_assets'] if data['total_assets'] > 0 else 0
+    current_ratio = data['current_assets'] / data['current_liabilities'] if data['current_liabilities'] > 0 else 0
+    interest_coverage = data['profit_before_tax'] / abs(data['interest_paid']) if data['interest_paid'] != 0 else 10
+    
+    # Apply constraints to prevent extreme values
+    npl_ratio = min(npl_ratio, 1.0)  # NPL ratio can't exceed 100%
+    liquid_to_total_assets = max(min(liquid_to_total_assets, 1.0), 0)  # Between 0-100%
+    
+    Z = (
+        betas[0] +
+        betas[1] * np.log(npl_ratio + 1e-5) +  # Add small value to avoid log(0)
+        betas[2] * liquid_to_total_assets +
+        betas[3] * current_ratio +
+        betas[4] * interest_coverage
+    )
+    return 1 / (1 + np.exp(-Z))
+
+def calculate_bank_lgd(data, params):
+    recovery_base = (data['liquid_assets'] + data['non_pledged_assets']) / data['total_assets'] if data['total_assets'] > 0 else 0
+    recovery_rate = min(1, max(0, recovery_base * params['recovery_rate']))  # Constrain between 0-1
+    lgd = 1 - recovery_rate
+    return max(0, min(1, lgd))
+
+def calculate_bank_el(ead, pd, lgd):
+    return ead * pd * lgd
+
+def calculate_bank_ratios(data):
+    current_liabilities = data['current_liabilities'] if data['current_liabilities'] > 0 else 1e-5  # Avoid division by zero
+    interest_paid = data['interest_paid'] if data['interest_paid'] != 0 else 1e-5
+    
+    return {
+        'current_ratio': data['current_assets'] / current_liabilities,
+        'quick_ratio': (data['current_assets'] - data['non_pledged_assets']) / current_liabilities,
+        'cash_ratio': data['liquid_assets'] / current_liabilities,
+        'interest_coverage_ratio': data['profit_before_tax'] / interest_paid
+    }
+    
+def bank_recommendation(pd, lgd, ratios, thresholds, bank_name, el_percentage):
+    safe = thresholds['safe']
+    caution = thresholds['caution']
+    
+    # Format values for display in the recommendation
+    el_percentage_display = format_number(el_percentage, 2)
+    cash_ratio_display = format_number(ratios['cash_ratio'], 2)
+    interest_coverage_display = format_number(ratios['interest_coverage_ratio'], 2)
+    
+    if (pd <= safe['pd'] and lgd <= safe['lgd'] and 
+        ratios['current_ratio'] >= safe['current_ratio'] and 
+        ratios['quick_ratio'] >= safe['quick_ratio'] and 
+        ratios['cash_ratio'] >= safe['cash_ratio'] and 
+        ratios['interest_coverage_ratio'] >= safe['interest_coverage']):
+        return (
+            f"Low Risk: {bank_name} is a premier choice for fund placement.",
+            f"{bank_name} exemplifies financial excellence with an Expected Loss of only {el_percentage_display}% of exposure. "
+            f"Its robust liquidity (Cash Ratio: {cash_ratio_display}x) and debt servicing capacity "
+            f"(Interest Coverage: {interest_coverage_display}x) align with international standards, "
+            f"making fixed deposits and repurchase agreements highly secure."
+        )
+    elif (pd <= caution['pd'] and lgd <= caution['lgd'] and 
+          ratios['current_ratio'] >= caution['current_ratio'] and 
+          ratios['quick_ratio'] >= caution['quick_ratio'] and 
+          ratios['cash_ratio'] >= caution['cash_ratio'] and 
+          ratios['interest_coverage_ratio'] >= caution['interest_coverage']):
+        return (
+            f"Moderate Risk: Exercise prudent oversight with {bank_name}.",
+            f"{bank_name} demonstrates acceptable risk metrics with an Expected Loss of {el_percentage_display}% of exposure. "
+            f"Its liquidity (Cash Ratio: {cash_ratio_display}x) and debt coverage (Interest Coverage: {interest_coverage_display}x) "
+            f"meet moderate stability thresholds. Enhanced due diligence is recommended."
+        )
+    return (
+        f"High Risk: Avoid fund placement with {bank_name}.",
+        f"{bank_name} exhibits significant credit vulnerabilities with an Expected Loss of {el_percentage_display}% of exposure. "
+        f"Inadequate liquidity (Cash Ratio: {cash_ratio_display}x) and weak debt coverage (Interest Coverage: {interest_coverage_display}x) "
+        f"signal a high risk of capital impairment. Consider alternative institutions."
+    )
+        
+# Corporate Bond Credit Risk Calculations
+def calculate_bond_pd(data, betas):
+    debt_ebitda = data['total_debt'] / data['ebitda'] if data['ebitda'] > 0 else 1e6
+    interest_coverage = data['ebitda'] / data['interest_paid'] if data['interest_paid'] > 0 else 0
+    current_ratio = data['current_assets'] / data['current_liabilities'] if data['current_liabilities'] > 0 else 0
+    debt_assets = data['total_debt'] / data['total_assets'] if data['total_assets'] > 0 else 0
+    cash_flow_debt = data['cfo'] / data['total_debt'] if data['total_debt'] > 0 else 0
+    ebitda_growth = (data['projected_ebitda'] / data['ebitda'] - 1) if data['ebitda'] > 0 else 0
+    Z = (
+        betas[0] +
+        betas[1] * np.log(debt_ebitda + 1) +
+        betas[2] * interest_coverage +
+        betas[3] * current_ratio +
+        betas[4] * debt_assets +
+        betas[5] * cash_flow_debt +
+        betas[6] * ebitda_growth +
+        betas[7] * data['gdp_growth'] +
+        betas[8] * data['inflation']
+    )
+    return 1 / (1 + np.exp(-Z))
+
+def calculate_bond_lgd(data, params):
+    adjusted_collateral = data['collateral_value'] * params['collateral_haircut']
+    recovery_base = (
+        adjusted_collateral +
+        data['liquid_assets'] * params['liquidity_weight'] +
+        data['other_recoverable_assets'] * params['asset_recovery_rate']
+    ) / data['ead']
+    recovery_rate = min(1, recovery_base * 
+                       params['seniority_adjustment'] * 
+                       params['industry_recovery_factor'] * 
+                       (1 - params['recovery_cost']) / 
+                       ((1 + params['discount_rate']) ** params['time_to_recovery']))
+    lgd = 1 - recovery_rate
+    return max(0, min(1, lgd))
+
+def calculate_bond_el(ead, pd, lgd):
+    return ead * pd * lgd
+
+def calculate_bond_ratios(data):
+    return {
+        'current_ratio': data['current_assets'] / data['current_liabilities'] if data['current_liabilities'] > 0 else 0,
+        'quick_ratio': (data['current_assets'] - data['inventory']) / data['current_liabilities'] if data['current_liabilities'] > 0 else 0,
+        'cash_ratio': data['liquid_assets'] / data['current_liabilities'] if data['current_liabilities'] > 0 else 0,
+        'interest_coverage': data['ebitda'] / data['interest_paid'] if data['interest_paid'] > 0 else 0,
+        'debt_to_assets': data['total_debt'] / data['total_assets'] if data['total_assets'] > 0 else 0,
+        'cash_flow_to_debt': data['cfo'] / data['total_debt'] if data['total_debt'] > 0 else 0,
+        'stressed_cash_flow': (data['cfo'] * 0.8) / data['total_debt'] if data['total_debt'] > 0 else 0
+    }
+
+def bond_stress_test(ead, pd, lgd, crisis_params):
+    pd_stress = pd * (crisis_params['peak_default_rate'] / crisis_params['average_default_rate'])
+    lgd_stress1 = lgd * (crisis_params['average_recovery_rate'] / crisis_params['crisis_recovery_rate'])
+    lgd_stress2 = lgd + crisis_params['lgd_increment']
+    lgd_stress = max(min(max(lgd_stress1, lgd_stress2), 1), 0)
+    return {
+        'pd_stress': pd_stress,
+        'lgd_stress': lgd_stress,
+        'el_stress': ead * pd_stress * lgd_stress
+    }
+
+def bond_recommendation(pd, lgd, ratios, cfo, sector, thresholds, entity_name, el_percentage):
+    sector_thresh = thresholds.get(sector, thresholds['manufacturing'])
+    safe = sector_thresh['safe']
+    caution = sector_thresh['caution']
+    if (cfo > 0 and 
+        pd <= safe['pd'] and 
+        lgd <= safe['lgd'] and 
+        ratios['current_ratio'] > safe['current_ratio'] and 
+        ratios['interest_coverage'] > safe['interest_coverage'] and 
+        ratios['debt_to_assets'] < safe['debt_to_assets'] and 
+        ratios['stressed_cash_flow'] > safe['stressed_cash_flow']):
+        return (
+            f"Low Risk: {entity_name} bonds represent a top-tier investment.",
+            f"{entity_name} demonstrates exceptional credit quality, with an Expected Loss of {el_percentage:.2f}% of exposure. "
+            f"Its superior liquidity (Cash Ratio: {ratios['cash_ratio']:.2f}) and robust debt coverage (Interest Coverage: {ratios['interest_coverage']:.2f}) "
+            f"meet global investment-grade standards, ensuring high confidence in bond security and minimal default risk."
+        )
+    elif (cfo > 0 and 
+          pd <= caution['pd'] and 
+          lgd <= caution['lgd'] and 
+          ratios['current_ratio'] > caution['current_ratio'] and 
+          ratios['interest_coverage'] > caution['interest_coverage'] and 
+          ratios['debt_to_assets'] < caution['debt_to_assets']):
+        return (
+            f"Moderate Risk: Selective investment in {entity_name} bonds advised.",
+            f"{entity_name} presents manageable risk, with an Expected Loss of {el_percentage:.2f}% of exposure. "
+            f"Adequate liquidity (Cash Ratio: {ratios['cash_ratio']:.2f}) and interest coverage (Interest Coverage: {ratios['interest_coverage']:.2f}) "
+            f"suggest resilience. Investors should implement covenant protections and continuous monitoring to mitigate risks."
+        )
+    return (
+        f"High Risk: Avoid investment in {entity_name} bonds.",
+        f"{entity_name} exhibits significant credit weaknesses, with an Expected Loss of {el_percentage:.2f}% of exposure. "
+        f"Insufficient liquidity (Cash Ratio: {ratios['cash_ratio']:.2f}) and poor debt coverage (Interest Coverage: {ratios['interest_coverage']:.2f}) "
+        f"indicate a high likelihood of capital loss. Investors should seek alternative issuers for capital preservation."
+    )
+
+# Routes
+# Routes
 @app.route('/credit_risk', methods=['GET', 'POST'])
 def credit_risk():
+    form_data = {}
+    results = []
+    error = None
+
     if request.method == 'POST':
         try:
-            # Extract form data
-            borrower = request.form.get('borrower', 'Unknown Bank')
-            ead = float(request.form.get('ead', 0))  # GHS thousands
-            net_impairment_loss = float(request.form.get('net_impairment_loss', 0))
-            loans_advances = float(request.form.get('loans_advances', 1))  # Avoid division by zero
-            liquid_assets = float(request.form.get('liquid_assets', 0))
-            total_assets = float(request.form.get('total_assets', 1))  # Avoid division by zero
-            current_assets = float(request.form.get('current_assets', 0))
-            current_liabilities = float(request.form.get('current_liabilities', 1))  # Avoid division by zero
-            non_pledged_assets = float(request.form.get('non_pledged_assets', 0))
-            profit_before_tax = float(request.form.get('profit_before_tax', 1))  # Avoid division by zero
-            interest_paid = float(request.form.get('interest_paid', 0))
-
-            # Validate inputs
-            if not borrower.strip():
-                raise ValueError("Bank Name is required.")
-            if any(x < 0 for x in [ead, net_impairment_loss, loans_advances, liquid_assets, total_assets, current_assets, current_liabilities, non_pledged_assets, profit_before_tax, interest_paid]):
-                raise ValueError("All numerical inputs must be non-negative.")
-            if loans_advances == 0 or total_assets == 0 or current_liabilities == 0:
-                raise ValueError("Loans and Advances, Total Assets, and Current Liabilities cannot be zero.")
-            if liquid_assets > total_assets:
-                raise ValueError("Liquid Assets cannot exceed Total Assets.")
-            if non_pledged_assets > current_assets:
-                raise ValueError("Non-Pledged Trading Assets cannot exceed Current Assets.")
-
-            # Store form data for persistence
+            # Collect and validate form data
             form_data = {
-                'borrower': borrower,
-                'ead': ead,
-                'net_impairment_loss': net_impairment_loss,
-                'loans_advances': loans_advances,
-                'liquid_assets': liquid_assets,
-                'total_assets': total_assets,
-                'current_assets': current_assets,
-                'current_liabilities': current_liabilities,
-                'non_pledged_assets': non_pledged_assets,
-                'profit_before_tax': profit_before_tax,
-                'interest_paid': interest_paid
+                'borrower': request.form.get('borrower', ''),
+                'ead': float(request.form.get('ead', 0)),
+                'net_impairment_loss': float(request.form.get('net_impairment_loss', 0)),
+                'loans_advances': float(request.form.get('loans_advances', 0)),
+                'liquid_assets': float(request.form.get('liquid_assets', 0)),
+                'total_assets': float(request.form.get('total_assets', 0)),
+                'current_assets': float(request.form.get('current_assets', 0)),
+                'current_liabilities': float(request.form.get('current_liabilities', 0)),
+                'non_pledged_assets': float(request.form.get('non_pledged_assets', 0)),
+                'profit_before_tax': float(request.form.get('profit_before_tax', 0)),
+                'interest_paid': float(request.form.get('interest_paid', 0))
             }
 
-            # Calculate metrics as per the document
-            pd = (net_impairment_loss / loans_advances) * 100 if loans_advances > 0 else 0  # PD in percentage
-            lgd = 100 - (liquid_assets / total_assets * 100) if total_assets > 0 else 0  # LGD in percentage
-            lgd = max(0, min(100, lgd))  # Cap LGD between 0% and 100%
-            current_ratio = current_assets / current_liabilities if current_liabilities > 0 else 0
-            quick_ratio = (current_assets - non_pledged_assets) / current_liabilities if current_liabilities > 0 else 0
-            cash_ratio = liquid_assets / current_liabilities if current_liabilities > 0 else 0
-            interest_coverage_ratio = profit_before_tax / interest_paid if interest_paid > 0 else float('inf')
+            # Validate inputs
+            if not form_data['borrower'].strip():
+                raise ValueError("Bank Name is required.")
+                
+            if any(x < 0 for x in [form_data['ead'], form_data['net_impairment_loss'], form_data['loans_advances'], 
+                                   form_data['liquid_assets'], form_data['total_assets'], form_data['current_assets'], 
+                                   form_data['current_liabilities'], form_data['non_pledged_assets'], 
+                                   form_data['profit_before_tax']]):
+                raise ValueError("All numerical inputs must be non-negative.")
+                
+            if form_data['loans_advances'] <= 0 or form_data['total_assets'] <= 0:
+                raise ValueError("Loans and Advances, and Total Assets must be positive values.")
+                
+            if form_data['liquid_assets'] > form_data['total_assets']:
+                raise ValueError("Liquid Assets cannot exceed Total Assets.")
+                
+            if form_data['non_pledged_assets'] > form_data['current_assets']:
+                raise ValueError("Non-Pledged Trading Assets cannot exceed Current Assets.")
+                
+            if form_data['current_liabilities'] <= 0:
+                raise ValueError("Current Liabilities must be a positive value.")
 
-            # Calculate Expected Loss
-            expected_loss = (pd / 100) * (lgd / 100) * ead  # EL in GHS thousands
-            el_percentage = (expected_loss / ead * 100) if ead > 0 else 0  # EL as percentage of EAD
-            expected_loss = max(0, expected_loss)  # Ensure non-negative EL
-            el_percentage = max(0, el_percentage)  # Ensure non-negative EL percentage
+            # Perform calculations
+            df = pd.DataFrame([form_data])
+            df['pd'] = calculate_bank_pd(form_data, BANK_BETAS)
+            df['lgd'] = calculate_bank_lgd(form_data, BANK_PARAMS)
+            df['expected_loss'] = calculate_bank_el(form_data['ead'], df['pd'], df['lgd'])
+            df['ratios'] = df.apply(lambda x: calculate_bank_ratios(x), axis=1)
+            df['el_percentage'] = (df['expected_loss'] / df['ead'] * 100) if df['ead'].iloc[0] > 0 else 0
+            
+            df['recommendation'], df['recommendation_interpretation'] = bank_recommendation(
+                df['pd'].iloc[0], df['lgd'].iloc[0], df['ratios'].iloc[0], BANK_THRESHOLDS, 
+                form_data['borrower'], df['el_percentage'].iloc[0]
+            )
+            
+            # Extract ratios for display
+            df['current_ratio'] = df['ratios'].apply(lambda x: x['current_ratio'])
+            df['quick_ratio'] = df['ratios'].apply(lambda x: x['quick_ratio'])
+            df['cash_ratio'] = df['ratios'].apply(lambda x: x['cash_ratio'])
+            df['interest_coverage_ratio'] = df['ratios'].apply(lambda x: x['interest_coverage_ratio'])
+            
+            # Create interpretations with proper formatting
+            npl_ratio = form_data['net_impairment_loss'] / form_data['loans_advances'] if form_data['loans_advances'] > 0 else 0
+            liquid_coverage = form_data['liquid_assets'] / form_data['current_liabilities'] if form_data['current_liabilities'] > 0 else 0
+            non_pledged_percent = (form_data['non_pledged_assets'] / form_data['current_assets'] * 100) if form_data['current_assets'] > 0 else 0
+            
+            df['borrower_interpretation'] = (
+                f"This assessment of {form_data['borrower']} adheres to globally recognized Basel III standards, "
+                f"providing a robust evaluation of counterparty credit risk using industry-leading methodologies."
+            )
+            
+            df['ead_interpretation'] = (
+                f"Exposure at Default: {format_number(form_data['ead'], is_currency=True)} thousand, "
+                f"representing {format_number(form_data['ead'] / form_data['total_assets'] * 100, 2)}% of total assets, "
+                f"quantifies the institution's gross credit exposure per IFRS 9 guidelines."
+            )
+            
+            # FIXED: Properly format PD as percentage value
+            df['pd_interpretation'] = (
+                f"Probability of Default: {format_number(df['pd'].iloc[0] * 100, 2, is_percentage=True)} reflects a historical Net NPL Ratio of "
+                f"{format_number(npl_ratio * 100, 2, is_percentage=True)} and incorporates forward-looking macroeconomic sensitivities."
+            )
+            
+            # FIXED: Removed extra % sign
+            df['lgd_interpretation'] = (
+                f"Loss Given Default: {format_number(df['lgd'].iloc[0] * 100, 2, is_percentage=True)} estimates potential loss severity, "
+                f"with liquid assets covering {format_number(liquid_coverage * 100, 2)}% of short-term obligations."
+            )
+            
+            df['current_ratio_interpretation'] = (
+                f"Current Ratio: {format_number(df['current_ratio'].iloc[0], 2)}x demonstrates liquidity coverage of "
+                f"{format_number(df['current_ratio'].iloc[0] * 100, 2)}% of current liabilities, "
+                f"benchmarked against a global standard of 1.00x."
+            )
+            
+            df['quick_ratio_interpretation'] = (
+                f"Quick Ratio: {format_number(df['quick_ratio'].iloc[0], 2)}x measures immediate liquidity, "
+                f"excluding non-pledged assets ({format_number(non_pledged_percent, 2)}% of current assets)."
+            )
+            
+            df['cash_ratio_interpretation'] = (
+                f"Cash Ratio: {format_number(df['cash_ratio'].iloc[0], 2)}x, the most conservative liquidity metric, "
+                f"covers {format_number(df['cash_ratio'].iloc[0] * 100, 2)}% of current obligations."
+            )
+            
+            df['interest_coverage_ratio_interpretation'] = (
+                f"Interest Coverage: {format_number(df['interest_coverage_ratio'].iloc[0], 2)}x reflects debt servicing capacity, "
+                f"covering interest expenses {format_number(df['interest_coverage_ratio'].iloc[0], 2)} times, "
+                f"per global financial standards."
+            )
+            
+            # FIXED: Properly format EL value
+            df['expected_loss_interpretation'] = (
+                f"Expected Loss: {format_number(df['expected_loss'].iloc[0], 2, is_currency=True)} thousand "
+                f"({format_number(df['el_percentage'].iloc[0], 2)}% of exposure) represents the probability-weighted capital requirement under Basel III."
+            )
 
-            # Investment recommendation
-            if el_percentage < 1 and cash_ratio > 1 and interest_coverage_ratio > 1.5:
-                recommendation = f"Low Risk: Safe to place funds with {borrower}. The bank has strong liquidity and repayment capacity."
-                recommendation_interpretation = (
-                    f"A Low Risk recommendation indicates that {borrower} is a safe investment due to a negligible Expected Loss "
-                    f"({el_percentage:.4f}% of EAD), strong liquidity (Cash Ratio of {cash_ratio:.2f}), and robust debt-servicing capacity "
-                    f"(Interest Coverage Ratio of {interest_coverage_ratio:.2f}). Funds placed in fixed deposits or repos are highly likely to be repaid."
-                )
-            elif (el_percentage >= 1 and el_percentage <= 5) or (cash_ratio >= 0.5 and cash_ratio <= 1) or (interest_coverage_ratio >= 1 and interest_coverage_ratio <= 1.5):
-                recommendation = f"Moderate Risk: Exercise caution when placing funds with {borrower}. Verify additional financial stability indicators."
-                recommendation_interpretation = (
-                    f"A Moderate Risk recommendation suggests caution when investing with {borrower}. The Expected Loss "
-                    f"({el_percentage:.4f}% of EAD), Cash Ratio ({cash_ratio:.2f}), or Interest Coverage Ratio ({interest_coverage_ratio:.2f}) "
-                    f"indicates moderate risk. Verify recent financial statements and macroeconomic conditions before placing funds."
-                )
-            else:
-                recommendation = f"High Risk: Not recommended to place funds with {borrower} due to high expected loss or low liquidity."
-                recommendation_interpretation = (
-                    f"A High Risk recommendation advises against placing funds with {borrower} due to a high Expected Loss "
-                    f"({el_percentage:.4f}% of EAD), low liquidity (Cash Ratio of {cash_ratio:.2f}), or weak debt-servicing capacity "
-                    f"(Interest Coverage Ratio of {interest_coverage_ratio:.2f}). The bank may struggle to repay obligations."
-                )
+            # Create display versions of key metrics
+            # FIXED: PD should be displayed as percentage value
+            df['pd_display'] = format_number(df['pd'].iloc[0] * 100, 2, is_percentage=True)
+            df['lgd_display'] = format_number(df['lgd'].iloc[0] * 100, 2, is_percentage=True)
+            df['current_ratio_display'] = format_number(df['current_ratio'].iloc[0], 2)
+            df['quick_ratio_display'] = format_number(df['quick_ratio'].iloc[0], 2)
+            df['cash_ratio_display'] = format_number(df['cash_ratio'].iloc[0], 2)
+            df['interest_coverage_ratio_display'] = format_number(df['interest_coverage_ratio'].iloc[0], 2)
+            
+            # FIXED: EL should be formatted as currency
+            df['expected_loss_display'] = format_number(df['expected_loss'].iloc[0], 2, is_currency=True) + " thousand"
+            df['el_percentage_display'] = format_number(df['el_percentage'].iloc[0], 2, is_percentage=True)
 
-            # Interpretations for each result
-            borrower_interpretation = (
-                f"This assessment evaluates the credit risk of placing funds with {borrower}, such as through fixed deposits or repos, "
-                f"based on its financial performance."
+            # FIXED: EAD should be formatted as currency
+            df['ead_display'] = format_number(form_data['ead'], 2, is_currency=True) + " thousand"
+
+            results = df.to_dict('records')
+        except Exception as e:
+            error = str(e)
+
+    return render_template('credit_risk.html', form_data=form_data, results=results, error=error, currency_symbol='GHS ')
+
+@app.route('/bond_risk', methods=['GET', 'POST'])
+def bond_risk():
+    form_data = {}
+    results = []
+    error = None
+
+    if request.method == 'POST':
+        try:
+            form_data = {
+                'entity_name': request.form.get('entity_name', ''),
+                'sector': request.form.get('sector', 'manufacturing'),
+                'ead': float(request.form.get('ead', 0)),
+                'total_debt': float(request.form.get('total_debt', 0)),
+                'ebitda': float(request.form.get('ebitda', 0)),
+                'interest_paid': float(request.form.get('interest_paid', 0)),
+                'current_assets': float(request.form.get('current_assets', 0)),
+                'current_liabilities': float(request.form.get('current_liabilities', 0)),
+                'total_assets': float(request.form.get('total_assets', 0)),
+                'cfo': float(request.form.get('cfo', 0)),
+                'projected_ebitda': float(request.form.get('projected_ebitda', 0)),
+                'gdp_growth': float(request.form.get('gdp_growth', 0)),
+                'inflation': float(request.form.get('inflation', 0)),
+                'collateral_value': float(request.form.get('collateral_value', 0)),
+                'collateral_haircut': float(request.form.get('collateral_haircut', 0.7)),
+                'liquid_assets': float(request.form.get('liquid_assets', 0)),
+                'liquidity_weight': float(request.form.get('liquidity_weight', 0.5)),
+                'other_recoverable_assets': float(request.form.get('other_recoverable_assets', 0)),
+                'asset_recovery_rate': float(request.form.get('asset_recovery_rate', 0.4)),
+                'seniority_adjustment': float(request.form.get('seniority_adjustment', 0.9)),
+                'industry_recovery_factor': float(request.form.get('industry_recovery_factor', 0.75)),
+                'inventory': float(request.form.get('inventory', 0)),
+                'recovery_cost': float(request.form.get('recovery_cost', 0.15)),
+                'time_to_recovery': float(request.form.get('time_to_recovery', 2)),
+                'discount_rate': float(request.form.get('discount_rate', 0.05))
+            }
+
+            # Validate inputs
+            if not form_data['entity_name'].strip():
+                raise ValueError("Issuer Name is required.")
+            if any(x < 0 for x in [form_data['ead'], form_data['total_debt'], form_data['ebitda'], form_data['interest_paid'], 
+                                   form_data['current_assets'], form_data['current_liabilities'], form_data['total_assets'], 
+                                   form_data['cfo'], form_data['projected_ebitda'], form_data['collateral_value'], 
+                                   form_data['liquid_assets'], form_data['other_recoverable_assets'], form_data['inventory']]):
+                raise ValueError("All numerical inputs must be non-negative.")
+            if form_data['current_liabilities'] == 0 or form_data['total_assets'] == 0 or form_data['total_debt'] == 0:
+                raise ValueError("Current Liabilities, Total Assets, and Total Debt cannot be zero.")
+            if form_data['liquid_assets'] > form_data['total_assets']:
+                raise ValueError("Liquid Assets cannot exceed Total Assets.")
+            if form_data['inventory'] > form_data['current_assets']:
+                raise ValueError("Inventory cannot exceed Current Assets.")
+
+            df = pd.DataFrame([form_data])
+            df['pd'] = calculate_bond_pd(form_data, BOND_BETAS)
+            df['lgd'] = calculate_bond_lgd(form_data, BOND_PARAMS)
+            df['el'] = calculate_bond_el(form_data['ead'], df['pd'], df['lgd'])
+            df['ratios'] = df.apply(lambda x: calculate_bond_ratios(x), axis=1)
+            df['stress'] = df.apply(lambda x: bond_stress_test(x['ead'], x['pd'], x['lgd'], BOND_CRISIS_PARAMS), axis=1)
+            df['el_percentage'] = df['el'] / df['ead'] * 100 if df['ead'].iloc[0] > 0 else 0
+            df['recommendation'], df['recommendation_interpretation'] = bond_recommendation(
+                df['pd'].iloc[0], df['lgd'].iloc[0], df['ratios'].iloc[0], df['cfo'].iloc[0], 
+                df['sector'].iloc[0], BOND_THRESHOLDS, df['entity_name'].iloc[0], df['el_percentage'].iloc[0]
             )
-            ead_interpretation = (
-                f"The EAD (GHS {ead:,.2f} thousand) is the amount at risk if {borrower} defaults, representing borrowings from the Statement of Financial Position. "
-                f"A lower EAD relative to Total Assets (GHS {total_assets:,.2f} thousand) suggests limited exposure."
+            df['current_ratio'] = df['ratios'].apply(lambda x: x['current_ratio'])
+            df['quick_ratio'] = df['ratios'].apply(lambda x: x['quick_ratio'])
+            df['cash_ratio'] = df['ratios'].apply(lambda x: x['cash_ratio'])
+            df['interest_coverage'] = df['ratios'].apply(lambda x: x['interest_coverage'])
+            df['debt_to_assets'] = df['ratios'].apply(lambda x: x['debt_to_assets'])
+            df['cash_flow_to_debt'] = df['ratios'].apply(lambda x: x['cash_flow_to_debt'])
+            df['stressed_cash_flow'] = df['ratios'].apply(lambda x: x['stressed_cash_flow'])
+            df['pd_stress'] = df['stress'].apply(lambda x: x['pd_stress'])
+            df['lgd_stress'] = df['stress'].apply(lambda x: x['lgd_stress'])
+            df['el_stress'] = df['stress'].apply(lambda x: x['el_stress'])
+            df['entity_interpretation'] = (
+                f"This assessment evaluates the credit risk of investing in corporate bonds issued by {form_data['entity_name']}, "
+                f"based on its financial performance and bond terms."
             )
-            pd_interpretation = (
-                f"The PD ({pd:.2f}%) is the likelihood of {borrower} defaulting, calculated as Net Impairment Loss (GHS {net_impairment_loss:,.2f} thousand) "
-                f"divided by Loans and Advances (GHS {loans_advances:,.2f} thousand). A PD below 1% indicates low default risk."
+            df['ead_interpretation'] = (
+                f"The EAD (GHS {form_data['ead']*1000:,.2f}) is the amount at risk if {form_data['entity_name']} defaults, "
+                f"representing the bond’s face value or outstanding principal. "
+                f"A lower EAD relative to Total Assets (GHS {form_data['total_assets']*1000:,.2f}) suggests limited exposure."
             )
-            lgd_interpretation = (
-                f"The LGD ({lgd:.2f}%) is the percentage of EAD lost if {borrower} defaults, calculated as 100% minus Liquid Assets "
-                f"(GHS {liquid_assets:,.2f} thousand) divided by Total Assets (GHS {total_assets:,.2f} thousand). An LGD below 50% suggests moderate recovery potential."
+            df['pd_interpretation'] = (
+                f"The PD ({df['pd'].iloc[0]*100:.2f}%) is the likelihood of {form_data['entity_name']} defaulting, "
+                f"calculated using financial metrics like Debt/EBITDA ratio ({form_data['total_debt']/form_data['ebitda'] if form_data['ebitda'] > 0 else 0:.2f}x), "
+                f"projected EBITDA growth ({(form_data['projected_ebitda']/form_data['ebitda']-1)*100 if form_data['ebitda'] > 0 else 0:.2f}%), "
+                f"and macroeconomic factors (GDP Growth: {form_data['gdp_growth']:.2f}%, Inflation: {form_data['inflation']:.2f}%). "
+                f"A PD below 1.80% indicates low default risk for {form_data['sector']} firms."
             )
-            current_ratio_interpretation = (
-                f"The Current Ratio ({current_ratio:.2f}) is Current Assets (GHS {current_assets:,.2f} thousand) divided by Current Liabilities "
-                f"(GHS {current_liabilities:,.2f} thousand), indicating broad short-term solvency. A ratio above 1 suggests adequate liquidity."
+            df['lgd_interpretation'] = (
+                f"The LGD ({df['lgd'].iloc[0]*100:.2f}%) is the percentage of EAD lost if {form_data['entity_name']} defaults, "
+                f"calculated using Collateral Value (GHS {form_data['collateral_value']*1000:,.2f}), "
+                f"Liquid Assets (GHS {form_data['liquid_assets']*1000:,.2f}), Other Recoverable Assets "
+                f"(GHS {form_data['other_recoverable_assets']*1000:,.2f}), and adjustments for seniority, industry recovery, "
+                f"and time to recovery. An LGD below 28.00% suggests strong recovery potential for {form_data['sector']} firms."
             )
-            quick_ratio_interpretation = (
-                f"The Quick Ratio ({quick_ratio:.2f}) is (Current Assets - Non-Pledged Trading Assets) (GHS {current_assets - non_pledged_assets:,.2f} thousand) "
-                f"divided by Current Liabilities, measuring immediate liquidity. A ratio above 1 is preferred."
+            df['current_ratio_interpretation'] = (
+                f"The Current Ratio ({df['current_ratio'].iloc[0]:.2f}) is Current Assets (GHS {form_data['current_assets']*1000:,.2f}) "
+                f"divided by Current Liabilities (GHS {form_data['current_liabilities']*1000:,.2f}), "
+                f"indicating broad short-term solvency. A ratio above 1.50 suggests adequate liquidity for {form_data['sector']} firms."
             )
-            cash_ratio_interpretation = (
-                f"The Cash Ratio ({cash_ratio:.2f}) is Liquid Assets (GHS {liquid_assets:,.2f} thousand) divided by Current Liabilities, "
-                f"the most conservative liquidity measure. A ratio above 1 indicates strong repayment capacity."
+            df['quick_ratio_interpretation'] = (
+                f"The Quick Ratio ({df['quick_ratio'].iloc[0]:.2f}) is (Current Assets - Inventory) "
+                f"(GHS {(form_data['current_assets'] - form_data['inventory'])*1000:,.2f}) divided by Current Liabilities, "
+                f"measuring immediate liquidity. A ratio above 1.00 is preferred."
             )
-            interest_coverage_ratio_interpretation = (
-                f"The Interest Coverage Ratio ({interest_coverage_ratio:.2f}) is Profit Before Tax (GHS {profit_before_tax:,.2f} thousand) "
-                f"divided by Interest Paid (GHS {interest_paid:,.2f} thousand). A ratio above 1.5 confirms strong debt-servicing capacity."
+            df['cash_ratio_interpretation'] = (
+                f"The Cash Ratio ({df['cash_ratio'].iloc[0]:.2f}) is Liquid Assets (GHS {form_data['liquid_assets']*1000:,.2f}) "
+                f"divided by Current Liabilities, the most conservative liquidity measure. "
+                f"A ratio above 0.50 indicates strong repayment capacity."
             )
-            expected_loss_interpretation = (
-                f"The Expected Loss (GHS {expected_loss:.2f} thousand, {el_percentage:.4f}% of EAD) is the average loss if {borrower} defaults, "
-                f"calculated as PD × LGD × EAD. An EL below 1% indicates low risk."
+            df['interest_coverage_interpretation'] = (
+                f"The Interest Coverage Ratio ({df['interest_coverage'].iloc[0]:.2f}) is EBITDA (GHS {form_data['ebitda']*1000:,.2f}) "
+                f"divided by Interest Paid (GHS {form_data['interest_paid']*1000:,.2f}). "
+                f"A ratio above 3.00 confirms strong debt-servicing capacity for {form_data['sector']} firms."
+            )
+            df['debt_to_assets_interpretation'] = (
+                f"The Debt-to-Assets Ratio ({df['debt_to_assets'].iloc[0]:.2f}) is Total Debt (GHS {form_data['total_debt']*1000:,.2f}) "
+                f"divided by Total Assets (GHS {form_data['total_assets']*1000:,.2f}), indicating the proportion of assets financed by debt. "
+                f"A ratio below 0.30 is preferred for {form_data['sector']} firms."
+            )
+            df['cash_flow_to_debt_interpretation'] = (
+                f"The Cash Flow to Debt Ratio ({df['cash_flow_to_debt'].iloc[0]:.2f}) is Operating Cash Flow (GHS {form_data['cfo']*1000:,.2f}) "
+                f"divided by Total Debt, measuring debt repayment capacity. A ratio above 0.50 indicates strong financial health."
+            )
+            df['stressed_cash_flow_interpretation'] = (
+                f"The Stressed Cash Flow to Debt Ratio ({df['stressed_cash_flow'].iloc[0]:.2f}) is Operating Cash Flow reduced by 20% "
+                f"(GHS {form_data['cfo']*0.8*1000:,.2f}) divided by Total Debt, assessing repayment capacity under stress. "
+                f"A ratio above 0.40 is preferred for {form_data['sector']} firms."
+            )
+            df['pd_stress_interpretation'] = (
+                f"The Stressed PD ({df['pd_stress'].iloc[0]*100:.2f}%) is the likelihood of {form_data['entity_name']} defaulting under crisis conditions, "
+                f"adjusted to reflect a peak default rate. A Stressed PD below 5.00% indicates resilience for {form_data['sector']} firms."
+            )
+            df['lgd_stress_interpretation'] = (
+                f"The Stressed LGD ({df['lgd_stress'].iloc[0]*100:.2f}%) is the percentage of EAD lost under crisis conditions, "
+                f"adjusted for a lower recovery rate. A Stressed LGD below 50.00% suggests reasonable recovery potential."
+            )
+            df['el_stress_interpretation'] = (
+                f"The Stressed Expected Loss (GHS {df['el_stress'].iloc[0]*1000:,.2f}, {df['el_stress'].iloc[0]/form_data['ead']*100:.2f}% of EAD) "
+                f"is the expected loss if {form_data['entity_name']} defaults under crisis conditions, calculated as Stressed PD × Stressed LGD × EAD. "
+                f"A Stressed EL below 5.00% indicates low risk under stress."
+            )
+            df['expected_loss_interpretation'] = (
+                f"The Expected Loss (GHS {df['el'].iloc[0]*1000:,.2f}, {df['el_percentage'].iloc[0]:.2f}% of EAD) "
+                f"is the average loss if {form_data['entity_name']} defaults, calculated as PD × LGD × EAD. "
+                f"An EL below 1.00% indicates low risk for {form_data['sector']} firms."
             )
 
-            results = [{
-                'borrower': borrower,
-                'ead': round(ead, 2),
-                'pd': round(pd, 2),
-                'lgd': round(lgd, 2),
-                'current_ratio': round(current_ratio, 2),
-                'quick_ratio': round(quick_ratio, 2),
-                'cash_ratio': round(cash_ratio, 2),
-                'interest_coverage_ratio': round(interest_coverage_ratio, 2) if interest_coverage_ratio != float('inf') else 'N/A',
-                'expected_loss': round(expected_loss, 2),
-                'recommendation': recommendation,
-                'borrower_interpretation': borrower_interpretation,
-                'ead_interpretation': ead_interpretation,
-                'pd_interpretation': pd_interpretation,
-                'lgd_interpretation': lgd_interpretation,
-                'current_ratio_interpretation': current_ratio_interpretation,
-                'quick_ratio_interpretation': quick_ratio_interpretation,
-                'cash_ratio_interpretation': cash_ratio_interpretation,
-                'interest_coverage_ratio_interpretation': interest_coverage_ratio_interpretation,
-                'expected_loss_interpretation': expected_loss_interpretation,
-                'recommendation_interpretation': recommendation_interpretation
-            }]
-
-            return render_template('credit_risk.html', results=results, form_data=form_data, currency_symbol='GHS ')
-
-        except ValueError as e:
+            results = df.to_dict('records')
+        except Exception as e:
             error = str(e) if str(e) != "Invalid input" else "Please ensure all fields are filled with valid numbers from the financial statements."
-            return render_template('credit_risk.html', error=error, form_data=request.form, currency_symbol='GHS ')
 
-    return render_template('credit_risk.html', currency_symbol='GHS ')
+    return render_template('bond_risk.html', form_data=form_data, results=results, error=error, currency_symbol='GHS ')
+   
+    from scipy import stats
 
 # Route for Download Guide (Placeholder)
 @app.route('/download_guide')

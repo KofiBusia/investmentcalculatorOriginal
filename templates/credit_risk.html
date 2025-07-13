@@ -206,7 +206,7 @@
         <!-- Calculator Form -->
         <div class="card p-6 mb-8">
             <h2 class="text-2xl font-bold text-gray-800 mb-4">Calculate Credit Risk</h2>
-            <p class="text-gray-600 mb-6">Enter financial details from Q1 2025 financial statements to estimate Expected Loss and assess the bank’s ability to repay funds.</p>
+            <p class="text-gray-600 mb-6">Enter financial details from  financial statements to estimate Expected Loss and assess the bank’s ability to repay funds.</p>
             {% if error %}
                 <div class="bg-red-50 p-4 rounded-lg mb-6">
                     <p class="text-red-700">{{ error }}</p>
@@ -317,42 +317,42 @@
                 </div>
                 <div class="bg-indigo-50 p-4 rounded-lg">
                     <h4 class="font-bold text-gray-800 mb-2">Exposure at Default</h4>
-                    <p class="text-gray-700">GHS {{ results[0].ead }} thousand</p>
+                    <p class="text-gray-700">{{ results[0].ead_display }}</p>
                     <p class="text-sm text-gray-600 mt-2">{{ results[0].ead_interpretation }}</p>
                 </div>
                 <div class="bg-indigo-50 p-4 rounded-lg">
                     <h4 class="font-bold text-gray-800 mb-2">Probability of Default</h4>
-                    <p class="text-gray-700">{{ results[0].pd }}%</p>
+                    <p class="text-gray-700">{{ results[0].pd_display }}</p>
                     <p class="text-sm text-gray-600 mt-2">{{ results[0].pd_interpretation }}</p>
                 </div>
                 <div class="bg-indigo-50 p-4 rounded-lg">
                     <h4 class="font-bold text-gray-800 mb-2">Loss Given Default</h4>
-                    <p class="text-gray-700">{{ results[0].lgd }}%</p>
+                    <p class="text-gray-700">{{ results[0].lgd_display }}</p>
                     <p class="text-sm text-gray-600 mt-2">{{ results[0].lgd_interpretation }}</p>
                 </div>
                 <div class="bg-indigo-50 p-4 rounded-lg">
                     <h4 class="font-bold text-gray-800 mb-2">Current Ratio</h4>
-                    <p class="text-gray-700">{{ results[0].current_ratio }}</p>
+                    <p class="text-gray-700">{{ results[0].current_ratio_display }}</p>
                     <p class="text-sm text-gray-600 mt-2">{{ results[0].current_ratio_interpretation }}</p>
                 </div>
                 <div class="bg-indigo-50 p-4 rounded-lg">
                     <h4 class="font-bold text-gray-800 mb-2">Quick Ratio</h4>
-                    <p class="text-gray-700">{{ results[0].quick_ratio }}</p>
+                    <p class="text-gray-700">{{ results[0].quick_ratio_display }}</p>
                     <p class="text-sm text-gray-600 mt-2">{{ results[0].quick_ratio_interpretation }}</p>
                 </div>
                 <div class="bg-indigo-50 p-4 rounded-lg">
                     <h4 class="font-bold text-gray-800 mb-2">Cash Ratio</h4>
-                    <p class="text-gray-700">{{ results[0].cash_ratio }}</p>
+                    <p class="text-gray-700">{{ results[0].cash_ratio_display }}</p>
                     <p class="text-sm text-gray-600 mt-2">{{ results[0].cash_ratio_interpretation }}</p>
                 </div>
                 <div class="bg-indigo-50 p-4 rounded-lg">
                     <h4 class="font-bold text-gray-800 mb-2">Interest Coverage Ratio</h4>
-                    <p class="text-gray-700">{{ results[0].interest_coverage_ratio }}</p>
+                    <p class="text-gray-700">{{ results[0].interest_coverage_ratio_display }}</p>
                     <p class="text-sm text-gray-600 mt-2">{{ results[0].interest_coverage_ratio_interpretation }}</p>
                 </div>
                 <div class="bg-green-50 p-4 rounded-lg md:col-span-2">
                     <h4 class="font-bold text-gray-800 mb-2">Expected Loss</h4>
-                    <p class="text-gray-700">GHS {{ results[0].expected_loss }} thousand</p>
+                    <p class="text-gray-700">{{ results[0].expected_loss_display }}</p>
                     <p class="text-sm text-gray-600 mt-2">{{ results[0].expected_loss_interpretation }}</p>
                 </div>
                 <div class="bg-blue-50 p-4 rounded-lg md:col-span-2">
