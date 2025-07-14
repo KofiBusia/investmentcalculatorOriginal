@@ -1,216 +1,572 @@
 {% extends "base.html" %}
 
-{% block title %}Intrinsic Value Calculation{% endblock %}
+{% block title %}Intrinsic Value Calculator - Young Investor Calculator{% endblock %}
+
+{% block head %}
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1910810542133525" crossorigin="anonymous"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4f46e5',
+                        secondary: '#818cf8',
+                        accent: '#a5b4fc',
+                        dark: '#1e293b',
+                        light: '#f8fafc',
+                        success: '#10b981',
+                        info: '#0ea5e9',
+                        warning: '#f59e0b',
+                        danger: '#ef4444'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --header-height: 70px;
+            --sidebar-width: 300px;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f0f4f8 0%, #e6e9ff 100%);
+            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+        }
+        
+        .input-field {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+        
+        .input-field:focus {
+            border-color: #a5b4fc;
+            box-shadow: 0 0 0 4px rgba(165, 180, 252, 0.25);
+        }
+        
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+        }
+        
+        .back-to-top.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        @media (max-width: 768px) {
+            .step-container {
+                flex-direction: column;
+            }
+        }
+        
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: #1e293b;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 8px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        .nav-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .nav-button {
+            display: flex;
+            align-items: center;
+            padding: 10px 20px;
+            background: white;
+            border-radius: 8px;
+            font-weight: 500;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s ease;
+        }
+        
+        .nav-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .nav-button.home {
+            background: #4f46e5;
+            color: white;
+        }
+        
+        .nav-button.calculators {
+            background: #10b981;
+            color: white;
+        }
+        
+        .nav-button i {
+            margin-right: 8px;
+        }
+    </style>
+{% endblock %}
 
 {% block content %}
-<div class="container">
-    <h2>Intrinsic Value Calculation for Stocks</h2>
-    <p>Intrinsic value is an estimate of a stock's true worth based on its fundamentals, such as its earnings, assets, and growth potential. It’s calculated using a discounted cash flow (DCF) model, which projects future cash flows and discounts them back to their present value.</p>
-    
-    <h3>How the Intrinsic Value is Calculated</h3>
-    <p>We use a perpetual or two-stage growth Discounted Cash Flow (DCF) model. Here’s a simple breakdown:</p>
-    <ol>
-        <li><strong>Start with Free Cash Flow (FCF)</strong>: We take the company’s most recent Free Cash Flow (FCF), which can be positive or negative, based on 3 to 5 years of historical data.</li>
-        <li><strong>Compute Growth</strong>: Choose between perpetual growth (single rate) or two-stage growth (high growth followed by terminal growth).</li>
-        <li><strong>Adjust for Time and Risk</strong>: Future FCFs are discounted using a discount rate, either from CAPM or manually specified.</li>
-        <li><strong>Find the Enterprise Value</strong>: For perpetual: EV = (Last FCF × (1 + g)) / (r - g). For two-stage: Sum of discounted high-growth FCFs plus terminal value.</li>
-        <li><strong>Adjust for Debt and Cash</strong>: Equity Value = Enterprise Value - Total Debt + Cash and Equivalents.</li>
-        <li><strong>Calculate Value per Share</strong>: Intrinsic Value per Share = Equity Value / Outstanding Shares.</li>
-    </ol>
-
-    <!-- Error Display -->
-    {% if error %}
-    <p style="color: red; font-weight: bold;">Error: {{ error }}</p>
-    {% endif %}
-
-    <form method="POST" action="{{ url_for('intrinsic_value') }}" id="intrinsic-form">
-        <!-- Number of FCF Years Selection -->
-        <h3>Historical Free Cash Flow</h3>
-        <div class="group">
-            <label for="num_fcf_years">Number of FCF Years:</label>
-            <select name="num_fcf_years" id="num_fcf_years" onchange="toggleFCFInputs()">
-                <option value="3" {{ 'selected' if form.get('num_fcf_years', '3') == '3' else '' }}>3 Years</option>
-                <option value="4" {{ 'selected' if form.get('num_fcf_years', '3') == '4' else '' }}>4 Years</option>
-                <option value="5" {{ 'selected' if form.get('num_fcf_years', '3') == '5' else '' }}>5 Years</option>
-            </select>
+    <!-- Header -->
+    <header class="gradient-bg text-white py-8 px-4 md:px-8">
+        <div class="max-w-6xl mx-auto">
+            <nav class="hidden md:flex justify-between items-center mb-6">
+                <div class="flex items-center space-x-4">
+                    <a href="/" class="text-white hover:text-indigo-200 transition-colors">Home</a>
+                    <a href="/#calculators" class="text-white hover:text-indigo-200 transition-colors">Calculators</a>
+                    <a href="/help" class="text-white font-medium border-b-2 border-white">Help Center</a>
+                    <a href="/articles" class="text-white hover:text-indigo-200 transition-colors">Resources</a>
+                </div>
+                <a href="#" class="bg-white text-primary px-4 py-2 rounded-lg font-medium hover:bg-indigo-50 transition-colors">
+                    Get Started
+                </a>
+            </nav>
+            <div class="max-w-3xl">
+                <h1 class="text-4xl md:text-5xl font-bold mb-4">Intrinsic Value Calculator</h1>
+                <p class="text-xl md:text-2xl text-indigo-100 mb-6">
+                    Estimate a stock's true worth using a Discounted Cash Flow (DCF) model
+                </p>
+                <div class="flex flex-wrap gap-3">
+                    <div class="bg-white/20 px-4 py-2 rounded-full flex items-center">
+                        <i class="fas fa-lightbulb mr-2"></i>
+                        <span>Beginner Friendly</span>
+                    </div>
+                    <div class="bg-white/20 px-4 py-2 rounded-full flex items-center">
+                        <i class="fas fa-download mr-2"></i>
+                        <span>Downloadable Guide</span>
+                    </div>
+                </div>
+            </div>
         </div>
-        <p>Enter the Free Cash Flow for the selected number of years, with Year 1 being the earliest and the last year being the most recent. FCF can be positive or negative. Please enter numbers without commas or currency symbols (e.g., 1000000 for one million GHS or -500000 for negative FCF).</p>
-        
-        {% macro input_field(name, label, description='', type='number', step='1', min=None, max=None, required=True, default='', placeholder='') %}
-        <div class="group" id="{{ name }}_group">
-            <label for="{{ name }}">{{ label }}:</label>
-            <input type="{{ type }}" step="{{ step }}" name="{{ name }}" id="{{ name }}"
-                   value="{{ form.get(name, default) }}"
-                   {% if min is not none %}min="{{ min }}"{% endif %}
-                   {% if max is not none %}max="{{ max }}"{% endif %}
-                   {{ 'required' if required else '' }}
-                   placeholder="{{ placeholder }}">
-            {% if description %}
-            <small>{{ description }}</small>
+    </header>
+
+    <!-- Main Content -->
+    <div class="max-w-6xl mx-auto px-4 py-8">
+        <!-- Navigation Buttons -->
+        <div class="nav-buttons">
+            <a href="https://younginvestorcalculator.com/" class="nav-button home">
+                <i class="fas fa-home"></i> Return to Home
+            </a>
+            <a href="https://younginvestorcalculator.com/#calculators" class="nav-button calculators">
+                <i class="fas fa-calculator"></i> Other Calculators
+            </a>
+        </div>
+
+        <!-- Calculator Form -->
+        <div class="card p-6 mb-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Calculate Intrinsic Value</h2>
+            <p class="text-gray-600 mb-6">Enter financial details to estimate the stock's intrinsic value using a Discounted Cash Flow (DCF) model.</p>
+            {% if error %}
+                <div class="bg-red-50 p-4 rounded-lg mb-6">
+                    <p class="text-red-700">{{ error }}</p>
+                </div>
             {% endif %}
+            <form method="POST" action="{{ url_for('intrinsic_value') }}" id="intrinsic-form" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2">Number of FCF Years</label>
+                    <select name="num_fcf_years" id="num_fcf_years" onchange="toggleFCFInputs()" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
+                        <option value="3" {{ 'selected' if form.get('num_fcf_years', '3') == '3' else '' }}>3 Years</option>
+                        <option value="4" {{ 'selected' if form.get('num_fcf_years', '3') == '4' else '' }}>4 Years</option>
+                        <option value="5" {{ 'selected' if form.get('num_fcf_years', '3') == '5' else '' }}>5 Years</option>
+                    </select>
+                    <div class="tooltip">
+                        <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                        <span class="tooltiptext">Select the number of years of historical Free Cash Flow to include.</span>
+                    </div>
+                </div>
+                {% for i in range(1, 6) %}
+                <div id="fcf_{{ i }}_group">
+                    <label class="block text-gray-700 font-medium mb-2">Free Cash Flow (FCF) Year {{ i }} (GHS)</label>
+                    <input type="number" step="any" name="fcf_{{ i }}" id="fcf_{{ i }}" value="{{ form.get('fcf_' ~ i, '') }}"
+                           placeholder="e.g., 1000000" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
+                    <div class="tooltip">
+                        <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                        <span class="tooltiptext">Enter Free Cash Flow for Year {{ i }} from financial statements. Can be positive or negative.</span>
+                    </div>
+                </div>
+                {% endfor %}
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2">Growth Model</label>
+                    <select name="growth_model" id="growth_model" onchange="toggleGrowthModelInputs()" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
+                        <option value="perpetual" {{ 'selected' if form.get('growth_model', 'perpetual') == 'perpetual' else '' }}>Perpetual Growth</option>
+                        <option value="two_stage" {{ 'selected' if form.get('growth_model', 'perpetual') == 'two_stage' else '' }}>Two-Stage Growth</option>
+                    </select>
+                    <div class="tooltip">
+                        <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                        <span class="tooltiptext">Choose between perpetual growth or a two-stage growth model with high-growth and terminal phases.</span>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2">Discount Rate Method</label>
+                    <select name="discount_rate_method" id="discount_rate_method" onchange="toggleDiscountRateInputs()" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
+                        <option value="capm" {{ 'selected' if form.get('discount_rate_method', 'capm') == 'capm' else '' }}>CAPM</option>
+                        <option value="manual" {{ 'selected' if form.get('discount_rate_method', 'capm') == 'manual' else '' }}>Manual</option>
+                    </select>
+                    <div class="tooltip">
+                        <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                        <span class="tooltiptext">Use CAPM or specify a manual discount rate.</span>
+                    </div>
+                </div>
+                <div id="risk_free_rate_group">
+                    <label class="block text-gray-700 font-medium mb-2">Risk-Free Rate (%)</label>
+                    <input type="number" step="0.01" name="risk_free_rate" id="risk_free_rate" value="{{ form.get('risk_free_rate', '') }}"
+                           placeholder="e.g., 5" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
+                    <div class="tooltip">
+                        <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                        <span class="tooltiptext">The return on a risk-free investment, like government bonds. Used in CAPM.</span>
+                    </div>
+                </div>
+                <div id="market_return_group">
+                    <label class="block text-gray-700 font-medium mb-2">Market Return (%)</label>
+                    <input type="number" step="0.01" name="market_return" id="market_return" value="{{ form.get('market_return', '') }}"
+                           placeholder="e.g., 10" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
+                    <div class="tooltip">
+                        <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                        <span class="tooltiptext">The expected return of the overall market. Used in CAPM.</span>
+                    </div>
+                </div>
+                <div id="beta_group">
+                    <label class="block text-gray-700 font-medium mb-2">Beta</label>
+                    <input type="number" step="0.01" name="beta" id="beta" value="{{ form.get('beta', '') }}"
+                           placeholder="e.g., 1.2" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
+                    <div class="tooltip">
+                        <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                        <span class="tooltiptext">Measures the stock's volatility relative to the market. A beta >1 indicates higher volatility.</span>
+                    </div>
+                </div>
+                <div id="manual_discount_rate_group">
+                    <label class="block text-gray-700 font-medium mb-2">Manual Discount Rate (%)</label>
+                    <input type="number" step="0.01" name="manual_discount_rate" id="manual_discount_rate" value="{{ form.get('manual_discount_rate', '0') }}"
+                           placeholder="e.g., 8" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
+                    <div class="tooltip">
+                        <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                        <span class="tooltiptext">Specify a custom discount rate if not using CAPM.</span>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2">Outstanding Shares (most recent)</label>
+                    <input type="number" step="1" name="outstanding_shares" id="outstanding_shares" value="{{ form.get('outstanding_shares', '') }}"
+                           placeholder="e.g., 10000000" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
+                    <div class="tooltip">
+                        <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                        <span class="tooltiptext">The total number of shares currently held by shareholders.</span>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2">Total Debt (most recent, GHS)</label>
+                    <input type="number" step="1" name="total_debt" id="total_debt" value="{{ form.get('total_debt', '0') }}"
+                           placeholder="e.g., 5000000" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
+                    <div class="tooltip">
+                        <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                        <span class="tooltiptext">The company's total debt. Optional; defaults to 0 if not provided.</span>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2">Cash and Equivalents (most recent, GHS)</label>
+                    <input type="number" step="1" name="cash_and_equivalents" id="cash_and_equivalents" value="{{ form.get('cash_and_equivalents', '0') }}"
+                           placeholder="e.g., 2000000" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
+                    <div class="tooltip">
+                        <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                        <span class="tooltiptext">The company's liquid assets. Optional; defaults to 0 if not provided.</span>
+                    </div>
+                </div>
+                <div id="perpetual_growth_rate_group">
+                    <label class="block text-gray-700 font-medium mb-2">Perpetual Growth Rate (%)</label>
+                    <input type="number" step="0.01" name="perpetual_growth_rate" id="perpetual_growth_rate" value="{{ form.get('perpetual_growth_rate', '') }}"
+                           placeholder="e.g., 2" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
+                    <div class="tooltip">
+                        <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                        <span class="tooltiptext">The long-term growth rate of FCF for perpetual model.</span>
+                    </div>
+                </div>
+                <div id="high_growth_years_group">
+                    <label class="block text-gray-700 font-medium mb-2">High Growth Years</label>
+                    <input type="number" step="1" min="0" name="high_growth_years" id="high_growth_years" value="{{ form.get('high_growth_years', '0') }}"
+                           placeholder="e.g., 5" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
+                    <div class="tooltip">
+                        <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                        <span class="tooltiptext">Number of years for high-growth phase in two-stage model.</span>
+                    </div>
+                </div>
+                <div id="high_growth_rate_group">
+                    <label class="block text-gray-700 font-medium mb-2">High Growth Rate (%)</label>
+                    <input type="number" step="0.01" name="high_growth_rate" id="high_growth_rate" value="{{ form.get('high_growth_rate', '0') }}"
+                           placeholder="e.g., 10" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
+                    <div class="tooltip">
+                        <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                        <span class="tooltiptext">Growth rate during high-growth phase in two-stage model.</span>
+                    </div>
+                </div>
+                <div id="terminal_growth_rate_group">
+                    <label class="block text-gray-700 font-medium mb-2">Terminal Growth Rate (%)</label>
+                    <input type="number" step="0.01" name="terminal_growth_rate" id="terminal_growth_rate" value="{{ form.get('terminal_growth_rate', '0') }}"
+                           placeholder="e.g., 2" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
+                    <div class="tooltip">
+                        <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                        <span class="tooltiptext">Long-term growth rate after high-growth phase in two-stage model.</span>
+                    </div>
+                </div>
+                <div class="md:col-span-2">
+                    <button type="submit" class="px-6 py-3 bg-primary text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors">
+                        <i class="fas fa-calculator mr-2"></i> Calculate
+                    </button>
+                </div>
+            </form>
         </div>
-        {% endmacro %}
 
-        {% for i in range(1, 6) %}
-        {{ input_field('fcf_' ~ i, 'Free Cash Flow (FCF) Year ' ~ i, step='any', required=True, placeholder='e.g., 1000000') }}
-        {% endfor %}
+        <!-- Results Section -->
+        {% if result %}
+        <div class="card p-6 mb-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Intrinsic Value Results</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-indigo-50 p-4 rounded-lg">
+                    <h4 class="font-bold text-gray-800 mb-2">Intrinsic Value per Share</h4>
+                    <p class="text-gray-700">GHS{{ result|round(2)|commafy }}</p>
+                    <p class="text-sm text-gray-600 mt-2">The estimated true worth of the stock per share based on the DCF model.</p>
+                </div>
+                {% if debug %}
+                <div class="bg-indigo-50 p-4 rounded-lg">
+                    <h4 class="font-bold text-gray-800 mb-2">Free Cash Flows</h4>
+                    <p class="text-gray-700">{{ debug.fcf }}</p>
+                    <p class="text-sm text-gray-600 mt-2">Historical Free Cash Flows used in the calculation.</p>
+                </div>
+                <div class="bg-indigo-50 p-4 rounded-lg">
+                    <h4 class="font-bold text-gray-800 mb-2">Discount Rate</h4>
+                    <p class="text-gray-700">{{ (debug.discount_rate * 100)|round(2) }}%</p>
+                    <p class="text-sm text-gray-600 mt-2">The rate used to discount future cash flows.</p>
+                </div>
+                <div class="bg-indigo-50 p-4 rounded-lg">
+                    <h4 class="font-bold text-gray-800 mb-2">{{ 'Perpetual Growth Rate' if debug.growth_model == 'perpetual' else 'Terminal Growth Rate' }}</h4>
+                    <p class="text-gray-700">{{ (debug.growth_rate * 100)|round(2) }}%</p>
+                    <p class="text-sm text-gray-600 mt-2">The growth rate applied in the DCF model.</p>
+                </div>
+                <div class="bg-indigo-50 p-4 rounded-lg">
+                    <h4 class="font-bold text-gray-800 mb-2">Enterprise Value</h4>
+                    <p class="text-gray-700">GHS{{ debug.enterprise_value|round(2)|commafy }}</p>
+                    <p class="text-sm text-gray-600 mt-2">The total value of the company before adjustments.</p>
+                </div>
+                <div class="bg-indigo-50 p-4 rounded-lg">
+                    <h4 class="font-bold text-gray-800 mb-2">Equity Value</h4>
+                    <p class="text-gray-700">GHS{{ debug.equity_value|round(2)|commafy }}</p>
+                    <p class="text-sm text-gray-600 mt-2">The value of the company after adjusting for debt and cash.</p>
+                </div>
+                {% if debug.warning %}
+                <div class="bg-yellow-50 p-4 rounded-lg">
+                    <h4 class="font-bold text-gray-800 mb-2">Warning</h4>
+                    <p class="text-gray-700">{{ debug.warning }}</p>
+                    <p class="text-sm text-gray-600 mt-2">Note on the calculation results.</p>
+                </div>
+                {% endif %}
+                {% endif %}
+            </div>
+            <div class="mt-6">
+                <a href="{{ url_for('intrinsic_value') }}" class="px-4 py-2 bg-primary text-white rounded-lg font-medium flex items-center inline-block">
+                    <i class="fas fa-redo mr-2"></i> Calculate Another
+                </a>
+            </div>
+        </div>
+        {% endif %}
 
-        <!-- Valuation Parameters Section -->
-        <h3>Valuation Parameters</h3>
-        <p><small>Enter Outstanding Shares as the total number of shares, Total Debt and Cash and Equivalents as numbers without commas (e.g., 1000000 for one million GHS). Enter rates as decimals (e.g., 5 for 5%).</small></p>
-        
-        <!-- Growth Model Selection -->
-        <div class="group">
-            <label for="growth_model">Growth Model:</label>
-            <select name="growth_model" id="growth_model" onchange="toggleGrowthModelInputs()">
-                <option value="perpetual" {{ 'selected' if form.get('growth_model', 'perpetual') == 'perpetual' else '' }}>Perpetual Growth</option>
-                <option value="two_stage" {{ 'selected' if form.get('growth_model', 'perpetual') == 'two_stage' else '' }}>Two-Stage Growth</option>
-            </select>
-            <small>Choose between perpetual growth or a two-stage growth model with high-growth and terminal phases.</small>
+        <!-- Guide Section -->
+        <div class="card p-6">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">How to Use the Intrinsic Value Calculator</h2>
+            <p class="text-gray-600 mb-6">Follow these steps to estimate a stock’s intrinsic value using the Discounted Cash Flow (DCF) model.</p>
+            <ol class="list-decimal pl-6 space-y-4">
+                <li>
+                    <strong>Select Historical Free Cash Flow</strong>
+                    <p>Choose the number of years (3, 4, or 5) of historical Free Cash Flow (FCF) to include. Enter FCF values for each year from financial statements, with Year 1 being the earliest.</p>
+                </li>
+                <li>
+                    <strong>Choose Growth Model</strong>
+                    <p>Select either Perpetual Growth (single rate) or Two-Stage Growth (high-growth and terminal phases) to model future cash flows.</p>
+                </li>
+                <li>
+                    <strong>Specify Discount Rate</strong>
+                    <p>Choose CAPM (using Risk-Free Rate, Market Return, and Beta) or a manual discount rate to adjust for risk and time value of money.</p>
+                </li>
+                <li>
+                    <strong>Enter Financial Metrics</strong>
+                    <p>Input Outstanding Shares, Total Debt, and Cash and Equivalents from the most recent financial statements. Debt and cash are optional and default to 0 if not provided.</p>
+                </li>
+                <li>
+                    <strong>Provide Growth Rates</strong>
+                    <p>For Perpetual Growth, enter the long-term growth rate. For Two-Stage, enter high-growth years, high-growth rate, and terminal growth rate.</p>
+                </li>
+                <li>
+                    <strong>Calculate and Interpret</strong>
+                    <p>Click “Calculate” to compute the intrinsic value per share. Review the results, including Enterprise Value, Equity Value, and any warnings, to assess the stock’s worth.</p>
+                </li>
+            </ol>
+            <div class="flex flex-wrap gap-3 mt-6">
+                <a href="/download_guide" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium flex items-center">
+                    <i class="fas fa-download mr-2"></i> Download Guide
+                </a>
+            </div>
         </div>
 
-        <!-- Discount Rate Method Selection -->
-        <div class="group">
-            <label for="discount_rate_method">Discount Rate Method:</label>
-            <select name="discount_rate_method" id="discount_rate_method" onchange="toggleDiscountRateInputs()">
-                <option value="capm" {{ 'selected' if form.get('discount_rate_method', 'capm') == 'capm' else '' }}>CAPM</option>
-                <option value="manual" {{ 'selected' if form.get('discount_rate_method', 'capm') == 'manual' else '' }}>Manual</option>
-            </select>
-            <small>Use CAPM (Risk-Free Rate + Beta * (Market Return - Risk-Free Rate)) or specify a manual discount rate.</small>
+        <!-- Navigation Buttons at Bottom -->
+        <div class="nav-buttons mt-6">
+            <a href="https://younginvestorcalculator.com/" class="nav-button home">
+                <i class="fas fa-home"></i> Return to Home
+            </a>
+            <a href="https://younginvestorcalculator.com/#calculators" class="nav-button calculators">
+                <i class="fas fa-calculator"></i> Other Calculators
+            </a>
         </div>
 
-        <!-- CAPM Inputs -->
-        {{ input_field('risk_free_rate', 'Risk-Free Rate (%)', description='The return on a risk-free investment, like government bonds. Used in CAPM.', step='0.01', placeholder='e.g., 5') }}
-        {{ input_field('market_return', 'Market Return (%)', description='The expected return of the overall market. Used in CAPM.', step='0.01', placeholder='e.g., 10') }}
-        {{ input_field('beta', 'Beta', description='Measures the stock\'s volatility relative to the market. A beta >1 indicates higher volatility.', step='0.01', placeholder='e.g., 1.2') }}
-
-        <!-- Manual Discount Rate -->
-        {{ input_field('manual_discount_rate', 'Manual Discount Rate (%)', description='Specify a custom discount rate if not using CAPM.', step='0.01', required=False, default='0', placeholder='e.g., 8') }}
-
-        {{ input_field('outstanding_shares', 'Outstanding Shares (most recent)', description='The total number of shares currently held by shareholders.', step='1', placeholder='e.g., 10000000') }}
-        {{ input_field('total_debt', 'Total Debt (most recent)', description='The company\'s total debt. Optional; defaults to 0 if not provided.', step='1', required=False, default='0', placeholder='e.g., 5000000') }}
-        {{ input_field('cash_and_equivalents', 'Cash and Equivalents (most recent)', description='The company\'s liquid assets. Optional; defaults to 0 if not provided.', step='1', required=False, default='0', placeholder='e.g., 2000000') }}
-
-        <!-- Growth Rate Inputs -->
-        {{ input_field('perpetual_growth_rate', 'Perpetual Growth Rate (%)', description='The long-term growth rate of FCF for perpetual model.', step='0.01', placeholder='e.g., 2') }}
-        {{ input_field('high_growth_years', 'High Growth Years', description='Number of years for high-growth phase in two-stage model.', type='number', step='1', min='0', required=False, default='0', placeholder='e.g., 5') }}
-        {{ input_field('high_growth_rate', 'High Growth Rate (%)', description='Growth rate during high-growth phase in two-stage model.', step='0.01', required=False, default='0', placeholder='e.g., 10') }}
-        {{ input_field('terminal_growth_rate', 'Terminal Growth Rate (%)', description='Long-term growth rate after high-growth phase in two-stage model.', step='0.01', required=False, default='0', placeholder='e.g., 2') }}
-
-        <button type="submit" class="action-btn">Calculate</button>
-        <a href="{{ url_for('intrinsic_value') }}" class="action-btn">Clear</a>
-        <a href="{{ url_for('index') }}" class="action-btn">Back to Home</a>
-    </form>
-
-    <!-- Results -->
-    {% if result %}
-    <div class="results">
-        <p><strong>Intrinsic Value per Share:</strong> GHS{{ result|round(2)|commafy }} <small>(Ghanaian Cedi)</small></p>
+        <!-- AdSense Banner -->
+        <div class="mt-8">
+            <ins class="adsbygoogle"
+                 style="display:block"
+                 data-ad-client="ca-pub-1910810542133525"
+                 data-ad-slot="4586919134"
+                 data-ad-format="auto"
+                 data-full-width-responsive="true"></ins>
+            <script>
+                 (adsbygoogle = window.adsbygoogle || []).push({});
+            </script>
+        </div>
     </div>
-    {% endif %}
 
-    <!-- Debug Information -->
-    {% if debug %}
-    <div style="margin-top: 20px; padding: 10px; border: 1px solid #ccc;">
-        <h3>Debug Information</h3>
-        <ul>
-            <li><strong>Free Cash Flows:</strong> {{ debug.fcf }}</li>
-            <li><strong>Discount Rate:</strong> {{ (debug.discount_rate * 100)|round(2) }}%</li>
-            <li><strong>{{ 'Perpetual Growth Rate' if debug.growth_model == 'perpetual' else 'Terminal Growth Rate' }}:</strong> {{ (debug.growth_rate * 100)|round(2) }}%</li>
-            <li><strong>Enterprise Value:</strong> GHS{{ debug.enterprise_value|round(2)|commafy }}</li>
-            <li><strong>Equity Value:</strong> GHS{{ debug.equity_value|round(2)|commafy }}</li>
-            {% if debug.warning %}
-            <li><strong>Warning:</strong> {{ debug.warning }}</li>
-            {% endif %}
-        </ul>
-    </div>
-    {% endif %}
+    <!-- Back to Top Button -->
+    <button id="backToTop" class="back-to-top w-12 h-12 bg-primary text-white rounded-full shadow-lg flex items-center justify-center">
+        <i class="fas fa-arrow-up"></i>
+    </button>
 
-    <!-- AdSense Banner -->
-    <div style="margin-top: 20px;">
-        <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1910810542133525"
-             crossorigin="anonymous"></script>
-        <!-- BankCalculatorBanner -->
-        <ins class="adsbygoogle"
-             style="display:block"
-             data-ad-client="ca-pub-1910810542133525"
-             data-ad-slot="4586919134"
-             data-ad-format="auto"
-             data-full-width-responsive="true"></ins>
-        <script>
-             (adsbygoogle = window.adsbygoogle || []).push({});
-        </script>
-    </div>
-</div>
+    <!-- JavaScript -->
+    <script>
+        // Back to top button
+        const backToTopBtn = document.getElementById('backToTop');
+        window.addEventListener('scroll', function() {
+            if (window.pageYOffset > 300) {
+                backToTopBtn.classList.add('visible');
+            } else {
+                backToTopBtn.classList.remove('visible');
+            }
+        });
+        backToTopBtn.addEventListener('click', function() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
 
-<script>
-function toggleFCFInputs() {
-    const numYears = parseInt(document.getElementById('num_fcf_years').value) || 3;
-    for (let i = 1; i <= 5; i++) {
-        const inputGroup = document.getElementById(`fcf_${i}_group`);
-        const input = inputGroup.querySelector('input');
-        if (i <= numYears) {
-            inputGroup.style.display = 'block';
-            input.required = true;
-            input.disabled = false;
-        } else {
-            inputGroup.style.display = 'none';
-            input.required = false;
-            input.value = '';
-            input.disabled = true;
+        // Form input toggling
+        function toggleFCFInputs() {
+            const numYears = parseInt(document.getElementById('num_fcf_years').value) || 3;
+            for (let i = 1; i <= 5; i++) {
+                const inputGroup = document.getElementById(`fcf_${i}_group`);
+                const input = inputGroup.querySelector('input');
+                if (i <= numYears) {
+                    inputGroup.style.display = 'block';
+                    input.required = true;
+                    input.disabled = false;
+                } else {
+                    inputGroup.style.display = 'none';
+                    input.required = false;
+                    input.value = '';
+                    input.disabled = true;
+                }
+            }
         }
-    }
-}
 
-function toggleGrowthModelInputs() {
-    const growthModel = document.getElementById('growth_model').value;
-    const perpetualFields = ['perpetual_growth_rate_group'];
-    const twoStageFields = ['high_growth_years_group', 'high_growth_rate_group', 'terminal_growth_rate_group'];
-    
-    perpetualFields.forEach(field => {
-        const group = document.getElementById(field);
-        group.style.display = growthModel === 'perpetual' ? 'block' : 'none';
-        const input = group.querySelector('input');
-        input.required = growthModel === 'perpetual';
-        if (growthModel !== 'perpetual') input.value = '';
-    });
-    
-    twoStageFields.forEach(field => {
-        const group = document.getElementById(field);
-        group.style.display = growthModel === 'two_stage' ? 'block' : 'none';
-        const input = group.querySelector('input');
-        input.required = growthModel === 'two_stage';
-        if (growthModel !== 'two_stage') input.value = '';
-    });
-}
+        function toggleGrowthModelInputs() {
+            const growthModel = document.getElementById('growth_model').value;
+            const perpetualFields = ['perpetual_growth_rate_group'];
+            const twoStageFields = ['high_growth_years_group', 'high_growth_rate_group', 'terminal_growth_rate_group'];
+            
+            perpetualFields.forEach(field => {
+                const group = document.getElementById(field);
+                group.style.display = growthModel === 'perpetual' ? 'block' : 'none';
+                const input = group.querySelector('input');
+                input.required = growthModel === 'perpetual';
+                if (growthModel !== 'perpetual') input.value = '';
+            });
+            
+            twoStageFields.forEach(field => {
+                const group = document.getElementById(field);
+                group.style.display = growthModel === 'two_stage' ? 'block' : 'none';
+                const input = group.querySelector('input');
+                input.required = growthModel === 'two_stage';
+                if (growthModel !== 'two_stage') input.value = '';
+            });
+        }
 
-function toggleDiscountRateInputs() {
-    const discountMethod = document.getElementById('discount_rate_method').value;
-    const capmFields = ['risk_free_rate_group', 'market_return_group', 'beta_group'];
-    const manualField = ['manual_discount_rate_group'];
-    
-    capmFields.forEach(field => {
-        const group = document.getElementById(field);
-        group.style.display = discountMethod === 'capm' ? 'block' : 'none';
-        const input = group.querySelector('input');
-        input.required = discountMethod === 'capm';
-        if (discountMethod !== 'capm') input.value = '';
-    });
-    
-    manualField.forEach(field => {
-        const group = document.getElementById(field);
-        group.style.display = discountMethod === 'manual' ? 'block' : 'none';
-        const input = group.querySelector('input');
-        input.required = discountMethod === 'manual';
-        if (discountMethod !== 'manual') input.value = '';
-    });
-}
+        function toggleDiscountRateInputs() {
+            const discountMethod = document.getElementById('discount_rate_method').value;
+            const capmFields = ['risk_free_rate_group', 'market_return_group', 'beta_group'];
+            const manualField = ['manual_discount_rate_group'];
+            
+            capmFields.forEach(field => {
+                const group = document.getElementById(field);
+                group.style.display = discountMethod === 'capm' ? 'block' : 'none';
+                const input = group.querySelector('input');
+                input.required = discountMethod === 'capm';
+                if (discountMethod !== 'capm') input.value = '';
+            });
+            
+            manualField.forEach(field => {
+                const group = document.getElementById(field);
+                group.style.display = discountMethod === 'manual' ? 'block' : 'none';
+                const input = group.querySelector('input');
+                input.required = discountMethod === 'manual';
+                if (discountMethod !== 'manual') input.value = '';
+            });
+        }
 
-// Run on page load to set initial state
-document.addEventListener('DOMContentLoaded', () => {
-    toggleFCFInputs();
-    toggleGrowthModelInputs();
-    toggleDiscountRateInputs();
-});
-</script>
+        // Run on page load to set initial state
+        document.addEventListener('DOMContentLoaded', () => {
+            toggleFCFInputs();
+            toggleGrowthModelInputs();
+            toggleDiscountRateInputs();
+        });
+    </script>
 {% endblock %}
