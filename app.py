@@ -1180,6 +1180,10 @@ def bond_risk():
     return render_template('bond_risk.html', form_data=form_data, results=results, error=error, currency_symbol='GHS ')
    
     from scipy import stats
+# New route for the bond risk calculator help page
+@app.route('/bond_risk_help')
+def bond_risk_help():
+    return render_template('bond_risk_help.html')
 
 # Route for Download Guide (Placeholder)
 @app.route('/download_guide')
