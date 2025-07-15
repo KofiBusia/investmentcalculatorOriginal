@@ -1190,6 +1190,100 @@ def bond_risk_help():
 def asset_allocation():
     return render_template('asset_allocation_npra.html')
 
+# New route for Risk Assessment Calculator
+@app.route('/risk-assessment', methods=['GET', 'POST'])
+def risk_assessment():
+    form_data = {}
+    result = None
+    npra_alerts = []
+
+    if request.method == 'POST':
+        try:
+            form_data = {
+                'gov_securities': float(request.form['gov_securities']),
+                'local_gov_securities': float(request.form['local_gov_securities']),
+                'equities': float(request.form['equities']),
+                'bank_securities': float(request.form['bank_securities']),
+                'corporate_debt': float(request.form['corporate_debt']),
+                'collective_schemes': float(request.form['collective_schemes']),
+                'alternatives': float(request.form['alternatives']),
+                'foreign': float(request.form['foreign']),
+                'portfolio_value': float(request.form['portfolio_value'])
+            }
+
+            # NPRA limits
+            npra_limits = {
+                'gov_securities': 75,
+                'local_gov_securities': 25,
+                'equities': 20,
+                'bank_securities': 35,
+                'corporate_debt': 35,
+                'collective_schemes': 15,
+                'alternatives': 25,
+                'foreign': 5
+            }
+
+            # Validate NPRA limits
+            for key, value in form_data.items():
+                if key in npra_limits and value > npra_limits[key]:
+                    npra_alerts.append({
+                        'type': 'warning',
+                        'message': f"{key.replace('_', ' ').title()} allocation ({value}%) exceeds NPRA limit of {npra_limits[key]}%."
+                    })
+
+            # Validate sum of percentages
+            total_allocation = sum([form_data[key] for key in form_data if key != 'portfolio_value'])
+            if abs(total_allocation - 100) > 0.01:
+                npra_alerts.append({
+                    'type': 'warning',
+                    'message': f"Total allocation ({total_allocation:.2f}%) must equal 100%."
+                })
+
+            # If no alerts, calculate results
+            if not npra_alerts:
+                weights = [
+                    form_data['gov_securities'] / 100,
+                    form_data['local_gov_securities'] / 100,
+                    form_data['equities'] / 100,
+                    form_data['bank_securities'] / 100,
+                    form_data['corporate_debt'] / 100,
+                    form_data['collective_schemes'] / 100,
+                    form_data['alternatives'] / 100,
+                    form_data['foreign'] / 100
+                ]
+                expected_returns = [0.05, 0.05, 0.12, 0.06, 0.07, 0.08, 0.10, 0.09]  # Example
+                volatilities = [0.02, 0.03, 0.20, 0.05, 0.06, 0.07, 0.15, 0.12]  # Example
+                portfolio_value = form_data['portfolio_value']
+                expected_return = sum(w * r for w, r in zip(weights, expected_returns)) * 100
+                volatility = np.sqrt(sum(w * v ** 2 for w, v in zip(weights, volatilities))) * 100
+                stress_loss = portfolio_value * sum(w * 0.10 for w in weights)  # 10% market drop
+                # Format stress_loss with commas and two decimal places
+                formatted_stress_loss = locale.format_string("%.2f", stress_loss, grouping=True)
+                result = {
+                    'expected_return': round(expected_return, 2),
+                    'volatility': round(volatility, 2),
+                    'stress_loss': formatted_stress_loss
+                }
+                npra_alerts.append({
+                    'type': 'success',
+                    'message': 'Portfolio is compliant with NPRA guidelines.'
+                })
+
+        except (ValueError, KeyError):
+            npra_alerts.append({
+                'type': 'warning',
+                'message': 'Please enter valid numerical values for all fields.'
+            })
+
+    return render_template('risk_assessment.html', form_data=form_data, result=result, npra_alerts=npra_alerts)
+
+import locale
+
+# Set locale for formatting numbers with commas
+locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
+
+
+
 # Route for Download Guide (Placeholder)
 @app.route('/download_guide')
 def download_guide():
