@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NPRA-Compliant Asset Allocation Calculator</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4f46e5',
+                        secondary: '#818cf8',
+                        accent: '#a5b4fc',
+                        dark: '#1e293b',
+                        light: '#f8fafc',
+                        success: '#10b981',
+                        info: '#0ea5e9',
+                        warning: '#f59e0b',
+                        danger: '#ef4444'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #f0f4f8 0%, #e6e9ff 100%);
+            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+        }
+        .input-field {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+        .input-field:focus {
+            border-color: #a5b4fc;
+            box-shadow: 0 0 0 4px rgba(165, 180, 252, 0.25);
+        }
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: #1e293b;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 8px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+        .nav-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .nav-button {
+            display: flex;
+            align-items: center;
+            padding: 10px 20px;
+            background: white;
+            border-radius: 8px;
+            font-weight: 500;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s ease;
+        }
+        .nav-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+        }
+        .nav-button.home {
+            background: #4f46e5;
+            color: white;
+        }
+        .nav-button.calculators {
+            background: #10b981;
+            color: white;
+        }
+        .nav-button i {
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+    <!-- Header -->
+    <header class="gradient-bg text-white py-8 px-4 md:px-8">
+        <div class="max-w-6xl mx-auto">
+            <nav class="hidden md:flex justify-between items-center mb-6">
+                <div class="flex items-center space-x-4">
+                    <a href="/" class="text-white hover:text-indigo-200 transition-colors">Home</a>
+                    <a href="/#calculators" class="text-white hover:text-indigo-200 transition-colors">Calculators</a>
+                    <a href="/help" class="text-white font-medium border-b-2 border-white">Help Center</a>
+                    <a href="/articles" class="text-white hover:text-indigo-200 transition-colors">Resources</a>
+                </div>
+                <a href="#" class="bg-white text-primary px-4 py-2 rounded-lg font-medium hover:bg-indigo-50 transition-colors">
+                    Get Started
+                </a>
+            </nav>
+            <div class="max-w-3xl">
+                <h1 class="text-4xl md:text-5xl font-bold mb-4">NPRA-Compliant Asset Allocation Calculator</h1>
+                <p class="text-xl md:text-2xl text-indigo-100 mb-6">
+                    Build a diversified portfolio tailored to Ghanaian market conditions and NPRA regulations
+                </p>
+                <div class="flex flex-wrap gap-3">
+                    <div class="bg-white/20 px-4 py-2 rounded-full flex items-center">
+                        <i class="fas fa-lightbulb mr-2"></i>
+                        <span>Beginner Friendly</span>
+                    </div>
+                    <div class="bg-white/20 px-4 py-2 rounded-full flex items-center">
+                        <i class="fas fa-download mr-2"></i>
+                        <span>Downloadable Results</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="max-w-6xl mx-auto px-4 py-8">
+        <!-- Navigation Buttons -->
+        <div class="nav-buttons">
+            <a href="https://younginvestorcalculator.com/" class="nav-button home">
+                <i class="fas fa-home"></i> Return to Home
+            </a>
+            <a href="https://younginvestorcalculator.com/#calculators" class="nav-button calculators">
+                <i class="fas fa-calculator"></i> Other Calculators
+            </a>
+        </div>
+
+        <!-- Calculator Form -->
+        <div class="card p-6 mb-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Asset Allocation Calculator</h2>
+            <p class="text-gray-600 mb-6">Enter your investment preferences and Ghanaian market data to generate an NPRA-compliant portfolio.</p>
+            <form id="asset-allocation-form" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2">Portfolio Type (Tier 2)</label>
+                    <select id="portfolio_type" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
+                        <option value="moderately_aggressive">Moderately Aggressive (15–44 years)</option>
+                        <option value="moderately_conservative">Moderately Conservative (45–54 years)</option>
+                        <option value="conservative">Conservative (55–60 years)</option>
+                        <option value="aggressive">Aggressive (By Request)</option>
+                    </select>
+                    <div class="tooltip">
+                        <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                        <span class="tooltiptext">Select portfolio type per NPRA Tier 2 guidelines</span>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2">Investment Horizon (Years)</label>
+                    <input type="number" id="horizon" placeholder="e.g., 10" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
+                    <div class="tooltip">
+                        <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                        <span class="tooltiptext">How long you plan to invest (in years)</span>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2">Current Inflation Rate (%)</label>
+                    <input type="number" step="0.01" id="inflation_rate" placeholder="e.g., 20" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
+                    <div class="tooltip">
+                        <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                        <span class="tooltiptext">Current Ghanaian inflation rate</span>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2">GSE Annual Return (%)</label>
+                    <input type="number" step="0.01" id="gse_return" placeholder="e.g., 10" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
+                    <div class="tooltip">
+                        <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                        <span class="tooltiptext">Annual return of the Ghana Stock Exchange Composite Index</span>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2">T-Bill Yield (%)</label>
+                    <input type="number" step="0.01" id="tbill_yield" placeholder="e.g., 25" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
+                    <div class="tooltip">
+                        <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                        <span class="tooltiptext">Current yield on Ghanaian Treasury Bills (e.g., 91-day)</span>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2">Cedi Depreciation Rate (%)</label>
+                    <input type="number" step="0.01" id="cedi_depreciation" placeholder="e.g., 5" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
+                    <div class="tooltip">
+                        <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                        <span class="tooltiptext">Annual depreciation rate of the Ghanaian Cedi</span>
+                    </div>
+                </div>
+                <div class="md:col-span-2">
+                    <button type="submit" class="px-6 py-3 bg-primary text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors">
+                        <i class="fas fa-calculator mr-2"></i> Calculate
+                    </button>
+                    <button type="button" id="reset-form" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium flex items-center inline-block ml-3">
+                        <i class="fas fa-redo mr-2"></i> Clear
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Results Section -->
+        <div id="results" class="card p-6 mb-8 hidden">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Portfolio Allocation (NPRA-Compliant)</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-green-50 p-4 rounded-lg">
+                    <h4 class="font-bold text-gray-800 mb-2">Government Securities</h4>
+                    <p id="gov_securities_allocation" class="text-gray-700"></p>
+                    <p class="text-sm text-gray-600 mt-2">T-Bills, bonds, cocoa bonds, etc.</p>
+                </div>
+                <div class="bg-green-50 p-4 rounded-lg">
+                    <h4 class="font-bold text-gray-800 mb-2">Equities (GSE Stocks)</h4>
+                    <p id="equity_allocation" class="text-gray-700"></p>
+                    <p class="text-sm text-gray-600 mt-2">Listed ordinary and preference shares</p>
+                </div>
+                <div class="bg-green-50 p-4 rounded-lg">
+                    <h4 class="font-bold text-gray-800 mb-2">Corporate Debt</h4>
+                    <p id="corp_debt_allocation" class="text-gray-700"></p>
+                    <p class="text-sm text-gray-600 mt-2">Bonds, debentures, commercial paper</p>
+                </div>
+                <div class="bg-green-50 p-4 rounded-lg">
+                    <h4 class="font-bold text-gray-800 mb-2">Bank Securities</h4>
+                    <p id="bank_securities_allocation" class="text-gray-700"></p>
+                    <p class="text-sm text-gray-600 mt-2">Fixed deposits, NCDs, repos</p>
+                </div>
+                <div class="bg-green-50 p-4 rounded-lg">
+                    <h4 class="font-bold text-gray-800 mb-2">Collective Investment Schemes</h4>
+                    <p id="cis_allocation" class="text-gray-700"></p>
+                    <p class="text-sm text-gray-600 mt-2">Unit trusts, mutual funds, ETFs</p>
+                </div>
+                <div class="bg-green-50 p-4 rounded-lg">
+                    <h4 class="font-bold text-gray-800 mb-2">Alternative Investments</h4>
+                    <p id="alt_investments_allocation" class="text-gray-700"></p>
+                    <p class="text-sm text-gray-600 mt-2">REITs, private equity, gold, etc.</p>
+                </div>
+            </div>
+            <div class="mt-6">
+                <a href="#" id="download-results" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium flex items-center">
+                    <i class="fas fa-download mr-2"></i> Download Results
+                </a>
+            </div>
+        </div>
+
+        <!-- Guide Section -->
+        <div class="card p-6">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">How to Use the NPRA-Compliant Calculator</h2>
+            <p class="text-gray-600 mb-6">Follow these steps to build a diversified portfolio compliant with NPRA guidelines.</p>
+            <ol class="list-decimal pl-6 space-y-4">
+                <li>
+                    <strong>Select Portfolio Type</strong>
+                    <p>Choose a Tier 2 portfolio (Moderately Aggressive, Moderately Conservative, Conservative, or Aggressive).</p>
+                </li>
+                <li>
+                    <strong>Enter Investment Horizon</strong>
+                    <p>Specify how long you plan to invest (in years).</p>
+                </li>
+                <li>
+                    <strong>Input Market Data</strong>
+                    <p>Provide current Ghanaian inflation rate, GSE annual return, T-bill yield, and Cedi depreciation rate.</p>
+                </li>
+                <li>
+                    <strong>Calculate and Review</strong>
+                    <p>Click “Calculate” to generate a portfolio allocation and review the results.</p>
+                </li>
+            </ol>
+            <div class="flex flex-wrap gap-3 mt-6">
+                <a href="/download_guide" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium flex items-center">
+                    <i class="fas fa-download mr-2"></i> Download Guide
+                </a>
+            </div>
+        </div>
+
+        <!-- Navigation Buttons at Bottom -->
+        <div class="nav-buttons mt-6">
+            <a href="https://younginvestorcalculator.com/" class="nav-button home">
+                <i class="fas fa-home"></i> Return to Home
+            </a>
+            <a href="https://younginvestorcalculator.com/#calculators" class="nav-button calculators">
+                <i class="fas fa-calculator"></i> Other Calculators
+            </a>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        document.getElementById('asset-allocation-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            calculateAllocation();
+        });
+
+        document.getElementById('reset-form').addEventListener('click', function() {
+            document.getElementById('asset-allocation-form').reset();
+            document.getElementById('results').classList.add('hidden');
+        });
+
+        function calculateAllocation() {
+            const portfolioType = document.getElementById('portfolio_type').value;
+            const horizon = parseInt(document.getElementById('horizon').value);
+            const inflationRate = parseFloat(document.getElementById('inflation_rate').value);
+            const gseReturn = parseFloat(document.getElementById('gse_return').value);
+            const tbillYield = parseFloat(document.getElementById('tbill_yield').value);
+            const cediDepreciation = parseFloat(document.getElementById('cedi_depreciation').value);
+
+            // Base allocations based on NPRA-compliant portfolio types
+            const allocations = {
+                moderately_aggressive: { gov_securities: 50, equities: 20, corp_debt: 15, bank_securities: 10, cis: 3, alt_investments: 2 },
+                moderately_conservative: { gov_securities: 60, equities: 10, corp_debt: 15, bank_securities: 10, cis: 3, alt_investments: 2 },
+                conservative: { gov_securities: 70, equities: 5, corp_debt: 10, bank_securities: 10, cis: 3, alt_investments: 2 },
+                aggressive: { gov_securities: 40, equities: 20, corp_debt: 20, bank_securities: 10, cis: 5, alt_investments: 5 }
+            };
+
+            // Dynamic adjustments based on Ghanaian market conditions
+            let allocation = { ...allocations[portfolioType] };
+
+            // Adjust for high inflation (>15%)
+            if (inflationRate > 15) {
+                allocation.alt_investments = Math.min(25, allocation.alt_investments + 5); // Increase gold/REITs within NPRA limit
+                allocation.gov_securities = Math.min(75, allocation.gov_securities + 5); // Favor T-bills
+                allocation.equities = Math.max(0, allocation.equities - 5);
+                allocation.corp_debt = Math.max(0, allocation.corp_debt - 5);
+            }
+
+            // Adjust for strong GSE performance (>10% annual return)
+            if (gseReturn > 10) {
+                allocation.equities = Math.min(20, allocation.equities + 5); // Within NPRA limit
+                allocation.gov_securities = Math.max(0, allocation.gov_securities - 3);
+                allocation.corp_debt = Math.max(0, allocation.corp_debt - 2);
+            }
+
+            // Adjust for high Cedi depreciation (>5%)
+            if (cediDepreciation > 5) {
+                allocation.alt_investments = Math.min(25, allocation.alt_investments + 3); // External investments/gold within 5% cap
+                allocation.equities = Math.max(0, allocation.equities - 2);
+                allocation.corp_debt = Math.max(0, allocation.corp_debt - 1);
+            }
+
+            // Adjust for investment horizon
+            if (horizon < 3) {
+                allocation.gov_securities = Math.min(75, allocation.gov_securities + 10);
+                allocation.bank_securities = Math.min(35, allocation.bank_securities + 5);
+                allocation.equities = Math.max(0, allocation.equities - 10);
+                allocation.corp_debt = Math.max(0, allocation.corp_debt - 5);
+            } else if (horizon > 10) {
+                allocation.equities = Math.min(20, allocation.equities + 5);
+                allocation.cis = Math.min(15, allocation.cis + 3);
+                allocation.gov_securities = Math.max(0, allocation.gov_securities - 5);
+                allocation.bank_securities = Math.max(0, allocation.bank_securities - 3);
+            }
+
+            // Ensure NPRA investment limits
+            allocation.gov_securities = Math.min(75, allocation.gov_securities);
+            allocation.equities = Math.min(20, allocation.equities);
+            allocation.corp_debt = Math.min(35, allocation.corp_debt);
+            allocation.bank_securities = Math.min(35, allocation.bank_securities);
+            allocation.cis = Math.min(15, allocation.cis);
+            allocation.alt_investments = Math.min(25, allocation.alt_investments);
+
+            // Ensure allocations sum to 100%
+            let total = allocation.gov_securities + allocation.equities + allocation.corp_debt + allocation.bank_securities + allocation.cis + allocation.alt_investments;
+            if (total !== 100) {
+                allocation.gov_securities = Math.max(0, allocation.gov_securities * 100 / total);
+                allocation.equities = Math.max(0, allocation.equities * 100 / total);
+                allocation.corp_debt = Math.max(0, allocation.corp_debt * 100 / total);
+                allocation.bank_securities = Math.max(0, allocation.bank_securities * 100 / total);
+                allocation.cis = Math.max(0, allocation.cis * 100 / total);
+                allocation.alt_investments = Math.max(0, allocation.alt_investments * 100 / total);
+            }
+
+            // Round to 2 decimal places
+            allocation.gov_securities = Math.round(allocation.gov_securities * 100) / 100;
+            allocation.equities = Math.round(allocation.equities * 100) / 100;
+            allocation.corp_debt = Math.round(allocation.corp_debt * 100) / 100;
+            allocation.bank_securities = Math.round(allocation.bank_securities * 100) / 100;
+            allocation.cis = Math.round(allocation.cis * 100) / 100;
+            allocation.alt_investments = Math.round(allocation.alt_investments * 100) / 100;
+
+            // Update results
+            document.getElementById('gov_securities_allocation').textContent = `${allocation.gov_securities}%`;
+            document.getElementById('equity_allocation').textContent = `${allocation.equities}%`;
+            document.getElementById('corp_debt_allocation').textContent = `${allocation.corp_debt}%`;
+            document.getElementById('bank_securities_allocation').textContent = `${allocation.bank_securities}%`;
+            document.getElementById('cis_allocation').textContent = `${allocation.cis}%`;
+            document.getElementById('alt_investments_allocation').textContent = `${allocation.alt_investments}%`;
+            document.getElementById('results').classList.remove('hidden');
+
+            // Download results as CSV
+            document.getElementById('download-results').onclick = function() {
+                const csv = `Asset Class,Allocation (%)\nGovernment Securities,${allocation.gov_securities}\nEquities,${allocation.equities}\nCorporate Debt,${allocation.corp_debt}\nBank Securities,${allocation.bank_securities}\nCollective Investment Schemes,${allocation.cis}\nAlternative Investments,${allocation.alt_investments}`;
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'portfolio_allocation.csv';
+                a.click();
+                URL.revokeObjectURL(url);
+            };
+        }
+    </script>
+</body>
+</html>

@@ -1185,6 +1185,11 @@ def bond_risk():
 def bond_risk_help():
     return render_template('bond_risk_help.html')
 
+# Route for the NPRA-Compliant Asset Allocation Calculator
+@app.route('/asset-allocation')
+def asset_allocation():
+    return render_template('asset_allocation_npra.html')
+
 # Route for Download Guide (Placeholder)
 @app.route('/download_guide')
 def download_guide():
