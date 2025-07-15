@@ -1258,7 +1258,7 @@ def risk_assessment():
                 volatility = np.sqrt(sum(w * v ** 2 for w, v in zip(weights, volatilities))) * 100
                 stress_loss = portfolio_value * sum(w * 0.10 for w in weights)  # 10% market drop
                 # Format stress_loss with commas and two decimal places
-                formatted_stress_loss = locale.format_string("%.2f", stress_loss, grouping=True)
+                formatted_stress_loss = f"{stress_loss:,.2f}"
                 result = {
                     'expected_return': round(expected_return, 2),
                     'volatility': round(volatility, 2),
@@ -1276,13 +1276,6 @@ def risk_assessment():
             })
 
     return render_template('risk_assessment.html', form_data=form_data, result=result, npra_alerts=npra_alerts)
-
-import locale
-
-# Set locale for formatting numbers with commas
-locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
-
-
 
 # Route for Download Guide (Placeholder)
 @app.route('/download_guide')

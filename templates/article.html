@@ -172,7 +172,6 @@
                 <div class="flex items-center mb-4">
                     {% if article.author_photo %}
                         <img src="{{ url_for('serve_author_photos', filename=article.author_photo) }}" alt="{{ article.author }}" class="w-14 h-14 rounded-full mr-4 object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                        <img src="{{ url_for('static', filename='author_photos/kofi.jpg') }}">
                         <i class="fas fa-user-circle fa-3x text-blue-600 mr-4" style="display:none;"></i>
                     {% else %}
                         <i class="fas fa-user-circle fa-3x text-blue-600 mr-4"></i>
