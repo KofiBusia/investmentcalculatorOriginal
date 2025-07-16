@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1910810542133525" crossorigin="anonymous"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Non-Portfolio Risk Calculator Guide - InvestIQ</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4f46e5',
+                        secondary: '#818cf8',
+                        accent: '#a5b4fc',
+                        dark: '#1e293b',
+                        light: '#f8fafc',
+                        success: '#10b981',
+                        info: '#0ea5e9',
+                        warning: '#f59e0b',
+                        danger: '#ef4444'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --header-height: 70px;
+            --sidebar-width: 300px;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f0f4f8 0%, #e6e9ff 100%);
+            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+        }
+        
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+        }
+        
+        .back-to-top.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        @media (max-width: 768px) {
+            .step-container {
+                flex-direction: column;
+            }
+        }
+        
+        .nav-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .nav-button {
+            display: flex;
+            align-items: center;
+            padding: 10px 20px;
+            background: white;
+            border-radius: 8px;
+            font-weight: 500;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s ease;
+        }
+        
+        .nav-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .nav-button.home {
+            background: #4f46e5;
+            color: white;
+        }
+        
+        .nav-button.calculators {
+            background: #10b981;
+            color: white;
+        }
+        
+        .nav-button i {
+            margin-right: 8px;
+        }
+
+        .step-icon {
+            width: 36px;
+            height: 36px;
+            background: #4f46e5;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+    <!-- Header -->
+    <header class="gradient-bg text-white py-8 px-4 md:px-8">
+        <div class="max-w-6xl mx-auto">
+            <nav class="hidden md:flex justify-between items-center mb-6">
+                <div class="flex items-center space-x-4">
+                    <a href="https://younginvestorcalculator.com/" class="text-white hover:text-indigo-200 transition-colors">Home</a>
+                    <a href="https://younginvestorcalculator.com/#calculators" class="text-white hover:text-indigo-200 transition-colors">Calculators</a>
+                    <a href="https://younginvestorcalculator.com/non_portfolio_risk_help" class="text-white font-medium border-b-2 border-white">Non-Portfolio Risk Guide</a>
+                    <a href="https://younginvestorcalculator.com/portfolio_risk_help" class="text-white hover:text-indigo-200 transition-colors">Portfolio Risk Guide</a>
+                    <a href="https://younginvestorcalculator.com/bond_risk_help" class="text-white hover:text-indigo-200 transition-colors">Bond Risk Guide</a>
+                    <a href="https://younginvestorcalculator.com/help" class="text-white hover:text-indigo-200 transition-colors">Help Center</a>
+                    <a href="https://younginvestorcalculator.com/articles" class="text-white hover:text-indigo-200 transition-colors">Resources</a>
+                </div>
+                <a href="https://younginvestorcalculator.com/help" class="bg-white text-primary px-4 py-2 rounded-lg font-medium hover:bg-indigo-50 transition-colors">
+                    Get Started
+                </a>
+            </nav>
+            <div class="max-w-3xl">
+                <h1 class="text-4xl md:text-5xl font-bold mb-4">Non-Portfolio Risk Calculator Guide</h1>
+                <p class="text-xl md:text-2xl text-indigo-100 mb-6">
+                    A comprehensive guide to assessing risks for individual assets with our Non-Portfolio Risk Calculator
+                </p>
+                <div class="flex flex-wrap gap-3">
+                    <div class="bg-white/20 px-4 py-2 rounded-full flex items-center">
+                        <i class="fas fa-lightbulb mr-2"></i>
+                        <span>Beginner Friendly</span>
+                    </div>
+                    <div class="bg-white/20 px-4 py-2 rounded-full flex items-center">
+                        <i class="fas fa-download mr-2"></i>
+                        <span>Downloadable Guide</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="max-w-6xl mx-auto px-4 py-8">
+        <!-- Navigation Buttons -->
+        <div class="nav-buttons">
+            <a href="https://younginvestorcalculator.com/" class="nav-button home">
+                <i class="fas fa-home"></i> Return to Home
+            </a>
+            <a href="https://younginvestorcalculator.com/#calculators" class="nav-button calculators">
+                <i class="fas fa-calculator"></i> Other Calculators
+            </a>
+            <a href="/non-portfolio-risk" class="nav-button">
+                <i class="fas fa-calculator"></i> Use Non-Portfolio Risk Calculator
+            </a>
+        </div>
+
+        <!-- Guide Section -->
+        <div class="card p-6">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">How to Use the Non-Portfolio Risk Calculator</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div class="bg-indigo-50 p-4 rounded-lg">
+                    <h4 class="font-bold text-gray-800 mb-2 flex items-center">
+                        <i class="fas fa-info-circle text-primary mr-2"></i>
+                        What It Does
+                    </h4>
+                    <p class="text-gray-700">
+                        The <strong>Non-Portfolio Risk Calculator</strong> assesses risks for individual assets (e.g., bonds, loans) in the Ghanaian market, calculating metrics like Credit Spread, Probability of Default (PD), Expected Loss (EL), Modified Duration, and Liquidity Risk, ensuring compliance with NPRA guidelines.
+                    </p>
+                </div>
+                <div class="bg-green-50 p-4 rounded-lg">
+                    <h4 class="font-bold text-gray-800 mb-2 flex items-center">
+                        <i class="fas fa-lightbulb text-green-600 mr-2"></i>
+                        Pro Tip
+                    </h4>
+                    <p class="text-gray-700">
+                        Use reliable sources like <a href="https://gse.com.gh/" class="text-primary hover:underline">gse.com.gh</a>, <a href="https://www.bog.gov.gh/" class="text-primary hover:underline">bog.gov.gh</a>, or bond prospectuses for accurate data. Cross-check inputs with issuer financials or credit ratings.
+                    </p>
+                </div>
+            </div>
+            <h4 class="text-lg font-semibold text-gray-800 mb-3">Step-by-Step Guide</h4>
+            <ol class="list-decimal pl-6 space-y-6 mb-6">
+                <li class="flex step-container">
+                    <div class="step-icon">1</div>
+                    <div>
+                        <strong>Access the Calculator</strong>
+                        <p>Navigate to the Non-Portfolio Risk Calculator to begin your analysis.</p>
+                        <ul class="list-disc pl-6 mt-2 space-y-2">
+                            <li>Visit the calculator at <a href="/non-portfolio-risk" class="text-primary hover:underline">younginvestorcalculator.com/non-portfolio-risk</a>.</li>
+                            <li>Prepare bond prospectuses, loan agreements, or market data for Q1 2025.</li>
+                            <li><strong>Source</strong>: Bond terms from <a href="https://gse.com.gh/" class="text-primary hover:underline">gse.com.gh</a>, T-bill rates from <a href="https://www.bog.gov.gh/" class="text-primary hover:underline">bog.gov.gh</a>, or issuer financials from banks (e.g., Ecobank, Stanbic).</li>
+                            <li><strong>Tip</strong>: Bookmark the calculator page and organize asset documents for quick access.</li>
+                        </ul>
+                    </div>
+                </li>
+                <li class="flex step-container">
+                    <div class="step-icon">2</div>
+                    <div>
+                        <strong>Select Risk Metric</strong>
+                        <p>Choose the risk metric based on your analysis needs.</p>
+                        <ul class="list-disc pl-6 mt-2 space-y-2">
+                            <li>Options include Credit Spread, Probability of Default (PD), Expected Loss (EL), Modified Duration, Convexity, or Liquidity Risk.</li>
+                            <li><strong>Source</strong>: Select based on asset type (e.g., Credit Spread for corporate bonds, Duration for interest rate risk). No external data required for selection.</li>
+                            <li><strong>Tip</strong>: Use EL for credit risk budgeting, Duration for interest rate sensitivity, or Liquidity Risk for marketability concerns.</li>
+                        </ul>
+                    </div>
+                </li>
+                <li class="flex step-container">
+                    <div class="step-icon">3</div>
+                    <div>
+                        <strong>Enter Asset-Specific Inputs</strong>
+                        <p>Input data for the selected asset (e.g., bond, loan) to calculate risk metrics.</p>
+                        <ul class="list-disc pl-6 mt-2 space-y-2">
+                            <li><strong>Credit Risk Inputs</strong>: Corporate Yield (6–10%), Risk-Free Yield (3–5% from <a href="https://www.bog.gov.gh/" class="text-primary hover:underline">bog.gov.gh</a>), PD (1–5%), LGD (40–60%), EAD (asset value).</li>
+                            <li><strong>Bond Risk Inputs</strong>: Bond Price, Macaulay Duration (2–5 years), Yield to Maturity (YTM), Yield Change (0.5–2%) from GSE or prospectuses.</li>
+                            <li><strong>Liquidity Risk Inputs</strong>: Bid and Ask Prices from GSE or OTC quotes (e.g., IC Securities).</li>
+                            <li><strong>Source</strong>: Bond prospectuses, <a href="https://gse.com.gh/" class="text-primary hover:underline">gse.com.gh</a>, or banks. PD/LGD from credit ratings (e.g., GCR Ratings) or bank assessments.</li>
+                            <li><strong>Tip</strong>: Use conservative PD/LGD estimates if data is unavailable. Verify bond terms for accuracy.</li>
+                        </ul>
+                    </div>
+                </li>
+                <li class="flex step-container">
+                    <div class="step-icon">4</div>
+                    <div>
+                        <strong>Calculate and Interpret Results</strong>
+                        <p>Submit data to compute risk metrics and interpret outputs for decision-making.</p>
+                        <ul class="list-disc pl-6 mt-2 space-y-2">
+                            <li><strong>Results</strong>:
+                                <ul class="list-circle pl-6 mt-1 space-y-1">
+                                    <li><strong>Credit Spread</strong>: Risk premium (e.g., 2.50%) over risk-free rate.</li>
+                                    <li><strong>Expected Loss</strong>: PD × LGD × EAD (e.g., GHS 2,000).</li>
+                                    <li><strong>Modified Duration</strong>: Interest rate sensitivity (e.g., 2.80 years).</li>
+                                    <li><strong>Liquidity Risk</strong>: Bid-Ask Spread (e.g., GHS 0.50).</li>
+                                </ul>
+                            </li>
+                            <li><strong>Source</strong>: Compare results to benchmarks from <a href="https://www.spglobal.com/ratings/en/" class="text-primary hover:underline">spglobal.com</a> or <a href="https://www.npra.gov.gh/" class="text-primary hover:underline">npra.gov.gh</a>.</li>
+                            <li><strong>Tip</strong>: Use EL for credit risk assessment, Duration for interest rate risk, and Liquidity Risk for trading decisions. Combine with qualitative analysis (e.g., issuer stability, Ghana’s economic outlook).</li>
+                        </ul>
+                    </div>
+                </li>
+            </ol>
+            <div class="bg-blue-50 p-4 rounded-lg mb-6">
+                <h4 class="font-bold text-gray-800 mb-2 flex items-center">
+                    <i class="fas fa-exclamation-triangle text-blue-600 mr-2"></i>
+                    Key Considerations
+                </h4>
+                <ul class="list-disc pl-6 space-y-2 text-gray-700">
+                    <li>Enter monetary values in thousands of GHS for consistency.</li>
+                    <li>Verify data with primary sources like <a href="https://gse.com.gh/" class="text-primary hover:underline">gse.com.gh</a> or <a href="https://www.bog.gov.gh/" class="text-primary hover:underline">bog.gov.gh</a>.</li>
+                    <li>Ensure compliance with NPRA guidelines via <a href="https://www.npra.gov.gh/" class="text-primary hover:underline">npra.gov.gh</a>.</li>
+                    <li>Use Q1 2025 data for accuracy as of July 2025.</li>
+                    <li>Consider qualitative factors (e.g., issuer reputation, economic conditions in Ghana).</li>
+                    <li>Consult financial advisors for high-stakes decisions.</li>
+                </ul>
+            </div>
+            <div class="flex flex-wrap gap-3 mb-6">
+                <a href="#" class="px-4 py-2 bg-primary text-white rounded-lg font-medium flex items-center">
+                    <i class="fas fa-play-circle mr-2"></i> Watch Tutorial
+                </a>
+                <a href="/non-portfolio-risk" class="px-4 py-2 bg-white border border-primary text-primary rounded-lg font-medium flex items-center">
+                    <i class="fas fa-calculator mr-2"></i> Use Non-Portfolio Risk Calculator
+                </a>
+                <a href="/download_guide" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium flex items-center">
+                    <i class="fas fa-download mr-2"></i> Download Guide
+                </a>
+            </div>
+        </div>
+
+        <!-- Navigation Buttons at Bottom -->
+        <div class="nav-buttons mt-6">
+            <a href="https://younginvestorcalculator.com/" class="nav-button home">
+                <i class="fas fa-home"></i> Return to Home
+            </a>
+            <a href="https://younginvestorcalculator.com/#calculators" class="nav-button calculators">
+                <i class="fas fa-calculator"></i> Other Calculators
+            </a>
+            <a href="/non-portfolio-risk" class="nav-button">
+                <i class="fas fa-calculator"></i> Use Non-Portfolio Risk Calculator
+            </a>
+        </div>
+    </div>
+
+    <!-- Back to Top Button -->
+    <button id="backToTop" class="back-to-top w-12 h-12 bg-primary text-white rounded-full shadow-lg flex items-center justify-center">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <!-- JavaScript -->
+    <script>
+        const backToTopBtn = document.getElementById('backToTop');
+        window.addEventListener('scroll', function() {
+            if (window.pageYOffset > 300) {
+                backToTopBtn.classList.add('visible');
+            } else {
+                backToTopBtn.classList.remove('visible');
+            }
+        });
+        backToTopBtn.addEventListener('click', function() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    </script>
+</body>
+</html>
