@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NPRA-Compliant Portfolio Risk Assessment | InvestIQ</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary: #0ea5e9;
+            --accent: #8b5cf6;
+            --dark: #0f172a;
+            --light: #f8fafc;
+            --gray: #64748b;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --card-bg: #ffffff;
+            --card-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            color: var(--dark);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        header {
+            background-color: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            color: var(--primary);
+            font-size: 28px;
+        }
+
+        .logo-text {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 800;
+            font-size: 24px;
+            color: var(--dark);
+        }
+
+        .logo-text span {
+            color: var(--primary);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: var(--dark);
+            font-weight: 500;
+            padding: 8px 0;
+            position: relative;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-link:hover {
+            color: var(--primary);
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background-color: var(--primary);
+            transition: var(--transition);
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        .nav-link.active {
+            color: var(--primary);
+        }
+
+        .nav-link.active::after {
+            width: 100%;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .search-container {
+            position: relative;
+        }
+
+        .search-input {
+            width: 280px;
+            padding: 10px 20px 10px 40px;
+            border: none;
+            background-color: #f1f5f9;
+            border-radius: 30px;
+            font-size: 14px;
+            transition: var(--transition);
+        }
+
+        .search-input:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px var(--primary);
+            background-color: white;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray);
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 10px 24px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+            text-align: center;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-outline:hover {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .main-content {
+            padding: 40px 0;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .section-subtitle {
+            color: var(--primary);
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .section-title {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 36px;
+            font-weight: 800;
+            margin-bottom: 20px;
+        }
+
+        .section-desc {
+            color: var(--gray);
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: var(--card-shadow);
+            transition: var(--transition);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        .input-field, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: var(--transition);
+        }
+
+        .input-field:focus, select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+            outline: none;
+        }
+
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: var(--dark);
+            color: white;
+            text-align: center;
+            border-radius: 6px;
+            padding: 8px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .alert-success {
+            background-color: #e6fffa;
+            color: var(--success);
+        }
+
+        .alert-warning {
+            background-color: #fffbeb;
+            color: var(--warning);
+        }
+
+        .nav-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 992px) {
+            .section-title {
+                font-size: 28px;
+            }
+
+            .nav-links {
+                gap: 20px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header-container {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .nav-links {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .search-input {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .nav-links {
+                gap: 15px;
+            }
+
+            .section-title {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+    <header>
+        <div class="container header-container">
+            <a href="http://localhost:5000/" class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="logo-text">Invest<span>IQ</span></div>
+            </a>
+            
+            <nav class="nav-links">
+                <a href="http://localhost:5000/" class="nav-link"><i class="fas fa-home"></i> Home</a>
+                <a href="http://localhost:5000/#calculators" class="nav-link active"><i class="fas fa-calculator"></i> Calculators</a>
+                <a href="http://localhost:5000/bond_risk_help" class="nav-link"><i class="fas fa-book"></i> Bond Risk Guide</a>
+                <a href="http://localhost:5000/help" class="nav-link">Help Center</a>
+                <a href="http://localhost:5000/articles" class="nav-link">Resources</a>
+            </nav>
+            
+            <div class="header-actions">
+                <div class="search-container">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" class="search-input" placeholder="Search calculators...">
+                </div>
+                <a href="http://localhost:5000/help" class="btn">Get Started</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-content">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-subtitle">PORTFOLIO TOOLS</div>
+                <h1 class="section-title">NPRA-Compliant Portfolio Risk Assessment</h1>
+                <p class="section-desc">
+                    Calculate portfolio risk metrics compliant with NPRA regulations for Ghanaian markets
+                </p>
+                <div class="flex flex-wrap gap-3 justify-center">
+                    <div class="bg-primary text-white px-4 py-2 rounded-full flex items-center">
+                        <i class="fas fa-lightbulb mr-2"></i>
+                        <span>Beginner Friendly</span>
+                    </div>
+                    <div class="bg-primary text-white px-4 py-2 rounded-full flex items-center">
+                        <i class="fas fa-download mr-2"></i>
+                        <span>Downloadable Results</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="nav-buttons">
+                <a href="http://localhost:5000/" class="btn">
+                    <i class="fas fa-home mr-2"></i> Return to Home
+                </a>
+                <a href="http://localhost:5000/#calculators" class="btn btn-outline">
+                    <i class="fas fa-calculator mr-2"></i> Other Calculators
+                </a>
+            </div>
+
+            {% if npra_alerts %}
+            <div class="mb-6">
+                {% for alert in npra_alerts %}
+                <div class="alert {{ 'alert-warning' if alert.type == 'warning' else 'alert-success' }}">
+                    {{ alert.message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="card">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Portfolio Risk Calculator</h2>
+                <p class="text-gray-600 mb-6">Select a risk metric and enter portfolio details to assess risk per NPRA guidelines.</p>
+                <form id="risk-assessment-form" method="POST" action="/portfolio-risk" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="md:col-span-2">
+                        <label class="block text-gray-700 font-medium mb-2">Select Risk Metric</label>
+                        <select name="risk_metric" class="input-field" required>
+                            {% for metric in risk_metrics %}
+                            <option value="{{ metric }}" {{ 'selected' if form_data.risk_metric == metric else '' }}>{{ metric }}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="tooltip">
+                            <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                            <span class="tooltiptext">Choose the risk metric to calculate.</span>
+                        </div>
+                    </div>
+                    <div class="md:col-span-2" id="correlation-pair" style="display: none;">
+                        <label class="block text-gray-700 font-medium mb-2">Select Asset Pair for Correlation</label>
+                        <select name="correlation_pair" class="input-field">
+                            <option value="gov_securities-foreign">Government Securities vs Foreign Assets</option>
+                            <option value="equities-foreign">Equities vs Foreign Assets</option>
+                            <option value="corporate_debt-foreign">Corporate Debt vs Foreign Assets</option>
+                        </select>
+                        <div class="tooltip">
+                            <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                            <span class="tooltiptext">Select two assets to compute correlation.</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">Government Securities (%)</label>
+                        <input type="number" name="gov_securities" step="0.01" min="0" max="100" placeholder="Government Securities" class="input-field" value="{{ form_data.gov_securities if form_data else '' }}" required>
+                        <div class="tooltip">
+                            <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                            <span class="tooltiptext">Max 75% per NPRA; exempt up to 5% Green Bonds.</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">Local Government Securities (%)</label>
+                        <input type="number" name="local_gov_securities" step="0.01" min="0" max="100" placeholder="Local Government Securities" class="input-field" value="{{ form_data.local_gov_securities if form_data else '' }}" required>
+                        <div class="tooltip">
+                            <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                            <span class="tooltiptext">Max 25% per NPRA.</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">Equities (%)</label>
+                        <input type="number" name="equities" step="0.01" min="0" max="100" placeholder="Equities" class="input-field" value="{{ form_data.equities if form_data else '' }}" required>
+                        <div class="tooltip">
+                            <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                            <span class="tooltiptext">Max 20% per NPRA.</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">Bank Securities (%)</label>
+                        <input type="number" name="bank_securities" step="0.01" min="0" max="100" placeholder="Bank Securities" class="input-field" value="{{ form_data.bank_securities if form_data else '' }}" required>
+                        <div class="tooltip">
+                            <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                            <span class="tooltiptext">Max 35% per NPRA.</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">Corporate Debt (%)</label>
+                        <input type="number" name="corporate_debt" step="0.01" min="0" max="100" placeholder="Corporate Debt" class="input-field" value="{{ form_data.corporate_debt if form_data else '' }}" required>
+                        <div class="tooltip">
+                            <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                            <span class="tooltiptext">Max 35% per NPRA; exempt up to 5% Green Bonds.</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">Collective Investment Schemes (%)</label>
+                        <input type="number" name="collective_schemes" step="0.01" min="0" max="100" placeholder="Collective Investment Schemes" class="input-field" value="{{ form_data.collective_schemes if form_data else '' }}" required>
+                        <div class="tooltip">
+                            <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                            <span class="tooltiptext">Max 15% per NPRA.</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">Alternative Investments (%)</label>
+                        <input type="number" name="alternatives" step="0.01" min="0" max="100" placeholder="Alternative Investments" class="input-field" value="{{ form_data.alternatives if form_data else '' }}" required>
+                        <div class="tooltip">
+                            <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                            <span class="tooltiptext">Max 25% per NPRA.</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">Foreign Assets (%)</label>
+                        <input type="number" name="foreign" step="0.01" min="0" max="100" placeholder="Foreign Assets" class="input-field" value="{{ form_data.foreign if form_data else '' }}" required>
+                        <div class="tooltip">
+                            <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                            <span class="tooltiptext">Max 5% per NPRA.</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">Green Bonds (%)</label>
+                        <input type="number" name="green_bonds" step="0.01" min="0" max="100" placeholder="Green Bonds" class="input-field" value="{{ form_data.green_bonds if form_data else '' }}" required>
+                        <div class="tooltip">
+                            <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                            <span class="tooltiptext">Up to 5% exempt from Government and Corporate Debt limits.</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">Portfolio Value (GHS)</label>
+                        <input type="number" name="portfolio_value" step="0.01" min="0" placeholder="Portfolio Value" class="input-field" value="{{ form_data.portfolio_value if form_data else '' }}" required>
+                        <div class="tooltip">
+                            <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                            <span class="tooltiptext">Total portfolio value in Ghanaian Cedi (GHS).</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">Market Return (%)</label>
+                        <input type="number" name="market_return" step="0.01" placeholder="Market Return" class="input-field" value="{{ form_data.market_return if form_data else '' }}" required>
+                        <div class="tooltip">
+                            <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                            <span class="tooltiptext">Expected market return (e.g., Ghana Stock Exchange).</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">Market Volatility (%)</label>
+                        <input type="number" name="market_volatility" step="0.01" min="0" placeholder="Market Volatility" class="input-field" value="{{ form_data.market_volatility if form_data else '' }}" required>
+                        <div class="tooltip">
+                            <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                            <span class="tooltiptext">Standard deviation of market returns.</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">Benchmark Return (%)</label>
+                        <input type="number" name="benchmark_return" step="0.01" placeholder="Benchmark Return" class="input-field" value="{{ form_data.benchmark_return if form_data else '' }}" required>
+                        <div class="tooltip">
+                            <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                            <span class="tooltiptext">Return of the benchmark (e.g., Ghana T-Bill index).</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">Benchmark Volatility (%)</label>
+                        <input type="number" name="benchmark_volatility" step="0.01" min="0" placeholder="Benchmark Volatility" class="input-field" value="{{ form_data.benchmark_volatility if form_data else '' }}" required>
+                        <div class="tooltip">
+                            <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                            <span class="tooltiptext">Standard deviation of benchmark returns.</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">Downside Volatility (%)</label>
+                        <input type="number" name="downside_volatility" step="0.01" min="0" placeholder="Downside Volatility" class="input-field" value="{{ form_data.downside_volatility if form_data else '' }}" required>
+                        <div class="tooltip">
+                            <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                            <span class="tooltiptext">Standard deviation of negative portfolio returns.</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">Peak Value (GHS)</label>
+                        <input type="number" name="peak_value" step="0.01" min="0" placeholder="Peak Value" class="input-field" value="{{ form_data.peak_value if form_data else '' }}" required>
+                        <div class="tooltip">
+                            <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                            <span class="tooltiptext">Highest historical portfolio value.</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">Trough Value (GHS)</label>
+                        <input type="number" name="trough_value" step="0.01" min="0" placeholder="Trough Value" class="input-field" value="{{ form_data.trough_value if form_data else '' }}" required>
+                        <div class="tooltip">
+                            <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                            <span class="tooltiptext">Lowest historical portfolio value.</span>
+                        </div>
+                    </div>
+                    <div class="md:col-span-2 flex flex-wrap gap-3">
+                        <button type="submit" class="btn">
+                            <i class="fas fa-calculator mr-2"></i> Calculate
+                        </button>
+                        <button type="button" id="reset-form" class="btn btn-outline">
+                            <i class="fas fa-redo mr-2"></i> Clear
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            {% if result %}
+            <div id="results" class="card mt-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Portfolio Risk Assessment Result</h2>
+                <div class="bg-green-50 p-4 rounded-lg">
+                    <h4 class="font-bold text-gray-800 mb-2">{{ result.metric }}</h4>
+                    <p class="text-gray-700">{{ result.value | safe }}</p>
+                    <p class="text-sm text-gray-600 mt-2">{{ result.description }}</p>
+                </div>
+                <div class="mt-6 flex flex-wrap gap-3">
+                    <a href="#" id="download-results" class="btn btn-outline">
+                        <i class="fas fa-download mr-2"></i> Download Results
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="card mt-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">How to Use the Portfolio Risk Calculator</h2>
+                <p class="text-gray-600 mb-6">Follow these steps to assess portfolio risk compliant with NPRA guidelines.</p>
+                <ol class="list-decimal pl-6 space-y-4">
+                    <li>
+                        <strong>Select Risk Metric</strong>
+                        <p>Choose a risk metric from the dropdown (e.g., Volatility, Sharpe Ratio, VaR).</p>
+                    </li>
+                    <li>
+                        <strong>Enter Portfolio Allocations</strong>
+                        <p>Input percentage allocations for each asset class, ensuring compliance with NPRA limits.</p>
+                    </li>
+                    <li>
+                        <strong>Provide Market and Portfolio Data</strong>
+                        <p>Enter portfolio value, market return, volatility, benchmark return, peak, and trough values.</p>
+                    </li>
+                    <li>
+                        <strong>Calculate and Review</strong>
+                        <p>Click “Calculate” to compute the selected risk metric and review the results.</p>
+                    </li>
+                </ol>
+                <div class="flex flex-wrap gap-3 mt-6">
+                    <a href="/static/guides/portfolio_risk_guide.pdf" class="btn btn-outline">
+                        <i class="fas fa-download mr-2"></i> Download Guide
+                    </a>
+                </div>
+            </div>
+
+            <div class="nav-buttons mt-6">
+                <a href="http://localhost:5000/" class="btn">
+                    <i class="fas fa-home mr-2"></i> Return to Home
+                </a>
+                <a href="http://localhost:5000/#calculators" class="btn btn-outline">
+                    <i class="fas fa-calculator mr-2"></i> Other Calculators
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('reset-form')?.addEventListener('click', function() {
+            document.getElementById('risk-assessment-form').reset();
+            document.getElementById('results')?.classList.add('hidden');
+        });
+
+        document.getElementById('download-results')?.addEventListener('click', function() {
+            const result = {{ result | tojson | safe }};
+            if (result) {
+                const csv = `Metric,Value,Description\n${result.metric},"${result.value.replace(/<br>/g, '\n')}","${result.description}"`;
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'portfolio_risk_result.csv';
+                a.click();
+                URL.revokeObjectURL(url);
+            }
+        });
+
+        document.querySelector('select[name="risk_metric"]').addEventListener('change', function() {
+            const correlationPair = document.getElementById('correlation-pair');
+            correlationPair.style.display = this.value === 'Correlation' ? 'block' : 'none';
+        });
+    </script>
+</body>
+</html>

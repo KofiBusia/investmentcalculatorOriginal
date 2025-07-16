@@ -1277,6 +1277,345 @@ def risk_assessment():
 
     return render_template('risk_assessment.html', form_data=form_data, result=result, npra_alerts=npra_alerts)
 
+@app.route('/portfolio-risk', methods=['GET', 'POST'])
+def portfolio_risk():
+    form_data = {}
+    result = None
+    npra_alerts = []
+    risk_metrics = [
+        'Volatility', 'Beta', 'Systematic Risk', 'Unsystematic Risk', 'Sharpe Ratio',
+        'Sortino Ratio', 'Tracking Error', 'Drawdown', 'Value at Risk (VaR)',
+        'Conditional VaR (CVaR)', 'Portfolio Duration', 'Correlation', 'Covariance Matrix'
+    ]
+    asset_pairs = {
+        'gov_securities-foreign': (0, 7),
+        'equities-foreign': (2, 7),
+        'corporate_debt-foreign': (4, 7)
+    }
+
+    if request.method == 'POST':
+        try:
+            form_data = {
+                'risk_metric': request.form['risk_metric'],
+                'gov_securities': float(request.form['gov_securities']),
+                'local_gov_securities': float(request.form['local_gov_securities']),
+                'equities': float(request.form['equities']),
+                'bank_securities': float(request.form['bank_securities']),
+                'corporate_debt': float(request.form['corporate_debt']),
+                'collective_schemes': float(request.form['collective_schemes']),
+                'alternatives': float(request.form['alternatives']),
+                'foreign': float(request.form['foreign']),
+                'green_bonds': float(request.form['green_bonds']),
+                'portfolio_value': float(request.form['portfolio_value']),
+                'market_return': float(request.form['market_return']),
+                'market_volatility': float(request.form['market_volatility']),
+                'benchmark_return': float(request.form['benchmark_return']),
+                'benchmark_volatility': float(request.form['benchmark_volatility']),
+                'downside_volatility': float(request.form['downside_volatility']),
+                'peak_value': float(request.form['peak_value']),
+                'trough_value': float(request.form['trough_value']),
+                'correlation_pair': request.form.get('correlation_pair', 'equities-foreign')
+            }
+
+            # Validate risk metric
+            if form_data['risk_metric'] not in risk_metrics:
+                npra_alerts.append({
+                    'type': 'warning',
+                    'message': 'Invalid risk metric selected.'
+                })
+
+            # NPRA limits
+            npra_limits = {
+                'gov_securities': 75,
+                'local_gov_securities': 25,
+                'equities': 20,
+                'bank_securities': 35,
+                'corporate_debt': 35,
+                'collective_schemes': 15,
+                'alternatives': 25,
+                'foreign': 5
+            }
+
+            # Adjust for Green Bonds (up to 5% exemption)
+            green_bonds = min(form_data['green_bonds'], 5)
+            effective_gov_securities = form_data['gov_securities'] - green_bonds
+            effective_corporate_debt = form_data['corporate_debt'] - green_bonds
+
+            # Validate NPRA limits
+            for key, value in form_data.items():
+                if key in npra_limits and value > npra_limits[key]:
+                    npra_alerts.append({
+                        'type': 'warning',
+                        'message': f"{key.replace('_', ' ').title()} allocation ({value}%) exceeds NPRA limit of {npra_limits[key]}%."
+                    })
+            if effective_gov_securities > npra_limits['gov_securities']:
+                npra_alerts.append({
+                    'type': 'warning',
+                    'message': f"Government Securities ({effective_gov_securities}%) exceeds NPRA limit of 75% after Green Bonds exemption."
+                })
+            if effective_corporate_debt > npra_limits['corporate_debt']:
+                npra_alerts.append({
+                    'type': 'warning',
+                    'message': f"Corporate Debt ({effective_corporate_debt}%) exceeds NPRA limit of 35% after Green Bonds exemption."
+                })
+
+            # Validate sum of percentages
+            total_allocation = sum([form_data[key] for key in ['gov_securities', 'local_gov_securities', 'equities', 'bank_securities', 'corporate_debt', 'collective_schemes', 'alternatives', 'foreign']])
+            if abs(total_allocation - 100) > 0.01:
+                npra_alerts.append({
+                    'type': 'warning',
+                    'message': f"Total allocation ({total_allocation:.2f}%) must equal 100%."
+                })
+
+            # Calculate selected metric
+            if not npra_alerts:
+                weights = [
+                    form_data['gov_securities'] / 100,
+                    form_data['local_gov_securities'] / 100,
+                    form_data['equities'] / 100,
+                    form_data['bank_securities'] / 100,
+                    form_data['corporate_debt'] / 100,
+                    form_data['collective_schemes'] / 100,
+                    form_data['alternatives'] / 100,
+                    form_data['foreign'] / 100
+                ]
+                expected_returns = [0.05, 0.05, 0.12, 0.06, 0.07, 0.08, 0.10, 0.09]
+                volatilities = [0.02, 0.03, 0.20, 0.05, 0.06, 0.07, 0.15, 0.12]
+                betas = [0.1, 0.1, 1.5, 0.3, 0.4, 0.5, 0.8, 1.0]
+                durations = [5.0, 4.0, 0.0, 3.0, 4.0, 2.0, 1.0, 3.0]
+                correlations = [
+                    [1.0, 0.1, 0.3, 0.2, 0.2, 0.2, 0.3, 0.4],
+                    [0.1, 1.0, 0.2, 0.1, 0.1, 0.1, 0.2, 0.3],
+                    [0.3, 0.2, 1.0, 0.3, 0.3, 0.3, 0.4, 0.5],
+                    [0.2, 0.1, 0.3, 1.0, 0.2, 0.2, 0.3, 0.3],
+                    [0.2, 0.1, 0.3, 0.2, 1.0, 0.2, 0.3, 0.3],
+                    [0.2, 0.1, 0.3, 0.2, 0.2, 1.0, 0.2, 0.3],
+                    [0.3, 0.2, 0.4, 0.3, 0.3, 0.2, 1.0, 0.4],
+                    [0.4, 0.3, 0.5, 0.3, 0.3, 0.3, 0.4, 1.0]
+                ]
+
+                expected_return = sum(w * r for w, r in zip(weights, expected_returns))
+                volatility = np.sqrt(sum(w * v ** 2 for w, v in zip(weights, volatilities)) +
+                                     sum(w_i * w_j * correlations[i][j] * volatilities[i] * volatilities[j]
+                                         for i in range(len(weights))
+                                         for j in range(i + 1, len(weights))
+                                         for w_i, w_j in [(weights[i], weights[j])]))
+                portfolio_beta = sum(w * b for w, b in zip(weights, betas))
+                risk_free_rate = 0.03
+                z_score = 1.96  # For 95% confidence level
+                time_horizon = 1
+
+                metric = form_data['risk_metric']
+                if metric == 'Volatility':
+                    value = f"{volatility * 100:.2f}%"
+                    description = "Measures the standard deviation of portfolio returns, indicating overall risk."
+                elif metric == 'Beta':
+                    value = f"{portfolio_beta:.2f}"
+                    description = "Measures the portfolio's sensitivity to market movements."
+                elif metric == 'Systematic Risk':
+                    systematic_risk = portfolio_beta ** 2 * (form_data['market_volatility'] / 100) ** 2
+                    value = f"{systematic_risk * 100:.2f}%"
+                    description = "The portion of risk attributable to market movements."
+                elif metric == 'Unsystematic Risk':
+                    systematic_risk = portfolio_beta ** 2 * (form_data['market_volatility'] / 100) ** 2
+                    unsystematic_risk = (volatility ** 2) - systematic_risk
+                    value = f"{unsystematic_risk * 100:.2f}%"
+                    description = "The portion of risk specific to individual assets."
+                elif metric == 'Sharpe Ratio':
+                    sharpe_ratio = (expected_return - risk_free_rate) / volatility
+                    value = f"{sharpe_ratio:.2f}"
+                    description = "Measures risk-adjusted return relative to the risk-free rate."
+                elif metric == 'Sortino Ratio':
+                    sortino_ratio = (expected_return - risk_free_rate) / (form_data['downside_volatility'] / 100)
+                    value = f"{sortino_ratio:.2f}"
+                    description = "Measures return per unit of downside risk."
+                elif metric == 'Tracking Error':
+                    tracking_error = np.sqrt((volatility ** 2) + (form_data['benchmark_volatility'] / 100) ** 2 -
+                                             2 * volatility * (form_data['benchmark_volatility'] / 100) * 0.5)
+                    value = f"{tracking_error * 100:.2f}%"
+                    description = "Measures the volatility of portfolio returns relative to a benchmark."
+                elif metric == 'Drawdown':
+                    drawdown = (form_data['peak_value'] - form_data['trough_value']) / form_data['peak_value']
+                    value = f"{drawdown * 100:.2f}%"
+                    description = "Measures the peak-to-trough decline in portfolio value."
+                elif metric == 'Value at Risk (VaR)':
+                    var = z_score * volatility * np.sqrt(time_horizon) * form_data['portfolio_value']
+                    value = f"GHS {var:,.2f}"
+                    description = "Estimates the maximum loss at a 95% confidence level over a given period."
+                elif metric == 'Conditional VaR (CVaR)':
+                    cvar = z_score * volatility * np.sqrt(time_horizon) * form_data['portfolio_value'] / (1 - 0.95)
+                    value = f"GHS {cvar:,.2f}"
+                    description = "Estimates the expected loss in the worst 5% of scenarios."
+                elif metric == 'Portfolio Duration':
+                    portfolio_duration = sum(w * d for w, d in zip(weights, durations))
+                    value = f"{portfolio_duration:.2f} years"
+                    description = "Measures the portfolio's sensitivity to interest rate changes."
+                elif metric == 'Correlation':
+                    i, j = asset_pairs[form_data['correlation_pair']]
+                    correlation = correlations[i][j]
+                    asset_names = ['Government Securities', 'Local Government Securities', 'Equities',
+                                   'Bank Securities', 'Corporate Debt', 'Collective Schemes',
+                                   'Alternatives', 'Foreign Assets']
+                    value = f"{correlation:.2f}"
+                    description = f"Correlation between {asset_names[i]} and {asset_names[j]}."
+                elif metric == 'Covariance Matrix':
+                    covariance_matrix = [[correlations[i][j] * volatilities[i] * volatilities[j]
+                                         for j in range(len(volatilities))]
+                                        for i in range(len(volatilities))]
+                    value = '<br>'.join([', '.join([f"{x:.6f}" for x in row]) for row in covariance_matrix])
+                    description = "Matrix of covariances between asset returns."
+
+                result = {
+                    'metric': metric,
+                    'value': value,
+                    'description': description
+                }
+                npra_alerts.append({
+                    'type': 'success',
+                    'message': f"{metric} calculated successfully."
+                })
+
+        except (ValueError, KeyError) as e:
+            npra_alerts.append({
+                'type': 'warning',
+                'message': f"Invalid input: {str(e)}. Please check your entries."
+            })
+
+    return render_template('portfolio_risks.html',
+                          form_data=form_data,
+                          result=result,
+                          npra_alerts=npra_alerts,
+                          risk_metrics=risk_metrics)
+
+@app.route('/non-portfolio-risk', methods=['GET', 'POST'])
+def non_portfolio_risk():
+    form_data = {}
+    result = None
+    alerts = []
+    risk_metrics = [
+        'Credit Spread', 'Probability of Default (PD)', 'Loss Given Default (LGD)',
+        'Exposure at Default (EAD)', 'Expected Loss (EL)', 'Interest Rate Risk (Bond)',
+        'Modified Duration', 'Liquidity Risk (Bid-Ask Spread)', 'Call Risk',
+        'Prepayment Risk', 'Reinvestment Risk', 'Model Risk', 'Political/Regulatory/Operational Risk'
+    ]
+
+    if request.method == 'POST':
+        try:
+            form_data = {
+                'risk_metric': request.form['risk_metric'],
+                'corporate_yield': float(request.form['corporate_yield']),
+                'risk_free_yield': float(request.form['risk_free_yield']),
+                'probability_default': float(request.form['probability_default']),
+                'loss_given_default': float(request.form['loss_given_default']),
+                'exposure_at_default': float(request.form['exposure_at_default']),
+                'bond_price': float(request.form['bond_price']),
+                'macaulay_duration': float(request.form['macaulay_duration']),
+                'yield_to_maturity': float(request.form['yield_to_maturity']),
+                'compounding_periods': float(request.form['compounding_periods']),
+                'yield_change': float(request.form['yield_change']),
+                'bid_price': float(request.form['bid_price']),
+                'ask_price': float(request.form['ask_price'])
+            }
+
+            # Validate risk metric
+            if form_data['risk_metric'] not in risk_metrics:
+                alerts.append({
+                    'type': 'warning',
+                    'message': 'Invalid risk metric selected.'
+                })
+
+            # Validate inputs
+            if form_data['probability_default'] > 100 or form_data['probability_default'] < 0:
+                alerts.append({
+                    'type': 'warning',
+                    'message': 'Probability of Default must be between 0 and 100%.'
+                })
+            if form_data['loss_given_default'] > 100 or form_data['loss_given_default'] < 0:
+                alerts.append({
+                    'type': 'warning',
+                    'message': 'Loss Given Default must be between 0 and 100%.'
+                })
+            if form_data['compounding_periods'] < 1:
+                alerts.append({
+                    'type': 'warning',
+                    'message': 'Compounding periods must be at least 1.'
+                })
+
+            # Calculate selected metric
+            if not alerts:
+                metric = form_data['risk_metric']
+                if metric == 'Credit Spread':
+                    credit_spread = form_data['corporate_yield'] - form_data['risk_free_yield']
+                    value = f"{credit_spread:.2f}%"
+                    description = "The difference between corporate and risk-free yields."
+                elif metric == 'Probability of Default (PD)':
+                    value = f"{form_data['probability_default']:.2f}%"
+                    description = "The likelihood of the issuer defaulting on the bond."
+                elif metric == 'Loss Given Default (LGD)':
+                    value = f"{form_data['loss_given_default']:.2f}%"
+                    description = "The percentage of exposure lost if default occurs."
+                elif metric == 'Exposure at Default (EAD)':
+                    value = f"GHS {form_data['exposure_at_default']:,.2f}"
+                    description = "The amount exposed to loss at the time of default."
+                elif metric == 'Expected Loss (EL)':
+                    pd = form_data['probability_default'] / 100
+                    lgd = form_data['loss_given_default'] / 100
+                    ead = form_data['exposure_at_default']
+                    expected_loss = pd * lgd * ead
+                    value = f"GHS {expected_loss:,.2f}"
+                    description = "The expected loss due to default, calculated as PD × LGD × EAD."
+                elif metric == 'Interest Rate Risk (Bond)':
+                    duration = form_data['macaulay_duration']
+                    interest_rate_risk = -duration * (form_data['yield_change'] / 100) * form_data['bond_price']
+                    value = f"GHS {interest_rate_risk:,.2f}"
+                    description = "The change in bond price due to a change in yield."
+                elif metric == 'Modified Duration':
+                    modified_duration = form_data['macaulay_duration'] / (1 + form_data['yield_to_maturity'] / 100 / form_data['compounding_periods'])
+                    value = f"{modified_duration:.2f} years"
+                    description = "The bond's price sensitivity to yield changes, adjusted for compounding."
+                elif metric == 'Liquidity Risk (Bid-Ask Spread)':
+                    mid_price = (form_data['bid_price'] + form_data['ask_price']) / 2
+                    liquidity_risk = (form_data['ask_price'] - form_data['bid_price']) / mid_price
+                    value = f"{liquidity_risk * 100:.2f}%"
+                    description = "The cost of trading due to the bid-ask spread."
+                elif metric == 'Call Risk':
+                    value = "Qualitative Assessment"
+                    description = "Risk of the bond being called before maturity, reducing expected returns."
+                elif metric == 'Prepayment Risk':
+                    value = "Qualitative Assessment"
+                    description = "Risk of early repayment, affecting expected cash flows."
+                elif metric == 'Reinvestment Risk':
+                    value = "Qualitative Assessment"
+                    description = "Risk that future cash flows will be reinvested at lower rates."
+                elif metric == 'Model Risk':
+                    value = "Qualitative Assessment"
+                    description = "Risk of errors in financial models used for pricing or risk assessment."
+                elif metric == 'Political/Regulatory/Operational Risk':
+                    value = "Qualitative Assessment"
+                    description = "Risk from political, regulatory, or operational changes affecting the asset."
+
+                result = {
+                    'metric': metric,
+                    'value': value,
+                    'description': description
+                }
+                alerts.append({
+                    'type': 'success',
+                    'message': f"{metric} calculated successfully."
+                })
+
+        except (ValueError, KeyError) as e:
+            alerts.append({
+                'type': 'warning',
+                'message': f"Invalid input: {str(e)}. Please check your entries."
+            })
+
+    return render_template('risk_calculator.html',
+                          form_data=form_data,
+                          result=result,
+                          alerts=alerts,
+                          risk_metrics=risk_metrics)
+
 # Route for Download Guide (Placeholder)
 @app.route('/download_guide')
 def download_guide():

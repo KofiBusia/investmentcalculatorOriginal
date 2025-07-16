@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Non-Portfolio Risk Calculator | InvestIQ</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --secondary: #0ea5e9;
+            --accent: #8b5cf6;
+            --dark: #0f172a;
+            --light: #f8fafc;
+            --gray: #64748b;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --card-bg: #ffffff;
+            --card-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            color: var(--dark);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        header {
+            background-color: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 0;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+
+        .logo-icon {
+            color: var(--primary);
+            font-size: 28px;
+        }
+
+        .logo-text {
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 800;
+            font-size: 24px;
+            color: var(--dark);
+        }
+
+        .logo-text span {
+            color: var(--primary);
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: var(--dark);
+            font-weight: 500;
+            padding: 8px 0;
+            position: relative;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .nav-link:hover {
+            color: var(--primary);
+        }
+
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background-color: var(--primary);
+            transition: var(--transition);
+        }
+
+        .nav-link:hover::after {
+            width: 100%;
+        }
+
+        .nav-link.active {
+            color: var(--primary);
+        }
+
+        .nav-link.active::after {
+            width: 100%;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .search-container {
+            position: relative;
+        }
+
+        .search-input {
+            width: 280px;
+            padding: 10px 20px 10px 40px;
+            border: none;
+            background-color: #f1f5f9;
+            border-radius: 30px;
+            font-size: 14px;
+            transition: var(--transition);
+        }
+
+        .search-input:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px var(--primary);
+            background-color: white;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray);
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 10px 24px;
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 30px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+            text-decoration: none;
+            text-align: center;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-dark);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(37, 99, 235, 0.3);
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-outline:hover {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .main-content {
+            padding: 40px 0;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .section-subtitle {
+            color: var(--primary);
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .section-title {
+            font-family: 'Montserrat', sans-serif;
+            font-size: 36px;
+            font-weight: 800;
+            margin-bottom: 20px;
+        }
+
+        .section-desc {
+            color: var(--gray);
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: var(--card-shadow);
+            transition: var(--transition);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        .input-field, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: var(--transition);
+        }
+
+        .input-field:focus, select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+            outline: none;
+        }
+
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: var(--dark);
+            color: white;
+            text-align: center;
+            border-radius: 6px;
+            padding: 8px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .alert-success {
+            background-color: #e6fffa;
+            color: var(--success);
+        }
+
+        .alert-warning {
+            background-color: #fffbeb;
+            color: var(--warning);
+        }
+
+        .nav-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 992px) {
+            .section-title {
+                font-size: 28px;
+            }
+
+            .nav-links {
+                gap: 20px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header-container {
+                flex-direction: column;
+                gap: 15px;
+            }
+
+            .nav-links {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .search-input {
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 576px) {
+            .nav-links {
+                gap: 15px;
+            }
+
+            .section-title {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+    <header>
+        <div class="container header-container">
+            <a href="http://localhost:5000/" class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+                <div class="logo-text">Invest<span>IQ</span></div>
+            </a>
+            
+            <nav class="nav-links">
+                <a href="http://localhost:5000/" class="nav-link"><i class="fas fa-home"></i> Home</a>
+                <a href="http://localhost:5000/#calculators" class="nav-link active"><i class="fas fa-calculator"></i> Calculators</a>
+                <a href="http://localhost:5000/bond_risk_help" class="nav-link"><i class="fas fa-book"></i> Bond Risk Guide</a>
+                <a href="http://localhost:5000/help" class="nav-link">Help Center</a>
+                <a href="http://localhost:5000/articles" class="nav-link">Resources</a>
+            </nav>
+            
+            <div class="header-actions">
+                <div class="search-container">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" class="search-input" placeholder="Search calculators...">
+                </div>
+                <a href="http://localhost:5000/help" class="btn">Get Started</a>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-content">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-subtitle">PORTFOLIO TOOLS</div>
+                <h1 class="section-title">Non-Portfolio Risk Calculator</h1>
+                <p class="section-desc">
+                    Assess risk metrics for individual assets in the Ghanaian market
+                </p>
+                <div class="flex flex-wrap gap-3 justify-center">
+                    <div class="bg-primary text-white px-4 py-2 rounded-full flex items-center">
+                        <i class="fas fa-lightbulb mr-2"></i>
+                        <span>Beginner Friendly</span>
+                    </div>
+                    <div class="bg-primary text-white px-4 py-2 rounded-full flex items-center">
+                        <i class="fas fa-download mr-2"></i>
+                        <span>Downloadable Results</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="nav-buttons">
+                <a href="http://localhost:5000/" class="btn">
+                    <i class="fas fa-home mr-2"></i> Return to Home
+                </a>
+                <a href="http://localhost:5000/#calculators" class="btn btn-outline">
+                    <i class="fas fa-calculator mr-2"></i> Other Calculators
+                </a>
+            </div>
+
+            {% if alerts %}
+            <div class="mb-6">
+                {% for alert in alerts %}
+                <div class="alert {{ 'alert-warning' if alert.type == 'warning' else 'alert-success' }}">
+                    {{ alert.message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="card">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Non-Portfolio Risk Calculator</h2>
+                <p class="text-gray-600 mb-6">Select a risk metric and enter asset details to assess risk for a single security.</p>
+                <form id="risk-assessment-form" method="POST" action="/non-portfolio-risk" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="md:col-span-2">
+                        <label class="block text-gray-700 font-medium mb-2">Select Risk Metric</label>
+                        <select name="risk_metric" class="input-field" required>
+                            {% for metric in risk_metrics %}
+                            <option value="{{ metric }}" {{ 'selected' if form_data.risk_metric == metric else '' }}>{{ metric }}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="tooltip">
+                            <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                            <span class="tooltiptext">Choose the risk metric to calculate.</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">Corporate Yield (%)</label>
+                        <input type="number" name="corporate_yield" step="0.01" min="0" placeholder="Corporate Yield" class="input-field" value="{{ form_data.corporate_yield if form_data else '' }}" required>
+                        <div class="tooltip">
+                            <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                            <span class="tooltiptext">Yield on corporate bond.</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">Risk-Free Yield (%)</label>
+                        <input type="number" name="risk_free_yield" step="0.01" min="0" placeholder="Risk-Free Yield" class="input-field" value="{{ form_data.risk_free_yield if form_data else '' }}" required>
+                        <div class="tooltip">
+                            <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                            <span class="tooltiptext">Yield on risk-free asset (e.g., Ghana T-Bill).</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">Probability of Default (%)</label>
+                        <input type="number" name="probability_default" step="0.01" min="0" max="100" placeholder="Probability of Default" class="input-field" value="{{ form_data.probability_default if form_data else '' }}" required>
+                        <div class="tooltip">
+                            <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                            <span class="tooltiptext">Likelihood of issuer default (0 to 100%).</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">Loss Given Default (%)</label>
+                        <input type="number" name="loss_given_default" step="0.01" min="0" max="100" placeholder="Loss Given Default" class="input-field" value="{{ form_data.loss_given_default if form_data else '' }}" required>
+                        <div class="tooltip">
+                            <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                            <span class="tooltiptext">Percentage of exposure lost if default occurs.</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">Exposure at Default (GHS)</label>
+                        <input type="number" name="exposure_at_default" step="0.01" min="0" placeholder="Exposure at Default" class="input-field" value="{{ form_data.exposure_at_default if form_data else '' }}" required>
+                        <div class="tooltip">
+                            <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                            <span class="tooltiptext">Amount exposed to loss if default occurs.</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">Bond Price (GHS)</label>
+                        <input type="number" name="bond_price" step="0.01" min="0" placeholder="Bond Price" class="input-field" value="{{ form_data.bond_price if form_data else '' }}" required>
+                        <div class="tooltip">
+                            <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                            <span class="tooltiptext">Current price of the bond.</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">Macaulay Duration (Years)</label>
+                        <input type="number" name="macaulay_duration" step="0.01" min="0" placeholder="Macaulay Duration" class="input-field" value="{{ form_data.macaulay_duration if form_data else '' }}" required>
+                        <div class="tooltip">
+                            <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                            <span class="tooltiptext">Weighted average time to receive bond cash flows.</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">Yield to Maturity (%)</label>
+                        <input type="number" name="yield_to_maturity" step="0.01" min="0" placeholder="Yield to Maturity" class="input-field" value="{{ form_data.yield_to_maturity if form_data else '' }}" required>
+                        <div class="tooltip">
+                            <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                            <span class="tooltiptext">Total return anticipated on a bond if held to maturity.</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">Compounding Periods per Year</label>
+                        <input type="number" name="compounding_periods" step="1" min="1" placeholder="Compounding Periods" class="input-field" value="{{ form_data.compounding_periods if form_data else '' }}" required>
+                        <div class="tooltip">
+                            <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                            <span class="tooltiptext">Number of compounding periods per year (e.g., 1 for annual).</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">Yield Change (%)</label>
+                        <input type="number" name="yield_change" step="0.01" placeholder="Yield Change" class="input-field" value="{{ form_data.yield_change if form_data else '' }}" required>
+                        <div class="tooltip">
+                            <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                            <span class="tooltiptext">Expected change in yield for interest rate risk.</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">Bid Price (GHS)</label>
+                        <input type="number" name="bid_price" step="0.01" min="0" placeholder="Bid Price" class="input-field" value="{{ form_data.bid_price if form_data else '' }}" required>
+                        <div class="tooltip">
+                            <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                            <span class="tooltiptext">Price buyers are willing to pay.</span>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">Ask Price (GHS)</label>
+                        <input type="number" name="ask_price" step="0.01" min="0" placeholder="Ask Price" class="input-field" value="{{ form_data.ask_price if form_data else '' }}" required>
+                        <div class="tooltip">
+                            <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                            <span class="tooltiptext">Price sellers are asking.</span>
+                        </div>
+                    </div>
+                    <div class="md:col-span-2 flex flex-wrap gap-3">
+                        <button type="submit" class="btn">
+                            <i class="fas fa-calculator mr-2"></i> Calculate
+                        </button>
+                        <button type="button" id="reset-form" class="btn btn-outline">
+                            <i class="fas fa-redo mr-2"></i> Clear
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            {% if result %}
+            <div id="results" class="card mt-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Non-Portfolio Risk Calculation Result</h2>
+                <div class="bg-green-50 p-4 rounded-lg">
+                    <h4 class="font-bold text-gray-800 mb-2">{{ result.metric }}</h4>
+                    <p class="text-gray-700">{{ result.value | safe }}</p>
+                    <p class="text-sm text-gray-600 mt-2">{{ result.description }}</p>
+                </div>
+                <div class="mt-6 flex flex-wrap gap-3">
+                    <a href="#" id="download-results" class="btn btn-outline">
+                        <i class="fas fa-download mr-2"></i> Download Results
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="card mt-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">How to Use the Non-Portfolio Risk Calculator</h2>
+                <p class="text-gray-600 mb-6">Follow these steps to assess risk for an individual asset in the Ghanaian market.</p>
+                <ol class="list-decimal pl-6 space-y-4">
+                    <li>
+                        <strong>Select Risk Metric</strong>
+                        <p>Choose a risk metric from the dropdown (e.g., Credit Spread, Expected Loss, Modified Duration).</p>
+                    </li>
+                    <li>
+                        <strong>Enter Asset Details</strong>
+                        <p>Input details for the asset, such as corporate yield, probability of default, bond price, or bid/ask prices.</p>
+                    </li>
+                    <li>
+                        <strong>Provide Market Data</strong>
+                        <p>Enter relevant market data, such as risk-free yield or expected yield change.</p>
+                    </li>
+                    <li>
+                        <strong>Calculate and Review</strong>
+                        <p>Click “Calculate” to compute the selected risk metric and review the results.</p>
+                    </li>
+                </ol>
+                <div class="flex flex-wrap gap-3 mt-6">
+                    <a href="/static/guides/non_portfolio_risk_guide.pdf" class="btn btn-outline">
+                        <i class="fas fa-download mr-2"></i> Download Guide
+                    </a>
+                </div>
+            </div>
+
+            <div class="nav-buttons mt-6">
+                <a href="http://localhost:5000/" class="btn">
+                    <i class="fas fa-home mr-2"></i> Return to Home
+                </a>
+                <a href="http://localhost:5000/#calculators" class="btn btn-outline">
+                    <i class="fas fa-calculator mr-2"></i> Other Calculators
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('reset-form')?.addEventListener('click', function() {
+            document.getElementById('risk-assessment-form').reset();
+            document.getElementById('results')?.classList.add('hidden');
+        });
+
+        document.getElementById('download-results')?.addEventListener('click', function() {
+            const result = {{ result | tojson | safe }};
+            if (result) {
+                const csv = `Metric,Value,Description\n${result.metric},"${result.value.replace(/<br>/g, '\n')}","${result.description}"`;
+                const blob = new Blob([csv], { type: 'text/csv' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'non_portfolio_risk_result.csv';
+                a.click();
+                URL.revokeObjectURL(url);
+            }
+        });
+    </script>
+</body>
+</html>
