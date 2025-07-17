@@ -1616,6 +1616,14 @@ def non_portfolio_risk():
                           alerts=alerts,
                           risk_metrics=risk_metrics)
 
+@app.route('/non_portfolio_risk_help')
+def non_portfolio_risk_help():
+    return render_template('non_portfolio_risk_help.html')
+
+@app.route('/portfolio_risk_help')
+def portfolio_risk_help():
+    return render_template('portfolio_risk_help.html')
+
 # Route for Download Guide (Placeholder)
 @app.route('/download_guide')
 def download_guide():
