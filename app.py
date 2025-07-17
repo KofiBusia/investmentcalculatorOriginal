@@ -2228,24 +2228,47 @@ def early_exit():
 
 @app.route('/tbills-rediscount', methods=['GET', 'POST'])
 def tbills_rediscount():
+    form_data = {
+        'settlement_amount': '',
+        'rate': '',
+        'days_to_maturity': '',
+        'initial_fv': ''
+    }
     result = None
+    error = None
+
     if request.method == 'POST':
         try:
-            settlement_amount = float(request.form['settlement_amount'])
-            rate = float(request.form['rate']) / 100
-            days_to_maturity = float(request.form['days_to_maturity'])
-            initial_fv = float(request.form['initial_fv'])
+            # Capture form inputs
+            form_data = {
+                'settlement_amount': request.form.get('settlement_amount', ''),
+                'rate': request.form.get('rate', ''),
+                'days_to_maturity': request.form.get('days_to_maturity', ''),
+                'initial_fv': request.form.get('initial_fv', '')
+            }
+
+            # Convert inputs for calculation
+            settlement_amount = float(form_data['settlement_amount'])
+            rate = float(form_data['rate']) / 100
+            days_to_maturity = float(form_data['days_to_maturity'])
+            initial_fv = float(form_data['initial_fv'])
+
+            # Validate inputs
             if settlement_amount <= 0 or days_to_maturity <= 0 or initial_fv <= 0:
-                raise ValueError("Invalid inputs")
+                raise ValueError("Invalid inputs: All values must be positive.")
+
+            # Correct calculation
             settlement_fv = settlement_amount * (1 + rate) ** (days_to_maturity / 364)
             face_value_after_rediscount = initial_fv - settlement_fv
+
             result = {
                 'settlement_fv': "{:,.2f}".format(settlement_fv),
                 'face_value_after_rediscount': "{:,.2f}".format(face_value_after_rediscount)
             }
         except ValueError as e:
-            return render_template('tbills_rediscount.html', error=str(e))
-    return render_template('tbills_rediscount.html', result=result)
+            error = str(e)
+
+    return render_template('tbills_rediscount.html', form_data=form_data, result=result, error=error)
 
 # ROUTES BLOCK
 # ------------
