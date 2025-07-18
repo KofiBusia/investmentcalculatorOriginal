@@ -1873,40 +1873,33 @@ def end_balance():
 
 @app.route('/stocks', methods=['GET', 'POST'])
 def stocks():
-    result = None
-    error = None
     if request.method == 'POST':
         try:
             num_shares = float(request.form['num_shares'])
-            purchase_price = float(request.form['purchase_price_per_share'])
-            purchase_commission = float(request.form['purchase_commission']) / 100
-            selling_price = float(request.form['selling_price_per_share'])
-            sale_commission = float(request.form['sale_commission']) / 100
+            purchase_price_per_share = float(request.form['purchase_price_per_share'])
+            purchase_commission = float(request.form['purchase_commission'])
+            selling_price_per_share = float(request.form['selling_price_per_share'])
+            sale_commission = float(request.form['sale_commission'])
             dividends = float(request.form['dividends'])
-            # Prevent negative inputs
-            if any(x < 0 for x in [num_shares, purchase_price, selling_price, dividends]):
-                raise ValueError("Inputs cannot be negative")
-            # Ensure num_shares and purchase_price are positive to avoid division by zero
-            if num_shares <= 0 or purchase_price <= 0:
-                raise ValueError("Number of shares and purchase price must be greater than zero")
-            # Calculate costs and proceeds
-            total_purchase_cost = num_shares * purchase_price * (1 + purchase_commission)
-            net_sale_proceeds = num_shares * selling_price * (1 - sale_commission)
-            if total_purchase_cost <= 0:
-                raise ValueError("Total purchase cost must be positive")
-            # Calculate returns
-            capital_gain = (net_sale_proceeds - total_purchase_cost) / total_purchase_cost * 100
+
+            if any(x < 0 for x in [num_shares, purchase_price_per_share, purchase_commission, selling_price_per_share, sale_commission, dividends]):
+                return render_template('stocks.html', error="All inputs must be non-negative.", request=request)
+
+            total_purchase_cost = num_shares * purchase_price_per_share * (1 + purchase_commission / 100)
+            net_sale_proceeds = num_shares * selling_price_per_share * (1 - sale_commission / 100)
+            capital_gain = ((net_sale_proceeds - total_purchase_cost) / total_purchase_cost) * 100
             dividend_yield = (dividends / total_purchase_cost) * 100
             total_return = capital_gain + dividend_yield
-            # Prepare result dictionary
+
             result = {
-                'capital_gain': round(capital_gain, 2),
-                'dividend_yield': round(dividend_yield, 2),
-                'total_return': round(total_return, 2)
+                'capital_gain': f"{capital_gain:.2f}",
+                'dividend_yield': f"{dividend_yield:.2f}",
+                'total_return': f"{total_return:.2f}"
             }
-        except ValueError as e:
-            error = str(e)
-    return render_template('stocks.html', result=result, error=error)
+            return render_template('stocks.html', result=result, request=request)
+        except ValueError:
+            return render_template('stocks.html', error="Please enter valid numeric values.", request=request)
+    return render_template('stocks.html', request=request)
 
 @app.route('/mna', methods=['GET', 'POST'])
 def mna_calculator():
@@ -1972,38 +1965,80 @@ def pe_vc_valuation():
 
 @app.route('/bonds', methods=['GET', 'POST'])
 def bonds():
+    form_data = {}
     result = None
+    error = None
+
     if request.method == 'POST':
         try:
-            principal = float(request.form['principal'])
-            tenor = float(request.form['tenor'])
-            rate = float(request.form['rate']) / 100
-            total_coupons = float(request.form['total_coupons'])
-            if principal <= 0 or tenor <= 0:
-                raise ValueError("Principal and tenor must be positive")
-            maturity_amount = principal + total_coupons
-            bond_yield = (total_coupons + (maturity_amount - principal)) / (principal * (tenor / 365)) * 100
-            result = {'maturity_amount': "{:,.2f}".format(maturity_amount), 'bond_yield': round(bond_yield, 2)}
-        except ValueError as e:
-            return render_template('bonds.html', error=str(e))
-    return render_template('bonds.html', result=result)
+            # Collect form data
+            form_data = request.form.to_dict()
+            
+            # Convert inputs to appropriate types
+            principal = float(form_data.get('principal', 0.0))
+            tenor = int(form_data.get('tenor', 1))
+            rate = float(form_data.get('rate', 0.0)) / 100
+            total_coupons = float(form_data.get('total_coupons', 0.0))
 
+            # Validate inputs
+            if any(x < 0 for x in [principal, rate, total_coupons]) or tenor < 1:
+                raise ValueError("Principal, rate, and total coupons must be non-negative; tenor must be at least 1 day.")
+            if principal == 0:
+                raise ValueError("Principal must be greater than 0 for yield calculation.")
+
+            # Calculate maturity amount (principal + total coupons)
+            maturity_amount = principal + total_coupons
+
+            # Calculate bond yield (annualized return based on coupons)
+            bond_yield = (total_coupons / principal) / (tenor / 365) * 100
+
+            # Ensure non-negative results and round to 2 decimal places
+            maturity_amount = round(max(float(maturity_amount), 0.0), 2)
+            bond_yield = round(max(float(bond_yield), 0.0), 2)
+
+            # Create result object
+            Result = namedtuple('Result', ['maturity_amount', 'bond_yield'])
+            result = Result(maturity_amount, bond_yield)
+
+        except (ValueError, TypeError) as e:
+            error = str(e)
+            result = None
+
+    return render_template(
+        'bonds.html',
+        result=result,
+        form_data=form_data,
+        error=error,
+        request=request
+    )
+    
 @app.route('/tbills', methods=['GET', 'POST'])
 def tbills():
     result = None
+    error = None
     if request.method == 'POST':
         try:
-            principal = float(request.form['principal'])
-            rate = float(request.form['rate']) / 100
-            tenor = float(request.form['tenor'])
+            # Collect form data with fallback to handle missing fields
+            principal = float(request.form.get('principal', ''))
+            rate = float(request.form.get('rate', '')) / 100
+            tenor = float(request.form.get('tenor', ''))
+
+            # Validate inputs
+            if not all([principal, rate, tenor]):  # Check for empty values
+                raise ValueError("All fields (Principal, Rate, Tenor) are required.")
             if principal <= 0 or tenor <= 0:
-                raise ValueError("Principal and tenor must be positive")
+                raise ValueError("Principal and tenor must be positive.")
+
+            # Calculate interest and maturity value using the provided formula
             interest = (principal * tenor * rate) / 364
             maturity_value = principal + interest
             result = {'maturity_value': "{:,.2f}".format(maturity_value)}
+
         except ValueError as e:
-            return render_template('tbills.html', error=str(e))
-    return render_template('tbills.html', result=result)
+            error = str(e)
+            result = None
+
+    return render_template('tbills.html', result=result, error=error)
 
 @app.route('/mutual-funds', methods=['GET', 'POST'])
 def mutual_funds():
@@ -2396,6 +2431,12 @@ def format_currency(value):
         return "N/A"
 
 app.jinja_env.filters['currency'] = format_currency
+
+def currency_filter(value):
+    try:
+        return f"GHS {float(value):.2f}"
+    except (TypeError, ValueError):
+        return value
 
 @app.route('/bank-intrinsic-value', methods=['GET', 'POST'])
 def bank_intrinsic_value():

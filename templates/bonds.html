@@ -3,44 +3,490 @@
 {% block title %}Bonds Calculation{% endblock %}
 
 {% block content %}
-<h2>Bonds Calculation</h2>
-<p>Bonds are fixed-income investments where you lend money to corporations or governments in exchange for regular interest payments and the return of principal at maturity. They are generally considered safer than stocks.</p>
-<div class="input-section">
-    <h3>Input Details</h3>
-    <form method="POST">
-        <div class="form-group">
-            <label for="principal">Principal (GHS):</label>
-            <input type="number" class="form-control" id="principal" name="principal" placeholder="0" step="0.01" required>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                colors: {
+                    primary: '#4f46e5',
+                    secondary: '#818cf8',
+                    accent: '#a5b4fc',
+                    dark: '#1e293b',
+                    light: '#f8fafc',
+                    success: '#10b981',
+                    info: '#0ea5e9',
+                    warning: '#f59e0b',
+                    danger: '#ef4444'
+                },
+                fontFamily: {
+                    sans: ['Inter', 'sans-serif']
+                }
+            }
+        }
+    }
+</script>
+<style>
+    :root {
+        --header-height: 70px;
+        --sidebar-width: 300px;
+    }
+
+    body {
+        background: linear-gradient(135deg, #f0f4f8 0%, #e6e9ff 100%);
+        min-height: 100vh;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .gradient-bg {
+        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    }
+
+    .card {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(10px);
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
+    }
+
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+    }
+
+    .input-field {
+        background: rgba(255, 255, 255, 0.9);
+        border: 1px solid #e2e8f0;
+        transition: all 0.3s ease;
+    }
+
+    .input-field:focus {
+        border-color: #a5b4fc;
+        box-shadow: 0 0 0 4px rgba(165, 180, 252, 0.25);
+    }
+
+    .back-to-top {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        opacity: 0;
+        transform: translateY(20px);
+        transition: all 0.3s ease;
+    }
+
+    .back-to-top.visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .tooltip {
+        position: relative;
+        display: inline-block;
+    }
+
+    .tooltip .tooltiptext {
+        visibility: hidden;
+        width: 200px;
+        background-color: #1e293b;
+        color: #fff;
+        text-align: center;
+        border-radius: 6px;
+        padding: 8px;
+        position: absolute;
+        z-index: 1;
+        bottom: 125%;
+        left: 50%;
+        margin-left: -100px;
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+
+    .tooltip:hover .tooltiptext {
+        visibility: visible;
+        opacity: 1;
+    }
+
+    .nav-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .nav-button {
+        display: flex;
+        align-items: center;
+        padding: 10px 20px;
+        background: white;
+        border-radius: 8px;
+        font-weight: 500;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        transition: all 0.2s ease;
+    }
+
+    .nav-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .nav-button.home {
+        background: #4f46e5;
+        color: white;
+    }
+
+    .nav-button.calculators {
+        background: #10b981;
+        color: white;
+    }
+
+    .nav-button i {
+        margin-right: 8px;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    th, td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    th {
+        background: #4f46e5;
+        color: white;
+        font-weight: 600;
+    }
+
+    tr:last-child td {
+        border-bottom: none;
+    }
+
+    tr:hover {
+        background: #f8fafc;
+    }
+</style>
+
+<!-- AdSense Banner -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1910810542133525" crossorigin="anonymous"></script>
+<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-1910810542133525"
+     data-ad-slot="4586919134"
+     data-ad-format="auto"
+     data-full-width-responsive="true"></ins>
+<script>
+     (adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+
+<!-- Header -->
+<header class="gradient-bg text-white py-8 px-4 md:px-8">
+    <div class="max-w-6xl mx-auto">
+        <nav class="hidden md:flex justify-between items-center mb-6">
+            <div class="flex items-center space-x-4">
+                <a href="{{ url_for('index') }}" class="text-white hover:text-indigo-200 transition-colors">Home</a>
+                <a href="{{ url_for('index') }}#calculators" class="text-white hover:text-indigo-200 transition-colors">Calculators</a>
+                <a href="https://younginvestorcalculator.com/help" class="text-white font-medium border-b-2 border-white">Help Center</a>
+                <a href="https://younginvestorcalculator.com/articles" class="text-white hover:text-indigo-200 transition-colors">Resources</a>
+            </div>
+            <a href="https://younginvestorcalculator.com/help" class="bg-white text-primary px-4 py-2 rounded-lg font-medium hover:bg-indigo-50 transition-colors">
+                Get Started
+            </a>
+        </nav>
+        <div class="max-w-3xl">
+            <h1 class="text-4xl md:text-5xl font-bold mb-4">Bonds Calculation</h1>
+            <p class="text-xl md:text-2xl text-indigo-100 mb-6">
+                Calculate the maturity amount and yield of bonds based on principal, tenor, coupon rate, and total coupons
+            </p>
+            <div class="flex flex-wrap gap-3">
+                <div class="bg-white/20 px-4 py-2 rounded-full flex items-center">
+                    <i class="fas fa-lightbulb mr-2"></i>
+                    <span>Beginner Friendly</span>
+                </div>
+                <div class="bg-white/20 px-4 py-2 rounded-full flex items-center">
+                    <i class="fas fa-download mr-2"></i>
+                    <span>Downloadable Guide</span>
+                </div>
+            </div>
         </div>
-        <div class="form-group">
-            <label for="tenor">Tenor (Days):</label>
-            <input type="number" class="form-control" id="tenor" name="tenor" placeholder="0" step="1" required>
+    </div>
+</header>
+
+<!-- Main Content -->
+<div class="max-w-6xl mx-auto px-4 py-8">
+    <!-- Navigation Buttons -->
+    <div class="nav-buttons">
+        <a href="{{ url_for('index') }}" class="nav-button home">
+            <i class="fas fa-home"></i> Return to Home
+        </a>
+        <a href="{{ url_for('index') }}#calculators" class="nav-button calculators">
+            <i class="fas fa-calculator"></i> Other Calculators
+        </a>
+        <a href="{{ url_for('bonds') }}" class="nav-button">
+            <i class="fas fa-calculator"></i> Use Bonds Calculator
+        </a>
+        <a href="{{ url_for('early_exit') }}" class="nav-button">
+            <i class="fas fa-calculator"></i> Early Exit Calculator
+        </a>
+    </div>
+
+    <!-- Calculator Form -->
+    <div class="card p-6 mb-8">
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">Calculate Bond Value</h2>
+        <p class="text-gray-600 mb-6">Bonds are fixed-income investments where you lend money to corporations or governments in exchange for regular interest payments and the return of principal at maturity. Enter the principal, tenor, coupon rate, and total coupons to calculate the maturity amount and yield. All monetary values should be in GHS.</p>
+        {% if error %}
+            <div class="bg-red-50 p-4 rounded-lg mb-6">
+                <p class="text-red-700">{{ error }}</p>
+            </div>
+        {% endif %}
+        <form method="POST" action="{{ url_for('bonds') }}" id="bonds-form" class="space-y-6">
+            <div>
+                <label class="block text-gray-700 font-medium mb-2">Principal (GHS)</label>
+                <input type="number" step="0.01" name="principal" placeholder="e.g., 1000" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" value="{{ request.form.get('principal', '') }}" required min="0">
+                <div class="tooltip mt-1">
+                    <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                    <span class="tooltiptext">The initial amount invested in the bond (GHS). Typically the face value, e.g., 1000.</span>
+                </div>
+            </div>
+            <div>
+                <label class="block text-gray-700 font-medium mb-2">Tenor (Days)</label>
+                <input type="number" step="1" name="tenor" placeholder="e.g., 365" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" value="{{ request.form.get('tenor', '') }}" required min="1">
+                <div class="tooltip mt-1">
+                    <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                    <span class="tooltiptext">The duration of the bond in days (e.g., 365 for 1 year).</span>
+                </div>
+            </div>
+            <div>
+                <label class="block text-gray-700 font-medium mb-2">Coupon Rate (% p.a.)</label>
+                <input type="number" step="0.01" name="rate" placeholder="e.g., 5" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" value="{{ request.form.get('rate', '') }}" required min="0">
+                <div class="tooltip mt-1">
+                    <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                    <span class="tooltiptext">The annual coupon interest rate of the bond (%). Find in bond documentation or gse.com.gh.</span>
+                </div>
+            </div>
+            <div>
+                <label class="block text-gray-700 font-medium mb-2">Total Coupons (GHS)</label>
+                <input type="number" step="0.01" name="total_coupons" placeholder="e.g., 50" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" value="{{ request.form.get('total_coupons', '') }}" required min="0">
+                <div class="tooltip mt-1">
+                    <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                    <span class="tooltiptext">The total coupon payments expected over the bond’s life (GHS). Sum of all interest payments.</span>
+                </div>
+            </div>
+            <div class="flex gap-4">
+                <button type="submit" class="px-6 py-3 bg-primary text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors">
+                    <i class="fas fa-calculator mr-2"></i> Calculate
+                </button>
+                <button type="reset" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors">
+                    <i class="fas fa-eraser mr-2"></i> Clear
+                </button>
+                <a href="{{ url_for('index') }}" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors flex items-center">
+                    <i class="fas fa-home mr-2"></i> Back to Home
+                </a>
+                <a href="{{ url_for('early_exit') }}" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors flex items-center">
+                    <i class="fas fa-calculator mr-2"></i> Early Exit Calculator
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Results Section -->
+    {% if result %}
+    <div class="card p-6 mb-8">
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">Bond Calculation Results</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Metric</th>
+                    <th>Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Maturity Amount</td>
+                    <td>{{ result.maturity_amount | currency }}</td>
+                </tr>
+                <tr>
+                    <td>Bond Yield</td>
+                    <td>{{ result.bond_yield }}%</td>
+                </tr>
+            </tbody>
+        </table>
+        <p class="text-gray-700 mt-4">
+            The bond’s maturity amount is {{ result.maturity_amount | currency }}, which includes the principal plus total coupon payments. The bond yield is {{ result.bond_yield }}% per annum based on the provided inputs.
+        </p>
+        <div class="mt-6">
+            <a href="{{ url_for('bonds') }}" class="px-4 py-2 bg-primary text-white rounded-lg font-medium flex items-center inline-block">
+                <i class="fas fa-redo mr-2"></i> Calculate Another
+            </a>
         </div>
-        <div class="form-group">
-            <label for="rate">Rate % (p.a.):</label>
-            <input type="number" class="form-control" id="rate" name="rate" placeholder="0" step="0.01" required>
+    </div>
+    {% endif %}
+
+    <!-- Guide Section -->
+    <div class="card p-6">
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">How to Use the Bonds Calculator</h2>
+        <p class="text-gray-600 mb-6">Follow these steps to calculate the maturity amount and yield of a bond.</p>
+        <ol class="list-decimal pl-6 space-y-4">
+            <li>
+                <strong>Enter Principal</strong>
+                <p>Input the initial investment amount (face value) of the bond in GHS.</p>
+            </li>
+            <li>
+                <strong>Enter Tenor</strong>
+                <p>Provide the bond’s duration in days (e.g., 365 for 1 year).</p>
+            </li>
+            <li>
+                <strong>Enter Coupon Rate</strong>
+                <p>Input the annual coupon interest rate (%). Check bond documentation or gse.com.gh.</p>
+            </li>
+            <li>
+                <strong>Enter Total Coupons</strong>
+                <p>Provide the total coupon payments expected over the bond’s life in GHS.</p>
+            </li>
+            <li>
+                <strong>Calculate and Review</strong>
+                <p>Click “Calculate” to compute the maturity amount and bond yield. Review the results to understand the bond’s return.</p>
+            </li>
+        </ol>
+        <div class="flex flex-wrap gap-3 mt-6">
+            <a href="https://younginvestorcalculator.com/download_guide" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium flex items-center">
+                <i class="fas fa-download mr-2"></i> Download Guide
+            </a>
+            <a href="https://younginvestorcalculator.com/tutorial" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium flex items-center">
+                <i class="fas fa-play-circle mr-2"></i> Watch Tutorial
+            </a>
         </div>
-        <div class="form-group">
-            <label for="total_coupons">Total Coupons (GHS):</label>
-            <input type="number" class="form-control" id="total_coupons" name="total_coupons" placeholder="0" step="0.01" required>
-        </div>
-        <div class="button-container">
-            <button class="btn btn-primary" type="submit">Calculate</button>
-            <button class="btn btn-secondary" type="reset">Clear</button>
-            <a href="/" class="btn btn-secondary">Back</a>
-            <a href="/early_exit" class="btn btn-secondary">Early Exit Calculator</a>
-        </div>
-    </form>
+    </div>
+
+    <!-- Navigation Buttons at Bottom -->
+    <div class="nav-buttons mt-6">
+        <a href="{{ url_for('index') }}" class="nav-button home">
+            <i class="fas fa-home"></i> Return to Home
+        </a>
+        <a href="{{ url_for('index') }}#calculators" class="nav-button calculators">
+            <i class="fas fa-calculator"></i> Other Calculators
+        </a>
+        <a href="{{ url_for('bonds') }}" class="nav-button">
+            <i class="fas fa-calculator"></i> Use Bonds Calculator
+        </a>
+        <a href="{{ url_for('early_exit') }}" class="nav-button">
+            <i class="fas fa-calculator"></i> Early Exit Calculator
+        </a>
+    </div>
 </div>
-{% if error %}
-<div class="alert alert-danger mt-3" role="alert">
-    {{ error }}
-</div>
-{% elif result %}
-<div class="results mt-3">
-    <h3>Results</h3>
-    <p><strong>Maturity Amount: GHS {{ result.maturity_amount }}</strong></p>
-    <p><strong>Bond Yield: {{ result.bond_yield }}%</strong></p>
-</div>
-{% endif %}
+
+<!-- Footer -->
+<footer class="bg-dark text-white py-12">
+    <div class="max-w-6xl mx-auto px-4">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+            <div>
+                <h3 class="text-lg font-bold mb-4">InvestIQ</h3>
+                <p class="text-gray-400 mb-4">
+                    Empowering investors with advanced tools, insights, and calculators to make smarter financial decisions.
+                </p>
+                <div class="flex gap-3">
+                    <a href="#" class="w-10 h-10 bg-gray-800 text-white rounded-full flex items-center justify-center hover:bg-primary transition-colors">
+                        <i class="fab fa-twitter"></i>
+                    </a>
+                    <a href="#" class="w-10 h-10 bg-gray-800 text-white rounded-full flex items-center justify-center hover:bg-primary transition-colors">
+                        <i class="fab fa-linkedin-in"></i>
+                    </a>
+                    <a href="#" class="w-10 h-10 bg-gray-800 text-white rounded-full flex items-center justify-center hover:bg-primary transition-colors">
+                        <i class="fab fa-facebook-f"></i>
+                    </a>
+                    <a href="#" class="w-10 h-10 bg-gray-800 text-white rounded-full flex items-center justify-center hover:bg-primary transition-colors">
+                        <i class="fab fa-youtube"></i>
+                    </a>
+                </div>
+            </div>
+            <div>
+                <h3 class="text-lg font-bold mb-4">Quick Links</h3>
+                <ul class="space-y-2">
+                    <li><a href="{{ url_for('index') }}#calculators" class="text-gray-400 hover:text-white transition-colors flex items-center"><i class="fas fa-calculator mr-2"></i> Calculators</a></li>
+                    <li><a href="https://younginvestorcalculator.com/articles" class="text-gray-400 hover:text-white transition-colors flex items-center"><i class="fas fa-book mr-2"></i> Insights</a></li>
+                    <li><a href="https://younginvestorcalculator.com/help" class="text-gray-400 hover:text-white transition-colors flex items-center"><i class="fas fa-question-circle mr-2"></i> Help Center</a></li>
+                    <li><a href="https://younginvestorcalculator.com/about" class="text-gray-400 hover:text-white transition-colors flex items-center"><i class="fas fa-info-circle mr-2"></i> About Us</a></li>
+                </ul>
+            </div>
+            <div>
+                <h3 class="text-lg font-bold mb-4">Resources</h3>
+                <ul class="space-y-2">
+                    <li><a href="https://younginvestorcalculator.com/non_portfolio_risk_help" class="text-gray-400 hover:text-white transition-colors flex items-center"><i class="fas fa-book mr-2"></i> Non-Portfolio Risk Guide</a></li>
+                    <li><a href="https://younginvestorcalculator.com/portfolio_risk_help" class="text-gray-400 hover:text-white transition-colors flex items-center"><i class="fas fa-book mr-2"></i> Portfolio Risk Guide</a></li>
+                    <li><a href="https://younginvestorcalculator.com/bond_risk_help" class="text-gray-400 hover:text-white transition-colors flex items-center"><i class="fas fa-book mr-2"></i> Bond Risk Guide</a></li>
+                    <li><a href="https://younginvestorcalculator.com/contact" class="text-gray-400 hover:text-white transition-colors flex items-center"><i class="fas fa-envelope mr-2"></i> Contact Us</a></li>
+                </ul>
+            </div>
+            <div>
+                <h3 class="text-lg font-bold mb-4">Contact</h3>
+                <ul class="space-y-2">
+                    <li><a href="mailto:info@cleanvisionhr.com" class="text-gray-400 hover:text-white transition-colors flex items-center"><i class="fas fa-envelope mr-2"></i> info@cleanvisionhr.com</a></li>
+                    <li><a href="tel:+233503566913" class="text-gray-400 hover:text-white transition-colors flex items-center"><i class="fas fa-phone mr-2"></i> +233 50 356 6913</a></li>
+                    <li><a href="https://younginvestorcalculator.com/contact" class="text-gray-400 hover:text-white transition-colors flex items-center"><i class="fas fa-map-marker-alt mr-2"></i> Contact Form</a></li>
+                    <li><a href="https://younginvestorcalculator.com/faq" class="text-gray-400 hover:text-white transition-colors flex items-center"><i class="fas fa-question-circle mr-2"></i> FAQ</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="border-t border-gray-800 pt-6 text-center">
+            <p class="text-gray-400">© 2025 InvestIQ. All rights reserved. | <a href="https://younginvestorcalculator.com/privacy" class="text-gray-400 hover:text-white">Privacy Policy</a> | <a href="https://younginvestorcalculator.com/terms" class="text-gray-400 hover:text-white">Terms of Service</a></p>
+        </div>
+    </div>
+</footer>
+
+<!-- Back to Top Button -->
+<button id="backToTop" class="back-to-top w-12 h-12 bg-primary text-white rounded-full shadow-lg flex items-center justify-center">
+    <i class="fas fa-arrow-up"></i>
+</button>
+
+<!-- JavaScript -->
+<script>
+    // Validate non-negative inputs
+    function validatePositive(inputElement) {
+        if (inputElement.hasAttribute('min') && parseFloat(inputElement.value) < parseFloat(inputElement.min)) {
+            inputElement.setCustomValidity('Value must be greater than or equal to ' + inputElement.min);
+            inputElement.reportValidity();
+        } else {
+            inputElement.setCustomValidity('');
+        }
+    }
+
+    // Initialize form on page load
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('input[type="number"]').forEach(input => {
+            input.addEventListener('input', () => validatePositive(input));
+        });
+        document.getElementById('bonds-form').addEventListener('submit', (e) => {
+            const inputs = e.target.querySelectorAll('input[type="number"]');
+            let valid = true;
+            inputs.forEach(input => {
+                if (input.hasAttribute('min') && parseFloat(input.value) < parseFloat(input.min)) {
+                    valid = false;
+                    validatePositive(input);
+                }
+            });
+            if (!valid) e.preventDefault();
+        });
+
+        // Back to top button scroll behavior
+        const backToTopBtn = document.getElementById('backToTop');
+        window.addEventListener('scroll', () => {
+            if (window.pageYOffset > 300) {
+                backToTopBtn.classList.add('visible');
+            } else {
+                backToTopBtn.classList.remove('visible');
+            }
+        });
+        backToTopBtn.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    });
+</script>
 {% endblock %}

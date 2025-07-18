@@ -1,41 +1,434 @@
 {% extends "base.html" %}
+
 {% block title %}Target Price Per Share Calculation{% endblock %}
+
 {% block content %}
-<div class="container">
-    <h2>Target Price Per Share Calculation for Stocks</h2>
-    <p>Calculate the expected future price per share of a stock based on earnings growth for 1 and 2 years ahead. This helps estimate what the stock might be worth in the future.</p>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                colors: {
+                    primary: '#4f46e5',
+                    secondary: '#818cf8',
+                    accent: '#a5b4fc',
+                    dark: '#1e293b',
+                    light: '#f8fafc',
+                    success: '#10b981',
+                    info: '#0ea5e9',
+                    warning: '#f59e0b',
+                    danger: '#ef4444'
+                },
+                fontFamily: {
+                    sans: ['Inter', 'sans-serif']
+                }
+            }
+        }
+    }
+</script>
+<style>
+    :root {
+        --header-height: 70px;
+        --sidebar-width: 300px;
+    }
 
-    <!-- Error Display -->
-    {% if error %}
-    <p style="color: red; font-weight: bold;">Error: {{ error }}</p>
-    {% endif %}
+    body {
+        background: linear-gradient(135deg, #f0f4f8 0%, #e6e9ff 100%);
+        min-height: 100vh;
+        font-family: 'Inter', sans-serif;
+    }
 
-    <form method="POST" action="{{ url_for('target_price') }}">
-        {% macro input_field(name, label, description='', type='number', step='1', required=True) %}
-        <div class="group">
-            <label for="{{ name }}">{{ label }}:</label>
-            <input type="{{ type }}" step="{{ step }}" name="{{ name }}" id="{{ name }}" required>
-            {% if description %}
-            <small>{{ description }}</small>
-            {% endif %}
+    .gradient-bg {
+        background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    }
+
+    .card {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(10px);
+        border-radius: 16px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        transition: all 0.3s ease;
+    }
+
+    .card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+    }
+
+    .input-field {
+        background: rgba(255, 255, 255, 0.9);
+        border: 1px solid #e2e8f0;
+        transition: all 0.3s ease;
+    }
+
+    .input-field:focus {
+        border-color: #a5b4fc;
+        box-shadow: 0 0 0 4px rgba(165, 180, 252, 0.25);
+    }
+
+    .back-to-top {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        opacity: 0;
+        transform: translateY(20px);
+        transition: all 0.3s ease;
+    }
+
+    .back-to-top.visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .tooltip {
+        position: relative;
+        display: inline-block;
+    }
+
+    .tooltip .tooltiptext {
+        visibility: hidden;
+        width: 200px;
+        background-color: #1e293b;
+        color: #fff;
+        text-align: center;
+        border-radius: 6px;
+        padding: 8px;
+        position: absolute;
+        z-index: 1;
+        bottom: 125%;
+        left: 50%;
+        margin-left: -100px;
+        opacity: 0;
+        transition: opacity 0.3s;
+    }
+
+    .tooltip:hover .tooltiptext {
+        visibility: visible;
+        opacity: 1;
+    }
+
+    .nav-buttons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+
+    .nav-button {
+        display: flex;
+        align-items: center;
+        padding: 10px 20px;
+        background: white;
+        border-radius: 8px;
+        font-weight: 500;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        transition: all 0.2s ease;
+    }
+
+    .nav-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .nav-button.home {
+        background: #4f46e5;
+        color: white;
+    }
+
+    .nav-button.calculators {
+        background: #10b981;
+        color: white;
+    }
+
+    .nav-button i {
+        margin-right: 8px;
+    }
+</style>
+
+<!-- AdSense Banner -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1910810542133525" crossorigin="anonymous"></script>
+<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-1910810542133525"
+     data-ad-slot="4586919134"
+     data-ad-format="auto"
+     data-full-width-responsive="true"></ins>
+<script>
+     (adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+
+<!-- Header -->
+<header class="gradient-bg text-white py-8 px-4 md:px-8">
+    <div class="max-w-6xl mx-auto">
+        <nav class="hidden md:flex justify-between items-center mb-6">
+            <div class="flex items-center space-x-4">
+                <a href="{{ url_for('index') }}" class="text-white hover:text-indigo-200 transition-colors">Home</a>
+                <a href="{{ url_for('index') }}#calculators" class="text-white hover:text-indigo-200 transition-colors">Calculators</a>
+                <a href="https://younginvestorcalculator.com/help" class="text-white font-medium border-b-2 border-white">Help Center</a>
+                <a href="https://younginvestorcalculator.com/articles" class="text-white hover:text-indigo-200 transition-colors">Resources</a>
+            </div>
+            <a href="https://younginvestorcalculator.com/help" class="bg-white text-primary px-4 py-2 rounded-lg font-medium hover:bg-indigo-50 transition-colors">
+                Get Started
+            </a>
+        </nav>
+        <div class="max-w-3xl">
+            <h1 class="text-4xl md:text-5xl font-bold mb-4">Target Price Per Share Calculator</h1>
+            <p class="text-xl md:text-2xl text-indigo-100 mb-6">
+                Estimate the future price per share of a stock based on earnings growth for 1 and 2 years ahead
+            </p>
+            <div class="flex flex-wrap gap-3">
+                <div class="bg-white/20 px-4 py-2 rounded-full flex items-center">
+                    <i class="fas fa-lightbulb mr-2"></i>
+                    <span>Beginner Friendly</span>
+                </div>
+                <div class="bg-white/20 px-4 py-2 rounded-full flex items-center">
+                    <i class="fas fa-download mr-2"></i>
+                    <span>Downloadable Guide</span>
+                </div>
+            </div>
         </div>
-        {% endmacro %}
+    </div>
+</header>
 
-        {{ input_field('current_eps', 'Current EPS (Earnings Per Share)', description='The company\'s current earnings per share.', step='0.01') }}
-        {{ input_field('growth_rate', 'Expected Annual EPS Growth Rate (%)', description='The expected annual growth rate of EPS.', step='0.01') }}
-        {{ input_field('pe_ratio', 'Current P/E Ratio', description='The company\'s current price-to-earnings ratio.', step='0.01') }}
+<!-- Main Content -->
+<div class="max-w-6xl mx-auto px-4 py-8">
+    <!-- Navigation Buttons -->
+    <div class="nav-buttons">
+        <a href="{{ url_for('index') }}" class="nav-button home">
+            <i class="fas fa-home"></i> Return to Home
+        </a>
+        <a href="{{ url_for('index') }}#calculators" class="nav-button calculators">
+            <i class="fas fa-calculator"></i> Other Calculators
+        </a>
+        <a href="{{ url_for('target_price') }}" class="nav-button">
+            <i class="fas fa-calculator"></i> Use Target Price Calculator
+        </a>
+    </div>
 
-        <button type="submit" class="action-btn">Calculate</button>
-        <a href="{{ url_for('target_price') }}" class="action-btn">Clear</a>
-        <a href="{{ url_for('index') }}" class="action-btn">Back to Home</a>
-    </form>
+    <!-- Calculator Form -->
+    <div class="card p-6 mb-8">
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">Calculate Target Price Per Share</h2>
+        <p class="text-gray-600 mb-6">Enter details to estimate the future price per share of a stock based on earnings growth for 1 and 2 years ahead. All monetary values should be in the stock’s reporting currency (e.g., GHS for Ghanaian stocks).</p>
+        {% if error %}
+            <div class="bg-red-50 p-4 rounded-lg mb-6">
+                <p class="text-red-700">{{ error }}</p>
+            </div>
+        {% endif %}
+        <form method="POST" action="{{ url_for('target_price') }}" id="target-price-form" class="space-y-6">
+            <div>
+                <label class="block text-gray-700 font-medium mb-2">Current EPS (Earnings Per Share)</label>
+                <input type="number" step="0.01" name="current_eps" placeholder="e.g., 0.80" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" value="{{ request.form.get('current_eps', '') }}" required min="0">
+                <div class="tooltip mt-1">
+                    <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                    <span class="tooltiptext">The company's current earnings per share. Find on Yahoo Finance (“Financials” tab), annualreportsghana.com, or gse.com.gh.</span>
+                </div>
+            </div>
+            <div>
+                <label class="block text-gray-700 font-medium mb-2">Expected Annual EPS Growth Rate (%)</label>
+                <input type="number" step="0.01" name="growth_rate" placeholder="e.g., 5" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" value="{{ request.form.get('growth_rate', '') }}" required min="0">
+                <div class="tooltip mt-1">
+                    <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                    <span class="tooltiptext">The expected annual growth rate of EPS. Estimate based on historical growth (e.g., 3–5%) or analyst forecasts from Yahoo Finance or gse.com.gh.</span>
+                </div>
+            </div>
+            <div>
+                <label class="block text-gray-700 font-medium mb-2">Current P/E Ratio</label>
+                <input type="number" step="0.01" name="pe_ratio" placeholder="e.g., 15" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" value="{{ request.form.get('pe_ratio', '') }}" required min="0">
+                <div class="tooltip mt-1">
+                    <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                    <span class="tooltiptext">The company's current price-to-earnings ratio. Find on Yahoo Finance (“Summary” tab) or afx.kwayisi.org/gse/ for GSE stocks.</span>
+                </div>
+            </div>
+            <div class="flex gap-4">
+                <button type="submit" class="px-6 py-3 bg-primary text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors">
+                    <i class="fas fa-calculator mr-2"></i> Calculate
+                </button>
+                <button type="reset" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors">
+                    <i class="fas fa-eraser mr-2"></i> Clear
+                </button>
+                <a href="{{ url_for('index') }}" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors flex items-center">
+                    <i class="fas fa-home mr-2"></i> Back to Home
+                </a>
+            </div>
+        </form>
+    </div>
 
-    <!-- Results -->
-    {% if target_price_1 and target_price_2 %}
-    <div class="results">
-        <p><strong>Target Price Per Share in 1 Year:</strong> GHS{{ target_price_1 }} <small>(Ghanaian Cedi)</small></p>
-        <p><strong>Target Price Per Share in 2 Years:</strong> GHS{{ target_price_2 }} <small>(Ghanaian Cedi)</small></p>
+    <!-- Results Section -->
+    {% if target_price_1 is defined and target_price_2 is defined %}
+    <div class="card p-6 mb-8">
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">Target Price Results</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-indigo-50 p-4 rounded-lg">
+                <h4 class="font-bold text-gray-800 mb-2">Target Price Per Share in 1 Year</h4>
+                <p class="text-gray-700">{{ target_price_1 | currency }}</p>
+                <p class="text-sm text-gray-600 mt-2">Estimated price based on 1 year of EPS growth.</p>
+            </div>
+            <div class="bg-indigo-50 p-4 rounded-lg">
+                <h4 class="font-bold text-gray-800 mb-2">Target Price Per Share in 2 Years</h4>
+                <p class="text-gray-700">{{ target_price_2 | currency }}</p>
+                <p class="text-sm text-gray-600 mt-2">Estimated price based on 2 years of EPS growth.</p>
+            </div>
+        </div>
+        <div class="mt-6">
+            <a href="{{ url_for('target_price') }}" class="px-4 py-2 bg-primary text-white rounded-lg font-medium flex items-center inline-block">
+                <i class="fas fa-redo mr-2"></i> Calculate Another
+            </a>
+        </div>
     </div>
     {% endif %}
+
+    <!-- Guide Section -->
+    <div class="card p-6">
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">How to Use the Target Price Per Share Calculator</h2>
+        <p class="text-gray-600 mb-6">Follow these steps to estimate the future price per share of a stock.</p>
+        <ol class="list-decimal pl-6 space-y-4">
+            <li>
+                <strong>Enter Current EPS</strong>
+                <p>Provide the company’s current earnings per share (EPS). Find on Yahoo Finance (“Financials” tab), annualreportsghana.com, or gse.com.gh.</p>
+            </li>
+            <li>
+                <strong>Enter Expected Annual EPS Growth Rate</strong>
+                <p>Provide the expected annual growth rate of EPS (e.g., 3–5%). Estimate based on historical growth or analyst forecasts from Yahoo Finance or gse.com.gh.</p>
+            </li>
+            <li>
+                <strong>Enter Current P/E Ratio</strong>
+                <p>Provide the company’s current price-to-earnings ratio. Find on Yahoo Finance (“Summary” tab) or afx.kwayisi.org/gse/ for GSE stocks.</p>
+            </li>
+            <li>
+                <strong>Calculate and Review</strong>
+                <p>Click “Calculate” to compute the target prices for 1 and 2 years ahead. Review the results to assess potential stock value.</p>
+            </li>
+        </ol>
+        <div class="flex flex-wrap gap-3 mt-6">
+            <a href="https://younginvestorcalculator.com/download_guide" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium flex items-center">
+                <i class="fas fa-download mr-2"></i> Download Guide
+            </a>
+            <a href="https://younginvestorcalculator.com/tutorial" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium flex items-center">
+                <i class="fas fa-play-circle mr-2"></i> Watch Tutorial
+            </a>
+        </div>
+    </div>
+
+    <!-- Navigation Buttons at Bottom -->
+    <div class="nav-buttons mt-6">
+        <a href="{{ url_for('index') }}" class="nav-button home">
+            <i class="fas fa-home"></i> Return to Home
+        </a>
+        <a href="{{ url_for('index') }}#calculators" class="nav-button calculators">
+            <i class="fas fa-calculator"></i> Other Calculators
+        </a>
+        <a href="{{ url_for('target_price') }}" class="nav-button">
+            <i class="fas fa-calculator"></i> Use Target Price Calculator
+        </a>
+    </div>
 </div>
+
+<!-- Footer -->
+<footer class="bg-dark text-white py-12">
+    <div class="max-w-6xl mx-auto px-4">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+            <div>
+                <h3 class="text-lg font-bold mb-4">InvestIQ</h3>
+                <p class="text-gray-400 mb-4">
+                    Empowering investors with advanced tools, insights, and calculators to make smarter financial decisions.
+                </p>
+                <div class="flex gap-3">
+                    <a href="#" class="w-10 h-10 bg-gray-800 text-white rounded-full flex items-center justify-center hover:bg-primary transition-colors">
+                        <i class="fab fa-twitter"></i>
+                    </a>
+                    <a href="#" class="w-10 h-10 bg-gray-800 text-white rounded-full flex items-center justify-center hover:bg-primary transition-colors">
+                        <i class="fab fa-linkedin-in"></i>
+                    </a>
+                    <a href="#" class="w-10 h-10 bg-gray-800 text-white rounded-full flex items-center justify-center hover:bg-primary transition-colors">
+                        <i class="fab fa-facebook-f"></i>
+                    </a>
+                    <a href="#" class="w-10 h-10 bg-gray-800 text-white rounded-full flex items-center justify-center hover:bg-primary transition-colors">
+                        <i class="fab fa-youtube"></i>
+                    </a>
+                </div>
+            </div>
+            <div>
+                <h3 class="text-lg font-bold mb-4">Quick Links</h3>
+                <ul class="space-y-2">
+                    <li><a href="{{ url_for('index') }}#calculators" class="text-gray-400 hover:text-white transition-colors flex items-center"><i class="fas fa-calculator mr-2"></i> Calculators</a></li>
+                    <li><a href="https://younginvestorcalculator.com/articles" class="text-gray-400 hover:text-white transition-colors flex items-center"><i class="fas fa-book mr-2"></i> Insights</a></li>
+                    <li><a href="https://younginvestorcalculator.com/help" class="text-gray-400 hover:text-white transition-colors flex items-center"><i class="fas fa-question-circle mr-2"></i> Help Center</a></li>
+                    <li><a href="https://younginvestorcalculator.com/about" class="text-gray-400 hover:text-white transition-colors flex items-center"><i class="fas fa-info-circle mr-2"></i> About Us</a></li>
+                </ul>
+            </div>
+            <div>
+                <h3 class="text-lg font-bold mb-4">Resources</h3>
+                <ul class="space-y-2">
+                    <li><a href="https://younginvestorcalculator.com/non_portfolio_risk_help" class="text-gray-400 hover:text-white transition-colors flex items-center"><i class="fas fa-book mr-2"></i> Non-Portfolio Risk Guide</a></li>
+                    <li><a href="https://younginvestorcalculator.com/portfolio_risk_help" class="text-gray-400 hover:text-white transition-colors flex items-center"><i class="fas fa-book mr-2"></i> Portfolio Risk Guide</a></li>
+                    <li><a href="https://younginvestorcalculator.com/bond_risk_help" class="text-gray-400 hover:text-white transition-colors flex items-center"><i class="fas fa-book mr-2"></i> Bond Risk Guide</a></li>
+                    <li><a href="https://younginvestorcalculator.com/contact" class="text-gray-400 hover:text-white transition-colors flex items-center"><i class="fas fa-envelope mr-2"></i> Contact Us</a></li>
+                </ul>
+            </div>
+            <div>
+                <h3 class="text-lg font-bold mb-4">Contact</h3>
+                <ul class="space-y-2">
+                    <li><a href="mailto:info@cleanvisionhr.com" class="text-gray-400 hover:text-white transition-colors flex items-center"><i class="fas fa-envelope mr-2"></i> info@cleanvisionhr.com</a></li>
+                    <li><a href="tel:+233503566913" class="text-gray-400 hover:text-white transition-colors flex items-center"><i class="fas fa-phone mr-2"></i> +233 50 356 6913</a></li>
+                    <li><a href="https://younginvestorcalculator.com/contact" class="text-gray-400 hover:text-white transition-colors flex items-center"><i class="fas fa-map-marker-alt mr-2"></i> Contact Form</a></li>
+                    <li><a href="https://younginvestorcalculator.com/faq" class="text-gray-400 hover:text-white transition-colors flex items-center"><i class="fas fa-question-circle mr-2"></i> FAQ</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="border-t border-gray-800 pt-6 text-center">
+            <p class="text-gray-400">© 2025 InvestIQ. All rights reserved. | <a href="https://younginvestorcalculator.com/privacy" class="text-gray-400 hover:text-white">Privacy Policy</a> | <a href="https://younginvestorcalculator.com/terms" class="text-gray-400 hover:text-white">Terms of Service</a></p>
+        </div>
+    </div>
+</footer>
+
+<!-- Back to Top Button -->
+<button id="backToTop" class="back-to-top w-12 h-12 bg-primary text-white rounded-full shadow-lg flex items-center justify-center">
+    <i class="fas fa-arrow-up"></i>
+</button>
+
+<!-- JavaScript -->
+<script>
+    // Validate non-negative inputs
+    function validatePositive(inputElement) {
+        if (inputElement.hasAttribute('min') && parseFloat(inputElement.value) < parseFloat(inputElement.min)) {
+            inputElement.setCustomValidity('Value must be greater than or equal to ' + inputElement.min);
+            inputElement.reportValidity();
+        } else {
+            inputElement.setCustomValidity('');
+        }
+    }
+
+    // Initialize form on page load
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('input[type="number"]').forEach(input => {
+            input.addEventListener('input', () => validatePositive(input));
+        });
+        document.getElementById('target-price-form').addEventListener('submit', (e) => {
+            const inputs = e.target.querySelectorAll('input[type="number"]');
+            let valid = true;
+            inputs.forEach(input => {
+                if (input.hasAttribute('min') && parseFloat(input.value) < parseFloat(input.min)) {
+                    valid = false;
+                    validatePositive(input);
+                }
+            });
+            if (!valid) e.preventDefault();
+        });
+
+        // Back to top button scroll behavior
+        const backToTopBtn = document.getElementById('backToTop');
+        window.addEventListener('scroll', () => {
+            if (window.pageYOffset > 300) {
+                backToTopBtn.classList.add('visible');
+            } else {
+                backToTopBtn.classList.remove('visible');
+            }
+        });
+        backToTopBtn.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    });
+</script>
 {% endblock %}
