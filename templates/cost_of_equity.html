@@ -1,124 +1,676 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cost of Equity Calculator - Young Investor Calculator</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4f46e5',
+                        secondary: '#818cf8',
+                        accent: '#a5b4fc',
+                        dark: '#1e293b',
+                        light: '#f8fafc',
+                        success: '#10b981',
+                        info: '#0ea5e9',
+                        warning: '#f59e0b',
+                        danger: '#ef4444'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --header-height: 70px;
+            --sidebar-width: 300px;
+        }
 
-{% block title %}Cost of Equity Calculator{% endblock %}
+        body {
+            background: linear-gradient(135deg, #f0f4f8 0%, #e6e9ff 100%);
+            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+        }
 
-{% block content %}
-<div class="container mx-auto p-6">
-    <h2 class="text-2xl font-bold text-gray-800 mb-4">Cost of Equity Calculator</h2>
-    <p class="text-gray-700 mb-4 text-lg">Estimate the cost of equity using the Capital Asset Pricing Model (CAPM) and Dividend Discount Model (DDM). CAPM: <span class="font-mono">Cost = Risk-Free Rate + Beta * (Market Return - Risk-Free Rate)</span>. DDM: <span class="font-mono">Cost = (Dividend per Share / Stock Price) + Growth Rate</span>.</p>
-    <p class="text-gray-600 mb-6 text-sm">Enter values in Ghanaian Cedi (GHS) for dividends and stock price, and percentages for rates. Example: Use data for Access Bank Ghana (174 million shares). See <a href="/help#cost-of-equity-calculator" class="text-indigo-600 hover:underline">Help</a> for guidance.</p>
+        .gradient-bg {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        }
 
-    <!-- Error Message Display -->
-    {% if error %}
-    <div class="error" style="color: red; background-color: #ffe6e6; padding: 10px; margin-bottom: 20px; border: 1px solid red;">
-        <p><strong>Error:</strong> {{ error }}</p>
+        .card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+        }
+
+        .input-field {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+
+        .input-field:focus {
+            border-color: #a5b4fc;
+            box-shadow: 0 0 0 4px rgba(165, 180, 252, 0.25);
+        }
+
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+        }
+
+        .back-to-top.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: #1e293b;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 8px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .nav-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .nav-button {
+            display: flex;
+            align-items: center;
+            padding: 10px 20px;
+            background: white;
+            border-radius: 8px;
+            font-weight: 500;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s ease;
+        }
+
+        .nav-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-button.home {
+            background: #4f46e5;
+            color: white;
+        }
+
+        .nav-button.calculators {
+            background: #10b981;
+            color: white;
+        }
+
+        .nav-button i {
+            margin-right: 8px;
+        }
+
+        .target-price {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #4f46e5;
+            margin: 10px 0;
+        }
+
+        .target-interpretation {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 10px;
+            background-color: #f0f9ff;
+            border-left: 4px solid #0ea5e9;
+        }
+
+        .formula {
+            font-family: 'Courier New', monospace;
+            background-color: #f8fafc;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        th {
+            background-color: #f8fafc;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        td {
+            color: #374151;
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+    <!-- Header -->
+    <header class="gradient-bg text-white py-8 px-4 md:px-8">
+        <div class="max-w-6xl mx-auto">
+            <nav class="hidden md:flex justify-between items-center mb-6">
+                <div class="flex items-center space-x-4">
+                    <a href="/" class="text-white hover:text-indigo-200 transition-colors">Home</a>
+                    <a href="/#calculators" class="text-white font-medium border-b-2 border-white">Calculators</a>
+                    <a href="/help" class="text-white hover:text-indigo-200 transition-colors">Help Center</a>
+                    <a href="/articles" class="text-white hover:text-indigo-200 transition-colors">Resources</a>
+                </div>
+                <a href="/help" class="bg-white text-primary px-4 py-2 rounded-lg font-medium hover:bg-indigo-50 transition-colors">
+                    Get Started
+                </a>
+            </nav>
+            <div class="max-w-3xl">
+                <h1 class="text-4xl md:text-5xl font-bold mb-4">Cost of Equity Calculator</h1>
+                <p class="text-xl md:text-2xl text-indigo-100 mb-6">
+                    Estimate the cost of equity using CAPM and DDM
+                </p>
+                <div class="flex flex-wrap gap-3">
+                    <div class="bg-white/20 px-4 py-2 rounded-full flex items-center">
+                        <i class="fas fa-lightbulb mr-2"></i>
+                        <span>Beginner Friendly</span>
+                    </div>
+                    <div class="bg-white/20 px-4 py-2 rounded-full flex items-center">
+                        <i class="fas fa-download mr-2"></i>
+                        <span>Downloadable Guide</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="max-w-6xl mx-auto px-4 py-8">
+        <!-- Navigation Buttons -->
+        <div class="nav-buttons">
+            <a href="/" class="nav-button home">
+                <i class="fas fa-home"></i> Return to Home
+            </a>
+            <a href="/#calculators" class="nav-button calculators">
+                <i class="fas fa-calculator"></i> Other Calculators
+            </a>
+        </div>
+
+        <!-- Calculator Form -->
+        <div class="card p-6 mb-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Calculate Cost of Equity</h2>
+            <p class="text-gray-600 mb-6">Estimate the cost of equity using the Capital Asset Pricing Model (CAPM) and Dividend Discount Model (DDM). Enter values in Ghanaian Cedi (GHS) for dividends and stock price, and percentages for rates. Example: Use data for Access Bank Ghana (174 million shares).</p>
+            <div class="formula">
+                <p class="text-lg font-semibold">Formulas</p>
+                <p class="text-xl mt-2">CAPM: Cost = Risk-Free Rate + Beta × (Market Return - Risk-Free Rate)</p>
+                <p class="text-xl mt-2">DDM: Cost = (Dividend per Share / Stock Price) + Growth Rate</p>
+            </div>
+            <form id="cost-of-equity-form" class="space-y-6">
+                <!-- CAPM Parameters -->
+                <div class="bg-light p-4 rounded-lg">
+                    <h4 class="text-lg font-medium text-gray-800 mb-3">CAPM Parameters</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div>
+                            <label class="block text-gray-700 font-medium mb-2">Risk-Free Rate (%)</label>
+                            <input type="number" step="0.01" min="0" max="100" name="risk_free_rate" id="risk_free_rate" placeholder="e.g., 25.0" value="0" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
+                            <div class="tooltip mt-2">
+                                <i class="fas fa-info-circle text-gray-500"></i>
+                                <span class="tooltiptext">Yield on 10-year Ghana government bond (e.g., 25% in 2024).</span>
+                            </div>
+                            <div class="form-error text-danger text-sm mt-2 hidden" id="risk_free_rate-error">Please enter a valid number between 0 and 100.</div>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 font-medium mb-2">Beta</label>
+                            <input type="number" step="0.01" min="0" name="beta" id="beta" placeholder="e.g., 1.2" value="0" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
+                            <div class="tooltip mt-2">
+                                <i class="fas fa-info-circle text-gray-500"></i>
+                                <span class="tooltiptext">Stock’s volatility relative to the market (e.g., 1.2 for Access Bank).</span>
+                            </div>
+                            <div class="form-error text-danger text-sm mt-2 hidden" id="beta-error">Please enter a valid number.</div>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 font-medium mb-2">Market Return (%)</label>
+                            <input type="number" step="0.01" min="0" max="100" name="market_return" id="market_return" placeholder="e.g., 15.0" value="0" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
+                            <div class="tooltip mt-2">
+                                <i class="fas fa-info-circle text-gray-500"></i>
+                                <span class="tooltiptext">Expected return of the Ghana Stock Exchange (e.g., 15%).</span>
+                            </div>
+                            <div class="form-error text-danger text-sm mt-2 hidden" id="market_return-error">Please enter a valid number between 0 and 100.</div>
+                        </div>
+                    </div>
+                </div>
+                <!-- DDM Parameters -->
+                <div class="bg-light p-4 rounded-lg">
+                    <h4 class="text-lg font-medium text-gray-800 mb-3">DDM Parameters</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div>
+                            <label class="block text-gray-700 font-medium mb-2">Dividend per Share (GHS)</label>
+                            <input type="number" step="0.01" min="0" name="dividend_per_share" id="dividend_per_share" placeholder="e.g., 0.12" value="0" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
+                            <div class="tooltip mt-2">
+                                <i class="fas fa-info-circle text-gray-500"></i>
+                                <span class="tooltiptext">Annual dividend per share (e.g., 0.12 GHS for Access Bank).</span>
+                            </div>
+                            <div class="form-error text-danger text-sm mt-2 hidden" id="dividend_per_share-error">Please enter a valid number.</div>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 font-medium mb-2">Current Stock Price (GHS)</label>
+                            <input type="number" step="0.01" min="0" name="stock_price" id="stock_price" placeholder="e.g., 2.83" value="0" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
+                            <div class="tooltip mt-2">
+                                <i class="fas fa-info-circle text-gray-500"></i>
+                                <span class="tooltiptext">Current market price per share (e.g., 2.83 GHS).</span>
+                            </div>
+                            <div class="form-error text-danger text-sm mt-2 hidden" id="stock_price-error">Please enter a valid number.</div>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 font-medium mb-2">Dividend Growth Rate (%)</label>
+                            <input type="number" step="0.01" min="0" max="100" name="dividend_growth_rate" id="dividend_growth_rate" placeholder="e.g., 5.0" value="0" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
+                            <div class="tooltip mt-2">
+                                <i class="fas fa-info-circle text-gray-500"></i>
+                                <span class="tooltiptext">Expected growth rate of dividends (e.g., 5%).</span>
+                            </div>
+                            <div class="form-error text-danger text-sm mt-2 hidden" id="dividend_growth_rate-error">Please enter a valid number between 0 and 100.</div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Weighting Parameters -->
+                <div class="bg-light p-4 rounded-lg">
+                    <h4 class="text-lg font-medium text-gray-800 mb-3">Weighting Parameters</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-gray-700 font-medium mb-2">CAPM Weight (%)</label>
+                            <input type="number" step="1" min="0" max="100" name="capm_weight" id="capm_weight" placeholder="e.g., 60" value="0" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
+                            <div class="tooltip mt-2">
+                                <i class="fas fa-info-circle text-gray-500"></i>
+                                <span class="tooltiptext">Weight for CAPM result (e.g., 60%). Total weights must sum to 100%.</span>
+                            </div>
+                            <div class="form-error text-danger text-sm mt-2 hidden" id="capm_weight-error">Please enter a valid number between 0 and 100.</div>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 font-medium mb-2">DDM Weight (%)</label>
+                            <input type="number" step="1" min="0" max="100" name="ddm_weight" id="ddm_weight" placeholder="e.g., 40" value="0" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
+                            <div class="tooltip mt-2">
+                                <i class="fas fa-info-circle text-gray-500"></i>
+                                <span class="tooltiptext">Weight for DDM result (e.g., 40%). Total weights must sum to 100%.</span>
+                            </div>
+                            <div class="form-error text-danger text-sm mt-2 hidden" id="ddm_weight-error">Please enter a valid number between 0 and 100.</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex gap-4">
+                    <button type="submit" class="px-6 py-3 bg-primary text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors">
+                        <i class="fas fa-calculator mr-2"></i> Calculate
+                    </button>
+                    <button type="reset" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors">
+                        <i class="fas fa-eraser mr-2"></i> Clear
+                    </button>
+                </div>
+            </form>
+            <!-- Results Section -->
+            <div id="results-section" class="mt-8 hidden">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">Cost of Equity Results</h3>
+                <div class="text-center mb-6">
+                    <p class="text-gray-600">Weighted Average Cost of Equity</p>
+                    <div class="target-price" id="weighted-average-result">0.00%</div>
+                    <div class="target-interpretation">
+                        <p class="font-medium">Interpretation:</p>
+                        <p id="target-interpretation-text"></p>
+                    </div>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Method</th>
+                            <th>Cost of Equity (%)</th>
+                            <th>Weight (%)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="results-table">
+                        <!-- Results will be populated by JavaScript -->
+                    </tbody>
+                </table>
+                <p class="text-gray-600 mt-4">Use the weighted average cost of equity in DCF or WACC calculations for valuation purposes.</p>
+                <div class="mt-6">
+                    <button id="reset-calculator" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium flex items-center inline-block">
+                        <i class="fas fa-redo mr-2"></i> Calculate Another
+                    </button>
+                </div>
+            </div>
+            <!-- Error Message -->
+            <div id="error-message" class="mt-6 hidden">
+                <div class="bg-red-50 p-4 rounded-lg">
+                    <p class="text-red-700 font-medium" id="error-text"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Guide Section -->
+        <div class="card p-6">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Understanding Cost of Equity</h2>
+            <p class="text-gray-600 mb-6">The cost of equity represents the return required by shareholders for investing in a company. It’s a key input for DCF valuations and WACC calculations, using methods like CAPM and DDM.</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div class="bg-blue-50 p-5 rounded-lg">
+                    <div class="text-3xl font-bold text-blue-700 mb-2">Two Methods</div>
+                    <h3 class="font-bold text-gray-800 mb-2">CAPM and DDM</h3>
+                    <p class="text-gray-600">CAPM uses market risk; DDM uses dividend data. Combine them for a balanced estimate.</p>
+                </div>
+                <div class="bg-orange-50 p-5 rounded-lg">
+                    <div class="text-3xl font-bold text-orange-700 mb-2">Accurate Data</div>
+                    <h3 class="font-bold text-gray-800 mb-2">Source Reliable Inputs</h3>
+                    <p class="text-gray-600">Use financial websites like Yahoo Finance or gse.com.gh for accurate data.</p>
+                </div>
+            </div>
+            <h3 class="text-xl font-bold text-gray-800 mt-8 mb-4">How to Use the Cost of Equity Calculator</h3>
+            <ol class="list-decimal pl-6 space-y-4">
+                <li>
+                    <strong>Enter CAPM Parameters</strong>
+                    <p>Input risk-free rate, beta, and market return to calculate cost of equity using CAPM.</p>
+                </li>
+                <li>
+                    <strong>Enter DDM Parameters</strong>
+                    <p>Provide dividend per share, stock price, and dividend growth rate for DDM.</p>
+                </li>
+                <li>
+                    <strong>Assign Weights</strong>
+                    <p>Specify weights for CAPM and DDM results (must sum to 100%).</p>
+                </li>
+                <li>
+                    <strong>Calculate and Review</strong>
+                    <p>Click “Calculate” to get the weighted average cost of equity. Use it in DCF or WACC calculations.</p>
+                </li>
+            </ol>
+            <div class="mt-8">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">Key Applications</h3>
+                <ul class="list-disc pl-6 space-y-2">
+                    <li>Input for DCF valuations to discount future cash flows</li>
+                    <li>Component of Weighted Average Cost of Capital (WACC)</li>
+                    <li>Assessing required returns for equity investments</li>
+                    <li>Comparing investment opportunities in Ghanaian or global markets</li>
+                </ul>
+            </div>
+            <div class="flex flex-wrap gap-3 mt-6">
+                <a href="/download_guide" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium flex items-center">
+                    <i class="fas fa-download mr-2"></i> Download Guide
+                </a>
+                <a href="/tutorial" class="px-4 py-2 bg-primary text-white rounded-lg font-medium flex items-center">
+                    <i class="fas fa-play-circle mr-2"></i> Watch Tutorial
+                </a>
+            </div>
+        </div>
+
+        <!-- Collapsible Help Section -->
+        <div class="card p-6 mb-8">
+            <button type="button" onclick="toggleHelpSection()" class="w-full text-left text-2xl font-bold text-gray-800 flex justify-between items-center focus:outline-none">
+                <span>How to Find Cost of Equity Data</span>
+                <span id="help-toggle-icon" class="text-gray-500 text-xl">➕</span>
+            </button>
+            <div id="help-section" class="hidden mt-4 text-gray-600">
+                <p class="mb-2">To calculate an accurate cost of equity, source reliable financial data for CAPM and DDM. Here’s how to find the required inputs for global and Ghanaian companies:</p>
+                <ol class="list-decimal pl-6 space-y-4">
+                    <li>
+                        <strong>CAPM Parameters</strong>
+                        <ul class="list-disc list-inside ml-6 space-y-2">
+                            <li><strong>Risk-Free Rate</strong>: Use the yield on 10-year Ghana government bonds (e.g., 25% in 2024) or U.S. Treasury bonds for global firms, available on gse.com.gh or Bloomberg.</li>
+                            <li><strong>Beta</strong>: Find on Yahoo Finance under “Statistics” (e.g., 1.2 for Access Bank Ghana).</li>
+                            <li><strong>Market Return</strong>: Use historical or expected returns of the Ghana Stock Exchange (e.g., 15%) or global indices, available on gse.com.gh or Yahoo Finance.</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>DDM Parameters</strong>
+                        <ul class="list-disc list-inside ml-6 space-y-2">
+                            <li><strong>Dividend per Share</strong>: Check company reports or Yahoo Finance “Dividends” tab (e.g., 0.12 GHS for Access Bank).</li>
+                            <li><strong>Stock Price</strong>: Find current market price on gse.com.gh or Yahoo Finance (e.g., 2.83 GHS).</li>
+                            <li><strong>Dividend Growth Rate</strong>: Estimate from historical dividend growth or analyst projections (e.g., 5%), available on Yahoo Finance “Analysis” tab.</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Weighting Parameters</strong>
+                        <ul class="list-disc list-inside ml-6 space-y-2">
+                            <li><strong>CAPM and DDM Weights</strong>: Assign based on preference (e.g., 60% CAPM, 40% DDM). Ensure they sum to 100%.</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Tips</strong>
+                        <ul class="list-disc list-inside ml-6 space-y-2">
+                            <li>Verify data from multiple sources (e.g., Yahoo Finance, gse.com.gh, annualreportsghana.com).</li>
+                            <li>For Ghanaian companies, check gse.com.gh for financial statements and announcements.</li>
+                            <li>Use analyst estimates for projections when historical data is limited.</li>
+                        </ul>
+                    </li>
+                </ol>
+                <p class="mt-4"><strong>Examples</strong>:</p>
+                <ul class="list-disc list-inside ml-6 space-y-2">
+                    <li><strong>Access Bank Ghana (ABG)</strong>: Risk-Free Rate = 25%, Beta = 1.2, Market Return = 15% (CAPM); Dividend = 0.12 GHS, Stock Price = 2.83 GHS, Growth Rate = 5% (DDM).</li>
+                    <li><strong>JPMorgan Chase (JPM)</strong>: Risk-Free Rate = 3%, Beta = 1.1, Market Return = 10% (CAPM); Dividend = $4.10, Stock Price = $150, Growth Rate = 4% (DDM).</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Navigation Buttons at Bottom -->
+        <div class="nav-buttons mt-6">
+            <a href="/" class="nav-button home">
+                <i class="fas fa-home"></i> Return to Home
+            </a>
+            <a href="/#calculators" class="nav-button calculators">
+                <i class="fas fa-calculator"></i> Other Calculators
+            </a>
+        </div>
     </div>
-    {% endif %}
 
-    <form method="POST" class="space-y-6">
-        <h3 class="text-xl font-semibold text-gray-800 mb-4">Input Parameters</h3>
+    <!-- Back to Top Button -->
+    <button id="backToTop" class="back-to-top w-12 h-12 bg-primary text-white rounded-full shadow-lg flex items-center justify-center">
+        <i class="fas fa-arrow-up"></i>
+    </button>
 
-        <!-- CAPM Parameters -->
-        <div class="bg-white p-4 rounded-lg shadow-sm">
-            <h4 class="text-lg font-medium text-gray-800 mb-3">CAPM Parameters</h4>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                <div class="group relative">
-                    <label for="risk_free_rate" class="block text-gray-700 font-medium mb-1">Risk-Free Rate (%):</label>
-                    <input type="number" step="0.01" min="0" max="100" name="risk_free_rate" id="risk_free_rate" value="{{ request.form.get('risk_free_rate', '25.0') }}" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" aria-describedby="risk_free_rate_tip">
-                    <span class="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded p-2 mt-1 w-64 z-10" id="risk_free_rate_tip">Yield on 10-year Ghana government bond (e.g., 25% in 2024).</span>
-                </div>
-                <div class="group relative">
-                    <label for="beta" class="block text-gray-700 font-medium mb-1">Beta:</label>
-                    <input type="number" step="0.01" min="0" name="beta" id="beta" value="{{ request.form.get('beta', '1.2') }}" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" aria-describedby="beta_tip">
-                    <span class="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded p-2 mt-1 w-64 z-10" id="beta_tip">Stock’s volatility relative to the market (e.g., 1.2 for Access Bank).</span>
-                </div>
-                <div class="group relative">
-                    <label for="market_return" class="block text-gray-700 font-medium mb-1">Market Return (%):</label>
-                    <input type="number" step="0.01" min="0" max="100" name="market_return" id="market_return" value="{{ request.form.get('market_return', '15.0') }}" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" aria-describedby="market_return_tip">
-                    <span class="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded p-2 mt-1 w-64 z-10" id="market_return_tip">Expected return of the Ghana Stock Exchange (e.g., 15%).</span>
-                </div>
-            </div>
-        </div>
+    <!-- JavaScript -->
+    <script>
+        // Back to top button
+        const backToTopBtn = document.getElementById('backToTop');
+        window.addEventListener('scroll', function() {
+            if (window.pageYOffset > 300) {
+                backToTopBtn.classList.add('visible');
+            } else {
+                backToTopBtn.classList.remove('visible');
+            }
+        });
+        backToTopBtn.addEventListener('click', function() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
 
-        <!-- DDM Parameters -->
-        <div class="bg-white p-4 rounded-lg shadow-sm">
-            <h4 class="text-lg font-medium text-gray-800 mb-3">DDM Parameters</h4>
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                <div class="group relative">
-                    <label for="dividend_per_share" class="block text-gray-700 font-medium mb-1">Dividend per Share (GHS):</label>
-                    <input type="number" step="0.01" min="0" name="dividend_per_share" id="dividend_per_share" value="{{ request.form.get('dividend_per_share', '0.12') }}" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" aria-describedby="dividend_per_share_tip">
-                    <span class="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded p-2 mt-1 w-64 z-10" id="dividend_per_share_tip">Annual dividend per share (e.g., 0.12 GHS for Access Bank).</span>
-                </div>
-                <div class="group relative">
-                    <label for="stock_price" class="block text-gray-700 font-medium mb-1">Current Stock Price (GHS):</label>
-                    <input type="number" step="0.01" min="0" name="stock_price" id="stock_price" value="{{ request.form.get('stock_price', '2.83') }}" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" aria-describedby="stock_price_tip">
-                    <span class="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded p-2 mt-1 w-64 z-10" id="stock_price_tip">Current market price per share (e.g., 2.83 GHS).</span>
-                </div>
-                <div class="group relative">
-                    <label for="dividend_growth_rate" class="block text-gray-700 font-medium mb-1">Dividend Growth Rate (%):</label>
-                    <input type="number" step="0.01" min="0" max="100" name="dividend_growth_rate" id="dividend_growth_rate" value="{{ request.form.get('dividend_growth_rate', '5.0') }}" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" aria-describedby="dividend_growth_rate_tip">
-                    <span class="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded p-2 mt-1 w-64 z-10" id="dividend_growth_rate_tip">Expected growth rate of dividends (e.g., 5%).</span>
-                </div>
-            </div>
-        </div>
+        // Validate inputs
+        function validateInput(inputElement, min, max) {
+            const value = parseFloat(inputElement.value);
+            if (!inputElement.value || isNaN(value) || (min !== undefined && value < min) || (max !== undefined && value > max)) {
+                inputElement.setCustomValidity(`Please enter a valid number${min !== undefined && max !== undefined ? ` between ${min} and ${max}` : ''}.`);
+                inputElement.reportValidity();
+                return false;
+            } else {
+                inputElement.setCustomValidity('');
+                return true;
+            }
+        }
 
-        <!-- Weighting Parameters -->
-        <div class="bg-white p-4 rounded-lg shadow-sm">
-            <h4 class="text-lg font-medium text-gray-800 mb-3">Weighting Parameters</h4>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div class="group relative">
-                    <label for="capm_weight" class="block text-gray-700 font-medium mb-1">CAPM Weight (%):</label>
-                    <input type="number" step="1" min="0" max="100" name="capm_weight" id="capm_weight" value="{{ request.form.get('capm_weight', '60') }}" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" aria-describedby="capm_weight_tip">
-                    <span class="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded p-2 mt-1 w-64 z-10" id="capm_weight_tip">Weight for CAPM result (e.g., 60%). Total weights must sum to 100%.</span>
-                </div>
-                <div class="group relative">
-                    <label for="ddm_weight" class="block text-gray-700 font-medium mb-1">DDM Weight (%):</label>
-                    <input type="number" step="1" min="0" max="100" name="ddm_weight" id="ddm_weight" value="{{ request.form.get('ddm_weight', '40') }}" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" aria-describedby="ddm_weight_tip">
-                    <span class="absolute hidden group-hover:block bg-gray-800 text-white text-xs rounded p-2 mt-1 w-64 z-10" id="ddm_weight_tip">Weight for DDM result (e.g., 40%). Total weights must sum to 100%.</span>
-                </div>
-            </div>
-        </div>
+        // Toggle help section visibility
+        function toggleHelpSection() {
+            const helpSection = document.getElementById('help-section');
+            const toggleIcon = document.getElementById('help-toggle-icon');
+            helpSection.classList.toggle('hidden');
+            toggleIcon.textContent = helpSection.classList.contains('hidden') ? '➕' : '➖';
+        }
 
-        <div class="flex gap-2">
-            <button type="submit" class="action-btn bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-200 text-lg font-medium">Calculate</button>
-            <a href="{{ url_for('calculate_cost_of_equity') }}" class="action-btn bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-200 text-lg font-medium">Clear</a>
-            <a href="/" class="action-btn bg-gray-500 text-white px-6 py-3 rounded-lg hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 transition duration-200 text-lg font-medium">Back to Home</a>
-        </div>
-    </form>
+        // Form submission handler (client-side calculation)
+        const form = document.getElementById('cost-of-equity-form');
+        const resultsSection = document.getElementById('results-section');
+        const weightedAverageResult = document.getElementById('weighted-average-result');
+        const resultsTable = document.getElementById('results-table');
+        const targetInterpretationText = document.getElementById('target-interpretation-text');
+        const errorMessage = document.getElementById('error-message');
+        const errorText = document.getElementById('error-text');
+        const resetBtn = document.getElementById('reset-calculator');
 
-    {% if results %}
-    <div class="results mt-8">
-        <h3 class="text-xl font-semibold text-gray-800 mb-4">Results</h3>
-        <div class="overflow-x-auto">
-            <table style="width: 100%; border-collapse: collapse;" class="w-full bg-white rounded-lg shadow-sm">
-                <thead>
-                    <tr style="background-color: #f2f2f2;" class="text-gray-700">
-                        <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Method</th>
-                        <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Cost of Equity (%)</th>
-                        <th style="border: 1px solid #ddd; padding: 8px; text-align: left;">Weight (%)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr style="border: 1px solid #ddd;">
-                        <td style="padding: 8px;">CAPM</td>
-                        <td style="padding: 8px;">{{ "{:.2f}".format(results.capm) }}</td>
-                        <td style="padding: 8px;">{{ results.capm_weight }}</td>
-                    </tr>
-                    <tr style="border: 1px solid #ddd;">
-                        <td style="padding: 8px;">DDM</td>
-                        <td style="padding: 8px;">{{ "{:.2f}".format(results.ddm) }}</td>
-                        <td style="padding: 8px;">{{ results.ddm_weight }}</td>
-                    </tr>
-                    <tr style="border: 1px solid #ddd; font-weight: bold;">
-                        <td style="padding: 8px;">Weighted Average</td>
-                        <td style="padding: 8px;">{{ "{:.2f}".format(results.weighted_average) }}</td>
-                        <td style="padding: 8px;">100</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-        <p class="text-gray-700 mt-4">The weighted average cost of equity is {{ "{:.2f}".format(results.weighted_average) }}%. Use this in DCF or WACC calculations. See <a href="/help#cost-of-equity-calculator" class="text-indigo-600 hover:underline">Help</a> for more details.</p>
-    </div>
-    {% endif %}
-</div>
-{% endblock %}
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // Reset error state
+            errorMessage.classList.add('hidden');
+            document.querySelectorAll('.form-error').forEach(el => el.classList.add('hidden'));
+
+            // Get input values
+            const riskFreeRate = parseFloat(document.getElementById('risk_free_rate').value);
+            const beta = parseFloat(document.getElementById('beta').value);
+            const marketReturn = parseFloat(document.getElementById('market_return').value);
+            const dividendPerShare = parseFloat(document.getElementById('dividend_per_share').value);
+            const stockPrice = parseFloat(document.getElementById('stock_price').value);
+            const dividendGrowthRate = parseFloat(document.getElementById('dividend_growth_rate').value);
+            const capmWeight = parseFloat(document.getElementById('capm_weight').value);
+            const ddmWeight = parseFloat(document.getElementById('ddm_weight').value);
+
+            // Validate inputs
+            let valid = true;
+            if (!validateInput(document.getElementById('risk_free_rate'), 0, 100)) {
+                document.getElementById('risk_free_rate-error').classList.remove('hidden');
+                valid = false;
+            }
+            if (!validateInput(document.getElementById('beta'), 0)) {
+                document.getElementById('beta-error').classList.remove('hidden');
+                valid = false;
+            }
+            if (!validateInput(document.getElementById('market_return'), 0, 100)) {
+                document.getElementById('market_return-error').classList.remove('hidden');
+                valid = false;
+            }
+            if (!validateInput(document.getElementById('dividend_per_share'), 0)) {
+                document.getElementById('dividend_per_share-error').classList.remove('hidden');
+                valid = false;
+            }
+            if (!validateInput(document.getElementById('stock_price'), 0)) {
+                document.getElementById('stock_price-error').classList.remove('hidden');
+                valid = false;
+            }
+            if (!validateInput(document.getElementById('dividend_growth_rate'), 0, 100)) {
+                document.getElementById('dividend_growth_rate-error').classList.remove('hidden');
+                valid = false;
+            }
+            if (!validateInput(document.getElementById('capm_weight'), 0, 100)) {
+                document.getElementById('capm_weight-error').classList.remove('hidden');
+                valid = false;
+            }
+            if (!validateInput(document.getElementById('ddm_weight'), 0, 100)) {
+                document.getElementById('ddm_weight-error').classList.remove('hidden');
+                valid = false;
+            }
+            if ((capmWeight + ddmWeight) !== 100) {
+                errorText.textContent = 'CAPM and DDM weights must sum to 100%.';
+                errorMessage.classList.remove('hidden');
+                valid = false;
+            }
+            if (stockPrice === 0 && dividendPerShare > 0) {
+                errorText.textContent = 'Stock price cannot be zero when dividend per share is provided.';
+                errorMessage.classList.remove('hidden');
+                valid = false;
+            }
+
+            if (!valid) {
+                return;
+            }
+
+            // Calculate Cost of Equity
+            const capm = riskFreeRate + beta * (marketReturn - riskFreeRate);
+            const ddm = stockPrice !== 0 ? (dividendPerShare / stockPrice) * 100 + dividendGrowthRate : 0;
+            const weightedAverage = (capm * capmWeight / 100) + (ddm * ddmWeight / 100);
+
+            // Populate results table
+            resultsTable.innerHTML = `
+                <tr>
+                    <td>CAPM</td>
+                    <td>${capm.toFixed(2)}%</td>
+                    <td>${capmWeight.toFixed(0)}%</td>
+                </tr>
+                <tr>
+                    <td>DDM</td>
+                    <td>${ddm.toFixed(2)}%</td>
+                    <td>${ddmWeight.toFixed(0)}%</td>
+                </tr>
+                <tr>
+                    <td><strong>Weighted Average</strong></td>
+                    <td><strong>${weightedAverage.toFixed(2)}%</strong></td>
+                    <td>100%</td>
+                </tr>
+            `;
+
+            // Display results
+            weightedAverageResult.textContent = `${weightedAverage.toFixed(2)}%`;
+            targetInterpretationText.textContent = `The weighted average cost of equity is ${weightedAverage.toFixed(2)}%, calculated as a weighted average of CAPM (${capm.toFixed(2)}% × ${capmWeight}%) and DDM (${ddm.toFixed(2)}% × ${ddmWeight}%). CAPM uses risk-free rate (${riskFreeRate.toFixed(2)}%), beta (${beta.toFixed(2)}), and market return (${marketReturn.toFixed(2)}%). DDM uses dividend per share (GHS ${dividendPerShare.toFixed(2)}), stock price (GHS ${stockPrice.toFixed(2)}), and dividend growth rate (${dividendGrowthRate.toFixed(2)}%).`;
+
+            resultsSection.classList.remove('hidden');
+            resultsSection.scrollIntoView({ behavior: 'smooth' });
+        });
+
+        // Reset button handler
+        resetBtn.addEventListener('click', function() {
+            form.reset();
+            document.getElementById('risk_free_rate').value = '0';
+            document.getElementById('beta').value = '0';
+            document.getElementById('market_return').value = '0';
+            document.getElementById('dividend_per_share').value = '0';
+            document.getElementById('stock_price').value = '0';
+            document.getElementById('dividend_growth_rate').value = '0';
+            document.getElementById('capm_weight').value = '0';
+            document.getElementById('ddm_weight').value = '0';
+            resultsSection.classList.add('hidden');
+            errorMessage.classList.add('hidden');
+        });
+
+        // Initialize form on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('input[type="number"]').forEach(input => {
+                input.addEventListener('input', () => validateInput(input, input.min, input.max));
+            });
+        });
+    </script>
+</body>
+</html>

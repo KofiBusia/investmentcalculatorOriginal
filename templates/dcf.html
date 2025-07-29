@@ -1,94 +1,675 @@
-{% extends "base.html" %}
-
-{% block title %}DCF Valuation Calculator{% endblock %}
-
-{% block content %}
-<div class="container">
-    <h2>Discounted Cash Flow (DCF) Calculator</h2>
-    <p>Calculate the intrinsic value of an investment based on future cash flows.</p>
-
-    <!-- Error Display -->
-    {% if error %}
-    <div class="error" style="color: red; background-color: #ffe6e6; padding: 10px; margin-bottom: 20px; border: 1px solid red;">
-        <strong>Error:</strong> {{ error }}
-    </div>
-    {% endif %}
-
-    <!-- Form -->
-    <form method="POST" action="{{ url_for('dcf_calculator') }}">
-        <h3>DCF Parameters</h3>
-        <p>Enter cash flows in full values (e.g., 1000000). Rates are in percentages (e.g., 5 for 5%).</p>
-
-        <div class="group">
-            <label for="years">Forecast Period (Years):</label>
-            <select name="years" id="years" required>
-                {% for i in range(1, 11) %}
-                <option value="{{ i }}" {{ 'selected' if request.form.get('years', '5')|int == i else '' }}>{{ i }}</option>
-                {% endfor %}
-            </select>
-        </div>
-
-        <!-- Dynamic Cash Flow Inputs -->
-        <div id="cash-flow-inputs">
-            {% for i in range(1, 11) %}
-            <div class="group cash-flow" id="cf_group_{{ i }}" style="display: none;">
-                <label for="cash_flow_{{ i }}">Year {{ i }} Cash Flow:</label>
-                <input type="number" step="1" name="cash_flow_{{ i }}" id="cash_flow_{{ i }}" value="{{ request.form.get('cash_flow_' ~ i, '') }}" min="0">
-            </div>
-            {% endfor %}
-        </div>
-
-        <div class="group">
-            <label for="discount_rate">Discount Rate (%):</label>
-            <input type="number" step="0.01" name="discount_rate" id="discount_rate" value="{{ request.form.get('discount_rate', '') }}" min="0" required>
-        </div>
-        <div class="group">
-            <label for="terminal_growth">Terminal Growth Rate (%):</label>
-            <input type="number" step="0.01" name="terminal_growth" id="terminal_growth" value="{{ request.form.get('terminal_growth', '') }}" min="0" required>
-        </div>
-
-        <button type="submit" class="action-btn">Calculate</button>
-        <a href="{{ url_for('dcf_calculator') }}" class="action-btn">Clear</a>
-        <a href="{{ url_for('index') }}" class="action-btn">Back to Home</a>
-    </form>
-
-    <!-- Results Display -->
-    {% if results %}
-    <div class="results">
-        <h3>DCF Valuation Results</h3>
-        <p><strong>Present Value of Cash Flows:</strong> GHS{{ "%.2f"|format(results.total_pv) }}</p>
-        <h4>Detailed Cash Flows:</h4>
-        <ul>
-            {% for pv in results.pv_cash_flows %}
-            <li>Year {{ loop.index }} PV: GHS{{ "%.2f"|format(pv) }}</li>
-            {% endfor %}
-        </ul>
-        <p><strong>Terminal Value:</strong> GHS{{ "%.2f"|format(results.terminal_value) }}</p>
-        <p><strong>PV of Terminal Value:</strong> GHS{{ "%.2f"|format(results.pv_terminal) }}</p>
-        <p><strong>Total DCF Value:</strong> GHS{{ "%.2f"|format(results.total_dcf) }}</p>
-    </div>
-    {% endif %}
-</div>
-
-<!-- JavaScript for Dynamic Fields -->
-<script>
-    function updateCashFlowFields() {
-        const years = parseInt(document.getElementById('years').value) || 5;
-        for (let i = 1; i <= 10; i++) {
-            const cfGroup = document.getElementById(`cf_group_${i}`);
-            const input = document.getElementById(`cash_flow_${i}`);
-            if (i <= years) {
-                cfGroup.style.display = 'block';
-                input.required = true;
-            } else {
-                cfGroup.style.display = 'none';
-                input.required = false;
-                input.value = ''; // Clear hidden fields
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DCF Valuation Calculator - Young Investor Calculator</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4f46e5',
+                        secondary: '#818cf8',
+                        accent: '#a5b4fc',
+                        dark: '#1e293b',
+                        light: '#f8fafc',
+                        success: '#10b981',
+                        info: '#0ea5e9',
+                        warning: '#f59e0b',
+                        danger: '#ef4444'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif']
+                    }
+                }
             }
         }
-    }
+    </script>
+    <style>
+        :root {
+            --header-height: 70px;
+            --sidebar-width: 300px;
+        }
 
-    window.addEventListener('load', updateCashFlowFields);
-    document.getElementById('years').addEventListener('change', updateCashFlowFields);
-</script>
-{% endblock %}
+        body {
+            background: linear-gradient(135deg, #f0f4f8 0%, #e6e9ff 100%);
+            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+        }
+
+        .input-field {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+
+        .input-field:focus {
+            border-color: #a5b4fc;
+            box-shadow: 0 0 0 4px rgba(165, 180, 252, 0.25);
+        }
+
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+        }
+
+        .back-to-top.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: #1e293b;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 8px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .nav-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .nav-button {
+            display: flex;
+            align-items: center;
+            padding: 10px 20px;
+            background: white;
+            border-radius: 8px;
+            font-weight: 500;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s ease;
+        }
+
+        .nav-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-button.home {
+            background: #4f46e5;
+            color: white;
+        }
+
+        .nav-button.calculators {
+            background: #10b981;
+            color: white;
+        }
+
+        .nav-button i {
+            margin-right: 8px;
+        }
+
+        .target-price {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #4f46e5;
+            margin: 10px 0;
+        }
+
+        .target-interpretation {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 10px;
+            background-color: #f0f9ff;
+            border-left: 4px solid #0ea5e9;
+        }
+
+        .formula {
+            font-family: 'Courier New', monospace;
+            background-color: #f8fafc;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        th {
+            background-color: #f8fafc;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        td {
+            color: #374151;
+        }
+
+        select {
+            appearance: none;
+            background-image: url("data:image/svg+xml;utf8,<svg fill='black' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>");
+            background-repeat: no-repeat;
+            background-position-x: calc(100% - 12px);
+            background-position-y: 50%;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 12px;
+            width: 100%;
+            max-width: 300px;
+            font-size: 1rem;
+            color: #374151;
+        }
+
+        select:focus {
+            border-color: #a5b4fc;
+            box-shadow: 0 0 0 4px rgba(165, 180, 252, 0.25);
+            outline: none;
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+    <!-- Header -->
+    <header class="gradient-bg text-white py-8 px-4 md:px-8">
+        <div class="max-w-6xl mx-auto">
+            <nav class="hidden md:flex justify-between items-center mb-6">
+                <div class="flex items-center space-x-4">
+                    <a href="/" class="text-white hover:text-indigo-200 transition-colors">Home</a>
+                    <a href="/#calculators" class="text-white font-medium border-b-2 border-white">Calculators</a>
+                    <a href="/help" class="text-white hover:text-indigo-200 transition-colors">Help Center</a>
+                    <a href="/articles" class="text-white hover:text-indigo-200 transition-colors">Resources</a>
+                </div>
+                <a href="/help" class="bg-white text-primary px-4 py-2 rounded-lg font-medium hover:bg-indigo-50 transition-colors">
+                    Get Started
+                </a>
+            </nav>
+            <div class="max-w-3xl">
+                <h1 class="text-4xl md:text-5xl font-bold mb-4">Discounted Cash Flow (DCF) Calculator</h1>
+                <p class="text-xl md:text-2xl text-indigo-100 mb-6">
+                    Calculate the intrinsic value of an investment based on future cash flows
+                </p>
+                <div class="flex flex-wrap gap-3">
+                    <div class="bg-white/20 px-4 py-2 rounded-full flex items-center">
+                        <i class="fas fa-lightbulb mr-2"></i>
+                        <span>Beginner Friendly</span>
+                    </div>
+                    <div class="bg-white/20 px-4 py-2 rounded-full flex items-center">
+                        <i class="fas fa-download mr-2"></i>
+                        <span>Downloadable Guide</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="max-w-6xl mx-auto px-4 py-8">
+        <!-- Navigation Buttons -->
+        <div class="nav-buttons">
+            <a href="/" class="nav-button home">
+                <i class="fas fa-home"></i> Return to Home
+            </a>
+            <a href="/#calculators" class="nav-button calculators">
+                <i class="fas fa-calculator"></i> Other Calculators
+            </a>
+        </div>
+
+        <!-- Calculator Form -->
+        <div class="card p-6 mb-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Calculate DCF Valuation</h2>
+            <p class="text-gray-600 mb-6">Enter projected cash flows, discount rate, and terminal growth rate to estimate the intrinsic value of an investment. All monetary values should be in Ghanaian Cedi (GHS). Example: Use FCFE data from Access Bank Ghana (174 million shares).</p>
+            <div class="formula">
+                <p class="text-lg font-semibold">DCF Formula</p>
+                <p class="text-xl mt-2">DCF = Σ (Cash Flowₜ / (1 + Discount Rate)ᵗ) + Terminal Value / (1 + Discount Rate)ⁿ</p>
+                <p class="text-sm mt-2 text-gray-600">Where Terminal Value = (Final Year Cash Flow × (1 + Terminal Growth Rate)) / (Discount Rate - Terminal Growth Rate).</p>
+            </div>
+            <form id="dcf-form" class="space-y-6">
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2">Forecast Period (Years)</label>
+                    <select name="years" id="years" class="input-field" required>
+                        {% for i in range(1, 11) %}
+                        <option value="{{ i }}" {{ 'selected' if i == 5 else '' }}>{{ i }}</option>
+                        {% endfor %}
+                    </select>
+                    <div class="tooltip mt-2">
+                        <i class="fas fa-info-circle text-gray-500"></i>
+                        <span class="tooltiptext">Number of years for cash flow projections (1-10).</span>
+                    </div>
+                    <div class="form-error text-danger text-sm mt-2 hidden" id="years-error">Please select a valid number of years.</div>
+                </div>
+                <div id="cash-flow-inputs" class="space-y-4">
+                    {% for i in range(1, 11) %}
+                    <div class="cash-flow hidden" id="cf_group_{{ i }}">
+                        <label class="block text-gray-700 font-medium mb-2">Year {{ i }} Cash Flow (GHS)</label>
+                        <input type="number" step="1" name="cash_flow_{{ i }}" id="cash_flow_{{ i }}" placeholder="e.g., 1000000" min="0" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
+                        <div class="tooltip mt-2">
+                            <i class="fas fa-info-circle text-gray-500"></i>
+                            <span class="tooltiptext">Projected cash flow for Year {{ i }} (e.g., FCFE from financial statements).</span>
+                        </div>
+                        <div class="form-error text-danger text-sm mt-2 hidden" id="cash_flow_{{ i }}-error">Please enter a valid number.</div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">Discount Rate (%)</label>
+                        <input type="number" step="0.01" name="discount_rate" id="discount_rate" placeholder="e.g., 8.0" min="0" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
+                        <div class="tooltip mt-2">
+                            <i class="fas fa-info-circle text-gray-500"></i>
+                            <span class="tooltiptext">Rate to discount future cash flows (e.g., WACC or required return).</span>
+                        </div>
+                        <div class="form-error text-danger text-sm mt-2 hidden" id="discount_rate-error">Please enter a valid number.</div>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">Terminal Growth Rate (%)</label>
+                        <input type="number" step="0.01" name="terminal_growth" id="terminal_growth" placeholder="e.g., 2.0" min="0" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
+                        <div class="tooltip mt-2">
+                            <i class="fas fa-info-circle text-gray-500"></i>
+                            <span class="tooltiptext">Perpetual growth rate for cash flows after the forecast period.</span>
+                        </div>
+                        <div class="form-error text-danger text-sm mt-2 hidden" id="terminal_growth-error">Please enter a valid number.</div>
+                    </div>
+                </div>
+                <div class="flex gap-4">
+                    <button type="submit" class="px-6 py-3 bg-primary text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors">
+                        <i class="fas fa-calculator mr-2"></i> Calculate
+                    </button>
+                    <button type="reset" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors">
+                        <i class="fas fa-eraser mr-2"></i> Clear
+                    </button>
+                </div>
+            </form>
+            <!-- Results Section -->
+            <div id="results-section" class="mt-8 hidden">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">DCF Valuation Results</h3>
+                <div class="text-center mb-6">
+                    <p class="text-gray-600">Intrinsic Value</p>
+                    <div class="target-price" id="total-dcf-result">GHS 0.00</div>
+                    <div class="target-interpretation">
+                        <p class="font-medium">Interpretation:</p>
+                        <p id="target-interpretation-text"></p>
+                    </div>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Year</th>
+                            <th>Cash Flow (GHS)</th>
+                            <th>Present Value (GHS)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cash-flow-results-table">
+                        <!-- Results will be populated by JavaScript -->
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td>Terminal Value</td>
+                            <td id="terminal-value"></td>
+                            <td id="pv-terminal-value"></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Total</strong></td>
+                            <td></td>
+                            <td id="total-pv"></td>
+                        </tr>
+                    </tfoot>
+                </table>
+                <p class="text-gray-600 mt-4">Use the total DCF value to assess the intrinsic value of the investment. Divide by shares outstanding (e.g., 174 million for Access Bank Ghana) to get intrinsic value per share.</p>
+                <div class="mt-6">
+                    <button id="reset-calculator" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium flex items-center inline-block">
+                        <i class="fas fa-redo mr-2"></i> Calculate Another
+                    </button>
+                </div>
+            </div>
+            <!-- Error Message -->
+            <div id="error-message" class="mt-6 hidden">
+                <div class="bg-red-50 p-4 rounded-lg">
+                    <p class="text-red-700 font-medium" id="error-text"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Guide Section -->
+        <div class="card p-6">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Understanding DCF Valuation</h2>
+            <p class="text-gray-600 mb-6">Discounted Cash Flow (DCF) valuation estimates the intrinsic value of an investment by discounting projected future cash flows to their present value. It’s widely used for valuing companies or portfolios.</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div class="bg-blue-50 p-5 rounded-lg">
+                    <div class="text-3xl font-bold text-blue-700 mb-2">Intrinsic Value</div>
+                    <h3 class="font-bold text-gray-800 mb-2">Assess True Worth</h3>
+                    <p class="text-gray-600">DCF calculates the present value of future cash flows, reflecting the investment’s true value.</p>
+                </div>
+                <div class="bg-orange-50 p-5 rounded-lg">
+                    <div class="text-3xl font-bold text-orange-700 mb-2">Accurate Inputs</div>
+                    <h3 class="font-bold text-gray-800 mb-2">Critical for Results</h3>
+                    <p class="text-gray-600">Use reliable cash flow projections and appropriate discount and growth rates.</p>
+                </div>
+            </div>
+            <h3 class="text-xl font-bold text-gray-800 mt-8 mb-4">How to Use the DCF Calculator</h3>
+            <ol class="list-decimal pl-6 space-y-4">
+                <li>
+                    <strong>Select Forecast Period</strong>
+                    <p>Choose the number of years (1-10) for cash flow projections.</p>
+                </li>
+                <li>
+                    <strong>Enter Cash Flows</strong>
+                    <p>Input projected cash flows (e.g., FCFE) for each year, sourced from financial statements or estimates.</p>
+                </li>
+                <li>
+                    <strong>Enter Discount Rate</strong>
+                    <p>Provide the discount rate (e.g., WACC or required return, typically 5-10%).</p>
+                </li>
+                <li>
+                    <strong>Enter Terminal Growth Rate</strong>
+                    <p>Input the perpetual growth rate for cash flows after the forecast period (e.g., 1-3%).</p>
+                </li>
+                <li>
+                    <strong>Calculate and Review</strong>
+                    <p>Click “Calculate” to compute the DCF value. Use the result to assess intrinsic value or per-share value.</p>
+                </li>
+            </ol>
+            <div class="mt-8">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">Key Applications of DCF</h3>
+                <ul class="list-disc pl-6 space-y-2">
+                    <li>Valuing companies or investments based on future cash flows</li>
+                    <li>Assessing intrinsic value for stock investments</li>
+                    <li>Comparing investment opportunities</li>
+                    <li>Estimating per-share value by dividing by shares outstanding</li>
+                </ul>
+            </div>
+            <div class="flex flex-wrap gap-3 mt-6">
+                <a href="/download_guide" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium flex items-center">
+                    <i class="fas fa-download mr-2"></i> Download Guide
+                </a>
+                <a href="/tutorial" class="px-4 py-2 bg-primary text-white rounded-lg font-medium flex items-center">
+                    <i class="fas fa-play-circle mr-2"></i> Watch Tutorial
+                </a>
+            </div>
+        </div>
+
+        <!-- Collapsible Help Section -->
+        <div class="card p-6 mb-8">
+            <button type="button" onclick="toggleHelpSection()" class="w-full text-left text-2xl font-bold text-gray-800 flex justify-between items-center focus:outline-none">
+                <span>How to Find DCF Data</span>
+                <span id="help-toggle-icon" class="text-gray-500 text-xl">➕</span>
+            </button>
+            <div id="help-section" class="hidden mt-4 text-gray-600">
+                <p class="mb-2">To calculate an accurate <strong>Discounted Cash Flow (DCF)</strong> valuation, source reliable financial data. Here’s how to find the required inputs for global and Ghanaian companies:</p>
+                <ol class="list-decimal pl-6 space-y-4">
+                    <li>
+                        <strong>Cash Flows</strong>
+                        <p>Use Free Cash Flow to Equity (FCFE) or Free Cash Flow to the Firm (FCFF):</p>
+                        <ul class="list-disc list-inside ml-6 space-y-2">
+                            <li><strong>FCFE</strong>: Calculate using the FCFE Calculator or source from cash flow statements (Yahoo Finance, gse.com.gh).</li>
+                            <li><strong>FCFF</strong>: Find in cash flow statements under “Operating Cash Flow” minus capital expenditures.</li>
+                            <li><strong>Projections</strong>: Use analyst estimates from Yahoo Finance “Analysis” tab or company guidance.</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Discount Rate</strong>
+                        <p>Use the Weighted Average Cost of Capital (WACC) or required return:</p>
+                        <ul class="list-disc list-inside ml-6 space-y-2">
+                            <li><strong>WACC</strong>: Calculate using cost of equity (CAPM) and cost of debt, or use estimates from financial websites.</li>
+                            <li><strong>Sources</strong>: Yahoo Finance, Bloomberg, or company annual reports.</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Terminal Growth Rate</strong>
+                        <p>Estimate perpetual growth rate:</p>
+                        <ul class="list-disc list-inside ml-6 space-y-2">
+                            <li>Typically 1-3%, based on long-term GDP growth or industry growth rates.</li>
+                            <li><strong>Sources</strong>: IMF/World Bank for Ghana GDP growth, or analyst reports.</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Tips</strong>
+                        <ul class="list-disc list-inside ml-6 space-y-2">
+                            <li>Verify data from multiple sources (e.g., Yahoo Finance, gse.com.gh, annualreportsghana.com).</li>
+                            <li>For Ghanaian companies, check gse.com.gh for financial statements and announcements.</li>
+                            <li>Ensure discount rate exceeds terminal growth rate for valid terminal value.</li>
+                        </ul>
+                    </li>
+                </ol>
+                <p class="mt-4"><strong>Examples</strong>:</p>
+                <ul class="list-disc list-inside ml-6 space-y-2">
+                    <li><strong>Access Bank Ghana (ABG)</strong>: FCFE = GHS 217.5M (Year 1), Discount Rate = 8%, Terminal Growth = 2% (from gse.com.gh).</li>
+                    <li><strong>JPMorgan Chase (JPM)</strong>: FCFF = $40B, Discount Rate = 7%, Terminal Growth = 2.5% (from Yahoo Finance).</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Navigation Buttons at Bottom -->
+        <div class="nav-buttons mt-6">
+            <a href="/" class="nav-button home">
+                <i class="fas fa-home"></i> Return to Home
+            </a>
+            <a href="/#calculators" class="nav-button calculators">
+                <i class="fas fa-calculator"></i> Other Calculators
+            </a>
+        </div>
+    </div>
+
+    <!-- Back to Top Button -->
+    <button id="backToTop" class="back-to-top w-12 h-12 bg-primary text-white rounded-full shadow-lg flex items-center justify-center">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <!-- JavaScript -->
+    <script>
+        // Back to top button
+        const backToTopBtn = document.getElementById('backToTop');
+        window.addEventListener('scroll', function() {
+            if (window.pageYOffset > 300) {
+                backToTopBtn.classList.add('visible');
+            } else {
+                backToTopBtn.classList.remove('visible');
+            }
+        });
+        backToTopBtn.addEventListener('click', function() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        // Validate inputs
+        function validateInput(inputElement) {
+            if (!inputElement.value || isNaN(parseFloat(inputElement.value))) {
+                inputElement.setCustomValidity('Please enter a valid number.');
+                inputElement.reportValidity();
+                return false;
+            } else {
+                inputElement.setCustomValidity('');
+                return true;
+            }
+        }
+
+        // Toggle help section visibility
+        function toggleHelpSection() {
+            const helpSection = document.getElementById('help-section');
+            const toggleIcon = document.getElementById('help-toggle-icon');
+            helpSection.classList.toggle('hidden');
+            toggleIcon.textContent = helpSection.classList.contains('hidden') ? '➕' : '➖';
+        }
+
+        // Update cash flow fields based on years
+        function updateCashFlowFields() {
+            const years = parseInt(document.getElementById('years').value) || 5;
+            for (let i = 1; i <= 10; i++) {
+                const cfGroup = document.getElementById(`cf_group_${i}`);
+                const input = document.getElementById(`cash_flow_${i}`);
+                if (i <= years) {
+                    cfGroup.classList.remove('hidden');
+                    input.required = true;
+                } else {
+                    cfGroup.classList.add('hidden');
+                    input.required = false;
+                    input.value = '';
+                }
+            }
+        }
+
+        // Form submission handler (client-side calculation)
+        const form = document.getElementById('dcf-form');
+        const resultsSection = document.getElementById('results-section');
+        const totalDcfResult = document.getElementById('total-dcf-result');
+        const cashFlowResultsTable = document.getElementById('cash-flow-results-table');
+        const terminalValueCell = document.getElementById('terminal-value');
+        const pvTerminalValueCell = document.getElementById('pv-terminal-value');
+        const totalPvCell = document.getElementById('total-pv');
+        const targetInterpretationText = document.getElementById('target-interpretation-text');
+        const errorMessage = document.getElementById('error-message');
+        const errorText = document.getElementById('error-text');
+        const resetBtn = document.getElementById('reset-calculator');
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // Reset error state
+            errorMessage.classList.add('hidden');
+            document.querySelectorAll('.form-error').forEach(el => el.classList.add('hidden'));
+
+            // Get input values
+            const years = parseInt(document.getElementById('years').value);
+            const discountRate = parseFloat(document.getElementById('discount_rate').value) / 100;
+            const terminalGrowth = parseFloat(document.getElementById('terminal_growth').value) / 100;
+            const cashFlows = [];
+            let valid = true;
+
+            // Validate inputs
+            if (isNaN(years) || years < 1 || years > 10) {
+                document.getElementById('years-error').classList.remove('hidden');
+                valid = false;
+            }
+            if (isNaN(discountRate) || discountRate < 0) {
+                document.getElementById('discount_rate-error').classList.remove('hidden');
+                valid = false;
+            }
+            if (isNaN(terminalGrowth) || terminalGrowth < 0) {
+                document.getElementById('terminal_growth-error').classList.remove('hidden');
+                valid = false;
+            }
+            if (discountRate <= terminalGrowth) {
+                errorText.textContent = 'Discount rate must be greater than terminal growth rate.';
+                errorMessage.classList.remove('hidden');
+                valid = false;
+            }
+
+            for (let i = 1; i <= years; i++) {
+                const cashFlow = parseFloat(document.getElementById(`cash_flow_${i}`).value);
+                if (isNaN(cashFlow) || cashFlow < 0) {
+                    document.getElementById(`cash_flow_${i}-error`).classList.remove('hidden');
+                    valid = false;
+                } else {
+                    cashFlows.push(cashFlow);
+                }
+            }
+
+            if (!valid) {
+                errorText.textContent = errorText.textContent || 'Please provide valid inputs for all required fields.';
+                errorMessage.classList.remove('hidden');
+                return;
+            }
+
+            // Calculate DCF
+            let totalPv = 0;
+            const pvCashFlows = [];
+            for (let i = 0; i < years; i++) {
+                const pv = cashFlows[i] / Math.pow(1 + discountRate, i + 1);
+                pvCashFlows.push(pv);
+                totalPv += pv;
+            }
+
+            const finalCashFlow = cashFlows[years - 1];
+            const terminalValue = (finalCashFlow * (1 + terminalGrowth)) / (discountRate - terminalGrowth);
+            const pvTerminal = terminalValue / Math.pow(1 + discountRate, years);
+            totalPv += pvTerminal;
+
+            // Populate results table
+            cashFlowResultsTable.innerHTML = '';
+            for (let i = 0; i < years; i++) {
+                const row = `
+                    <tr>
+                        <td>Year ${i + 1}</td>
+                        <td>GHS ${cashFlows[i].toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')}</td>
+                        <td>GHS ${pvCashFlows[i].toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')}</td>
+                    </tr>
+                `;
+                cashFlowResultsTable.innerHTML += row;
+            }
+
+            // Display results
+            terminalValueCell.textContent = `GHS ${terminalValue.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')}`;
+            pvTerminalValueCell.textContent = `GHS ${pvTerminal.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')}`;
+            totalPvCell.textContent = `GHS ${totalPv.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')}`;
+            totalDcfResult.textContent = `GHS ${totalPv.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')}`;
+            targetInterpretationText.textContent = `The intrinsic value of GHS ${totalPv.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')} is the sum of the present value of ${years} years of cash flows (GHS ${pvCashFlows.reduce((sum, pv) => sum + pv, 0).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')}) and the present value of the terminal value (GHS ${pvTerminal.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')}), discounted at ${discountRate * 100}% with a terminal growth rate of ${terminalGrowth * 100}%.`;
+
+            resultsSection.classList.remove('hidden');
+            resultsSection.scrollIntoView({ behavior: 'smooth' });
+        });
+
+        // Reset button handler
+        resetBtn.addEventListener('click', function() {
+            form.reset();
+            resultsSection.classList.add('hidden');
+            errorMessage.classList.add('hidden');
+            updateCashFlowFields();
+        });
+
+        // Initialize form on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            updateCashFlowFields();
+            document.getElementById('years').addEventListener('change', updateCashFlowFields);
+            document.querySelectorAll('input[type="number"]').forEach(input => {
+                input.addEventListener('input', () => validateInput(input));
+            });
+        });
+    </script>
+</body>
+</html>
