@@ -1,32 +1,503 @@
-{% extends "base.html" %}
-{% block title %}Calculate Beta{% endblock %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1910810542133525" crossorigin="anonymous"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beta Calculator - Young Investor Calculator</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4f46e5',
+                        secondary: '#818cf8',
+                        accent: '#a5b4fc',
+                        dark: '#1e293b',
+                        light: '#f8fafc',
+                        success: '#10b981',
+                        info: '#0ea5e9',
+                        warning: '#f59e0b',
+                        danger: '#ef4444'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --header-height: 70px;
+            --sidebar-width: 300px;
+        }
 
-{% block content %}
-<h2>Beta Calculator</h2>
-<p>Calculate Beta (β) using historical returns:</p>
-<p><strong>β = Cov(R<sub>stock</sub>, R<sub>market</sub>) / Var(R<sub>market</sub>)</strong></p>
-<p><small>Enter returns as percentages, separated by commas (e.g., 5.2,-3.1,4.7). From left to right, list returns in chronological order (oldest to newest), ensuring stock and market returns match the same time periods.</small></p>
+        body {
+            background: linear-gradient(135deg, #f0f4f8 0%, #e6e9ff 100%);
+            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+        }
 
-<form method="POST">
-    <div class="group">
-        <label for="stock_returns">Stock Returns (%), comma-separated:</label>
-        <input type="text" name="stock_returns" placeholder="e.g., 5.2, -3.1, 4.7" required>
+        .gradient-bg {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+        }
+
+        .input-field {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+
+        .input-field:focus {
+            border-color: #a5b4fc;
+            box-shadow: 0 0 0 4px rgba(165, 180, 252, 0.25);
+        }
+
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+        }
+
+        .back-to-top.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        @media (max-width: 768px) {
+            .step-container {
+                flex-direction: column;
+            }
+        }
+
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: #1e293b;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 8px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .nav-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .nav-button {
+            display: flex;
+            align-items: center;
+            padding: 10px 20px;
+            background: white;
+            border-radius: 8px;
+            font-weight: 500;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s ease;
+        }
+
+        .nav-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-button.home {
+            background: #4f46e5;
+            color: white;
+        }
+
+        .nav-button.calculators {
+            background: #10b981;
+            color: white;
+        }
+
+        .nav-button i {
+            margin-right: 8px;
+        }
+
+        .beta-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #4f46e5;
+            margin: 10px 0;
+        }
+
+        .beta-interpretation {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 10px;
+            background-color: #f0f9ff;
+            border-left: 4px solid #0ea5e9;
+        }
+
+        .beta-formula {
+            font-family: 'Courier New', monospace;
+            background-color: #f8fafc;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+        }
+
+        .return-input-group {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .return-input-group > div {
+            flex: 1;
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+    <!-- Header -->
+    <header class="gradient-bg text-white py-8 px-4 md:px-8">
+        <div class="max-w-6xl mx-auto">
+            <nav class="hidden md:flex justify-between items-center mb-6">
+                <div class="flex items-center space-x-4">
+                    <a href="/" class="text-white hover:text-indigo-200 transition-colors">Home</a>
+                    <a href="/#calculators" class="text-white font-medium border-b-2 border-white">Calculators</a>
+                    <a href="/help" class="text-white hover:text-indigo-200 transition-colors">Help Center</a>
+                    <a href="/articles" class="text-white hover:text-indigo-200 transition-colors">Resources</a>
+                </div>
+                <a href="#" class="bg-white text-primary px-4 py-2 rounded-lg font-medium hover:bg-indigo-50 transition-colors">
+                    Get Started
+                </a>
+            </nav>
+            <div class="max-w-3xl">
+                <h1 class="text-4xl md:text-5xl font-bold mb-4">Beta Coefficient Calculator</h1>
+                <p class="text-xl md:text-2xl text-indigo-100 mb-6">
+                    Measure a stock's volatility relative to the market to assess investment risk.
+                </p>
+                <div class="flex flex-wrap gap-3">
+                    <div class="bg-white/20 px-4 py-2 rounded-full flex items-center">
+                        <i class="fas fa-chart-line mr-2"></i>
+                        <span>Market Risk Analysis</span>
+                    </div>
+                    <div class="bg-white/20 px-4 py-2 rounded-full flex items-center">
+                        <i class="fas fa-lightbulb mr-2"></i>
+                        <span>CAPM Essential</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+    <!-- Main Content -->
+    <div class="max-w-6xl mx-auto px-4 py-8">
+        <!-- Navigation Buttons -->
+        <div class="nav-buttons">
+            <a href="https://younginvestorcalculator.com/" class="nav-button home">
+                <i class="fas fa-home"></i> Return to Home
+            </a>
+            <a href="https://younginvestorcalculator.com/#calculators" class="nav-button calculators">
+                <i class="fas fa-calculator"></i> Other Calculators
+            </a>
+        </div>
+        <!-- Calculator Form -->
+        <div class="card p-6 mb-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Calculate Stock Beta (β)</h2>
+            <p class="text-gray-600 mb-6">Enter historical returns to calculate a stock's beta coefficient, which measures its volatility relative to the overall market.</p>
+            <div class="beta-formula">
+                <p class="text-lg font-semibold">Beta Formula</p>
+                <p class="text-xl mt-2">β = Cov(R<sub>stock</sub>, R<sub>market</sub>) / Var(R<sub>market</sub>)</p>
+                <p class="text-sm mt-2 text-gray-600">Where Cov is covariance and Var is variance</p>
+            </div>
+            <form id="beta-calculator-form" method="POST" class="grid grid-cols-1 gap-6">
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2">Stock Returns (%), comma-separated</label>
+                    <input type="text" id="stock_returns" name="stock_returns" placeholder="e.g., 5.2, -3.1, 4.7, 2.4, -1.5" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
+                    <div class="tooltip mt-2">
+                        <i class="fas fa-info-circle text-gray-500"></i>
+                        <span class="tooltiptext">Enter returns as percentages, separated by commas. List returns in chronological order (oldest to newest).</span>
+                    </div>
+                    <div class="form-error text-danger text-sm mt-2 hidden" id="stock_returns-error">Please enter valid percentage values separated by commas.</div>
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2">Market Returns (%), comma-separated</label>
+                    <input type="text" id="market_returns" name="market_returns" placeholder="e.g., 4.1, -2.8, 5.0, 3.2, -0.9" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
+                    <div class="tooltip mt-2">
+                        <i class="fas fa-info-circle text-gray-500"></i>
+                        <span class="tooltiptext">Enter market returns for the same time periods as the stock returns.</span>
+                    </div>
+                    <div class="form-error text-danger text-sm mt-2 hidden" id="market_returns-error">Please enter valid percentage values separated by commas.</div>
+                </div>
+                <div class="mt-4">
+                    <button type="submit" class="px-6 py-3 bg-primary text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors">
+                        <i class="fas fa-calculator mr-2"></i> Calculate Beta
+                    </button>
+                </div>
+            </form>
+            <!-- Results Section -->
+            <div id="results-section" class="mt-8 hidden">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">Beta Calculation Results</h3>
+                <div class="text-center mb-6">
+                    <p class="text-gray-600">Calculated Beta Coefficient</p>
+                    <div class="beta-value" id="beta-result">1.25</div>
+                    <div class="beta-interpretation">
+                        <p class="font-medium">Interpretation:</p>
+                        <p id="beta-interpretation-text">This stock is moderately volatile and tends to move with the market.</p>
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                    <div class="bg-indigo-50 p-4 rounded-lg">
+                        <h4 class="font-bold text-gray-800 mb-2">Covariance</h4>
+                        <p class="text-gray-700" id="covariance-result">0.00215</p>
+                        <p class="text-sm text-gray-600 mt-2">Measures how stock and market returns move together</p>
+                    </div>
+                    <div class="bg-indigo-50 p-4 rounded-lg">
+                        <h4 class="font-bold text-gray-800 mb-2">Market Variance</h4>
+                        <p class="text-gray-700" id="variance-result">0.00172</p>
+                        <p class="text-sm text-gray-600 mt-2">Measures the dispersion of market returns</p>
+                    </div>
+                </div>
+                <div class="mt-6">
+                    <button id="reset-calculator" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium flex items-center inline-block">
+                        <i class="fas fa-redo mr-2"></i> Calculate Another
+                    </button>
+                </div>
+            </div>
+            <!-- Error Message -->
+            <div id="error-message" class="mt-6 hidden">
+                <div class="bg-red-50 p-4 rounded-lg">
+                    <p class="text-red-700 font-medium" id="error-text"></p>
+                </div>
+            </div>
+        </div>
+        <!-- Guide Section -->
+        <div class="card p-6">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Understanding Beta Coefficient</h2>
+            <p class="text-gray-600 mb-6">Beta measures a stock's volatility in relation to the overall market. Here's how to interpret beta values and use them in your investment decisions.</p>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-blue-50 p-5 rounded-lg">
+                    <div class="text-3xl font-bold text-blue-700 mb-2">β &lt; 1</div>
+                    <h3 class="font-bold text-gray-800 mb-2">Defensive Stock</h3>
+                    <p class="text-gray-600">Less volatile than the market. Tends to be less affected by market swings.</p>
+                </div>
+                <div class="bg-purple-50 p-5 rounded-lg">
+                    <div class="text-3xl font-bold text-purple-700 mb-2">β = 1</div>
+                    <h3 class="font-bold text-gray-800 mb-2">Market Match</h3>
+                    <p class="text-gray-600">Moves in line with the market. Expected to match market performance.</p>
+                </div>
+                <div class="bg-orange-50 p-5 rounded-lg">
+                    <div class="text-3xl font-bold text-orange-700 mb-2">β &gt; 1</div>
+                    <h3 class="font-bold text-gray-800 mb-2">Aggressive Stock</h3>
+                    <p class="text-gray-600">More volatile than the market. Tends to amplify market movements.</p>
+                </div>
+            </div>
+            <h3 class="text-xl font-bold text-gray-800 mt-8 mb-4">How to Use the Beta Calculator</h3>
+            <ol class="list-decimal pl-6 space-y-4">
+                <li>
+                    <strong>Gather Historical Returns</strong>
+                    <p>Collect periodic returns (daily, weekly, monthly) for both the stock and a market index (like the Ghana Stock Exchange Composite Index) for the same time periods.</p>
+                </li>
+                <li>
+                    <strong>Enter Returns</strong>
+                    <p>Input the returns as percentages, separated by commas. Ensure the stock and market returns are in chronological order and correspond to the same time periods.</p>
+                </li>
+                <li>
+                    <strong>Calculate Beta</strong>
+                    <p>Click "Calculate Beta" to compute the stock's beta coefficient. The result will show the beta value along with an interpretation of what it means for your investment.</p>
+                </li>
+                <li>
+                    <strong>Apply to Investment Strategy</strong>
+                    <p>Use beta to assess the stock's risk profile. Higher beta stocks may offer higher returns but come with greater risk, especially in volatile markets.</p>
+                </li>
+            </ol>
+            <div class="mt-8">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">Key Applications of Beta</h3>
+                <ul class="list-disc pl-6 space-y-2">
+                    <li>Assessing a stock's risk relative to the market</li>
+                    <li>Building a diversified portfolio with balanced risk</li>
+                    <li>Calculating expected returns using the Capital Asset Pricing Model (CAPM)</li>
+                    <li>Adjusting portfolio risk exposure based on market conditions</li>
+                </ul>
+            </div>
+            <div class="flex flex-wrap gap-3 mt-6">
+                <a href="#" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium flex items-center">
+                    <i class="fas fa-download mr-2"></i> Download Guide
+                </a>
+                <a href="#" class="px-4 py-2 bg-primary text-white rounded-lg font-medium flex items-center">
+                    <i class="fas fa-book mr-2"></i> Learn About CAPM
+                </a>
+            </div>
+        </div>
+        <!-- Navigation Buttons at Bottom -->
+        <div class="nav-buttons mt-6">
+            <a href="https://younginvestorcalculator.com/" class="nav-button home">
+                <i class="fas fa-home"></i> Return to Home
+            </a>
+            <a href="https://younginvestorcalculator.com/#calculators" class="nav-button calculators">
+                <i class="fas fa-calculator"></i> Other Calculators
+            </a>
+        </div>
     </div>
-    <div class="group">
-        <label for="market_returns">Market Returns (%), comma-separated:</label>
-        <input type="text" name="market_returns" placeholder="e.g., 4.1, -2.8, 5.0" required>
-    </div>
-
-    <button type="submit" class="action-btn">Calculate Beta</button>
-</form>
-
-{% if beta is not none %}
-<div class="results">
-    <p>Calculated Beta: <strong>{{ beta }}</strong></p>
-</div>
-{% endif %}
-
-{% if error %}
-<p style="color: red;">{{ error }}</p>
-{% endif %}
-{% endblock %}
+    <!-- Back to Top Button -->
+    <button id="backToTop" class="back-to-top w-12 h-12 bg-primary text-white rounded-full shadow-lg flex items-center justify-center">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+    <!-- JavaScript -->
+    <script>
+        // Back to top button
+        const backToTopBtn = document.getElementById('backToTop');
+        window.addEventListener('scroll', function() {
+            if (window.pageYOffset > 300) {
+                backToTopBtn.classList.add('visible');
+            } else {
+                backToTopBtn.classList.remove('visible');
+            }
+        });
+        backToTopBtn.addEventListener('click', function() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+        // DOM elements
+        const form = document.getElementById('beta-calculator-form');
+        const resultsSection = document.getElementById('results-section');
+        const betaResult = document.getElementById('beta-result');
+        const betaInterpretation = document.getElementById('beta-interpretation-text');
+        const covarianceResult = document.getElementById('covariance-result');
+        const varianceResult = document.getElementById('variance-result');
+        const errorMessage = document.getElementById('error-message');
+        const errorText = document.getElementById('error-text');
+        const resetBtn = document.getElementById('reset-calculator');
+        // Form submission handler
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            // Get input values
+            const stockInput = document.getElementById('stock_returns').value;
+            const marketInput = document.getElementById('market_returns').value;
+            // Reset error state
+            errorMessage.classList.add('hidden');
+            document.getElementById('stock_returns-error').classList.add('hidden');
+            document.getElementById('market_returns-error').classList.add('hidden');
+            // Parse inputs
+            let stockReturns, marketReturns;
+            try {
+                stockReturns = stockInput.split(',').map(val => {
+                    const num = parseFloat(val.trim());
+                    if (isNaN(num)) throw new Error('Invalid stock return value');
+                    return num / 100; // Convert percentage to decimal
+                });
+            } catch (err) {
+                document.getElementById('stock_returns-error').classList.remove('hidden');
+                return;
+            }
+            try {
+                marketReturns = marketInput.split(',').map(val => {
+                    const num = parseFloat(val.trim());
+                    if (isNaN(num)) throw new Error('Invalid market return value');
+                    return num / 100; // Convert percentage to decimal
+                });
+            } catch (err) {
+                document.getElementById('market_returns-error').classList.remove('hidden');
+                return;
+            }
+            // Check if both arrays have the same length
+            if (stockReturns.length !== marketReturns.length) {
+                errorText.textContent = 'Stock and market returns must have the same number of entries.';
+                errorMessage.classList.remove('hidden');
+                return;
+            }
+            // Check minimum data points
+            if (stockReturns.length < 3) {
+                errorText.textContent = 'Please provide at least 3 return periods for accurate calculation.';
+                errorMessage.classList.remove('hidden');
+                return;
+            }
+            // Calculate beta
+            const result = calculateBeta(stockReturns, marketReturns);
+            if (result.error) {
+                errorText.textContent = result.error;
+                errorMessage.classList.remove('hidden');
+                return;
+            }
+            // Display results
+            betaResult.textContent = result.beta.toFixed(4);
+            covarianceResult.textContent = result.covariance.toFixed(6);
+            varianceResult.textContent = result.variance.toFixed(6);
+            // Interpretation
+            if (result.beta < 0.7) {
+                betaInterpretation.textContent = "This is a defensive stock. It's less volatile than the market and may provide more stability during market downturns.";
+            } else if (result.beta < 1.3) {
+                betaInterpretation.textContent = "This stock has moderate volatility and tends to move with the market. It offers a balance between risk and stability.";
+            } else {
+                betaInterpretation.textContent = "This is an aggressive stock. It's more volatile than the market and may offer higher returns but comes with greater risk.";
+            }
+            resultsSection.classList.remove('hidden');
+        });
+        // Reset button handler
+        resetBtn.addEventListener('click', function() {
+            form.reset();
+            resultsSection.classList.add('hidden');
+            errorMessage.classList.add('hidden');
+        });
+        // Beta calculation function
+        function calculateBeta(stockReturns, marketReturns) {
+            // Calculate means
+            const stockMean = stockReturns.reduce((sum, val) => sum + val, 0) / stockReturns.length;
+            const marketMean = marketReturns.reduce((sum, val) => sum + val, 0) / marketReturns.length;
+            // Calculate covariance and variance
+            let covariance = 0;
+            let variance = 0;
+            for (let i = 0; i < stockReturns.length; i++) {
+                const stockDiff = stockReturns[i] - stockMean;
+                const marketDiff = marketReturns[i] - marketMean;
+                covariance += stockDiff * marketDiff;
+                variance += marketDiff * marketDiff;
+            }
+            covariance = covariance / (stockReturns.length - 1);
+            variance = variance / (marketReturns.length - 1);
+            // Avoid division by zero
+            if (variance === 0) {
+                return { error: "Market returns have no variability. Cannot calculate beta." };
+            }
+            const beta = covariance / variance;
+            return {
+                beta: beta,
+                covariance: covariance,
+                variance: variance
+            };
+        }
+    </script>
+</body>
+</html>
