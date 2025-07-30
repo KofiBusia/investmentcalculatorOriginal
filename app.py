@@ -2309,7 +2309,6 @@ def tbills_rediscount():
 # ------------
 # ROUTES BLOCK
 # ------------
-
 @app.route('/capital-structure', methods=['GET', 'POST'])
 def capital_structure():
     if request.method == 'POST':
@@ -2333,6 +2332,23 @@ def capital_structure():
             cash_and_equivalents = float(request.form.get('cash_and_equivalents', 0))
             if cash_and_equivalents < 0:
                 raise ValueError("Cash and equivalents cannot be negative.")
+            
+            # New inputs for cost calculations
+            risk_free_rate = float(request.form.get('risk_free_rate', 0)) / 100
+            if risk_free_rate < 0:
+                raise ValueError("Risk-free rate cannot be negative.")
+            beta = float(request.form.get('beta', 0))
+            if beta < 0:
+                raise ValueError("Beta cannot be negative.")
+            market_return = float(request.form.get('market_return', 0)) / 100
+            if market_return < 0:
+                raise ValueError("Market return cannot be negative.")
+            interest_rate = float(request.form.get('interest_rate', 0)) / 100
+            if interest_rate < 0:
+                raise ValueError("Interest rate cannot be negative.")
+            tax_rate = float(request.form.get('tax_rate', 0)) / 100
+            if tax_rate < 0 or tax_rate > 1:
+                raise ValueError("Tax rate must be between 0% and 100%.")
 
             # Calculate net debt
             net_debt = total_debt - cash_and_equivalents
@@ -2348,6 +2364,11 @@ def capital_structure():
             equity_weight = market_cap / total_capital
             debt_weight = net_debt / total_capital
 
+            # Calculate costs
+            cost_of_equity = risk_free_rate + beta * (market_return - risk_free_rate)
+            cost_of_debt = interest_rate * (1 - tax_rate)
+            wacc = (equity_weight * cost_of_equity) + (debt_weight * cost_of_debt)
+
             # Sensitivity analysis for share price or market cap
             sensitivity = {'values': [], 'share_prices': [], 'market_caps': []}
             base_share_price = share_price if input_method == 'shares' else market_cap / outstanding_shares if outstanding_shares > 0 else 0
@@ -2359,9 +2380,10 @@ def capital_structure():
                 if adjusted_total_capital > 0:
                     eq_weight = adjusted_market_cap / adjusted_total_capital
                     dt_weight = net_debt / adjusted_total_capital
-                    sensitivity['values'].append([round(eq_weight * 100, 2), round(dt_weight * 100, 2)])
+                    adjusted_wacc = (eq_weight * cost_of_equity) + (dt_weight * cost_of_debt)
+                    sensitivity['values'].append([round(eq_weight * 100, 2), round(dt_weight * 100, 2), round(adjusted_wacc * 100, 2)])
                 else:
-                    sensitivity['values'].append(['N/A', 'N/A'])
+                    sensitivity['values'].append(['N/A', 'N/A', 'N/A'])
                 if input_method == 'shares' and base_share_price > 0:
                     sensitivity['share_prices'].append(round(base_share_price * multiplier, 2))
                 else:
@@ -2376,6 +2398,9 @@ def capital_structure():
                 'total_capital': total_capital,
                 'equity_weight': equity_weight,
                 'debt_weight': debt_weight,
+                'cost_of_equity': cost_of_equity,
+                'cost_of_debt': cost_of_debt,
+                'wacc': wacc,
                 'sensitivity': sensitivity
             }
 
@@ -2387,7 +2412,10 @@ def capital_structure():
                                    result={
                                        'equity_weight': round(equity_weight * 100, 2),
                                        'debt_weight': round(debt_weight * 100, 2),
-                                       'total_capital': round(total_capital, 2)
+                                       'total_capital': round(total_capital, 2),
+                                       'cost_of_equity': round(cost_of_equity * 100, 2),
+                                       'cost_of_debt': round(cost_of_debt * 100, 2),
+                                       'wacc': round(wacc * 100, 2)
                                    },
                                    debug=debug,
                                    form=request.form)
@@ -2402,7 +2430,8 @@ def capital_structure():
     else:
         return render_template('capital_structure.html', form={})
     
-
+ 
+    
 @app.route('/intrinsic-value', methods=['GET', 'POST'])
 def intrinsic_value():
     if request.method == 'POST':

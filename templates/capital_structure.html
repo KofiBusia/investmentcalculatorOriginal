@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1910810542133525" crossorigin="anonymous"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Capital Structure Calculator - Young Investor Calculator</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script>
         tailwind.config = {
@@ -84,12 +84,6 @@
             transform: translateY(0);
         }
 
-        @media (max-width: 768px) {
-            .step-container {
-                flex-direction: column;
-            }
-        }
-
         .tooltip {
             position: relative;
             display: inline-block;
@@ -97,7 +91,7 @@
 
         .tooltip .tooltiptext {
             visibility: hidden;
-            width: 200px;
+            width: 250px;
             background-color: #1e293b;
             color: #fff;
             text-align: center;
@@ -107,7 +101,7 @@
             z-index: 1;
             bottom: 125%;
             left: 50%;
-            margin-left: -100px;
+            margin-left: -125px;
             opacity: 0;
             transition: opacity 0.3s;
         }
@@ -188,6 +182,27 @@
         .return-input-group > div {
             flex: 1;
         }
+
+        .collapsible {
+            cursor: pointer;
+            padding: 10px;
+            background-color: #f0f9ff;
+            border-radius: 8px;
+            font-weight: 500;
+            margin-bottom: 10px;
+        }
+
+        .collapsible-content {
+            display: none;
+            padding: 15px;
+            background-color: #f8fafc;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .collapsible.active + .collapsible-content {
+            display: block;
+        }
     </style>
 </head>
 <body class="text-gray-800">
@@ -208,7 +223,7 @@
             <div class="max-w-3xl">
                 <h1 class="text-4xl md:text-5xl font-bold mb-4">Capital Structure Calculator</h1>
                 <p class="text-xl md:text-2xl text-indigo-100 mb-6">
-                    Analyze a firm's capital structure by calculating the weights of equity and debt
+                    Analyze a firm's capital structure and calculate weighted average cost of capital (WACC).
                 </p>
                 <div class="flex flex-wrap gap-3">
                     <div class="bg-white/20 px-4 py-2 rounded-full flex items-center">
@@ -237,11 +252,14 @@
         <!-- Calculator Form -->
         <div class="card p-6 mb-8">
             <h2 class="text-2xl font-bold text-gray-800 mb-4">Calculate Capital Structure</h2>
-            <p class="text-gray-600 mb-6">Enter financial details to compute the weights of equity and debt in the firm's capital structure.</p>
+            <p class="text-gray-600 mb-6">Enter financial details to compute the weights of equity and debt, cost of capital, and WACC.</p>
             <div class="formula">
                 <p class="text-lg font-semibold">Capital Structure Formulas</p>
                 <p class="text-xl mt-2">Equity Weight = Market Cap / (Market Cap + Net Debt)</p>
                 <p class="text-xl mt-2">Debt Weight = Net Debt / (Market Cap + Net Debt)</p>
+                <p class="text-xl mt-2">Cost of Equity = Risk-Free Rate + Beta × (Market Return - Risk-Free Rate)</p>
+                <p class="text-xl mt-2">Cost of Debt = Interest Rate × (1 - Tax Rate)</p>
+                <p class="text-xl mt-2">WACC = (Equity Weight × Cost of Equity) + (Debt Weight × Cost of Debt)</p>
                 <p class="text-sm mt-2 text-gray-600">Where Net Debt = Total Debt - Cash and Equivalents</p>
             </div>
             <form id="capital-form" class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -262,45 +280,90 @@
                     <input type="number" step="any" name="market_cap" id="market_cap" placeholder="e.g., 10000000" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
                     <div class="tooltip mt-2">
                         <i class="fas fa-info-circle text-gray-500"></i>
-                        <span class="tooltiptext">The total market value of the firm's equity (share price × outstanding shares).</span>
+                        <span class="tooltiptext">The total market value of the firm's equity (share price × outstanding shares). Find in financial reports or stock market data.</span>
                     </div>
-                    <div class="form-error text-danger text-sm mt-2 hidden" id="market_cap-error">Please enter a valid number.</div>
+                    <div class="form-error text-danger text-sm mt-2 hidden" id="market_cap-error">Please enter a valid positive number.</div>
                 </div>
                 <div id="share_price_group" style="display: none;">
                     <label class="block text-gray-700 font-medium mb-2">Share Price (GHS)</label>
                     <input type="number" step="0.01" name="share_price" id="share_price" placeholder="e.g., 50" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
                     <div class="tooltip mt-2">
                         <i class="fas fa-info-circle text-gray-500"></i>
-                        <span class="tooltiptext">The current market price per share of the firm's stock.</span>
+                        <span class="tooltiptext">The current market price per share of the firm's stock. Check stock exchanges or financial websites.</span>
                     </div>
-                    <div class="form-error text-danger text-sm mt-2 hidden" id="share_price-error">Please enter a valid number.</div>
+                    <div class="form-error text-danger text-sm mt-2 hidden" id="share_price-error">Please enter a valid positive number.</div>
                 </div>
                 <div id="outstanding_shares_group" style="display: none;">
                     <label class="block text-gray-700 font-medium mb-2">Outstanding Shares</label>
                     <input type="number" step="1" name="outstanding_shares" id="outstanding_shares" placeholder="e.g., 200000" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
                     <div class="tooltip mt-2">
                         <i class="fas fa-info-circle text-gray-500"></i>
-                        <span class="tooltiptext">The total number of shares currently held by shareholders.</span>
+                        <span class="tooltiptext">The total number of shares currently held by shareholders. Find in financial statements.</span>
                     </div>
-                    <div class="form-error text-danger text-sm mt-2 hidden" id="outstanding_shares-error">Please enter a valid number.</div>
+                    <div class="form-error text-danger text-sm mt-2 hidden" id="outstanding_shares-error">Please enter a valid positive number.</div>
                 </div>
                 <div>
                     <label class="block text-gray-700 font-medium mb-2">Total Debt (GHS)</label>
                     <input type="number" step="any" name="total_debt" id="total_debt" placeholder="e.g., 5000000" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
                     <div class="tooltip mt-2">
                         <i class="fas fa-info-circle text-gray-500"></i>
-                        <span class="tooltiptext">The firm's total debt from financial statements.</span>
+                        <span class="tooltiptext">The firm's total debt from financial statements. Include all loans and bonds.</span>
                     </div>
-                    <div class="form-error text-danger text-sm mt-2 hidden" id="total_debt-error">Please enter a valid number.</div>
+                    <div class="form-error text-danger text-sm mt-2 hidden" id="total_debt-error">Please enter a valid non-negative number.</div>
                 </div>
                 <div>
                     <label class="block text-gray-700 font-medium mb-2">Cash and Equivalents (GHS)</label>
                     <input type="number" step="any" name="cash_and_equivalents" id="cash_and_equivalents" placeholder="e.g., 2000000" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
                     <div class="tooltip mt-2">
                         <i class="fas fa-info-circle text-gray-500"></i>
-                        <span class="tooltiptext">The firm's liquid assets. Optional; defaults to 0 if not provided.</span>
+                        <span class="tooltiptext">The firm's liquid assets (e.g., cash, marketable securities). Optional; defaults to 0.</span>
                     </div>
-                    <div class="form-error text-danger text-sm mt-2 hidden" id="cash_and_equivalents-error">Please enter a valid number.</div>
+                    <div class="form-error text-danger text-sm mt-2 hidden" id="cash_and_equivalents-error">Please enter a valid non-negative number.</div>
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2">Risk-Free Rate (%)</label>
+                    <input type="number" step="0.01" name="risk_free_rate" id="risk_free_rate" placeholder="e.g., 4" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
+                    <div class="tooltip mt-2">
+                        <i class="fas fa-info-circle text-gray-500"></i>
+                        <span class="tooltiptext">The return on a risk-free asset, typically government bonds (e.g., 10-year treasury yield). Check central bank data or financial websites.</span>
+                    </div>
+                    <div class="form-error text-danger text-sm mt-2 hidden" id="risk_free_rate-error">Please enter a valid non-negative number.</div>
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2">Beta</label>
+                    <input type="number" step="0.01" name="beta" id="beta" placeholder="e.g., 1.2" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
+                    <div class="tooltip mt-2">
+                        <i class="fas fa-info-circle text-gray-500"></i>
+                        <span class="tooltiptext">The stock's volatility relative to the market. Obtain from financial data providers like Yahoo Finance or Bloomberg.</span>
+                    </div>
+                    <div class="form-error text-danger text-sm mt-2 hidden" id="beta-error">Please enter a valid non-negative number.</div>
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2">Market Return (%)</label>
+                    <input type="number" step="0.01" name="market_return" id="market_return" placeholder="e.g., 10" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
+                    <div class="tooltip mt-2">
+                        <i class="fas fa-info-circle text-gray-500"></i>
+                        <span class="tooltiptext">The expected market return, often based on historical index performance (e.g., S&P 500). Use historical data or analyst estimates.</span>
+                    </div>
+                    <div class="form-error text-danger text-sm mt-2 hidden" id="market_return-error">Please enter a valid non-negative number.</div>
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2">Interest Rate on Debt (%)</label>
+                    <input type="number" step="0.01" name="interest_rate" id="interest_rate" placeholder="e.g., 45" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
+                    <div class="tooltip mt-2">
+                        <i class="fas fa-info-circle text-gray-500"></i>
+                        <span class="tooltiptext">The weighted average interest rate on the firm's debt. Find in financial statements, bond yields (e.g., YTM on bonds), or estimate based on industry benchmarks (e.g., 20-45% in high-rate markets like Ghana).</span>
+                    </div>
+                    <div class="form-error text-danger text-sm mt-2 hidden" id="interest_rate-error">Please enter a valid non-negative number.</div>
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2">Tax Rate (%)</label>
+                    <input type="number" step="0.01" name="tax_rate" id="tax_rate" placeholder="e.g., 30" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
+                    <div class="tooltip mt-2">
+                        <i class="fas fa-info-circle text-gray-500"></i>
+                        <span class="tooltiptext">The corporate tax rate applicable to the firm. Check financial statements or use the statutory rate for the country (e.g., 30% for many jurisdictions).</span>
+                    </div>
+                    <div class="form-error text-danger text-sm mt-2 hidden" id="tax_rate-error">Please enter a valid number between 0 and 100.</div>
                 </div>
                 <div class="md:col-span-2 mt-4">
                     <button type="submit" class="px-6 py-3 bg-primary text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors">
@@ -308,6 +371,27 @@
                     </button>
                 </div>
             </form>
+            <!-- How to Find Inputs Section -->
+            <div class="mt-6">
+                <div class="collapsible">
+                    <i class="fas fa-question-circle mr-2"></i> How to Find Input Values
+                </div>
+                <div class="collapsible-content">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4">Guide to Finding Input Values</h3>
+                    <ul class="list-disc pl-6 space-y-2 text-gray-600">
+                        <li><strong>Market Capitalization:</strong> Find on stock exchanges, financial websites (e.g., Yahoo Finance), or calculate as Share Price × Outstanding Shares.</li>
+                        <li><strong>Share Price:</strong> Check current stock price on exchanges or financial platforms like Bloomberg or Google Finance.</li>
+                        <li><strong>Outstanding Shares:</strong> Available in the company's financial statements or investor relations page.</li>
+                        <li><strong>Total Debt:</strong> Sum of all short-term and long-term debt from the balance sheet in financial statements.</li>
+                        <li><strong>Cash and Equivalents:</strong> Found in the balance sheet under current assets (e.g., cash, marketable securities).</li>
+                        <li><strong>Risk-Free Rate:</strong> Use the yield on government bonds (e.g., 10-year treasury yield) from central bank websites or financial news.</li>
+                        <li><strong>Beta:</strong> Obtain from financial data providers like Yahoo Finance, Bloomberg, or Reuters.</li>
+                        <li><strong>Market Return:</strong> Use historical market index returns (e.g., S&P 500) or analyst estimates, typically 8-12%.</li>
+                        <li><strong>Interest Rate on Debt:</strong> Find in financial statements (debt schedule), bond yields (YTM), or estimate using industry benchmarks (e.g., 20-45% in high-rate markets like Ghana).</li>
+                        <li><strong>Tax Rate:</strong> Use the corporate tax rate from financial statements or the statutory rate for the firm's country.</li>
+                    </ul>
+                </div>
+            </div>
             <!-- Results Section -->
             <div id="results-section" class="mt-8 hidden">
                 <h3 class="text-xl font-bold text-gray-800 mb-4">Capital Structure Results</h3>
@@ -323,6 +407,11 @@
                         <p class="font-medium">Debt Weight</p>
                         <p id="debt-interpretation-text">Percentage of total capital from net debt.</p>
                     </div>
+                    <div class="intrinsic-value" id="wacc-result">0.00%</div>
+                    <div class="intrinsic-interpretation">
+                        <p class="font-medium">Weighted Average Cost of Capital (WACC)</p>
+                        <p id="wacc-interpretation-text">Weighted average of the cost of equity and cost of debt.</p>
+                    </div>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                     <div class="bg-indigo-50 p-4 rounded-lg">
@@ -335,6 +424,21 @@
                         <p class="text-gray-700" id="net-debt-result">GHS 0.00</p>
                         <p class="text-sm text-gray-600 mt-2">Total debt minus cash and equivalents.</p>
                     </div>
+                    <div class="bg-indigo-50 p-4 rounded-lg">
+                        <h4 class="font-bold text-gray-800 mb-2">Cost of Equity</h4>
+                        <p class="text-gray-700" id="cost-of-equity-result">0.00%</p>
+                        <p class="text-sm text-gray-600 mt-2">Calculated using CAPM: Risk-Free Rate + Beta × (Market Return - Risk-Free Rate).</p>
+                    </div>
+                    <div class="bg-indigo-50 p-4 rounded-lg">
+                        <h4 class="font-bold text-gray-800 mb-2">Cost of Debt</h4>
+                        <p class="text-gray-700" id="cost-of-debt-result">0.00%</p>
+                        <p class="text-sm text-gray-600 mt-2">After-tax cost of debt: Interest Rate × (1 - Tax Rate).</p>
+                    </div>
+                </div>
+                <!-- Capital Structure Chart -->
+                <div class="mt-6">
+                    <h4 class="font-bold text-gray-800 mb-4">Capital Structure Visualization</h4>
+                    <canvas id="capital-structure-chart" height="200"></canvas>
                 </div>
                 <div class="mt-6">
                     <button id="reset-calculator" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium flex items-center inline-block">
@@ -352,7 +456,7 @@
         <!-- Guide Section -->
         <div class="card p-6">
             <h2 class="text-2xl font-bold text-gray-800 mb-4">Understanding Capital Structure</h2>
-            <p class="text-gray-600 mb-6">Capital structure represents how a firm finances its operations through equity and debt. Understanding the weights helps assess financial leverage and risk.</p>
+            <p class="text-gray-600 mb-6">Capital structure represents how a firm finances its operations through equity and debt. The Weighted Average Cost of Capital (WACC) reflects the blended cost of these financing sources.</p>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 <div class="bg-blue-50 p-5 rounded-lg">
                     <div class="text-3xl font-bold text-blue-700 mb-2">Equity-Heavy</div>
@@ -367,7 +471,7 @@
                 <div class="bg-orange-50 p-5 rounded-lg">
                     <div class="text-3xl font-bold text-orange-700 mb-2">Debt-Heavy</div>
                     <h3 class="font-bold text-gray-800 mb-2">Debt Weight > 70%</h3>
-                    <p class="text-gray-600">The firm relies heavily on debt, indicating higher financial risk.</p>
+                    <p class="text-gray-600">The firm relies heavily on debt, indicating higher financial risk but potentially lower cost of capital due to tax shields.</p>
                 </div>
             </div>
             <h3 class="text-xl font-bold text-gray-800 mt-8 mb-4">How to Use the Capital Structure Calculator</h3>
@@ -389,15 +493,19 @@
                     <p>Optionally input cash and equivalents to calculate net debt. Defaults to 0 if not provided.</p>
                 </li>
                 <li>
+                    <strong>Enter Cost Parameters</strong>
+                    <p>Provide risk-free rate, beta, market return, interest rate, and tax rate for cost of equity and debt calculations.</p>
+                </li>
+                <li>
                     <strong>Calculate and Interpret</strong>
-                    <p>Click “Calculate” to compute the equity and debt weights. Review the results to assess the firm's financial structure.</p>
+                    <p>Click “Calculate” to compute the equity and debt weights, costs, and WACC. Review the results and chart to assess the firm's financial structure.</p>
                 </li>
             </ol>
             <div class="mt-8">
                 <h3 class="text-xl font-bold text-gray-800 mb-4">Key Applications of Capital Structure Analysis</h3>
                 <ul class="list-disc pl-6 space-y-2">
                     <li>Evaluating financial risk and leverage</li>
-                    <li>Assessing cost of capital for valuation</li>
+                    <li>Calculating WACC for valuation and investment decisions</li>
                     <li>Comparing capital structures across firms</li>
                     <li>Informing financing decisions</li>
                 </ul>
@@ -440,6 +548,13 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
 
+        // Collapsible help section
+        document.querySelectorAll('.collapsible').forEach(button => {
+            button.addEventListener('click', () => {
+                button.classList.toggle('active');
+            });
+        });
+
         // Form input toggling
         function toggleInputMethod() {
             const inputMethod = document.getElementById('input_method').value;
@@ -463,6 +578,48 @@
             if (inputMethod !== 'shares') sharesInput.value = '';
         }
 
+        // Chart initialization
+        let capitalStructureChart = null;
+        function renderCapitalStructureChart(equityWeight, debtWeight) {
+            const ctx = document.getElementById('capital-structure-chart').getContext('2d');
+            if (capitalStructureChart) {
+                capitalStructureChart.destroy();
+            }
+            capitalStructureChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['Equity Weight', 'Debt Weight'],
+                    datasets: [{
+                        data: [equityWeight * 100, debtWeight * 100],
+                        backgroundColor: ['#4f46e5', '#f59e0b'],
+                        borderColor: ['#ffffff', '#ffffff'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                font: {
+                                    family: 'Inter',
+                                    size: 14
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.label}: ${context.raw.toFixed(2)}%`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
         // Form submission handler (client-side validation)
         const form = document.getElementById('capital-form');
         const resultsSection = document.getElementById('results-section');
@@ -470,6 +627,9 @@
         const debtWeightResult = document.getElementById('debt-weight-result');
         const totalCapitalResult = document.getElementById('total-capital-result');
         const netDebtResult = document.getElementById('net-debt-result');
+        const costOfEquityResult = document.getElementById('cost-of-equity-result');
+        const costOfDebtResult = document.getElementById('cost-of-debt-result');
+        const waccResult = document.getElementById('wacc-result');
         const errorMessage = document.getElementById('error-message');
         const errorText = document.getElementById('error-text');
         const resetBtn = document.getElementById('reset-calculator');
@@ -513,6 +673,31 @@
                 document.getElementById('cash_and_equivalents-error').classList.remove('hidden');
                 return;
             }
+            const riskFreeRate = parseFloat(document.getElementById('risk_free_rate').value) / 100;
+            if (isNaN(riskFreeRate) || riskFreeRate < 0) {
+                document.getElementById('risk_free_rate-error').classList.remove('hidden');
+                return;
+            }
+            const beta = parseFloat(document.getElementById('beta').value);
+            if (isNaN(beta) || beta < 0) {
+                document.getElementById('beta-error').classList.remove('hidden');
+                return;
+            }
+            const marketReturn = parseFloat(document.getElementById('market_return').value) / 100;
+            if (isNaN(marketReturn) || marketReturn < 0) {
+                document.getElementById('market_return-error').classList.remove('hidden');
+                return;
+            }
+            const interestRate = parseFloat(document.getElementById('interest_rate').value) / 100;
+            if (isNaN(interestRate) || interestRate < 0) {
+                document.getElementById('interest_rate-error').classList.remove('hidden');
+                return;
+            }
+            const taxRate = parseFloat(document.getElementById('tax_rate').value) / 100;
+            if (isNaN(taxRate) || taxRate < 0 || taxRate > 1) {
+                document.getElementById('tax_rate-error').classList.remove('hidden');
+                return;
+            }
 
             // Client-side calculation
             const netDebt = Math.max(totalDebt - cashAndEquivalents, 0);
@@ -524,12 +709,21 @@
             }
             const equityWeight = marketCap / totalCapital;
             const debtWeight = netDebt / totalCapital;
+            const costOfEquity = riskFreeRate + beta * (marketReturn - riskFreeRate);
+            const costOfDebt = interestRate * (1 - taxRate);
+            const wacc = (equityWeight * costOfEquity) + (debtWeight * costOfDebt);
 
             // Display results
             equityWeightResult.textContent = `${(equityWeight * 100).toFixed(2)}%`;
             debtWeightResult.textContent = `${(debtWeight * 100).toFixed(2)}%`;
             totalCapitalResult.textContent = `GHS ${totalCapital.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
             netDebtResult.textContent = `GHS ${netDebt.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
+            costOfEquityResult.textContent = `${(costOfEquity * 100).toFixed(2)}%`;
+            costOfDebtResult.textContent = `${(costOfDebt * 100).toFixed(2)}%`;
+            waccResult.textContent = `${(wacc * 100).toFixed(2)}%`;
+
+            // Render chart
+            renderCapitalStructureChart(equityWeight, debtWeight);
 
             resultsSection.classList.remove('hidden');
         });
@@ -539,6 +733,10 @@
             form.reset();
             resultsSection.classList.add('hidden');
             errorMessage.classList.add('hidden');
+            if (capitalStructureChart) {
+                capitalStructureChart.destroy();
+                capitalStructureChart = null;
+            }
             toggleInputMethod();
         });
 
