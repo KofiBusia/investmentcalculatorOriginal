@@ -34,17 +34,14 @@
             --header-height: 70px;
             --sidebar-width: 300px;
         }
-
         body {
             background: linear-gradient(135deg, #f0f4f8 0%, #e6e9ff 100%);
             min-height: 100vh;
             font-family: 'Inter', sans-serif;
         }
-
         .gradient-bg {
             background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
         }
-
         .card {
             background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(10px);
@@ -52,23 +49,19 @@
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
             transition: all 0.3s ease;
         }
-
         .card:hover {
             transform: translateY(-5px);
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
         }
-
         .input-field {
             background: rgba(255, 255, 255, 0.9);
             border: 1px solid #e2e8f0;
             transition: all 0.3s ease;
         }
-
         .input-field:focus {
             border-color: #a5b4fc;
             box-shadow: 0 0 0 4px rgba(165, 180, 252, 0.25);
         }
-
         .back-to-top {
             position: fixed;
             bottom: 30px;
@@ -77,17 +70,14 @@
             transform: translateY(20px);
             transition: all 0.3s ease;
         }
-
         .back-to-top.visible {
             opacity: 1;
             transform: translateY(0);
         }
-
         .tooltip {
             position: relative;
             display: inline-block;
         }
-
         .tooltip .tooltiptext {
             visibility: hidden;
             width: 200px;
@@ -104,19 +94,16 @@
             opacity: 0;
             transition: opacity 0.3s;
         }
-
         .tooltip:hover .tooltiptext {
             visibility: visible;
             opacity: 1;
         }
-
         .nav-buttons {
             display: flex;
             flex-wrap: wrap;
             gap: 12px;
             margin-bottom: 20px;
         }
-
         .nav-button {
             display: flex;
             align-items: center;
@@ -127,33 +114,27 @@
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
             transition: all 0.2s ease;
         }
-
         .nav-button:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
         }
-
         .nav-button.home {
             background: #4f46e5;
             color: white;
         }
-
         .nav-button.calculators {
             background: #10b981;
             color: white;
         }
-
         .nav-button i {
             margin-right: 8px;
         }
-
         .target-price {
             font-size: 2.5rem;
             font-weight: 700;
             color: #4f46e5;
             margin: 10px 0;
         }
-
         .target-interpretation {
             margin-top: 15px;
             padding: 15px;
@@ -161,7 +142,6 @@
             background-color: #f0f9ff;
             border-left: 4px solid #0ea5e9;
         }
-
         .formula {
             font-family: 'Courier New', monospace;
             background-color: #f8fafc;
@@ -171,25 +151,21 @@
             text-align: center;
             border: 1px solid #e2e8f0;
         }
-
         table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
         }
-
         th, td {
             padding: 12px;
             text-align: left;
             border-bottom: 1px solid #e2e8f0;
         }
-
         th {
             background-color: #f8fafc;
             font-weight: 600;
             color: #1e293b;
         }
-
         td {
             color: #374151;
         }
@@ -228,7 +204,6 @@
             </div>
         </div>
     </header>
-
     <!-- Main Content -->
     <div class="max-w-6xl mx-auto px-4 py-8">
         <!-- Navigation Buttons -->
@@ -240,7 +215,6 @@
                 <i class="fas fa-calculator"></i> Other Calculators
             </a>
         </div>
-
         <!-- Calculator Form -->
         <div class="card p-6 mb-8">
             <h2 class="text-2xl font-bold text-gray-800 mb-4">Calculate Cost of Equity</h2>
@@ -257,7 +231,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div>
                             <label class="block text-gray-700 font-medium mb-2">Risk-Free Rate (%)</label>
-                            <input type="number" step="0.01" min="0" max="100" name="risk_free_rate" id="risk_free_rate" placeholder="e.g., 25.0" value="0" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
+                            <input type="number" step="0.01" min="0" max="100" name="risk_free_rate" id="risk_free_rate" placeholder="e.g., 25.0" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
                             <div class="tooltip mt-2">
                                 <i class="fas fa-info-circle text-gray-500"></i>
                                 <span class="tooltiptext">Yield on 10-year Ghana government bond (e.g., 25% in 2024).</span>
@@ -266,16 +240,16 @@
                         </div>
                         <div>
                             <label class="block text-gray-700 font-medium mb-2">Beta</label>
-                            <input type="number" step="0.01" min="0" name="beta" id="beta" placeholder="e.g., 1.2" value="0" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
+                            <input type="number" step="0.01" min="0.01" name="beta" id="beta" placeholder="e.g., 1.2" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
                             <div class="tooltip mt-2">
                                 <i class="fas fa-info-circle text-gray-500"></i>
                                 <span class="tooltiptext">Stock’s volatility relative to the market (e.g., 1.2 for Access Bank).</span>
                             </div>
-                            <div class="form-error text-danger text-sm mt-2 hidden" id="beta-error">Please enter a valid number.</div>
+                            <div class="form-error text-danger text-sm mt-2 hidden" id="beta-error">Please enter a valid number greater than 0.</div>
                         </div>
                         <div>
                             <label class="block text-gray-700 font-medium mb-2">Market Return (%)</label>
-                            <input type="number" step="0.01" min="0" max="100" name="market_return" id="market_return" placeholder="e.g., 15.0" value="0" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
+                            <input type="number" step="0.01" min="0" max="100" name="market_return" id="market_return" placeholder="e.g., 15.0" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
                             <div class="tooltip mt-2">
                                 <i class="fas fa-info-circle text-gray-500"></i>
                                 <span class="tooltiptext">Expected return of the Ghana Stock Exchange (e.g., 15%).</span>
@@ -290,7 +264,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div>
                             <label class="block text-gray-700 font-medium mb-2">Dividend per Share (GHS)</label>
-                            <input type="number" step="0.01" min="0" name="dividend_per_share" id="dividend_per_share" placeholder="e.g., 0.12" value="0" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
+                            <input type="number" step="0.01" min="0" name="dividend_per_share" id="dividend_per_share" placeholder="e.g., 0.12" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
                             <div class="tooltip mt-2">
                                 <i class="fas fa-info-circle text-gray-500"></i>
                                 <span class="tooltiptext">Annual dividend per share (e.g., 0.12 GHS for Access Bank).</span>
@@ -299,7 +273,7 @@
                         </div>
                         <div>
                             <label class="block text-gray-700 font-medium mb-2">Current Stock Price (GHS)</label>
-                            <input type="number" step="0.01" min="0" name="stock_price" id="stock_price" placeholder="e.g., 2.83" value="0" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
+                            <input type="number" step="0.01" min="0" name="stock_price" id="stock_price" placeholder="e.g., 2.83" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
                             <div class="tooltip mt-2">
                                 <i class="fas fa-info-circle text-gray-500"></i>
                                 <span class="tooltiptext">Current market price per share (e.g., 2.83 GHS).</span>
@@ -308,7 +282,7 @@
                         </div>
                         <div>
                             <label class="block text-gray-700 font-medium mb-2">Dividend Growth Rate (%)</label>
-                            <input type="number" step="0.01" min="0" max="100" name="dividend_growth_rate" id="dividend_growth_rate" placeholder="e.g., 5.0" value="0" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
+                            <input type="number" step="0.01" min="0" max="100" name="dividend_growth_rate" id="dividend_growth_rate" placeholder="e.g., 5.0" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
                             <div class="tooltip mt-2">
                                 <i class="fas fa-info-circle text-gray-500"></i>
                                 <span class="tooltiptext">Expected growth rate of dividends (e.g., 5%).</span>
@@ -323,7 +297,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label class="block text-gray-700 font-medium mb-2">CAPM Weight (%)</label>
-                            <input type="number" step="1" min="0" max="100" name="capm_weight" id="capm_weight" placeholder="e.g., 60" value="0" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
+                            <input type="number" step="1" min="0" max="100" name="capm_weight" id="capm_weight" placeholder="e.g., 60" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
                             <div class="tooltip mt-2">
                                 <i class="fas fa-info-circle text-gray-500"></i>
                                 <span class="tooltiptext">Weight for CAPM result (e.g., 60%). Total weights must sum to 100%.</span>
@@ -332,7 +306,7 @@
                         </div>
                         <div>
                             <label class="block text-gray-700 font-medium mb-2">DDM Weight (%)</label>
-                            <input type="number" step="1" min="0" max="100" name="ddm_weight" id="ddm_weight" placeholder="e.g., 40" value="0" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
+                            <input type="number" step="1" min="0" max="100" name="ddm_weight" id="ddm_weight" placeholder="e.g., 40" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
                             <div class="tooltip mt-2">
                                 <i class="fas fa-info-circle text-gray-500"></i>
                                 <span class="tooltiptext">Weight for DDM result (e.g., 40%). Total weights must sum to 100%.</span>
@@ -387,7 +361,6 @@
                 </div>
             </div>
         </div>
-
         <!-- Guide Section -->
         <div class="card p-6">
             <h2 class="text-2xl font-bold text-gray-800 mb-4">Understanding Cost of Equity</h2>
@@ -441,7 +414,6 @@
                 </a>
             </div>
         </div>
-
         <!-- Collapsible Help Section -->
         <div class="card p-6 mb-8">
             <button type="button" onclick="toggleHelpSection()" class="w-full text-left text-2xl font-bold text-gray-800 flex justify-between items-center focus:outline-none">
@@ -489,7 +461,6 @@
                 </ul>
             </div>
         </div>
-
         <!-- Navigation Buttons at Bottom -->
         <div class="nav-buttons mt-6">
             <a href="/" class="nav-button home">
@@ -500,12 +471,10 @@
             </a>
         </div>
     </div>
-
     <!-- Back to Top Button -->
     <button id="backToTop" class="back-to-top w-12 h-12 bg-primary text-white rounded-full shadow-lg flex items-center justify-center">
         <i class="fas fa-arrow-up"></i>
     </button>
-
     <!-- JavaScript -->
     <script>
         // Back to top button
@@ -520,12 +489,11 @@
         backToTopBtn.addEventListener('click', function() {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
-
         // Validate inputs
         function validateInput(inputElement, min, max) {
             const value = parseFloat(inputElement.value);
             if (!inputElement.value || isNaN(value) || (min !== undefined && value < min) || (max !== undefined && value > max)) {
-                inputElement.setCustomValidity(`Please enter a valid number${min !== undefined && max !== undefined ? ` between ${min} and ${max}` : ''}.`);
+                inputElement.setCustomValidity('Please enter a valid number' + (min !== undefined && max !== undefined ? ' between ' + min + ' and ' + max : '') + '.');
                 inputElement.reportValidity();
                 return false;
             } else {
@@ -533,7 +501,6 @@
                 return true;
             }
         }
-
         // Toggle help section visibility
         function toggleHelpSection() {
             const helpSection = document.getElementById('help-section');
@@ -541,7 +508,6 @@
             helpSection.classList.toggle('hidden');
             toggleIcon.textContent = helpSection.classList.contains('hidden') ? '➕' : '➖';
         }
-
         // Form submission handler (client-side calculation)
         const form = document.getElementById('cost-of-equity-form');
         const resultsSection = document.getElementById('results-section');
@@ -551,14 +517,15 @@
         const errorMessage = document.getElementById('error-message');
         const errorText = document.getElementById('error-text');
         const resetBtn = document.getElementById('reset-calculator');
-
         form.addEventListener('submit', function(e) {
             e.preventDefault();
-
-            // Reset error state
+            // Clear previous results and errors
+            resultsSection.classList.add('hidden');
+            resultsTable.innerHTML = '';
+            weightedAverageResult.textContent = '0.00%';
+            targetInterpretationText.textContent = '';
             errorMessage.classList.add('hidden');
             document.querySelectorAll('.form-error').forEach(el => el.classList.add('hidden'));
-
             // Get input values
             const riskFreeRate = parseFloat(document.getElementById('risk_free_rate').value);
             const beta = parseFloat(document.getElementById('beta').value);
@@ -568,14 +535,13 @@
             const dividendGrowthRate = parseFloat(document.getElementById('dividend_growth_rate').value);
             const capmWeight = parseFloat(document.getElementById('capm_weight').value);
             const ddmWeight = parseFloat(document.getElementById('ddm_weight').value);
-
             // Validate inputs
             let valid = true;
             if (!validateInput(document.getElementById('risk_free_rate'), 0, 100)) {
                 document.getElementById('risk_free_rate-error').classList.remove('hidden');
                 valid = false;
             }
-            if (!validateInput(document.getElementById('beta'), 0)) {
+            if (!validateInput(document.getElementById('beta'), 0.01)) {
                 document.getElementById('beta-error').classList.remove('hidden');
                 valid = false;
             }
@@ -613,16 +579,13 @@
                 errorMessage.classList.remove('hidden');
                 valid = false;
             }
-
             if (!valid) {
                 return;
             }
-
             // Calculate Cost of Equity
             const capm = riskFreeRate + beta * (marketReturn - riskFreeRate);
             const ddm = stockPrice !== 0 ? (dividendPerShare / stockPrice) * 100 + dividendGrowthRate : 0;
             const weightedAverage = (capm * capmWeight / 100) + (ddm * ddmWeight / 100);
-
             // Populate results table
             resultsTable.innerHTML = `
                 <tr>
@@ -641,34 +604,42 @@
                     <td>100%</td>
                 </tr>
             `;
-
             // Display results
-            weightedAverageResult.textContent = `${weightedAverage.toFixed(2)}%`;
-            targetInterpretationText.textContent = `The weighted average cost of equity is ${weightedAverage.toFixed(2)}%, calculated as a weighted average of CAPM (${capm.toFixed(2)}% × ${capmWeight}%) and DDM (${ddm.toFixed(2)}% × ${ddmWeight}%). CAPM uses risk-free rate (${riskFreeRate.toFixed(2)}%), beta (${beta.toFixed(2)}), and market return (${marketReturn.toFixed(2)}%). DDM uses dividend per share (GHS ${dividendPerShare.toFixed(2)}), stock price (GHS ${stockPrice.toFixed(2)}), and dividend growth rate (${dividendGrowthRate.toFixed(2)}%).`;
-
+            weightedAverageResult.textContent = weightedAverage.toFixed(2) + '%';
+            targetInterpretationText.textContent = 'The weighted average cost of equity is ' + weightedAverage.toFixed(2) + '%, calculated as a weighted average of CAPM (' + capm.toFixed(2) + '% × ' + capmWeight + '%) and DDM (' + ddm.toFixed(2) + '% × ' + ddmWeight + '%). CAPM uses risk-free rate (' + riskFreeRate.toFixed(2) + '%), beta (' + beta.toFixed(2) + '), and market return (' + marketReturn.toFixed(2) + '%). DDM uses dividend per share (GHS ' + dividendPerShare.toFixed(2) + '), stock price (GHS ' + stockPrice.toFixed(2) + '), and dividend growth rate (' + dividendGrowthRate.toFixed(2) + '%).';
             resultsSection.classList.remove('hidden');
             resultsSection.scrollIntoView({ behavior: 'smooth' });
         });
-
         // Reset button handler
+        form.addEventListener('reset', function() {
+            document.getElementById('risk_free_rate').value = '';
+            document.getElementById('beta').value = '';
+            document.getElementById('market_return').value = '';
+            document.getElementById('dividend_per_share').value = '';
+            document.getElementById('stock_price').value = '';
+            document.getElementById('dividend_growth_rate').value = '';
+            document.getElementById('capm_weight').value = '';
+            document.getElementById('ddm_weight').value = '';
+            resultsSection.classList.add('hidden');
+            resultsTable.innerHTML = '';
+            weightedAverageResult.textContent = '0.00%';
+            targetInterpretationText.textContent = '';
+            errorMessage.classList.add('hidden');
+            document.querySelectorAll('.form-error').forEach(el => el.classList.add('hidden'));
+        });
         resetBtn.addEventListener('click', function() {
             form.reset();
-            document.getElementById('risk_free_rate').value = '0';
-            document.getElementById('beta').value = '0';
-            document.getElementById('market_return').value = '0';
-            document.getElementById('dividend_per_share').value = '0';
-            document.getElementById('stock_price').value = '0';
-            document.getElementById('dividend_growth_rate').value = '0';
-            document.getElementById('capm_weight').value = '0';
-            document.getElementById('ddm_weight').value = '0';
             resultsSection.classList.add('hidden');
+            resultsTable.innerHTML = '';
+            weightedAverageResult.textContent = '0.00%';
+            targetInterpretationText.textContent = '';
             errorMessage.classList.add('hidden');
+            document.querySelectorAll('.form-error').forEach(el => el.classList.add('hidden'));
         });
-
         // Initialize form on page load
         document.addEventListener('DOMContentLoaded', () => {
             document.querySelectorAll('input[type="number"]').forEach(input => {
-                input.addEventListener('input', () => validateInput(input, input.min, input.max));
+                input.addEventListener('input', () => validateInput(input, parseFloat(input.min), parseFloat(input.max)));
             });
         });
     </script>

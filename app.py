@@ -2726,30 +2726,27 @@ def calculate_cost_of_equity():
             risk_free_rate = float(request.form.get('risk_free_rate')) / 100
             beta = float(request.form.get('beta'))
             market_return = float(request.form.get('market_return')) / 100
-
             # DDM Inputs
             dividend_per_share = float(request.form.get('dividend_per_share'))
             stock_price = float(request.form.get('stock_price'))
             dividend_growth_rate = float(request.form.get('dividend_growth_rate')) / 100
-
             # Weighting Inputs
             capm_weight = float(request.form.get('capm_weight')) / 100
             ddm_weight = float(request.form.get('ddm_weight')) / 100
-
             # Validation
+            if beta <= 0:
+                return render_template('cost_of_equity.html', error="Beta must be greater than 0.")
             if capm_weight + ddm_weight != 1.0:
                 return render_template('cost_of_equity.html', error="Weights must sum to 100%.")
-            if stock_price == 0:
-                return render_template('cost_of_equity.html', error="Stock price cannot be zero.")
-
+            if stock_price == 0 and dividend_per_share > 0:
+                return render_template('cost_of_equity.html', error="Stock price cannot be zero when dividend per share is provided.")
             # Calculations
             # CAPM: Cost = Rf + Beta * (Rm - Rf)
             capm_cost = risk_free_rate + beta * (market_return - risk_free_rate)
-            # DDM: Cost = (D1 / P0) + g
-            ddm_cost = (dividend_per_share / stock_price) + dividend_growth_rate
+            # DDM: Cost = (D1 / P0) * 100 + g
+            ddm_cost = (dividend_per_share / stock_price) * 100 + dividend_growth_rate if stock_price != 0 else 0
             # Weighted Average
             weighted_average = capm_cost * capm_weight + ddm_cost * ddm_weight
-
             results = {
                 'capm': capm_cost * 100,  # Convert to percentage
                 'ddm': ddm_cost * 100,
@@ -2757,13 +2754,11 @@ def calculate_cost_of_equity():
                 'ddm_weight': ddm_weight * 100,
                 'weighted_average': weighted_average * 100
             }
-
             return render_template('cost_of_equity.html', results=results)
         except ValueError:
             return render_template('cost_of_equity.html', error="Please enter valid numbers.")
     
     return render_template('cost_of_equity.html')
-
 
 @app.route('/cookies')
 def cookies():
