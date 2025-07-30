@@ -2309,6 +2309,100 @@ def tbills_rediscount():
 # ------------
 # ROUTES BLOCK
 # ------------
+
+@app.route('/capital-structure', methods=['GET', 'POST'])
+def capital_structure():
+    if request.method == 'POST':
+        try:
+            # Parse form data with defaults
+            input_method = request.form.get('input_method', 'direct')
+            if input_method == 'direct':
+                market_cap = float(request.form.get('market_cap', 0))
+                if market_cap <= 0:
+                    raise ValueError("Market capitalization must be positive.")
+            else:  # shares
+                share_price = float(request.form.get('share_price', 0))
+                outstanding_shares = float(request.form.get('outstanding_shares', 0))
+                if share_price <= 0 or outstanding_shares <= 0:
+                    raise ValueError("Share price and outstanding shares must be positive.")
+                market_cap = share_price * outstanding_shares
+
+            total_debt = float(request.form.get('total_debt', 0))
+            if total_debt < 0:
+                raise ValueError("Total debt cannot be negative.")
+            cash_and_equivalents = float(request.form.get('cash_and_equivalents', 0))
+            if cash_and_equivalents < 0:
+                raise ValueError("Cash and equivalents cannot be negative.")
+
+            # Calculate net debt
+            net_debt = total_debt - cash_and_equivalents
+            if net_debt < 0:
+                net_debt = 0  # Net debt cannot be negative for weighting
+
+            # Calculate total capital
+            total_capital = market_cap + net_debt
+            if total_capital <= 0:
+                raise ValueError("Total capital must be positive.")
+
+            # Calculate weights
+            equity_weight = market_cap / total_capital
+            debt_weight = net_debt / total_capital
+
+            # Sensitivity analysis for share price or market cap
+            sensitivity = {'values': [], 'share_prices': [], 'market_caps': []}
+            base_share_price = share_price if input_method == 'shares' else market_cap / outstanding_shares if outstanding_shares > 0 else 0
+            base_market_cap = market_cap
+            price_multipliers = [0.8, 0.9, 1.0, 1.1, 1.2]  # ±20%, ±10%
+            for multiplier in price_multipliers:
+                adjusted_market_cap = base_market_cap * multiplier
+                adjusted_total_capital = adjusted_market_cap + net_debt
+                if adjusted_total_capital > 0:
+                    eq_weight = adjusted_market_cap / adjusted_total_capital
+                    dt_weight = net_debt / adjusted_total_capital
+                    sensitivity['values'].append([round(eq_weight * 100, 2), round(dt_weight * 100, 2)])
+                else:
+                    sensitivity['values'].append(['N/A', 'N/A'])
+                if input_method == 'shares' and base_share_price > 0:
+                    sensitivity['share_prices'].append(round(base_share_price * multiplier, 2))
+                else:
+                    sensitivity['market_caps'].append(round(adjusted_market_cap, 2))
+
+            # Debug information
+            debug = {
+                'market_cap': market_cap,
+                'total_debt': total_debt,
+                'cash_and_equivalents': cash_and_equivalents,
+                'net_debt': net_debt,
+                'total_capital': total_capital,
+                'equity_weight': equity_weight,
+                'debt_weight': debt_weight,
+                'sensitivity': sensitivity
+            }
+
+            # Warning for high leverage
+            if debt_weight > 0.7:
+                debug['warning'] = "High debt weight detected (>70%). This may indicate significant financial leverage."
+
+            return render_template('capital_structure.html',
+                                   result={
+                                       'equity_weight': round(equity_weight * 100, 2),
+                                       'debt_weight': round(debt_weight * 100, 2),
+                                       'total_capital': round(total_capital, 2)
+                                   },
+                                   debug=debug,
+                                   form=request.form)
+        except ValueError as e:
+            return render_template('capital_structure.html',
+                                   error=str(e),
+                                   form=request.form)
+        except Exception as e:
+            return render_template('capital_structure.html',
+                                   error=f"An error occurred: {str(e)}",
+                                   form=request.form)
+    else:
+        return render_template('capital_structure.html', form={})
+    
+
 @app.route('/intrinsic-value', methods=['GET', 'POST'])
 def intrinsic_value():
     if request.method == 'POST':
@@ -2316,26 +2410,33 @@ def intrinsic_value():
             # Parse form data with defaults
             num_fcf_years = int(request.form.get('num_fcf_years', 3))
             fcf = [float(request.form.get(f'fcf_{i}', 0)) for i in range(1, num_fcf_years + 1)]
-            last_fcf = fcf[-1] if fcf else 0
+            if not fcf:
+                raise ValueError("At least one FCF value must be provided.")
+            last_fcf = fcf[-1]
 
             risk_free_rate = float(request.form.get('risk_free_rate', 0)) / 100
             market_return = float(request.form.get('market_return', 0)) / 100
             beta = float(request.form.get('beta', 0))
+            equity_weight = float(request.form.get('equity_weight', 50)) / 100
+            debt_weight = float(request.form.get('debt_weight', 50)) / 100
+            cost_of_debt = float(request.form.get('cost_of_debt', 0)) / 100
+            tax_rate = float(request.form.get('tax_rate', 0)) / 100
             outstanding_shares = float(request.form.get('outstanding_shares', 0))
             total_debt = float(request.form.get('total_debt', 0))
             cash_and_equivalents = float(request.form.get('cash_and_equivalents', 0))
 
-            growth_model = request.form.get('growth_model', 'perpetual')
-            if growth_model == 'perpetual':
-                perpetual_growth_rate = float(request.form.get('perpetual_growth_rate', 0)) / 100
-            else:  # two_stage
-                high_growth_years = int(request.form.get('high_growth_years', 0))
-                high_growth_rate = float(request.form.get('high_growth_rate', 0)) / 100
-                terminal_growth_rate = float(request.form.get('terminal_growth_rate', 0)) / 100
+            growth_model = request.form.get('growth_model', 'two_stage')
+            terminal_method = request.form.get('terminal_method', 'gordon_growth')
+            high_growth_years = int(request.form.get('high_growth_years', 5))
+            high_growth_rate = float(request.form.get('high_growth_rate', 0)) / 100
+            terminal_growth_rate = float(request.form.get('terminal_growth_rate', 0)) / 100
+            exit_multiple = float(request.form.get('exit_multiple', 0)) if terminal_method == 'exit_multiple' else 0
 
             discount_rate_method = request.form.get('discount_rate_method', 'capm')
             if discount_rate_method == 'capm':
-                discount_rate = risk_free_rate + beta * (market_return - risk_free_rate)
+                cost_of_equity = risk_free_rate + beta * (market_return - risk_free_rate)
+                after_tax_cost_of_debt = cost_of_debt * (1 - tax_rate)
+                discount_rate = (equity_weight * cost_of_equity) + (debt_weight * after_tax_cost_of_debt)
             else:
                 discount_rate = float(request.form.get('manual_discount_rate', 0)) / 100
 
@@ -2344,68 +2445,111 @@ def intrinsic_value():
                 raise ValueError("Outstanding shares must be positive.")
             if discount_rate <= 0:
                 raise ValueError("Discount rate must be positive.")
+            if equity_weight + debt_weight != 1.0:
+                raise ValueError("Equity and debt weights must sum to 100%.")
+            if growth_model == 'two_stage' and high_growth_years < 1:
+                raise ValueError("High growth years must be at least 1.")
+            if terminal_method == 'exit_multiple' and exit_multiple <= 0:
+                raise ValueError("Exit multiple must be positive.")
+            if terminal_method == 'gordon_growth' and discount_rate <= terminal_growth_rate:
+                raise ValueError("Discount rate must exceed terminal growth rate.")
+
+            # Calculate historical FCF growth rate for reference
+            historical_growth_rates = []
+            for i in range(1, len(fcf)):
+                if fcf[i-1] != 0:
+                    growth = (fcf[i] - fcf[i-1]) / abs(fcf[i-1])
+                    historical_growth_rates.append(growth)
+            avg_historical_growth = sum(historical_growth_rates) / len(historical_growth_rates) if historical_growth_rates else 0
+
+            # Project future FCFs for explicit period
+            fcf_projections = []
+            for i in range(1, high_growth_years + 1):
+                projected_fcf = last_fcf * (1 + high_growth_rate) ** i
+                fcf_projections.append(projected_fcf)
 
             # Calculate enterprise value
-            if growth_model == 'perpetual':
-                if discount_rate <= perpetual_growth_rate:
-                    raise ValueError("Discount rate must exceed perpetual growth rate.")
-                enterprise_value = (last_fcf * (1 + perpetual_growth_rate)) / (discount_rate - perpetual_growth_rate)
-            else:  # two_stage
-                if high_growth_years < 1:
-                    raise ValueError("High growth years must be at least 1.")
-                if discount_rate <= terminal_growth_rate:
-                    raise ValueError("Discount rate must exceed terminal growth rate.")
-                fcf_projections = [last_fcf * (1 + high_growth_rate) ** i for i in range(1, high_growth_years + 1)]
-                terminal_value = (fcf_projections[-1] * (1 + terminal_growth_rate)) / (discount_rate - terminal_growth_rate)
-                enterprise_value = sum([fcf / (1 + discount_rate) ** i for i, fcf in enumerate(fcf_projections, 1)]) + \
-                                  (terminal_value / (1 + discount_rate) ** high_growth_years)
+            enterprise_value = 0
+            # Discount historical FCFs to present (assuming valuation date is end of last FCF year)
+            for t, cash_flow in enumerate(fcf, 1):
+                enterprise_value += cash_flow / (1 + discount_rate) ** (num_fcf_years - t + 1)
+
+            # Discount projected FCFs
+            for t, cash_flow in enumerate(fcf_projections, 1):
+                enterprise_value += cash_flow / (1 + discount_rate) ** (num_fcf_years + t)
+
+            # Calculate terminal value
+            last_projected_fcf = fcf_projections[-1] if fcf_projections else last_fcf
+            if terminal_method == 'gordon_growth':
+                terminal_value = last_projected_fcf * (1 + terminal_growth_rate) / (discount_rate - terminal_growth_rate)
+            else:  # exit_multiple
+                terminal_value = last_projected_fcf * exit_multiple
+
+            # Discount terminal value to present
+            enterprise_value += terminal_value / (1 + discount_rate) ** (num_fcf_years + high_growth_years)
 
             # Calculate equity value and intrinsic value per share
             equity_value = enterprise_value - total_debt + cash_and_equivalents
             intrinsic_value_per_share = equity_value / outstanding_shares
 
             # Sensitivity analysis
-            sensitivity = {}
-            base_g = perpetual_growth_rate if growth_model == 'perpetual' else terminal_growth_rate
-            g_rates = [base_g - 0.01, base_g, base_g + 0.01]
-            r_rates = [discount_rate - 0.01, discount_rate, discount_rate + 0.01]
-            sensitivity['values'] = []
+            sensitivity = {'values': [], 'g_rates': [], 'r_rates': []}
+            base_g = terminal_growth_rate if terminal_method == 'gordon_growth' else exit_multiple
+            if terminal_method == 'exit_multiple':
+                g_rates = [base_g * 0.8, base_g * 0.9, base_g, base_g * 1.1, base_g * 1.2]
+            else:
+                g_rates = [base_g - 0.02, base_g - 0.01, base_g, base_g + 0.01, base_g + 0.02]
+            r_rates = [discount_rate - 0.02, discount_rate - 0.01, discount_rate, discount_rate + 0.01, discount_rate + 0.02]
+
             for g in g_rates:
                 row = []
                 for r in r_rates:
-                    if r > g and r > 0:
-                        if growth_model == 'perpetual':
-                            ev = (last_fcf * (1 + g)) / (r - g)
+                    if r > 0 and (terminal_method == 'exit_multiple' or (terminal_method == 'gordon_growth' and r > g)):
+                        ev = 0
+                        # Historical FCFs
+                        for t, cash_flow in enumerate(fcf, 1):
+                            ev += cash_flow / (1 + r) ** (num_fcf_years - t + 1)
+                        # Projected FCFs
+                        for t, cash_flow in enumerate(fcf_projections, 1):
+                            ev += cash_flow / (1 + r) ** (num_fcf_years + t)
+                        # Terminal value
+                        if terminal_method == 'gordon_growth':
+                            tv = last_projected_fcf * (1 + g) / (r - g)
                         else:
-                            fcf_proj = [last_fcf * (1 + high_growth_rate) ** i for i in range(1, high_growth_years + 1)]
-                            tv = (fcf_proj[-1] * (1 + g)) / (r - g)
-                            ev = sum([fcf / (1 + r) ** i for i, fcf in enumerate(fcf_proj, 1)]) + (tv / (1 + r) ** high_growth_years)
+                            tv = last_projected_fcf * g
+                        ev += tv / (1 + r) ** (num_fcf_years + high_growth_years)
                         eq_val = ev - total_debt + cash_and_equivalents
                         iv = eq_val / outstanding_shares
                         row.append(round(iv, 2))
                     else:
                         row.append('N/A')
                 sensitivity['values'].append(row)
-            sensitivity['g_rates'] = [round(g * 100, 2) for g in g_rates]
+            sensitivity['g_rates'] = [round(g, 2) for g in g_rates]
             sensitivity['r_rates'] = [round(r * 100, 2) for r in r_rates]
 
-            # Debug information with updated keys
+            # Debug information
             debug = {
-                'fcf': fcf,
+                'historical_fcf': fcf,
+                'projected_fcf': fcf_projections,
+                'avg_historical_growth': round(avg_historical_growth * 100, 2),
                 'discount_rate': discount_rate,
                 'growth_model': growth_model,
-                'growth_rate': perpetual_growth_rate if growth_model == 'perpetual' else terminal_growth_rate,
+                'terminal_method': terminal_method,
+                'terminal_growth_rate': terminal_growth_rate if terminal_method == 'gordon_growth' else None,
+                'exit_multiple': exit_multiple if terminal_method == 'exit_multiple' else None,
                 'enterprise_value': enterprise_value,
                 'equity_value': equity_value,
                 'sensitivity': sensitivity
             }
 
-            # Warning for negative FCF
+            # Warning for negative values
             if last_fcf < 0:
-                debug['warning'] = "Last FCF is negative, suggesting future FCF must improve for a meaningful valuation."
+                debug['warning'] = "Last FCF is negative, which may affect valuation accuracy."
+            if intrinsic_value_per_share < 0:
+                debug['warning'] = "Negative intrinsic value calculated. Verify inputs, especially FCF and shares outstanding."
 
             return render_template('intrinsic_value.html',
-                                   result=round(intrinsic_value_per_share, 2),
+                                   result=intrinsic_value_per_share,
                                    debug=debug,
                                    form=request.form)
         except ValueError as e:
@@ -2417,8 +2561,8 @@ def intrinsic_value():
                                    error=f"An error occurred: {str(e)}",
                                    form=request.form)
     else:
-        return render_template('intrinsic_value.html', form=request.form)
-
+        return render_template('intrinsic_value.html', form={})
+        
 # Custom filters
 app.jinja_env.filters['round'] = lambda value, decimals=2: round(float(value), decimals) if value else 0.0
 app.jinja_env.filters['commafy'] = lambda value: "{:,.2f}".format(float(value)) if value else "0.00"
@@ -2426,11 +2570,15 @@ app.jinja_env.filters['commafy'] = lambda value: "{:,.2f}".format(float(value)) 
 # Custom filter for currency formatting
 def format_currency(value):
     try:
-        return "${:,.2f}".format(float(value))
-    except:
-        return "N/A"
+        # Format with commas and ensure two decimal places
+        return "{:,.2f}".format(float(value))
+    except (ValueError, TypeError):
+        return "0.00"
 
 app.jinja_env.filters['currency'] = format_currency
+
+# Register the filter with Jinja2
+app.jinja_env.filters['format_currency'] = format_currency
 
 def currency_filter(value):
     try:

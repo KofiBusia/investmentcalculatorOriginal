@@ -243,23 +243,23 @@
                 <p class="text-xl mt-2">IV = (Σ(CF<sub>t</sub> / (1+r)<sup>t</sup>) + TV / (1+r)<sup>n</sup> - Debt + Cash) / Shares</p>
                 <p class="text-sm mt-2 text-gray-600">Where CF<sub>t</sub> is Free Cash Flow, r is discount rate, TV is terminal value, n is number of periods</p>
             </div>
-            <form id="intrinsic-form" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <form id="intrinsic-form" method="POST" action="/intrinsic-value" class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                    <label class="block text-gray-700 font-medium mb-2">Number of FCF Years</label>
+                    <label class="block text-gray-700 font-medium mb-2">Number of Historical FCF Years</label>
                     <select name="num_fcf_years" id="num_fcf_years" onchange="toggleFCFInputs()" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
-                        <option value="3">3 Years</option>
-                        <option value="4">4 Years</option>
-                        <option value="5">5 Years</option>
+                        <option value="3" {{ 'selected' if form.num_fcf_years == '3' else '' }}>3 Years</option>
+                        <option value="4" {{ 'selected' if form.num_fcf_years == '4' else '' }}>4 Years</option>
+                        <option value="5" {{ 'selected' if form.num_fcf_years == '5' else '' }}>5 Years</option>
                     </select>
                     <div class="tooltip mt-2">
                         <i class="fas fa-info-circle text-gray-500"></i>
-                        <span class="tooltiptext">Select the number of years of historical Free Cash Flow to include.</span>
+                        <span class="tooltiptext">Select the number of years of historical Free Cash Flow to include for trend analysis.</span>
                     </div>
                     <div class="form-error text-danger text-sm mt-2 hidden" id="num_fcf_years-error">Please select a valid number of years.</div>
                 </div>
                 <div id="fcf_1_group">
                     <label class="block text-gray-700 font-medium mb-2">Free Cash Flow (FCF) Year 1 (GHS)</label>
-                    <input type="number" step="any" name="fcf_1" id="fcf_1" placeholder="e.g., 1000000" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
+                    <input type="number" step="any" name="fcf_1" id="fcf_1" value="{{ form.fcf_1 if form.fcf_1 else '' }}" placeholder="e.g., 1000000" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
                     <div class="tooltip mt-2">
                         <i class="fas fa-info-circle text-gray-500"></i>
                         <span class="tooltiptext">Enter Free Cash Flow for Year 1 from financial statements. Can be positive or negative.</span>
@@ -268,7 +268,7 @@
                 </div>
                 <div id="fcf_2_group">
                     <label class="block text-gray-700 font-medium mb-2">Free Cash Flow (FCF) Year 2 (GHS)</label>
-                    <input type="number" step="any" name="fcf_2" id="fcf_2" placeholder="e.g., 1200000" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
+                    <input type="number" step="any" name="fcf_2" id="fcf_2" value="{{ form.fcf_2 if form.fcf_2 else '' }}" placeholder="e.g., 1200000" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
                     <div class="tooltip mt-2">
                         <i class="fas fa-info-circle text-gray-500"></i>
                         <span class="tooltiptext">Enter Free Cash Flow for Year 2 from financial statements. Can be positive or negative.</span>
@@ -277,7 +277,7 @@
                 </div>
                 <div id="fcf_3_group">
                     <label class="block text-gray-700 font-medium mb-2">Free Cash Flow (FCF) Year 3 (GHS)</label>
-                    <input type="number" step="any" name="fcf_3" id="fcf_3" placeholder="e.g., 1500000" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
+                    <input type="number" step="any" name="fcf_3" id="fcf_3" value="{{ form.fcf_3 if form.fcf_3 else '' }}" placeholder="e.g., 1500000" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
                     <div class="tooltip mt-2">
                         <i class="fas fa-info-circle text-gray-500"></i>
                         <span class="tooltiptext">Enter Free Cash Flow for Year 3 from financial statements. Can be positive or negative.</span>
@@ -286,7 +286,7 @@
                 </div>
                 <div id="fcf_4_group" style="display: none;">
                     <label class="block text-gray-700 font-medium mb-2">Free Cash Flow (FCF) Year 4 (GHS)</label>
-                    <input type="number" step="any" name="fcf_4" id="fcf_4" placeholder="e.g., 1800000" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" disabled>
+                    <input type="number" step="any" name="fcf_4" id="fcf_4" value="{{ form.fcf_4 if form.fcf_4 else '' }}" placeholder="e.g., 1800000" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" disabled>
                     <div class="tooltip mt-2">
                         <i class="fas fa-info-circle text-gray-500"></i>
                         <span class="tooltiptext">Enter Free Cash Flow for Year 4 from financial statements. Can be positive or negative.</span>
@@ -295,7 +295,7 @@
                 </div>
                 <div id="fcf_5_group" style="display: none;">
                     <label class="block text-gray-700 font-medium mb-2">Free Cash Flow (FCF) Year 5 (GHS)</label>
-                    <input type="number" step="any" name="fcf_5" id="fcf_5" placeholder="e.g., 2000000" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" disabled>
+                    <input type="number" step="any" name="fcf_5" id="fcf_5" value="{{ form.fcf_5 if form.fcf_5 else '' }}" placeholder="e.g., 2000000" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" disabled>
                     <div class="tooltip mt-2">
                         <i class="fas fa-info-circle text-gray-500"></i>
                         <span class="tooltiptext">Enter Free Cash Flow for Year 5 from financial statements. Can be positive or negative.</span>
@@ -305,8 +305,8 @@
                 <div>
                     <label class="block text-gray-700 font-medium mb-2">Growth Model</label>
                     <select name="growth_model" id="growth_model" onchange="toggleGrowthModelInputs()" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
-                        <option value="perpetual">Perpetual Growth</option>
-                        <option value="two_stage">Two-Stage Growth</option>
+                        <option value="two_stage" {{ 'selected' if form.growth_model == 'two_stage' else '' }}>Two-Stage Growth</option>
+                        <option value="perpetual" {{ 'selected' if form.growth_model == 'perpetual' else '' }}>Perpetual Growth</option>
                     </select>
                     <div class="tooltip mt-2">
                         <i class="fas fa-info-circle text-gray-500"></i>
@@ -315,20 +315,32 @@
                     <div class="form-error text-danger text-sm mt-2 hidden" id="growth_model-error">Please select a valid growth model.</div>
                 </div>
                 <div>
-                    <label class="block text-gray-700 font-medium mb-2">Discount Rate Method</label>
-                    <select name="discount_rate_method" id="discount_rate_method" onchange="toggleDiscountRateInputs()" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
-                        <option value="capm">CAPM</option>
-                        <option value="manual">Manual</option>
+                    <label class="block text-gray-700 font-medium mb-2">Terminal Value Method</label>
+                    <select name="terminal_method" id="terminal_method" onchange="toggleTerminalMethodInputs()" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
+                        <option value="gordon_growth" {{ 'selected' if form.terminal_method == 'gordon_growth' else '' }}>Gordon Growth</option>
+                        <option value="exit_multiple" {{ 'selected' if form.terminal_method == 'exit_multiple' else '' }}>Exit Multiple</option>
                     </select>
                     <div class="tooltip mt-2">
                         <i class="fas fa-info-circle text-gray-500"></i>
-                        <span class="tooltiptext">Use CAPM or specify a manual discount rate.</span>
+                        <span class="tooltiptext">Choose between Gordon Growth model or exit multiple for terminal value.</span>
+                    </div>
+                    <div class="form-error text-danger text-sm mt-2 hidden" id="terminal_method-error">Please select a valid terminal value method.</div>
+                </div>
+                <div>
+                    <label class="block text-gray-700 font-medium mb-2">Discount Rate Method</label>
+                    <select name="discount_rate_method" id="discount_rate_method" onchange="toggleDiscountRateInputs()" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
+                        <option value="capm" {{ 'selected' if form.discount_rate_method == 'capm' else '' }}>CAPM</option>
+                        <option value="manual" {{ 'selected' if form.discount_rate_method == 'manual' else '' }}>Manual</option>
+                    </select>
+                    <div class="tooltip mt-2">
+                        <i class="fas fa-info-circle text-gray-500"></i>
+                        <span class="tooltiptext">Use CAPM (with capital structure) or specify a manual discount rate.</span>
                     </div>
                     <div class="form-error text-danger text-sm mt-2 hidden" id="discount_rate_method-error">Please select a valid discount rate method.</div>
                 </div>
                 <div id="risk_free_rate_group">
                     <label class="block text-gray-700 font-medium mb-2">Risk-Free Rate (%)</label>
-                    <input type="number" step="0.01" name="risk_free_rate" id="risk_free_rate" placeholder="e.g., 5" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
+                    <input type="number" step="0.01" name="risk_free_rate" id="risk_free_rate" value="{{ form.risk_free_rate if form.risk_free_rate else '' }}" placeholder="e.g., 5" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
                     <div class="tooltip mt-2">
                         <i class="fas fa-info-circle text-gray-500"></i>
                         <span class="tooltiptext">The return on a risk-free investment, like government bonds. Used in CAPM.</span>
@@ -337,7 +349,7 @@
                 </div>
                 <div id="market_return_group">
                     <label class="block text-gray-700 font-medium mb-2">Market Return (%)</label>
-                    <input type="number" step="0.01" name="market_return" id="market_return" placeholder="e.g., 10" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
+                    <input type="number" step="0.01" name="market_return" id="market_return" value="{{ form.market_return if form.market_return else '' }}" placeholder="e.g., 10" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
                     <div class="tooltip mt-2">
                         <i class="fas fa-info-circle text-gray-500"></i>
                         <span class="tooltiptext">The expected return of the overall market. Used in CAPM.</span>
@@ -346,16 +358,52 @@
                 </div>
                 <div id="beta_group">
                     <label class="block text-gray-700 font-medium mb-2">Beta</label>
-                    <input type="number" step="0.01" name="beta" id="beta" placeholder="e.g., 1.2" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
+                    <input type="number" step="0.01" name="beta" id="beta" value="{{ form.beta if form.beta else '' }}" placeholder="e.g., 1.2" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
                     <div class="tooltip mt-2">
                         <i class="fas fa-info-circle text-gray-500"></i>
                         <span class="tooltiptext">Measures the stock's volatility relative to the market. A beta >1 indicates higher volatility.</span>
                     </div>
                     <div class="form-error text-danger text-sm mt-2 hidden" id="beta-error">Please enter a valid number.</div>
                 </div>
+                <div id="equity_weight_group">
+                    <label class="block text-gray-700 font-medium mb-2">Equity Weight (%)</label>
+                    <input type="number" step="0.01" name="equity_weight" id="equity_weight" value="{{ form.equity_weight if form.equity_weight else '' }}" placeholder="e.g., 50" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
+                    <div class="tooltip mt-2">
+                        <i class="fas fa-info-circle text-gray-500"></i>
+                        <span class="tooltiptext">Percentage of capital structure from equity. Must sum to 100% with debt weight.</span>
+                    </div>
+                    <div class="form-error text-danger text-sm mt-2 hidden" id="equity_weight-error">Please enter a valid percentage.</div>
+                </div>
+                <div id="debt_weight_group">
+                    <label class="block text-gray-700 font-medium mb-2">Debt Weight (%)</label>
+                    <input type="number" step="0.01" name="debt_weight" id="debt_weight" value="{{ form.debt_weight if form.debt_weight else '' }}" placeholder="e.g., 50" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
+                    <div class="tooltip mt-2">
+                        <i class="fas fa-info-circle text-gray-500"></i>
+                        <span class="tooltiptext">Percentage of capital structure from debt. Must sum to 100% with equity weight.</span>
+                    </div>
+                    <div class="form-error text-danger text-sm mt-2 hidden" id="debt_weight-error">Please enter a valid percentage.</div>
+                </div>
+                <div id="cost_of_debt_group">
+                    <label class="block text-gray-700 font-medium mb-2">Cost of Debt (%)</label>
+                    <input type="number" step="0.01" name="cost_of_debt" id="cost_of_debt" value="{{ form.cost_of_debt if form.cost_of_debt else '' }}" placeholder="e.g., 5" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
+                    <div class="tooltip mt-2">
+                        <i class="fas fa-info-circle text-gray-500"></i>
+                        <span class="tooltiptext">The company's borrowing cost before tax. Used in CAPM.</span>
+                    </div>
+                    <div class="form-error text-danger text-sm mt-2 hidden" id="cost_of_debt-error">Please enter a valid percentage.</div>
+                </div>
+                <div id="tax_rate_group">
+                    <label class="block text-gray-700 font-medium mb-2">Tax Rate (%)</label>
+                    <input type="number" step="0.01" name="tax_rate" id="tax_rate" value="{{ form.tax_rate if form.tax_rate else '' }}" placeholder="e.g., 30" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
+                    <div class="tooltip mt-2">
+                        <i class="fas fa-info-circle text-gray-500"></i>
+                        <span class="tooltiptext">The company's effective tax rate for interest deduction.</span>
+                    </div>
+                    <div class="form-error text-danger text-sm mt-2 hidden" id="tax_rate-error">Please enter a valid percentage.</div>
+                </div>
                 <div id="manual_discount_rate_group" style="display: none;">
                     <label class="block text-gray-700 font-medium mb-2">Manual Discount Rate (%)</label>
-                    <input type="number" step="0.01" name="manual_discount_rate" id="manual_discount_rate" placeholder="e.g., 8" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
+                    <input type="number" step="0.01" name="manual_discount_rate" id="manual_discount_rate" value="{{ form.manual_discount_rate if form.manual_discount_rate else '' }}" placeholder="e.g., 8" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
                     <div class="tooltip mt-2">
                         <i class="fas fa-info-circle text-gray-500"></i>
                         <span class="tooltiptext">Specify a custom discount rate if not using CAPM.</span>
@@ -364,7 +412,7 @@
                 </div>
                 <div>
                     <label class="block text-gray-700 font-medium mb-2">Outstanding Shares (most recent)</label>
-                    <input type="number" step="1" name="outstanding_shares" id="outstanding_shares" placeholder="e.g., 10000000" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
+                    <input type="number" step="1" name="outstanding_shares" id="outstanding_shares" value="{{ form.outstanding_shares if form.outstanding_shares else '' }}" placeholder="e.g., 10000000" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
                     <div class="tooltip mt-2">
                         <i class="fas fa-info-circle text-gray-500"></i>
                         <span class="tooltiptext">The total number of shares currently held by shareholders.</span>
@@ -373,7 +421,7 @@
                 </div>
                 <div>
                     <label class="block text-gray-700 font-medium mb-2">Total Debt (most recent, GHS)</label>
-                    <input type="number" step="1" name="total_debt" id="total_debt" placeholder="e.g., 5000000" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
+                    <input type="number" step="1" name="total_debt" id="total_debt" value="{{ form.total_debt if form.total_debt else '' }}" placeholder="e.g., 5000000" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
                     <div class="tooltip mt-2">
                         <i class="fas fa-info-circle text-gray-500"></i>
                         <span class="tooltiptext">The company's total debt. Optional; defaults to 0 if not provided.</span>
@@ -382,48 +430,57 @@
                 </div>
                 <div>
                     <label class="block text-gray-700 font-medium mb-2">Cash and Equivalents (most recent, GHS)</label>
-                    <input type="number" step="1" name="cash_and_equivalents" id="cash_and_equivalents" placeholder="e.g., 2000000" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
+                    <input type="number" step="1" name="cash_and_equivalents" id="cash_and_equivalents" value="{{ form.cash_and_equivalents if form.cash_and_equivalents else '' }}" placeholder="e.g., 2000000" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
                     <div class="tooltip mt-2">
                         <i class="fas fa-info-circle text-gray-500"></i>
                         <span class="tooltiptext">The company's liquid assets. Optional; defaults to 0 if not provided.</span>
                     </div>
                     <div class="form-error text-danger text-sm mt-2 hidden" id="cash_and_equivalents-error">Please enter a valid number.</div>
                 </div>
-                <div id="perpetual_growth_rate_group">
+                <div id="perpetual_growth_rate_group" style="display: none;">
                     <label class="block text-gray-700 font-medium mb-2">Perpetual Growth Rate (%)</label>
-                    <input type="number" step="0.01" name="perpetual_growth_rate" id="perpetual_growth_rate" placeholder="e.g., 2" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
+                    <input type="number" step="0.01" name="perpetual_growth_rate" id="perpetual_growth_rate" value="{{ form.perpetual_growth_rate if form.perpetual_growth_rate else '' }}" placeholder="e.g., 2" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
                     <div class="tooltip mt-2">
                         <i class="fas fa-info-circle text-gray-500"></i>
                         <span class="tooltiptext">The long-term growth rate of FCF for perpetual model.</span>
                     </div>
                     <div class="form-error text-danger text-sm mt-2 hidden" id="perpetual_growth_rate-error">Please enter a valid percentage.</div>
                 </div>
-                <div id="high_growth_years_group" style="display: none;">
+                <div id="high_growth_years_group">
                     <label class="block text-gray-700 font-medium mb-2">High Growth Years</label>
-                    <input type="number" step="1" min="0" name="high_growth_years" id="high_growth_years" placeholder="e.g., 5" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
+                    <input type="number" step="1" min="1" name="high_growth_years" id="high_growth_years" value="{{ form.high_growth_years if form.high_growth_years else '' }}" placeholder="e.g., 5" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
                     <div class="tooltip mt-2">
                         <i class="fas fa-info-circle text-gray-500"></i>
                         <span class="tooltiptext">Number of years for high-growth phase in two-stage model.</span>
                     </div>
                     <div class="form-error text-danger text-sm mt-2 hidden" id="high_growth_years-error">Please enter a valid number.</div>
                 </div>
-                <div id="high_growth_rate_group" style="display: none;">
+                <div id="high_growth_rate_group">
                     <label class="block text-gray-700 font-medium mb-2">High Growth Rate (%)</label>
-                    <input type="number" step="0.01" name="high_growth_rate" id="high_growth_rate" placeholder="e.g., 10" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
+                    <input type="number" step="0.01" name="high_growth_rate" id="high_growth_rate" value="{{ form.high_growth_rate if form.high_growth_rate else '' }}" placeholder="e.g., 10" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
                     <div class="tooltip mt-2">
                         <i class="fas fa-info-circle text-gray-500"></i>
                         <span class="tooltiptext">Growth rate during high-growth phase in two-stage model.</span>
                     </div>
                     <div class="form-error text-danger text-sm mt-2 hidden" id="high_growth_rate-error">Please enter a valid percentage.</div>
                 </div>
-                <div id="terminal_growth_rate_group" style="display: none;">
+                <div id="terminal_growth_rate_group">
                     <label class="block text-gray-700 font-medium mb-2">Terminal Growth Rate (%)</label>
-                    <input type="number" step="0.01" name="terminal_growth_rate" id="terminal_growth_rate" placeholder="e.g., 2" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
+                    <input type="number" step="0.01" name="terminal_growth_rate" id="terminal_growth_rate" value="{{ form.terminal_growth_rate if form.terminal_growth_rate else '' }}" placeholder="e.g., 2" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
                     <div class="tooltip mt-2">
                         <i class="fas fa-info-circle text-gray-500"></i>
-                        <span class="tooltiptext">Long-term growth rate after high-growth phase in two-stage model.</span>
+                        <span class="tooltiptext">Long-term growth rate after high-growth phase for Gordon Growth model.</span>
                     </div>
                     <div class="form-error text-danger text-sm mt-2 hidden" id="terminal_growth_rate-error">Please enter a valid percentage.</div>
+                </div>
+                <div id="exit_multiple_group" style="display: none;">
+                    <label class="block text-gray-700 font-medium mb-2">Exit Multiple (x)</label>
+                    <input type="number" step="0.01" name="exit_multiple" id="exit_multiple" value="{{ form.exit_multiple if form.exit_multiple else '' }}" placeholder="e.g., 8" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
+                    <div class="tooltip mt-2">
+                        <i class="fas fa-info-circle text-gray-500"></i>
+                        <span class="tooltiptext">Multiple applied to final FCF for exit multiple terminal value.</span>
+                    </div>
+                    <div class="form-error text-danger text-sm mt-2 hidden" id="exit_multiple-error">Please enter a valid number.</div>
                 </div>
                 <div class="md:col-span-2 mt-4">
                     <button type="submit" class="px-6 py-3 bg-primary text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors">
@@ -432,38 +489,114 @@
                 </div>
             </form>
             <!-- Results Section -->
-            <div id="results-section" class="mt-8 hidden">
+            <div id="results-section" class="mt-8 {{ '' if result is defined or debug is defined else 'hidden' }}">
                 <h3 class="text-xl font-bold text-gray-800 mb-4">Intrinsic Value Results</h3>
                 <div class="text-center mb-6">
                     <p class="text-gray-600">Calculated Intrinsic Value per Share</p>
-                    <div class="intrinsic-value" id="intrinsic-result">GHS 100.00</div>
+                    <div class="intrinsic-value" id="intrinsic-result">
+                        {% if result is defined %}
+                            GHS {{ result | format_currency }}
+                        {% else %}
+                            GHS 0.00
+                        {% endif %}
+                    </div>
                     <div class="intrinsic-interpretation">
                         <p class="font-medium">Interpretation:</p>
-                        <p id="intrinsic-interpretation-text">The estimated true worth of the stock per share based on the DCF model.</p>
+                        <p id="intrinsic-interpretation-text">
+                            {% if result is defined %}
+                                {% if result < 0 %}
+                                    Negative intrinsic value calculated. Verify inputs, especially FCF and shares outstanding.
+                                {% else %}
+                                    The estimated true worth of the stock per share based on the DCF model.
+                                {% endif %}
+                            {% else %}
+                                The estimated true worth of the stock per share based on the DCF model.
+                            {% endif %}
+                        </p>
                     </div>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
                     <div class="bg-indigo-50 p-4 rounded-lg">
                         <h4 class="font-bold text-gray-800 mb-2">Enterprise Value</h4>
-                        <p class="text-gray-700" id="enterprise-value-result">GHS 0.00</p>
+                        <p class="text-gray-700" id="enterprise-value-result">
+                            {% if debug is defined %}
+                                GHS {{ debug.enterprise_value | format_currency }}
+                            {% else %}
+                                GHS 0.00
+                            {% endif %}
+                        </p>
                         <p class="text-sm text-gray-600 mt-2">The total value of the company before adjustments.</p>
                     </div>
                     <div class="bg-indigo-50 p-4 rounded-lg">
                         <h4 class="font-bold text-gray-800 mb-2">Equity Value</h4>
-                        <p class="text-gray-700" id="equity-value-result">GHS 0.00</p>
+                        <p class="text-gray-700" id="equity-value-result">
+                            {% if debug is defined %}
+                                GHS {{ debug.equity_value | format_currency }}
+                            {% else %}
+                                GHS 0.00
+                            {% endif %}
+                        </p>
                         <p class="text-sm text-gray-600 mt-2">The value of the company after adjusting for debt and cash.</p>
                     </div>
                     <div class="bg-indigo-50 p-4 rounded-lg">
                         <h4 class="font-bold text-gray-800 mb-2">Discount Rate</h4>
-                        <p class="text-gray-700" id="discount-rate-result">0.00%</p>
+                        <p class="text-gray-700" id="discount-rate-result">
+                            {% if debug is defined %}
+                                {{ (debug.discount_rate * 100) | round(2) }}%
+                            {% else %}
+                                0.00%
+                            {% endif %}
+                        </p>
                         <p class="text-sm text-gray-600 mt-2">The rate used to discount future cash flows.</p>
                     </div>
                     <div class="bg-indigo-50 p-4 rounded-lg">
                         <h4 class="font-bold text-gray-800 mb-2">Growth Rate</h4>
-                        <p class="text-gray-700" id="growth-rate-result">0.00%</p>
-                        <p class="text-sm text-gray-600 mt-2">The growth rate applied in the DCF model.</p>
+                        <p class="text-gray-700" id="growth-rate-result">
+                            {% if debug is defined %}
+                                {% if debug.terminal_method == 'gordon_growth' %}
+                                    {{ (debug.terminal_growth_rate * 100) | round(2) }}%
+                                {% else %}
+                                    {{ debug.exit_multiple | round(2) }}x
+                                {% endif %}
+                            {% else %}
+                                0.00%
+                            {% endif %}
+                        </p>
+                        <p class="text-sm text-gray-600 mt-2">The terminal growth rate or exit multiple applied in the DCF model.</p>
                     </div>
                 </div>
+                {% if debug is defined and debug.warning is defined %}
+                    <div class="bg-yellow-50 p-4 rounded-lg mt-6">
+                        <p class="text-yellow-700 font-medium">{{ debug.warning }}</p>
+                    </div>
+                {% endif %}
+                {% if debug is defined and debug.sensitivity is defined %}
+                    <div class="mt-6">
+                        <h4 class="font-bold text-gray-800 mb-4">Sensitivity Analysis</h4>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full bg-white rounded-lg shadow-sm">
+                                <thead>
+                                    <tr class="bg-indigo-50">
+                                        <th class="px-4 py-2 text-left whitespace-nowrap">Growth/Multiple</th>
+                                        {% for r in debug.sensitivity.r_rates %}
+                                            <th class="px-4 py-2 text-center whitespace-nowrap">{{ r }}%</th>
+                                        {% endfor %}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for i in range(debug.sensitivity.g_rates | length) %}
+                                        <tr>
+                                            <td class="px-4 py-2 whitespace-nowrap">{{ debug.sensitivity.g_rates[i] }}{% if debug.terminal_method == 'gordon_growth' %}%{% else %}x{% endif %}</td>
+                                            {% for val in debug.sensitivity.values[i] %}
+                                                <td class="px-4 py-2 text-center whitespace-nowrap">{{ val }}</td>
+                                            {% endfor %}
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                {% endif %}
                 <div class="mt-6">
                     <button id="reset-calculator" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium flex items-center inline-block">
                         <i class="fas fa-redo mr-2"></i> Calculate Another
@@ -471,9 +604,9 @@
                 </div>
             </div>
             <!-- Error Message -->
-            <div id="error-message" class="mt-6 hidden">
+            <div id="error-message" class="mt-6 {{ '' if error is defined else 'hidden' }}">
                 <div class="bg-red-50 p-4 rounded-lg">
-                    <p class="text-red-700 font-medium" id="error-text"></p>
+                    <p class="text-red-700 font-medium" id="error-text">{{ error if error is defined else '' }}</p>
                 </div>
             </div>
         </div>
@@ -501,28 +634,32 @@
             <h3 class="text-xl font-bold text-gray-800 mt-8 mb-4">How to Use the Intrinsic Value Calculator</h3>
             <ol class="list-decimal pl-6 space-y-4">
                 <li>
-                    <strong>Select Historical Free Cash Flow</strong>
-                    <p>Choose the number of years (3, 4, or 5) of historical Free Cash Flow (FCF) to include. Enter FCF values for each year from financial statements, with Year 1 being the earliest.</p>
+                    <strong>Enter Historical Free Cash Flow</strong>
+                    <p>Input historical Free Cash Flow (FCF) for 3–5 years to analyze trends and inform projections.</p>
                 </li>
                 <li>
-                    <strong>Choose Growth Model</strong>
-                    <p>Select either Perpetual Growth (single rate) or Two-Stage Growth (high-growth and terminal phases) to model future cash flows.</p>
+                    <strong>Select Growth Model</strong>
+                    <p>Choose Two-Stage Growth (preferred) for high-growth and terminal phases, or Perpetual Growth for simplicity.</p>
+                </li>
+                <li>
+                    <strong>Choose Terminal Value Method</strong>
+                    <p>Select Gordon Growth for long-term growth or Exit Multiple for market-based valuation.</p>
                 </li>
                 <li>
                     <strong>Specify Discount Rate</strong>
-                    <p>Choose CAPM (using Risk-Free Rate, Market Return, and Beta) or a manual discount rate to adjust for risk and time value of money.</p>
+                    <p>Use CAPM (with capital structure, risk-free rate, market return, and beta) or a manual discount rate.</p>
                 </li>
                 <li>
                     <strong>Enter Financial Metrics</strong>
-                    <p>Input Outstanding Shares, Total Debt, and Cash and Equivalents from the most recent financial statements. Debt and cash are optional and default to 0 if not provided.</p>
+                    <p>Input Outstanding Shares, Total Debt, and Cash and Equivalents from the most recent financial statements.</p>
                 </li>
                 <li>
-                    <strong>Provide Growth Rates</strong>
-                    <p>For Perpetual Growth, enter the long-term growth rate. For Two-Stage, enter high-growth years, high-growth rate, and terminal growth rate.</p>
+                    <strong>Provide Growth Rates and Exit Multiple</strong>
+                    <p>Enter high-growth years, high-growth rate, and terminal growth rate or exit multiple based on industry and historical trends.</p>
                 </li>
                 <li>
                     <strong>Calculate and Interpret</strong>
-                    <p>Click “Calculate” to compute the intrinsic value per share. Review the results to assess the stock’s worth relative to its market price.</p>
+                    <p>Click “Calculate” to compute the intrinsic value per share. Compare with market price to assess investment potential.</p>
                 </li>
             </ol>
             <div class="mt-8">
@@ -585,7 +722,6 @@
                 } else {
                     inputGroup.style.display = 'none';
                     input.required = false;
-                    input.value = '';
                     input.disabled = true;
                 }
             }
@@ -594,14 +730,13 @@
         function toggleGrowthModelInputs() {
             const growthModel = document.getElementById('growth_model').value;
             const perpetualFields = ['perpetual_growth_rate_group'];
-            const twoStageFields = ['high_growth_years_group', 'high_growth_rate_group', 'terminal_growth_rate_group'];
+            const twoStageFields = ['high_growth_years_group', 'high_growth_rate_group'];
 
             perpetualFields.forEach(field => {
                 const group = document.getElementById(field);
                 group.style.display = growthModel === 'perpetual' ? 'block' : 'none';
                 const input = group.querySelector('input');
                 input.required = growthModel === 'perpetual';
-                if (growthModel !== 'perpetual') input.value = '';
             });
 
             twoStageFields.forEach(field => {
@@ -609,13 +744,28 @@
                 group.style.display = growthModel === 'two_stage' ? 'block' : 'none';
                 const input = group.querySelector('input');
                 input.required = growthModel === 'two_stage';
-                if (growthModel !== 'two_stage') input.value = '';
             });
+
+            toggleTerminalMethodInputs();
+        }
+
+        function toggleTerminalMethodInputs() {
+            const terminalMethod = document.getElementById('terminal_method').value;
+            const terminalGrowthGroup = document.getElementById('terminal_growth_rate_group');
+            const exitMultipleGroup = document.getElementById('exit_multiple_group');
+
+            terminalGrowthGroup.style.display = terminalMethod === 'gordon_growth' ? 'block' : 'none';
+            const terminalInput = terminalGrowthGroup.querySelector('input');
+            terminalInput.required = terminalMethod === 'gordon_growth';
+
+            exitMultipleGroup.style.display = terminalMethod === 'exit_multiple' ? 'block' : 'none';
+            const exitInput = exitMultipleGroup.querySelector('input');
+            exitInput.required = terminalMethod === 'exit_multiple';
         }
 
         function toggleDiscountRateInputs() {
             const discountMethod = document.getElementById('discount_rate_method').value;
-            const capmFields = ['risk_free_rate_group', 'market_return_group', 'beta_group'];
+            const capmFields = ['risk_free_rate_group', 'market_return_group', 'beta_group', 'equity_weight_group', 'debt_weight_group', 'cost_of_debt_group', 'tax_rate_group'];
             const manualField = ['manual_discount_rate_group'];
 
             capmFields.forEach(field => {
@@ -623,7 +773,6 @@
                 group.style.display = discountMethod === 'capm' ? 'block' : 'none';
                 const input = group.querySelector('input');
                 input.required = discountMethod === 'capm';
-                if (discountMethod !== 'capm') input.value = '';
             });
 
             manualField.forEach(field => {
@@ -631,57 +780,62 @@
                 group.style.display = discountMethod === 'manual' ? 'block' : 'none';
                 const input = group.querySelector('input');
                 input.required = discountMethod === 'manual';
-                if (discountMethod !== 'manual') input.value = '';
             });
         }
 
-        // Form submission handler (client-side calculation)
+        // Form submission handler (client-side validation)
         const form = document.getElementById('intrinsic-form');
         const resultsSection = document.getElementById('results-section');
-        const intrinsicResult = document.getElementById('intrinsic-result');
-        const enterpriseValueResult = document.getElementById('enterprise-value-result');
-        const equityValueResult = document.getElementById('equity-value-result');
-        const discountRateResult = document.getElementById('discount-rate-result');
-        const growthRateResult = document.getElementById('growth-rate-result');
         const errorMessage = document.getElementById('error-message');
         const errorText = document.getElementById('error-text');
         const resetBtn = document.getElementById('reset-calculator');
 
         form.addEventListener('submit', function(e) {
+            // Perform client-side validation before submission
             e.preventDefault();
 
             // Reset error state
             errorMessage.classList.add('hidden');
             document.querySelectorAll('.form-error').forEach(el => el.classList.add('hidden'));
 
-            // Get input values
+            // Validate inputs
             const numFCFYears = parseInt(document.getElementById('num_fcf_years').value);
-            const fcf = [];
             for (let i = 1; i <= numFCFYears; i++) {
                 const value = parseFloat(document.getElementById(`fcf_${i}`).value);
                 if (isNaN(value)) {
                     document.getElementById(`fcf_${i}-error`).classList.remove('hidden');
                     return;
                 }
-                fcf.push(value);
             }
             const growthModel = document.getElementById('growth_model').value;
+            const terminalMethod = document.getElementById('terminal_method').value;
             const discountRateMethod = document.getElementById('discount_rate_method').value;
-            let discountRate;
             if (discountRateMethod === 'capm') {
-                const riskFreeRate = parseFloat(document.getElementById('risk_free_rate').value) / 100;
-                const marketReturn = parseFloat(document.getElementById('market_return').value) / 100;
+                const riskFreeRate = parseFloat(document.getElementById('risk_free_rate').value);
+                const marketReturn = parseFloat(document.getElementById('market_return').value);
                 const beta = parseFloat(document.getElementById('beta').value);
-                if (isNaN(riskFreeRate) || isNaN(marketReturn) || isNaN(beta)) {
+                const equityWeight = parseFloat(document.getElementById('equity_weight').value);
+                const debtWeight = parseFloat(document.getElementById('debt_weight').value);
+                const costOfDebt = parseFloat(document.getElementById('cost_of_debt').value);
+                const taxRate = parseFloat(document.getElementById('tax_rate').value);
+                if (isNaN(riskFreeRate) || isNaN(marketReturn) || isNaN(beta) || isNaN(equityWeight) || isNaN(debtWeight) || isNaN(costOfDebt) || isNaN(taxRate)) {
                     if (isNaN(riskFreeRate)) document.getElementById('risk_free_rate-error').classList.remove('hidden');
                     if (isNaN(marketReturn)) document.getElementById('market_return-error').classList.remove('hidden');
                     if (isNaN(beta)) document.getElementById('beta-error').classList.remove('hidden');
+                    if (isNaN(equityWeight)) document.getElementById('equity_weight-error').classList.remove('hidden');
+                    if (isNaN(debtWeight)) document.getElementById('debt_weight-error').classList.remove('hidden');
+                    if (isNaN(costOfDebt)) document.getElementById('cost_of_debt-error').classList.remove('hidden');
+                    if (isNaN(taxRate)) document.getElementById('tax_rate-error').classList.remove('hidden');
                     return;
                 }
-                discountRate = riskFreeRate + beta * (marketReturn - riskFreeRate);
+                if (Math.abs(equityWeight + debtWeight - 100) > 0.01) {
+                    document.getElementById('equity_weight-error').classList.remove('hidden');
+                    document.getElementById('equity_weight-error').textContent = 'Equity and debt weights must sum to 100%.';
+                    return;
+                }
             } else {
-                discountRate = parseFloat(document.getElementById('manual_discount_rate').value) / 100;
-                if (isNaN(discountRate)) {
+                const manualDiscountRate = parseFloat(document.getElementById('manual_discount_rate').value);
+                if (isNaN(manualDiscountRate)) {
                     document.getElementById('manual_discount_rate-error').classList.remove('hidden');
                     return;
                 }
@@ -693,74 +847,37 @@
             }
             const totalDebt = parseFloat(document.getElementById('total_debt').value) || 0;
             const cashAndEquivalents = parseFloat(document.getElementById('cash_and_equivalents').value) || 0;
-            let growthRate;
-            let highGrowthYears, highGrowthRate, terminalGrowthRate;
-
             if (growthModel === 'perpetual') {
-                growthRate = parseFloat(document.getElementById('perpetual_growth_rate').value) / 100;
-                if (isNaN(growthRate)) {
+                const perpetualGrowthRate = parseFloat(document.getElementById('perpetual_growth_rate').value);
+                if (isNaN(perpetualGrowthRate)) {
                     document.getElementById('perpetual_growth_rate-error').classList.remove('hidden');
                     return;
                 }
             } else {
-                highGrowthYears = parseInt(document.getElementById('high_growth_years').value);
-                highGrowthRate = parseFloat(document.getElementById('high_growth_rate').value) / 100;
-                terminalGrowthRate = parseFloat(document.getElementById('terminal_growth_rate').value) / 100;
-                if (isNaN(highGrowthYears) || isNaN(highGrowthRate) || isNaN(terminalGrowthRate)) {
+                const highGrowthYears = parseInt(document.getElementById('high_growth_years').value);
+                const highGrowthRate = parseFloat(document.getElementById('high_growth_rate').value);
+                if (isNaN(highGrowthYears) || isNaN(highGrowthRate)) {
                     if (isNaN(highGrowthYears)) document.getElementById('high_growth_years-error').classList.remove('hidden');
                     if (isNaN(highGrowthRate)) document.getElementById('high_growth_rate-error').classList.remove('hidden');
-                    if (isNaN(terminalGrowthRate)) document.getElementById('terminal_growth_rate-error').classList.remove('hidden');
                     return;
                 }
-                growthRate = terminalGrowthRate; // For display purposes
             }
-
-            // Calculate intrinsic value
-            let enterpriseValue = 0;
-            const lastFCF = fcf[fcf.length - 1];
-
-            if (growthModel === 'perpetual') {
-                for (let t = 1; t <= numFCFYears; t++) {
-                    enterpriseValue += fcf[t - 1] * Math.pow(1 + growthRate, t) / Math.pow(1 + discountRate, t);
-                }
-                const terminalValue = (lastFCF * (1 + growthRate)) / (discountRate - growthRate);
-                if (discountRate <= growthRate) {
-                    errorText.textContent = 'Discount rate must be greater than growth rate.';
-                    errorMessage.classList.remove('hidden');
+            if (terminalMethod === 'gordon_growth') {
+                const terminalGrowthRate = parseFloat(document.getElementById('terminal_growth_rate').value);
+                if (isNaN(terminalGrowthRate)) {
+                    document.getElementById('terminal_growth_rate-error').classList.remove('hidden');
                     return;
                 }
-                enterpriseValue += terminalValue / Math.pow(1 + discountRate, numFCFYears);
             } else {
-                for (let t = 1; t <= numFCFYears; t++) {
-                    enterpriseValue += fcf[t - 1] * Math.pow(1 + highGrowthRate, t) / Math.pow(1 + discountRate, t);
-                }
-                let terminalValue = lastFCF * Math.pow(1 + highGrowthRate, highGrowthYears);
-                terminalValue = (terminalValue * (1 + terminalGrowthRate)) / (discountRate - terminalGrowthRate);
-                if (discountRate <= terminalGrowthRate) {
-                    errorText.textContent = 'Discount rate must be greater than terminal growth rate.';
-                    errorMessage.classList.remove('hidden');
+                const exitMultiple = parseFloat(document.getElementById('exit_multiple').value);
+                if (isNaN(exitMultiple) || exitMultiple <= 0) {
+                    document.getElementById('exit_multiple-error').classList.remove('hidden');
                     return;
                 }
-                enterpriseValue += terminalValue / Math.pow(1 + discountRate, numFCFYears + highGrowthYears);
             }
 
-            const equityValue = enterpriseValue - totalDebt + cashAndEquivalents;
-            const intrinsicValue = equityValue / outstandingShares;
-
-            if (intrinsicValue < 0) {
-                errorText.textContent = 'Negative intrinsic value calculated. Please verify input data.';
-                errorMessage.classList.remove('hidden');
-                return;
-            }
-
-            // Display results
-            intrinsicResult.textContent = `GHS ${intrinsicValue.toFixed(2)}`;
-            enterpriseValueResult.textContent = `GHS ${enterpriseValue.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
-            equityValueResult.textContent = `GHS ${equityValue.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
-            discountRateResult.textContent = `${(discountRate * 100).toFixed(2)}%`;
-            growthRateResult.textContent = growthModel === 'perpetual' ? `${(growthRate * 100).toFixed(2)}%` : `${(terminalGrowthRate * 100).toFixed(2)}%`;
-
-            resultsSection.classList.remove('hidden');
+            // Submit form to backend
+            form.submit();
         });
 
         // Reset button handler
@@ -771,6 +888,7 @@
             toggleFCFInputs();
             toggleGrowthModelInputs();
             toggleDiscountRateInputs();
+            toggleTerminalMethodInputs();
         });
 
         // Run on page load to set initial state
@@ -778,6 +896,7 @@
             toggleFCFInputs();
             toggleGrowthModelInputs();
             toggleDiscountRateInputs();
+            toggleTerminalMethodInputs();
         });
     </script>
 </body>
