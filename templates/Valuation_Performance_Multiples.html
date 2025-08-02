@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Valuation and Performance Calculator - Young Investor</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4f46e5',
+                        secondary: '#818cf8',
+                        accent: '#a5b4fc',
+                        dark: '#1e293b',
+                        light: '#f8fafc',
+                        success: '#10b981',
+                        info: '#0ea5e9',
+                        warning: '#f59e0b',
+                        danger: '#ef4444'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #f0f4f8 0%, #e6e9ff 100%);
+            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+        }
+        .input-field {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+        .input-field:focus {
+            border-color: #a5b4fc;
+            box-shadow: 0 0 0 4px rgba(165, 180, 252, 0.25);
+        }
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+        }
+        .back-to-top.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: #1e293b;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 8px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+        .nav-button {
+            display: flex;
+            align-items: center;
+            padding: 10px 20px;
+            background: white;
+            border-radius: 8px;
+            font-weight: 500;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s ease;
+        }
+        .nav-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+        }
+        .nav-button.home {
+            background: #4f46e5;
+            color: white;
+        }
+        .nav-button.calculators {
+            background: #10b981;
+            color: white;
+        }
+        .nav-button i {
+            margin-right: 8px;
+        }
+        .target-price {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #4f46e5;
+            margin: 10px 0;
+        }
+        .target-interpretation {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 10px;
+            background-color: #f0f9ff;
+            border-left: 4px solid #0ea5e9;
+        }
+        .formula {
+            font-family: 'Courier New', monospace;
+            background-color: #f8fafc;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        th {
+            background-color: #f8fafc;
+            font-weight: 600;
+            color: #1e293b;
+        }
+        td {
+            color: #374151;
+        }
+        select {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 10px;
+            transition: all 0.3s ease;
+        }
+        select:focus {
+            border-color: #a5b4fc;
+            box-shadow: 0 0 0 4px rgba(165, 180, 252, 0.25);
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+    <header class="gradient-bg text-white py-8 px-4 md:px-8">
+        <div class="max-w-6xl mx-auto">
+            <nav class="hidden md:flex justify-between items-center mb-6">
+                <div class="flex items-center space-x-4">
+                    <a href="/" class="text-white hover:text-indigo-200">Home</a>
+                    <a href="/#calculators" class="text-white font-medium border-b-2 border-white">Calculators</a>
+                    <a href="/help" class="text-white hover:text-indigo-200">Help Center</a>
+                    <a href="/articles" class="text-white hover:text-indigo-200">Resources</a>
+                </div>
+                <a href="/help" class="bg-white text-primary px-4 py-2 rounded-lg font-medium hover:bg-indigo-50">Get Started</a>
+            </nav>
+            <div class="max-w-3xl">
+                <h1 class="text-4xl md:text-5xl font-bold mb-4">Valuation and Performance Calculator</h1>
+                <p class="text-xl md:text-2xl text-indigo-100 mb-6">Calculate valuation multiples (P/E, P/B, PEG) and performance metrics (ROE, ROA) for investment analysis.</p>
+                <div class="flex flex-wrap gap-3">
+                    <div class="bg-white/20 px-4 py-2 rounded-full flex items-center">
+                        <i class="fas fa-lightbulb mr-2"></i>
+                        <span>Beginner Friendly</span>
+                    </div>
+                    <div class="bg-white/20 px-4 py-2 rounded-full flex items-center">
+                        <i class="fas fa-download mr-2"></i>
+                        <span>Downloadable Guide</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="max-w-6xl mx-auto px-4 py-8">
+        <div class="nav-buttons mb-6">
+            <a href="/" class="nav-button home"><i class="fas fa-home"></i> Return to Home</a>
+            <a href="/#calculators" class="nav-button calculators"><i class="fas fa-calculator"></i> Other Calculators</a>
+        </div>
+
+        <div class="card p-6 mb-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Calculate Valuation Metrics</h2>
+            <p class="text-gray-600 mb-6">Select a metric and enter data for a single year. All monetary values in Ghanaian Cedi (GHS). Add more years for advanced analysis.</p>
+            <div class="formula">
+                <p class="text-lg font-semibold">Select Metric</p>
+                <select id="formula-select" class="mt-2 w-full md:w-1/2 mx-auto">
+                    <option value="ev">EV = Market Cap + Debt + Preferred Stock + Minority Interest - Cash - Non-Operating Assets</option>
+                    <option value="ev_ebitda">EV/EBITDA = Enterprise Value / EBITDA</option>
+                    <option value="ev_ebit">EV/EBIT = Enterprise Value / EBIT</option>
+                    <option value="ev_sales">EV/Sales = Enterprise Value / Revenue</option>
+                    <option value="pe">P/E = Share Price / Earnings Per Share (EPS)</option>
+                    <option value="pb">P/B = Share Price / Book Value Per Share</option>
+                    <option value="peg">PEG = P/E / EPS Growth Rate</option>
+                    <option value="ebitda_margin">EBITDA Margin = (EBITDA / Revenue) × 100</option>
+                    <option value="ebit_margin">EBIT Margin = (EBIT / Revenue) × 100</option>
+                    <option value="net_margin">Net Margin = (Net Income / Revenue) × 100</option>
+                    <option value="roe">ROE = (Net Income / Equity) × 100</option>
+                    <option value="roa">ROA = (Net Income / Total Assets) × 100</option>
+                    <option value="roic">ROIC = (NOPAT / Invested Capital) × 100</option>
+                    <option value="roa_fin">ROA (Financials) = (Net Income / Average Total Assets) × 100</option>
+                    <option value="roe_fin">ROE (Financials) = (Net Income / Average Equity) × 100</option>
+                </select>
+                <p id="formula-description" class="text-sm mt-2 text-gray-600">EV measures a company’s total value, including equity and debt minus cash and non-operating assets.</p>
+            </div>
+            <form id="valuation-performance-form" class="space-y-6">
+                <div id="annual-inputs" class="space-y-6"></div>
+                <div class="flex gap-4">
+                    <button type="button" id="add-year" class="px-6 py-3 bg-secondary text-white rounded-lg font-medium hover:bg-indigo-500">Add Another Year</button>
+                    <button type="submit" class="px-6 py-3 bg-primary text-white rounded-lg font-medium hover:bg-indigo-700"><i class="fas fa-calculator mr-2"></i> Calculate</button>
+                    <button type="reset" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300"><i class="fas fa-eraser mr-2"></i> Clear</button>
+                </div>
+            </form>
+            <div id="results-section" class="mt-8 hidden">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">Calculation Results</h3>
+                <div class="text-center mb-6">
+                    <p class="text-gray-600" id="results-title">Results for Selected Years</p>
+                    <div class="target-price" id="metrics-average-result">0.00</div>
+                    <div class="target-interpretation">
+                        <p class="font-medium">Interpretation:</p>
+                        <p id="target-interpretation-text"></p>
+                    </div>
+                </div>
+                <table id="results-table">
+                    <thead id="results-table-head"></thead>
+                    <tbody id="metrics-results-table"></tbody>
+                </table>
+                <p class="text-gray-600 mt-4">Compare these metrics with industry peers for valuation insights.</p>
+                <button id="reset-calculator" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium flex items-center inline-block mt-6"><i class="fas fa-redo mr-2"></i> Calculate Another</button>
+            </div>
+            <div id="error-message" class="mt-6 hidden">
+                <div class="bg-red-50 p-4 rounded-lg">
+                    <p class="text-red-700 font-medium" id="error-text"></p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card p-6">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Understanding Valuation Metrics</h2>
+            <p class="text-gray-600 mb-6">These metrics assess a company’s valuation and financial performance for investment analysis.</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div class="bg-blue-50 p-5 rounded-lg">
+                    <div class="text-3xl font-bold text-blue-700 mb-2">Low Metrics</div>
+                    <h3 class="font-bold text-gray-800 mb-2">e.g., P/E < 15x, ROE < 10%</h3>
+                    <p class="text-gray-600">May indicate undervaluation or lower performance.</p>
+                </div>
+                <div class="bg-orange-50 p-5 rounded-lg">
+                    <div class="text-3xl font-bold text-orange-700 mb-2">High Metrics</div>
+                    <h3 class="font-bold text-gray-800 mb-2">e.g., P/E > 25x, ROE > 20%</h3>
+                    <p class="text-gray-600">May indicate high growth or strong performance.</p>
+                </div>
+            </div>
+            <h3 class="text-xl font-bold text-gray-800 mt-8 mb-4">How to Use</h3>
+            <ol class="list-decimal pl-6 space-y-4">
+                <li><strong>Select Metric</strong><p>Choose a metric like P/E or ROE.</p></li>
+                <li><strong>Enter Data</strong><p>Input required financial data for the year.</p></li>
+                <li><strong>Calculate</strong><p>Click “Calculate” to see results and interpretation.</p></li>
+            </ol>
+            <div class="flex flex-wrap gap-3 mt-6">
+                <a href="/download_guide" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium flex items-center"><i class="fas fa-download mr-2"></i> Download Guide</a>
+                <a href="/tutorial" class="px-4 py-2 bg-primary text-white rounded-lg font-medium flex items-center"><i class="fas fa-play-circle mr-2"></i> Watch Tutorial</a>
+            </div>
+        </div>
+
+        <div class="card p-6 mb-8">
+            <button type="button" onclick="toggleHelpSection()" class="w-full text-left text-2xl font-bold text-gray-800 flex justify-between items-center focus:outline-none">
+                <span>How to Find Data</span>
+                <span id="help-toggle-icon" class="text-gray-500 text-xl">➕</span>
+            </button>
+            <div id="help-section" class="hidden mt-4 text-gray-600">
+                <p class="mb-2">To calculate these metrics, gather data from:</p>
+                <ul class="list-disc pl-6 space-y-2">
+                    <li><strong>Financial Statements</strong>: Balance sheet (equity, assets), income statement (net income, EBITDA).</li>
+                    <li><strong>Market Data</strong>: Share price, market cap from Yahoo Finance or gse.com.gh.</li>
+                    <li><strong>Analyst Estimates</strong>: EPS growth from Yahoo Finance “Analysis” tab.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="nav-buttons mt-6">
+            <a href="/" class="nav-button home"><i class="fas fa-home"></i> Return to Home</a>
+            <a href="/#calculators" class="nav-button calculators"><i class="fas fa-calculator"></i> Other Calculators</a>
+        </div>
+    </div>
+
+    <button id="backToTop" class="back-to-top w-12 h-12 bg-primary text-white rounded-full shadow-lg flex items-center justify-center">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <script>
+        const backToTopBtn = document.getElementById('backToTop');
+        window.addEventListener('scroll', () => {
+            backToTopBtn.classList.toggle('visible', window.pageYOffset > 300);
+        });
+        backToTopBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+
+        const formulaSelect = document.getElementById('formula-select');
+        const formulaDescription = document.getElementById('formula-description');
+        const annualInputs = document.getElementById('annual-inputs');
+        const form = document.getElementById('valuation-performance-form');
+        const resultsSection = document.getElementById('results-section');
+        const metricsAverageResult = document.getElementById('metrics-average-result');
+        const metricsResultsTable = document.getElementById('metrics-results-table');
+        const resultsTableHead = document.getElementById('results-table-head');
+        const resultsTitle = document.getElementById('results-title');
+        const targetInterpretationText = document.getElementById('target-interpretation-text');
+        const errorMessage = document.getElementById('error-message');
+        const errorText = document.getElementById('error-text');
+        const resetBtn = document.getElementById('reset-calculator');
+        const addYearBtn = document.getElementById('add-year');
+
+        let yearCount = 1;
+        const maxYears = 5;
+
+        const inputFields = {
+            ev: ['market_cap', 'total_debt', 'preferred_stock', 'minority_interest', 'cash', 'non_operating_assets'],
+            ev_ebitda: ['market_cap', 'total_debt', 'preferred_stock', 'minority_interest', 'cash', 'non_operating_assets', 'ebitda'],
+            ev_ebit: ['market_cap', 'total_debt', 'preferred_stock', 'minority_interest', 'cash', 'non_operating_assets', 'ebit'],
+            ev_sales: ['market_cap', 'total_debt', 'preferred_stock', 'minority_interest', 'cash', 'non_operating_assets', 'revenue'],
+            pe: ['share_price', 'eps'],
+            pb: ['share_price', 'bvps'],
+            peg: ['share_price', 'eps', 'eps_growth'],
+            ebitda_margin: ['ebitda', 'revenue'],
+            ebit_margin: ['ebit', 'revenue'],
+            net_margin: ['net_income', 'revenue'],
+            roe: ['net_income', 'equity'],
+            roa: ['net_income', 'total_assets'],
+            roic: ['ebit', 'tax_rate', 'total_debt', 'equity', 'cash', 'non_operating_assets'],
+            roa_fin: ['net_income', 'avg_total_assets'],
+            roe_fin: ['net_income', 'avg_equity']
+        };
+
+        const fieldLabels = {
+            market_cap: { label: 'Market Capitalization (GHS)', placeholder: 'e.g., 1000000000', tooltip: 'Share Price × Shares Outstanding from Yahoo Finance or gse.com.gh.' },
+            total_debt: { label: 'Total Debt (GHS)', placeholder: 'e.g., 500000000', tooltip: 'Total liabilities (short-term + long-term debt) from balance sheet.' },
+            preferred_stock: { label: 'Preferred Stock (GHS)', placeholder: 'e.g., 0', tooltip: 'Value of preferred shares from balance sheet, if applicable.' },
+            minority_interest: { label: 'Minority Interest (GHS)', placeholder: 'e.g., 0', tooltip: 'Value of minority interest from balance sheet, if applicable.' },
+            cash: { label: 'Cash and Cash Equivalents (GHS)', placeholder: 'e.g., 200000000', tooltip: 'Cash and equivalents from balance sheet.' },
+            non_operating_assets: { label: 'Non-Operating Assets (GHS)', placeholder: 'e.g., 0', tooltip: 'Non-operating assets (e.g., investments) from balance sheet.' },
+            ebitda: { label: 'EBITDA (GHS)', placeholder: 'e.g., 200000000', tooltip: 'Earnings before interest, taxes, depreciation, and amortization from income statement.' },
+            ebit: { label: 'EBIT (GHS)', placeholder: 'e.g., 150000000', tooltip: 'Earnings before interest and taxes from income statement.' },
+            revenue: { label: 'Revenue (GHS)', placeholder: 'e.g., 500000000', tooltip: 'Total sales or revenue from income statement.' },
+            net_income: { label: 'Net Income (GHS)', placeholder: 'e.g., 100000000', tooltip: 'Net profit after taxes from income statement.' },
+            equity: { label: 'Shareholders\' Equity (GHS)', placeholder: 'e.g., 800000000', tooltip: 'Total equity from balance sheet.' },
+            total_assets: { label: 'Total Assets (GHS)', placeholder: 'e.g., 2000000000', tooltip: 'Total assets from balance sheet.' },
+            avg_total_assets: { label: 'Average Total Assets (GHS)', placeholder: 'e.g., 1900000000', tooltip: 'Average of beginning and ending total assets for the year.' },
+            avg_equity: { label: 'Average Equity (GHS)', placeholder: 'e.g., 790000000', tooltip: 'Average of beginning and ending equity for the year.' },
+            share_price: { label: 'Share Price (GHS)', placeholder: 'e.g., 10.50', tooltip: 'Current market price per share from Yahoo Finance or gse.com.gh.' },
+            eps: { label: 'Earnings Per Share (EPS) (GHS)', placeholder: 'e.g., 1.25', tooltip: 'Net income divided by shares outstanding from income statement.' },
+            bvps: { label: 'Book Value Per Share (GHS)', placeholder: 'e.g., 5.00', tooltip: 'Shareholders’ equity divided by shares outstanding from balance sheet.' },
+            eps_growth: { label: 'EPS Growth Rate (%)', placeholder: 'e.g., 20', tooltip: 'Annualized EPS growth rate from analyst estimates or historical data.' },
+            tax_rate: { label: 'Tax Rate (%)', placeholder: 'e.g., 25', tooltip: 'Effective tax rate from income statement or analyst estimates.' }
+        };
+
+        const formulaDescriptions = {
+            ev: 'EV measures a company’s total value, including equity and debt minus cash and non-operating assets.',
+            ev_ebitda: 'EV/EBITDA measures total value relative to earnings before interest, taxes, depreciation, and amortization.',
+            ev_ebit: 'EV/EBIT measures total value relative to earnings before interest and taxes.',
+            ev_sales: 'EV/Sales measures total value relative to revenue.',
+            pe: 'P/E measures share price relative to earnings per share.',
+            pb: 'P/B measures share price relative to book value per share.',
+            peg: 'PEG measures P/E relative to EPS growth rate, useful for growth stocks.',
+            ebitda_margin: 'EBITDA Margin measures profitability before interest, taxes, depreciation, and amortization.',
+            ebit_margin: 'EBIT Margin measures profitability before interest and taxes.',
+            net_margin: 'Net Margin measures profitability after all expenses.',
+            roe: 'ROE measures profitability relative to shareholders’ equity.',
+            roa: 'ROA measures profitability relative to total assets.',
+            roic: 'ROIC measures return on invested capital, reflecting efficiency.',
+            roa_fin: 'ROA (Financials) measures profitability relative to average total assets for financial institutions.',
+            roe_fin: 'ROE (Financials) measures profitability relative to average equity for financial institutions.'
+        };
+
+        const formulaTitles = {
+            ev: 'Enterprise Value', ev_ebitda: 'EV/EBITDA', ev_ebit: 'EV/EBIT', ev_sales: 'EV/Sales', pe: 'P/E', pb: 'P/B',
+            peg: 'PEG', ebitda_margin: 'EBITDA Margin', ebit_margin: 'EBIT Margin', net_margin: 'Net Margin', roe: 'ROE',
+            roa: 'ROA', roic: 'ROIC', roa_fin: 'ROA (Financials)', roe_fin: 'ROE (Financials)'
+        };
+
+        function renderInitialInputs() {
+            const selectedFormula = formulaSelect.value;
+            formulaDescription.textContent = formulaDescriptions[selectedFormula];
+            annualInputs.innerHTML = `
+                <div class="bg-indigo-50 p-4 rounded-lg year-section" data-year="1">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-3">Year 1</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 dynamic-inputs"></div>
+                </div>
+            `;
+            const dynamicInputs = annualInputs.querySelector('.dynamic-inputs');
+            inputFields[selectedFormula].forEach(field => {
+                const { label, placeholder, tooltip } = fieldLabels[field];
+                dynamicInputs.insertAdjacentHTML('beforeend', `
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">${label}</label>
+                        <input type="number" step="any" name="${field}_1" placeholder="${placeholder}" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
+                        <div class="tooltip mt-2"><i class="fas fa-info-circle text-gray-500"></i><span class="tooltiptext">${tooltip}</span></div>
+                        <div class="form-error text-danger text-sm mt-2 hidden" id="${field}_1-error">Please enter a valid number.</div>
+                    </div>
+                `);
+            });
+        }
+
+        addYearBtn.addEventListener('click', () => {
+            if (yearCount >= maxYears) return;
+            yearCount++;
+            const newYearSection = document.createElement('div');
+            newYearSection.className = 'bg-indigo-50 p-4 rounded-lg year-section';
+            newYearSection.setAttribute('data-year', yearCount);
+            newYearSection.innerHTML = `
+                <h3 class="text-lg font-semibold text-gray-800 mb-3">Year ${yearCount}</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+            `;
+            const newInputs = newYearSection.querySelector('div');
+            inputFields[formulaSelect.value].forEach(field => {
+                const { label, placeholder, tooltip } = fieldLabels[field];
+                newInputs.insertAdjacentHTML('beforeend', `
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">${label}</label>
+                        <input type="number" step="any" name="${field}_${yearCount}" placeholder="${placeholder}" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
+                        <div class="tooltip mt-2"><i class="fas fa-info-circle text-gray-500"></i><span class="tooltiptext">${tooltip}</span></div>
+                        <div class="form-error text-danger text-sm mt-2 hidden" id="${field}_${yearCount}-error">Please enter a valid number.</div>
+                    </div>
+                `);
+            });
+            annualInputs.appendChild(newYearSection);
+        });
+
+        formulaSelect.addEventListener('change', () => {
+            yearCount = 1;
+            renderInitialInputs();
+        });
+
+        function calculateMetric(data, formula) {
+            const ev = (data.market_cap || 0) + (data.total_debt || 0) + (data.preferred_stock || 0) + (data.minority_interest || 0) - (data.cash || 0) - (data.non_operating_assets || 0);
+            switch (formula) {
+                case 'ev': return ev;
+                case 'ev_ebitda': return data.ebitda ? ev / data.ebitda : null;
+                case 'ev_ebit': return data.ebit ? ev / data.ebit : null;
+                case 'ev_sales': return data.revenue ? ev / data.revenue : null;
+                case 'pe': return data.eps ? data.share_price / data.eps : null;
+                case 'pb': return data.bvps ? data.share_price / data.bvps : null;
+                case 'peg': return data.eps && data.eps_growth ? (data.share_price / data.eps) / data.eps_growth : null;
+                case 'ebitda_margin': return data.revenue ? (data.ebitda / data.revenue) * 100 : null;
+                case 'ebit_margin': return data.revenue ? (data.ebit / data.revenue) * 100 : null;
+                case 'net_margin': return data.revenue ? (data.net_income / data.revenue) * 100 : null;
+                case 'roe': return data.equity ? (data.net_income / data.equity) * 100 : null;
+                case 'roa': return data.total_assets ? (data.net_income / data.total_assets) * 100 : null;
+                case 'roic': {
+                    const nopat = data.ebit && data.tax_rate != null ? data.ebit * (1 - data.tax_rate / 100) : 0;
+                    const investedCapital = (data.total_debt || 0) + (data.equity || 0) - (data.cash || 0) - (data.non_operating_assets || 0);
+                    return investedCapital ? (nopat / investedCapital) * 100 : null;
+                }
+                case 'roa_fin': return data.avg_total_assets ? (data.net_income / data.avg_total_assets) * 100 : null;
+                case 'roe_fin': return data.avg_equity ? (data.net_income / data.avg_equity) * 100 : null;
+                default: return null;
+            }
+        }
+
+        form.addEventListener('submit', e => {
+            e.preventDefault();
+            errorMessage.classList.add('hidden');
+            document.querySelectorAll('.form-error').forEach(el => el.classList.add('hidden'));
+            const selectedFormula = formulaSelect.value;
+            const results = [];
+            let valid = true;
+
+            for (let i = 1; i <= yearCount; i++) {
+                const data = {};
+                inputFields[selectedFormula].forEach(field => {
+                    const input = document.querySelector(`[name="${field}_${i}"]`);
+                    data[field] = input ? parseFloat(input.value) : NaN;
+                    if (isNaN(data[field])) {
+                        document.getElementById(`${field}_${i}-error`).classList.remove('hidden');
+                        valid = false;
+                    }
+                });
+                if (valid) {
+                    data.result = calculateMetric(data, selectedFormula);
+                    if (data.result == null || isNaN(data.result) || !isFinite(data.result)) {
+                        valid = false;
+                        errorText.textContent = 'Invalid calculation (e.g., division by zero or invalid input).';
+                        errorMessage.classList.remove('hidden');
+                    } else {
+                        results.push({ year: i, ...data, result: data.result });
+                    }
+                }
+            }
+
+            if (!valid || results.length === 0) {
+                errorText.textContent = errorText.textContent || 'Please provide valid inputs for all required fields.';
+                errorMessage.classList.remove('hidden');
+                return;
+            }
+
+            resultsSection.classList.remove('hidden');
+            resultsTitle.textContent = `Results for ${results.length} Year(s)`;
+            const unit = ['ebitda_margin', 'ebit_margin', 'net_margin', 'roe', 'roa', 'roic', 'roa_fin', 'roe_fin'].includes(selectedFormula) ? '%' : selectedFormula === 'ev' ? 'GHS' : 'x';
+            metricsAverageResult.textContent = (results.reduce((sum, r) => sum + r.result, 0) / results.length).toFixed(2) + ` ${unit}`;
+            targetInterpretationText.textContent = `The ${formulaTitles[selectedFormula]} reflects ${['ebitda_margin', 'ebit_margin', 'net_margin', 'roe', 'roa', 'roic', 'roa_fin', 'roe_fin'].includes(selectedFormula) ? 'profitability' : 'valuation'} for the period(s).`;
+
+            resultsTableHead.innerHTML = `<tr><th>Year</th>${inputFields[selectedFormula].map(field => `<th>${fieldLabels[field].label}</th>`).join('')}<th>${formulaTitles[selectedFormula]} (${unit})</th></tr>`;
+            metricsResultsTable.innerHTML = results.map(row => `
+                <tr>
+                    <td>Year ${row.year}</td>
+                    ${inputFields[selectedFormula].map(field => `<td>${field.includes('eps') || field.includes('share_price') || field.includes('bvps') ? 'GHS' : field === 'tax_rate' || field === 'eps_growth' ? '' : 'GHS'} ${row[field].toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')}${field === 'tax_rate' || field === 'eps_growth' ? '%' : ''}</td>`).join('')}
+                    <td>${row.result.toFixed(2)}${unit}</td>
+                </tr>
+            `).join('');
+        });
+
+        resetBtn.addEventListener('click', () => {
+            form.reset();
+            yearCount = 1;
+            resultsSection.classList.add('hidden');
+            errorMessage.classList.add('hidden');
+            document.querySelectorAll('.form-error').forEach(el => el.classList.add('hidden'));
+            renderInitialInputs();
+        });
+
+        form.addEventListener('reset', () => {
+            yearCount = 1;
+            resultsSection.classList.add('hidden');
+            errorMessage.classList.add('hidden');
+            document.querySelectorAll('.form-error').forEach(el => el.classList.add('hidden'));
+            renderInitialInputs();
+        });
+
+        function toggleHelpSection() {
+            const helpSection = document.getElementById('help-section');
+            const toggleIcon = document.getElementById('help-toggle-icon');
+            helpSection.classList.toggle('hidden');
+            toggleIcon.textContent = helpSection.classList.contains('hidden') ? '➕' : '➖';
+        }
+
+        renderInitialInputs();
+    </script>
+</body>
+</html>

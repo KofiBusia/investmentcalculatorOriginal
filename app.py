@@ -2947,6 +2947,350 @@ def calculate_cost_of_equity():
     
     return render_template('cost_of_equity.html')
 
+
+@app.route('/valuation-performance', methods=['GET', 'POST'])
+def valuation_performance():
+    if request.method == 'POST':
+        data = request.form
+        selected_formula = data.get('formula')
+        results = []
+        input_data = []
+        years_filled = 0
+
+        for i in range(1, 6):
+            try:
+                market_cap = float(data.get(f'market_cap_{i}', 0)) if data.get(f'market_cap_{i}') else None
+                total_debt = float(data.get(f'total_debt_{i}', 0)) if data.get(f'total_debt_{i}') else None
+                preferred_stock = float(data.get(f'preferred_stock_{i}', 0)) if data.get(f'preferred_stock_{i}') else None
+                minority_interest = float(data.get(f'minority_interest_{i}', 0)) if data.get(f'minority_interest_{i}') else None
+                cash = float(data.get(f'cash_{i}', 0)) if data.get(f'cash_{i}') else None
+                non_operating_assets = float(data.get(f'non_operating_assets_{i}', 0)) if data.get(f'non_operating_assets_{i}') else None
+                ebitda = float(data.get(f'ebitda_{i}', 0)) if data.get(f'ebitda_{i}') else None
+                ebit = float(data.get(f'ebit_{i}', 0)) if data.get(f'ebit_{i}') else None
+                revenue = float(data.get(f'revenue_{i}', 0)) if data.get(f'revenue_{i}') else None
+                net_income = float(data.get(f'net_income_{i}', 0)) if data.get(f'net_income_{i}') else None
+                equity = float(data.get(f'equity_{i}', 0)) if data.get(f'equity_{i}') else None
+                total_assets = float(data.get(f'total_assets_{i}', 0)) if data.get(f'total_assets_{i}') else None
+                avg_total_assets = float(data.get(f'avg_total_assets_{i}', 0)) if data.get(f'avg_total_assets_{i}') else None
+                avg_equity = float(data.get(f'avg_equity_{i}', 0)) if data.get(f'avg_equity_{i}') else None
+                share_price = float(data.get(f'share_price_{i}', 0)) if data.get(f'share_price_{i}') else None
+                eps = float(data.get(f'eps_{i}', 0)) if data.get(f'eps_{i}') else None
+                bvps = float(data.get(f'bvps_{i}', 0)) if data.get(f'bvps_{i}') else None
+                eps_growth = float(data.get(f'eps_growth_{i}', 0)) if data.get(f'eps_growth_{i}') else None
+                tax_rate = float(data.get(f'tax_rate_{i}', 0)) if data.get(f'tax_rate_{i}') else None
+
+                is_year_filled = all(v is not None for v in [market_cap, total_debt, preferred_stock, minority_interest, cash, non_operating_assets, ebitda, ebit, revenue, net_income, equity, total_assets, avg_total_assets, avg_equity, share_price, eps, bvps, eps_growth, tax_rate])
+                is_year_empty = all(v is None for v in [market_cap, total_debt, preferred_stock, minority_interest, cash, non_operating_assets, ebitda, ebit, revenue, net_income, equity, total_assets, avg_total_assets, avg_equity, share_price, eps, bvps, eps_growth, tax_rate])
+
+                if i == 1 and not is_year_filled:
+                    return jsonify({'error': 'Please provide all required inputs for Year 1.'}), 400
+                if not is_year_empty and not is_year_filled:
+                    return jsonify({'error': f'Please provide all required inputs for Year {i} or leave it empty.'}), 400
+                if is_year_filled:
+                    # Calculate Enterprise Value for EV-based metrics
+                    ev = market_cap + total_debt + preferred_stock + minority_interest - cash - non_operating_assets
+                    result = None
+                    if selected_formula == 'ev':
+                        result = ev
+                    elif selected_formula == 'ev_ebitda':
+                        if ebitda == 0:
+                            return jsonify({'error': f'EBITDA cannot be zero for Year {i} in EV/EBITDA calculation.'}), 400
+                        result = ev / ebitda
+                    elif selected_formula == 'ev_ebit':
+                        if ebit == 0:
+                            return jsonify({'error': f'EBIT cannot be zero for Year {i} in EV/EBIT calculation.'}), 400
+                        result = ev / ebit
+                    elif selected_formula == 'ev_sales':
+                        if revenue == 0:
+                            return jsonify({'error': f'Revenue cannot be zero for Year {i} in EV/Sales calculation.'}), 400
+                        result = ev / revenue
+                    elif selected_formula == 'pe':
+                        if eps == 0:
+                            return jsonify({'error': f'EPS cannot be zero for Year {i} in P/E calculation.'}), 400
+                        result = share_price / eps
+                    elif selected_formula == 'pb':
+                        if bvps == 0:
+                            return jsonify({'error': f'Book Value Per Share cannot be zero for Year {i} in P/B calculation.'}), 400
+                        result = share_price / bvps
+                    elif selected_formula == 'peg':
+                        if eps == 0 or eps_growth == 0:
+                            return jsonify({'error': f'EPS or EPS Growth Rate cannot be zero for Year {i} in PEG calculation.'}), 400
+                        result = (share_price / eps) / (eps_growth / 100)
+                    elif selected_formula == 'ebitda_margin':
+                        if revenue == 0:
+                            return jsonify({'error': f'Revenue cannot be zero for Year {i} in EBITDA Margin calculation.'}), 400
+                        result = (ebitda / revenue) * 100
+                    elif selected_formula == 'ebit_margin':
+                        if revenue == 0:
+                            return jsonify({'error': f'Revenue cannot be zero for Year {i} in EBIT Margin calculation.'}), 400
+                        result = (ebit / revenue) * 100
+                    elif selected_formula == 'net_margin':
+                        if revenue == 0:
+                            return jsonify({'error': f'Revenue cannot be zero for Year {i} in Net Margin calculation.'}), 400
+                        result = (net_income / revenue) * 100
+                    elif selected_formula == 'roe':
+                        if equity == 0:
+                            return jsonify({'error': f'Equity cannot be zero for Year {i} in ROE calculation.'}), 400
+                        result = (net_income / equity) * 100
+                    elif selected_formula == 'roa':
+                        if total_assets == 0:
+                            return jsonify({'error': f'Total Assets cannot be zero for Year {i} in ROA calculation.'}), 400
+                        result = (net_income / total_assets) * 100
+                    elif selected_formula == 'roic':
+                        nopat = ebit * (1 - tax_rate / 100)
+                        invested_capital = total_debt + equity - cash - non_operating_assets
+                        if invested_capital == 0:
+                            return jsonify({'error': f'Invested Capital cannot be zero for Year {i} in ROIC calculation.'}), 400
+                        result = (nopat / invested_capital) * 100
+                    elif selected_formula == 'roa_fin':
+                        if avg_total_assets == 0:
+                            return jsonify({'error': f'Average Total Assets cannot be zero for Year {i} in ROA (Financials) calculation.'}), 400
+                        result = (net_income / avg_total_assets) * 100
+                    elif selected_formula == 'roe_fin':
+                        if avg_equity == 0:
+                            return jsonify({'error': f'Average Equity cannot be zero for Year {i} in ROE (Financials) calculation.'}), 400
+                        result = (net_income / avg_equity) * 100
+
+                    input_data.append({
+                        'year': i,
+                        'market_cap': market_cap,
+                        'total_debt': total_debt,
+                        'preferred_stock': preferred_stock,
+                        'minority_interest': minority_interest,
+                        'cash': cash,
+                        'non_operating_assets': non_operating_assets,
+                        'ebitda': ebitda,
+                        'ebit': ebit,
+                        'revenue': revenue,
+                        'net_income': net_income,
+                        'equity': equity,
+                        'total_assets': total_assets,
+                        'avg_total_assets': avg_total_assets,
+                        'avg_equity': avg_equity,
+                        'share_price': share_price,
+                        'eps': eps,
+                        'bvps': bvps,
+                        'eps_growth': eps_growth,
+                        'tax_rate': tax_rate,
+                        'result': result
+                    })
+                    results.append(result)
+                    years_filled += 1
+            except ValueError:
+                return jsonify({'error': f'Invalid input for Year {i}. Please ensure all inputs are valid numbers.'}), 400
+
+        if years_filled == 0:
+            return jsonify({'error': 'Please provide at least one year of data.'}), 400
+
+        average_result = sum(results) / years_filled
+        unit = '%' if selected_formula in ['ebitda_margin', 'ebit_margin', 'net_margin', 'roe', 'roa', 'roic', 'roa_fin', 'roe_fin'] else 'x'
+        return jsonify({
+            'results': input_data,
+            'average_result': average_result,
+            'unit': unit
+        })
+
+    return render_template('Valuation_Performance_Multiples.html')
+
+@app.route('/specialized-industry', methods=['GET', 'POST'])
+def specialized_industry():
+    if request.method == 'POST':
+        data = request.form
+        selected_formula = data.get('formula')
+        results = []
+        input_data = []
+        periods_filled = 0
+
+        # Handle LTM (quarters) and NTM (projections) differently
+        if selected_formula in ['ltm_ebitda']:
+            for i in range(1, 5):  # 4 quarters for LTM
+                try:
+                    ebitda = float(data.get(f'ebitda_q{i}', 0)) if data.get(f'ebitda_q{i}') else None
+                    is_quarter_filled = ebitda is not None
+                    is_quarter_empty = ebitda is None
+
+                    if i == 1 and not is_quarter_filled:
+                        return jsonify({'error': f'Please provide all required inputs for Quarter {i}.'}), 400
+                    if not is_quarter_empty and not is_quarter_filled:
+                        return jsonify({'error': f'Please provide all required inputs for Quarter {i} or leave it empty.'}), 400
+                    if is_quarter_filled:
+                        results.append(ebitda)
+                        input_data.append({'quarter': i, 'ebitda': ebitda, 'result': ebitda})
+                        periods_filled += 1
+                except ValueError:
+                    return jsonify({'error': f'Invalid input for Quarter {i}. Please ensure all inputs are valid numbers.'}), 400
+
+            if periods_filled == 0:
+                return jsonify({'error': 'Please provide at least one quarter of data.'}), 400
+
+            average_result = sum(results)
+            unit = 'GHS'
+            return jsonify({
+                'results': input_data,
+                'average_result': average_result,
+                'unit': unit
+            })
+
+        elif selected_formula == 'ntm_ebitda':
+            try:
+                current_fy = float(data.get('current_fy_ebitda', 0)) if data.get('current_fy_ebitda') else None
+                next_fy = float(data.get('next_fy_ebitda', 0)) if data.get('next_fy_ebitda') else None
+                months_remaining = float(data.get('months_remaining', 0)) if data.get('months_remaining') else None
+                months_passed = float(data.get('months_passed', 0)) if data.get('months_passed') else None
+
+                if any(v is None for v in [current_fy, next_fy, months_remaining, months_passed]):
+                    return jsonify({'error': 'Please provide all required inputs for NTM EBITDA.'}), 400
+                if months_remaining + months_passed != 12:
+                    return jsonify({'error': 'Months Remaining and Months Passed must sum to 12.'}), 400
+
+                result = (current_fy * months_remaining / 12) + (next_fy * months_passed / 12)
+                input_data.append({
+                    'current_fy': current_fy,
+                    'next_fy': next_fy,
+                    'months_remaining': months_remaining,
+                    'months_passed': months_passed,
+                    'result': result
+                })
+                results.append(result)
+                periods_filled = 1
+                average_result = result
+                unit = 'GHS'
+                return jsonify({
+                    'results': input_data,
+                    'average_result': average_result,
+                    'unit': unit
+                })
+            except ValueError:
+                return jsonify({'error': 'Invalid input for NTM EBITDA. Please ensure all inputs are valid numbers.'}), 400
+
+        else:
+            for i in range(1, 6):
+                try:
+                    market_cap = float(data.get(f'market_cap_{i}', 0)) if data.get(f'market_cap_{i}') else None
+                    total_debt = float(data.get(f'total_debt_{i}', 0)) if data.get(f'total_debt_{i}') else None
+                    preferred_stock = float(data.get(f'preferred_stock_{i}', 0)) if data.get(f'preferred_stock_{i}') else None
+                    minority_interest = float(data.get(f'minority_interest_{i}', 0)) if data.get(f'minority_interest_{i}') else None
+                    cash = float(data.get(f'cash_{i}', 0)) if data.get(f'cash_{i}') else None
+                    non_operating_assets = float(data.get(f'non_operating_assets_{i}', 0)) if data.get(f'non_operating_assets_{i}') else None
+                    ebitda = float(data.get(f'ebitda_{i}', 0)) if data.get(f'ebitda_{i}') else None
+                    ebit = float(data.get(f'ebit_{i}', 0)) if data.get(f'ebit_{i}') else None
+                    revenue = float(data.get(f'revenue_{i}', 0)) if data.get(f'revenue_{i}') else None
+                    prior_revenue = float(data.get(f'prior_revenue_{i}', 0)) if data.get(f'prior_revenue_{i}') else None
+                    eps = float(data.get(f'eps_{i}', 0)) if data.get(f'eps_{i}') else None
+                    prior_eps = float(data.get(f'prior_eps_{i}', 0)) if data.get(f'prior_eps_{i}') else None
+                    tax_rate = float(data.get(f'tax_rate_{i}', 0)) if data.get(f'tax_rate_{i}') else None
+                    rent_expense = float(data.get(f'rent_expense_{i}', 0)) if data.get(f'rent_expense_{i}') else None
+                    subscribers = float(data.get(f'subscribers_{i}', 0)) if data.get(f'subscribers_{i}') else None
+                    boe = float(data.get(f'boe_{i}', 0)) if data.get(f'boe_{i}') else None
+                    square_footage = float(data.get(f'square_footage_{i}', 0)) if data.get(f'square_footage_{i}') else None
+                    mau = float(data.get(f'mau_{i}', 0)) if data.get(f'mau_{i}') else None
+                    ffo_per_share = float(data.get(f'ffo_per_share_{i}', 0)) if data.get(f'ffo_per_share_{i}') else None
+                    tangible_bvps = float(data.get(f'tangible_bvps_{i}', 0)) if data.get(f'tangible_bvps_{i}') else None
+                    share_price = float(data.get(f'share_price_{i}', 0)) if data.get(f'share_price_{i}') else None
+
+                    is_year_filled = all(v is not None for v in [market_cap, total_debt, preferred_stock, minority_interest, cash, non_operating_assets, ebitda, ebit, revenue, prior_revenue, eps, prior_eps, tax_rate, rent_expense, subscribers, boe, square_footage, mau, ffo_per_share, tangible_bvps, share_price])
+                    is_year_empty = all(v is None for v in [market_cap, total_debt, preferred_stock, minority_interest, cash, non_operating_assets, ebitda, ebit, revenue, prior_revenue, eps, prior_eps, tax_rate, rent_expense, subscribers, boe, square_footage, mau, ffo_per_share, tangible_bvps, share_price])
+
+                    if i == 1 and not is_year_filled:
+                        return jsonify({'error': f'Please provide all required inputs for Year {i}.'}), 400
+                    if not is_year_empty and not is_year_filled:
+                        return jsonify({'error': f'Please provide all required inputs for Year {i} or leave it empty.'}), 400
+                    if is_year_filled:
+                        ev = market_cap + total_debt + preferred_stock + minority_interest - cash - non_operating_assets
+                        result = None
+                        if selected_formula == 'net_debt':
+                            result = total_debt - cash
+                        elif selected_formula == 'net_debt_ebitda':
+                            if ebitda == 0:
+                                return jsonify({'error': f'EBITDA cannot be zero for Year {i} in Net Debt/EBITDA calculation.'}), 400
+                            result = (total_debt - cash) / ebitda
+                        elif selected_formula == 'revenue_growth':
+                            if prior_revenue == 0:
+                                return jsonify({'error': f'Prior Revenue cannot be zero for Year {i} in Revenue Growth calculation.'}), 400
+                            result = ((revenue - prior_revenue) / prior_revenue) * 100
+                        elif selected_formula == 'eps_growth':
+                            if prior_eps == 0:
+                                return jsonify({'error': f'Prior EPS cannot be zero for Year {i} in EPS Growth calculation.'}), 400
+                            result = ((eps - prior_eps) / prior_eps) * 100
+                        elif selected_formula == 'unlevered_pe':
+                            ebiat = ebit * (1 - tax_rate / 100)
+                            if ebiat == 0:
+                                return jsonify({'error': f'EBIAT cannot be zero for Year {i} in Unlevered P/E calculation.'}), 400
+                            result = ev / ebiat
+                        elif selected_formula == 'tev_ebitdar':
+                            ebitdar = ebitda + rent_expense
+                            tev = ev  # Simplified; assumes no additional rent-related adjustments
+                            if ebitdar == 0:
+                                return jsonify({'error': f'EBITDAR cannot be zero for Year {i} in TEV/EBITDAR calculation.'}), 400
+                            result = tev / ebitdar
+                        elif selected_formula == 'ev_subscribers':
+                            if subscribers == 0:
+                                return jsonify({'error': f'Subscribers cannot be zero for Year {i} in EV/Subscribers calculation.'}), 400
+                            result = ev / subscribers
+                        elif selected_formula == 'ev_boe':
+                            if boe == 0:
+                                return jsonify({'error': f'BOE cannot be zero for Year {i} in EV/BOE calculation.'}), 400
+                            result = ev / boe
+                        elif selected_formula == 'ev_square_foot':
+                            if square_footage == 0:
+                                return jsonify({'error': f'Square Footage cannot be zero for Year {i} in EV/Square Foot calculation.'}), 400
+                            result = ev / square_footage
+                        elif selected_formula == 'ev_mau':
+                            if mau == 0:
+                                return jsonify({'error': f'MAU cannot be zero for Year {i} in EV/MAU calculation.'}), 400
+                            result = ev / mau
+                        elif selected_formula == 'p_ffo':
+                            if ffo_per_share == 0:
+                                return jsonify({'error': f'FFO Per Share cannot be zero for Year {i} in P/FFO calculation.'}), 400
+                            result = share_price / ffo_per_share
+                        elif selected_formula == 'p_tbv':
+                            if tangible_bvps == 0:
+                                return jsonify({'error': f'Tangible Book Value Per Share cannot be zero for Year {i} in P/TBV calculation.'}), 400
+                            result = share_price / tangible_bvps
+
+                        input_data.append({
+                            'year': i,
+                            'market_cap': market_cap,
+                            'total_debt': total_debt,
+                            'preferred_stock': preferred_stock,
+                            'minority_interest': minority_interest,
+                            'cash': cash,
+                            'non_operating_assets': non_operating_assets,
+                            'ebitda': ebitda,
+                            'ebit': ebit,
+                            'revenue': revenue,
+                            'prior_revenue': prior_revenue,
+                            'eps': eps,
+                            'prior_eps': prior_eps,
+                            'tax_rate': tax_rate,
+                            'rent_expense': rent_expense,
+                            'subscribers': subscribers,
+                            'boe': boe,
+                            'square_footage': square_footage,
+                            'mau': mau,
+                            'ffo_per_share': ffo_per_share,
+                            'tangible_bvps': tangible_bvps,
+                            'share_price': share_price,
+                            'result': result
+                        })
+                        results.append(result)
+                        periods_filled += 1
+                except ValueError:
+                    return jsonify({'error': f'Invalid input for Year {i}. Please ensure all inputs are valid numbers.'}), 400
+
+            if periods_filled == 0:
+                return jsonify({'error': 'Please provide at least one year of data.'}), 400
+
+            average_result = sum(results) / periods_filled
+            unit = '%' if selected_formula in ['revenue_growth', 'eps_growth'] else 'GHS' if selected_formula == 'net_debt' else 'x'
+            return jsonify({
+                'results': input_data,
+                'average_result': average_result,
+                'unit': unit
+            })
+
+    return render_template('Specialized_Industry_Multiples.html')
+
 @app.route('/cookies')
 def cookies():
     return render_template('cookies.html')
