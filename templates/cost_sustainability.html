@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cost and Sustainability Metrics Calculator - Young Investor Calculator</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4f46e5',
+                        secondary: '#818cf8',
+                        accent: '#a5b4fc',
+                        dark: '#1e293b',
+                        light: '#f8fafc',
+                        success: '#10b981',
+                        info: '#0ea5e9',
+                        warning: '#f59e0b',
+                        danger: '#ef4444'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --header-height: 70px;
+            --sidebar-width: 300px;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f0f4f8 0%, #e6e9ff 100%);
+            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        }
+
+        .card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+        }
+
+        .input-field {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+
+        .input-field:focus {
+            border-color: #a5b4fc;
+            box-shadow: 0 0 0 4px rgba(165, 180, 252, 0.25);
+        }
+
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+        }
+
+        .back-to-top.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: #1e293b;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 8px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .nav-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .nav-button {
+            display: flex;
+            align-items: center;
+            padding: 10px 20px;
+            background: white;
+            border-radius: 8px;
+            font-weight: 500;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s ease;
+        }
+
+        .nav-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-button.home {
+            background: #4f46e5;
+            color: white;
+        }
+
+        .nav-button.calculators {
+            background: #10b981;
+            color: white;
+        }
+
+        .nav-button i {
+            margin-right: 8px;
+        }
+
+        .target-price {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #4f46e5;
+            margin: 10px 0;
+        }
+
+        .target-interpretation {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 10px;
+            background-color: #f0f9ff;
+            border-left: 4px solid #0ea5e9;
+        }
+
+        .formula {
+            font-family: 'Courier New', monospace;
+            background-color: #f8fafc;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        th {
+            background-color: #f8fafc;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        td {
+            color: #374151;
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+    <!-- Header -->
+    <header class="gradient-bg text-white py-8 px-4 md:px-8">
+        <div class="max-w-6xl mx-auto">
+            <nav class="hidden md:flex justify-between items-center mb-6">
+                <div class="flex items-center space-x-4">
+                    <a href="/" class="text-white hover:text-indigo-200 transition-colors">Home</a>
+                    <a href="/#calculators" class="text-white font-medium border-b-2 border-white">Calculators</a>
+                    <a href="/help" class="text-white hover:text-indigo-200 transition-colors">Help Center</a>
+                    <a href="/articles" class="text-white hover:text-indigo-200 transition-colors">Resources</a>
+                </div>
+                <a href="/help" class="bg-white text-primary px-4 py-2 rounded-lg font-medium hover:bg-indigo-50 transition-colors">
+                    Get Started
+                </a>
+            </nav>
+            <div class="max-w-3xl">
+                <h1 class="text-4xl md:text-5xl font-bold mb-4">Cost and Sustainability Metrics Calculator</h1>
+                <p class="text-xl md:text-2xl text-indigo-100 mb-6">
+                    Calculate cost of capital and debt sustainability metrics for financial analysis
+                </p>
+                <div class="flex flex-wrap gap-3">
+                    <div class="bg-white/20 px-4 py-2 rounded-full flex items-center">
+                        <i class="fas fa-lightbulb mr-2"></i>
+                        <span>Beginner Friendly</span>
+                    </div>
+                    <div class="bg-white/20 px-4 py-2 rounded-full flex items-center">
+                        <i class="fas fa-download mr-2"></i>
+                        <span>Downloadable Guide</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="max-w-6xl mx-auto px-4 py-8">
+        <!-- Navigation Buttons -->
+        <div class="nav-buttons">
+            <a href="/" class="nav-button home">
+                <i class="fas fa-home"></i> Return to Home
+            </a>
+            <a href="/#calculators" class="nav-button calculators">
+                <i class="fas fa-calculator"></i> Other Calculators
+            </a>
+        </div>
+
+        <!-- Calculator Form -->
+        <div class="card p-6 mb-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Calculate Cost and Sustainability Metrics</h2>
+            <p class="text-gray-600 mb-6">Select a formula and enter financial data to calculate cost of capital or debt sustainability metrics. All monetary values should be in the same currency (e.g., USD or GHS).</p>
+            <div class="mb-6">
+                <label class="block text-gray-700 font-medium mb-2">Select Formula</label>
+                <select id="formula-select" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
+                    <option value="wacc">Weighted Average Cost of Capital (WACC)</option>
+                    <option value="cost_equity_capm">Cost of Equity (CAPM)</option>
+                    <option value="cost_debt">Cost of Debt</option>
+                    <option value="interest_coverage">Interest Coverage Ratio</option>
+                    <option value="cash_interest_coverage">Cash Interest Coverage Ratio</option>
+                    <option value="dscr">Debt Service Coverage Ratio (DSCR)</option>
+                    <option value="cash_flow_to_debt">Cash Flow-to-Debt Ratio</option>
+                    <option value="net_debt_ebitda">Net Debt-to-EBITDA Ratio</option>
+                    <option value="preferred_dividend_coverage">Preferred Dividend Coverage Ratio</option>
+                    <option value="short_term_debt_ratio">Short-Term Debt Ratio</option>
+                </select>
+            </div>
+            <div id="formula-display" class="formula hidden">
+                <p class="text-lg font-semibold">Formula</p>
+                <p id="formula-text" class="text-xl mt-2"></p>
+                <p id="formula-description" class="text-sm mt-2 text-gray-600"></p>
+            </div>
+            <form id="ratio-form" class="space-y-6">
+                <div id="input-fields" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Input fields will be populated dynamically -->
+                </div>
+                <div class="flex gap-4">
+                    <button type="submit" class="px-6 py-3 bg-primary text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors">
+                        <i class="fas fa-calculator mr-2"></i> Calculate
+                    </button>
+                    <button type="reset" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors">
+                        <i class="fas fa-eraser mr-2"></i> Clear
+                    </button>
+                </div>
+            </form>
+            <!-- Results Section -->
+            <div id="results-section" class="mt-8 hidden">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">Calculation Results</h3>
+                <div class="text-center mb-6">
+                    <p class="text-gray-600" id="result-label"></p>
+                    <div class="target-price" id="ratio-result"></div>
+                    <div class="target-interpretation">
+                        <p class="font-medium">Integration Hook:</p>
+                        <p id="target-interpretation-text"></p>
+                    </div>
+                </div>
+                <table>
+                    <thead id="result-table-head">
+                        <!-- Table headers will be populated dynamically -->
+                    </thead>
+                    <tbody id="ratio-results-table">
+                        <!-- Results will be populated by JavaScript -->
+                    </tbody>
+                </table>
+                <p class="text-gray-600 mt-4" id="result-note"></p>
+                <div class="mt-6">
+                    <button id="reset-calculator" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium flex items-center inline-block">
+                        <i class="fas fa-redo mr-2"></i> Calculate Another
+                    </button>
+                </div>
+            </div>
+            <!-- Error Message -->
+            <div id="error-message" class="mt-6 hidden">
+                <div class="bg-red-50 p-4 rounded-lg">
+                    <p class="text-red-700 font-medium" id="error-text"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Guide Section -->
+        <div class="card p-6">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Understanding Cost and Sustainability Metrics</h2>
+            <p class="text-gray-600 mb-6">These metrics evaluate the cost of capital and debt sustainability, critical for valuation, credit analysis, and financial health assessment.</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div class="bg-blue-50 p-5 rounded-lg">
+                    <div class="text-3xl font-bold text-blue-700 mb-2">Low Cost, High Coverage</div>
+                    <h3 class="font-bold text-gray-800 mb-2">Low WACC, High DSCR</h3>
+                    <p class="text-gray-600">Indicates efficient financing and strong debt repayment capacity.</p>
+                </div>
+                <div class="bg-orange-50 p-5 rounded-lg">
+                    <div class="text-3xl font-bold text-orange-700 mb-2">High Cost, Low Coverage</div>
+                    <h3 class="font-bold text-gray-800 mb-2">High WACC, Low DSCR</h3>
+                    <p class="text-gray-600">Suggests costly capital or potential debt servicing challenges.</p>
+                </div>
+            </div>
+            <h3 class="text-xl font-bold text-gray-800 mt-8 mb-4">How to Use the Calculator</h3>
+            <ol class="list-decimal pl-6 space-y-4">
+                <li>
+                    <strong>Select a Formula</strong>
+                    <p>Choose a metric from the dropdown to calculate.</p>
+                </li>
+                <li>
+                    <strong>Enter Financial Data</strong>
+                    <p>Input required values (e.g., EBIT, Cash Flow) from financial statements or market data.</p>
+                </li>
+                <li>
+                    <strong>Calculate and Review</strong>
+                    <p>Click “Calculate” to compute the metric. Use in valuation or credit analysis.</p>
+                </li>
+            </ol>
+            <div class="mt-8">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">Key Applications</h3>
+                <ul class="list-disc pl-6 space-y-2">
+                    <li>Valuing firms using DCF models (WACC)</li>
+                    <li>Assessing debt sustainability for credit analysis</li>
+                    <li>Evaluating liquidity for short-term risk</li>
+                    <li>Supporting LBO or project finance models</li>
+                </ul>
+            </div>
+            <div class="flex flex-wrap gap-3 mt-6">
+                <a href="/download_guide" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium flex items-center">
+                    <i class="fas fa-download mr-2"></i> Download Guide
+                </a>
+                <a href="/tutorial" class="px-4 py-2 bg-primary text-white rounded-lg font-medium flex items-center">
+                    <i class="fas fa-play-circle mr-2"></i> Watch Tutorial
+                </a>
+            </div>
+        </div>
+
+        <!-- Collapsible Help Section -->
+        <div class="card p-6 mb-8">
+            <button type="button" onclick="toggleHelpSection()" class="w-full text-left text-2xl font-bold text-gray-800 flex justify-between items-center focus:outline-none">
+                <span>How to Find Financial Data</span>
+                <span id="help-toggle-icon" class="text-gray-500 text-xl">➕</span>
+            </button>
+            <div id="help-section" class="hidden mt-4 text-gray-600">
+                <p class="mb-2">To calculate cost and sustainability metrics, you need accurate financial data. Here’s how to find it:</p>
+                <ol class="list-decimal pl-6 space-y-4">
+                    <li>
+                        <strong>Income Statement Data (EBIT, Interest Expense)</strong>
+                        <p>Find in the income statement:</p>
+                        <ul class="list-disc list-inside ml-6 space-y-2">
+                            <li><strong>Yahoo Finance</strong>: Search ticker, go to “Financials” > “Income Statement.”</li>
+                            <li><strong>gse.com.gh</strong>: Check financial statements for GSE-listed companies.</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Cash Flow Data</strong>
+                        <p>Find in the cash flow statement:</p>
+                        <ul class="list-disc list-inside ml-6 space-y-2">
+                            <li><strong>Yahoo Finance</strong>: Look under “Cash Flow” > “Operating/Financing Activities.”</li>
+                            <li><strong>afx.kwayisi.org/gse/</strong>: View data for GSE companies.</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Balance Sheet Data (Debt, Assets)</strong>
+                        <p>Find in the balance sheet under assets and liabilities.</p>
+                    </li>
+                    <li>
+                        <strong>Market Data (Risk-Free Rate, Beta)</strong>
+                        <p>Use for CAPM and WACC:</p>
+                        <ul class="list-disc list-inside ml-6 space-y-2">
+                            <li><strong>Risk-Free Rate</strong>: 10-year T-bond yield (e.g., Bloomberg).</li>
+                            <li><strong>Beta</strong>: Yahoo Finance or Bloomberg.</li>
+                        </ul>
+                    </li>
+                    <li>
+                        <strong>Tips</strong>
+                        <ul class="list-disc list-inside ml-6 space-y-2">
+                            <li>Verify data from multiple sources for accuracy.</li>
+                            <li>Use analyst estimates for projections (Yahoo Finance “Analysis” tab).</li>
+                            <li>Check gse.com.gh for Ghanaian company updates.</li>
+                        </ul>
+                    </li>
+                </ol>
+                <p class="mt-4"><strong>Examples</strong>:</p>
+                <ul class="list-disc list-inside ml-6 space-y-2">
+                    <li><strong>Access Bank Ghana (ABG)</strong>: EBIT = GHS 300M, Interest Expense = GHS 50M, Cash Flow = GHS 200M (gse.com.gh).</li>
+                    <li><strong>JPMorgan Chase (JPM)</strong>: EBIT = $50B, Interest Expense = $10B, Beta = 1.2 (Yahoo Finance).</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Navigation Buttons at Bottom -->
+        <div class="nav-buttons mt-6">
+            <a href="/" class="nav-button home">
+                <i class="fas fa-home"></i> Return to Home
+            </a>
+            <a href="/#calculators" class="nav-button calculators">
+                <i class="fas fa-calculator"></i> Other Calculators
+            </a>
+        </div>
+    </div>
+
+    <!-- Back to Top Button -->
+    <button id="backToTop" class="back-to-top w-12 h-12 bg-primary text-white rounded-full shadow-lg flex items-center justify-center">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <!-- JavaScript -->
+    <script>
+        // Back to top button
+        const backToTopBtn = document.getElementById('backToTop');
+        window.addEventListener('scroll', function() {
+            if (window.pageYOffset > 300) {
+                backToTopBtn.classList.add('visible');
+            } else {
+                backToTopBtn.classList.remove('visible');
+            }
+        });
+        backToTopBtn.addEventListener('click', function() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        // Toggle help section visibility
+        function toggleHelpSection() {
+            const helpSection = document.getElementById('help-section');
+            const toggleIcon = document.getElementById('help-toggle-icon');
+            helpSection.classList.toggle('hidden');
+            toggleIcon.textContent = helpSection.classList.contains('hidden') ? '➕' : '➖';
+        }
+
+        // Formula configurations
+        const formulas = {
+            wacc: {
+                name: 'Weighted Average Cost of Capital (WACC)',
+                formula: 'WACC = (E/V × r_e) + (D/V × r_d × (1 - T))',
+                description: 'Calculates the weighted cost of capital. E = Market Value of Equity, D = Market Value of Debt, V = E + D, r_e = Cost of Equity, r_d = Cost of Debt, T = Tax Rate.',
+                inputs: [
+                    { name: 'market_value_equity', label: 'Market Value of Equity', placeholder: 'e.g., 4000000000', tooltip: 'Share price × shares outstanding (e.g., Yahoo Finance).'},
+                    { name: 'market_value_debt', label: 'Market Value of Debt', placeholder: 'e.g., 1000000000', tooltip: 'Bond prices or debt market value (e.g., Bloomberg).'},
+                    { name: 'cost_equity', label: 'Cost of Equity (%)', placeholder: 'e.g., 10', tooltip: 'Return required by equity investors (e.g., from CAPM).'},
+                    { name: 'cost_debt', label: 'Cost of Debt (%)', placeholder: 'e.g., 5', tooltip: 'Effective interest rate or YTM on debt.'},
+                    { name: 'tax_rate', label: 'Corporate Tax Rate (%)', placeholder: 'e.g., 25', tooltip: 'Tax rate from financial statements.'}
+                ],
+                calculate: (inputs) => {
+                    const total_capital = inputs.market_value_equity + inputs.market_value_debt;
+                    return (inputs.market_value_equity / total_capital * inputs.cost_equity / 100) + 
+                           (inputs.market_value_debt / total_capital * inputs.cost_debt / 100 * (1 - inputs.tax_rate / 100));
+                },
+                resultLabel: 'Weighted Average Cost of Capital (%)',
+                interpretation: (result) => `A WACC of ${result.toFixed(2)}% indicates the firm’s cost of capital, used for ${result > 10 ? 'high-risk valuation.' : 'lower-risk valuation.'}`,
+                note: 'Use in DCF models for valuation.',
+                integrationHook: 'Use in terminal value: TV = FCF × (1 + g) / (WACC - g).'
+            },
+            cost_equity_capm: {
+                name: 'Cost of Equity (CAPM)',
+                formula: 'r_e = r_f + β (r_m - r_f)',
+                description: 'Estimates the return required by equity investors. r_f = Risk-Free Rate, β = Equity Beta, r_m = Market Return.',
+                inputs: [
+                    { name: 'risk_free_rate', label: 'Risk-Free Rate (%)', placeholder: 'e.g., 3', tooltip: '10-year T-bond yield (e.g., Bloomberg).'},
+                    { name: 'beta', label: 'Equity Beta', placeholder: 'e.g., 1.2', tooltip: 'Beta from Yahoo Finance or Bloomberg.'},
+                    { name: 'market_return', label: 'Expected Market Return (%)', placeholder: 'e.g., 8', tooltip: 'Historical S&P 500 return.'}
+                ],
+                calculate: (inputs) => inputs.risk_free_rate / 100 + inputs.beta * (inputs.market_return / 100 - inputs.risk_free_rate / 100),
+                resultLabel: 'Cost of Equity (%)',
+                interpretation: (result) => `A cost of equity of ${result.toFixed(2)}% reflects expected returns, indicating ${result > 10 ? 'higher risk.' : 'lower risk.'}`,
+                note: 'Use as input for WACC calculations.',
+                integrationHook: 'Use in cost of capital schedules for valuation models.'
+            },
+            cost_debt: {
+                name: 'Cost of Debt',
+                formula: 'r_d = Interest Expense / Total Debt_book or Yield-to-Maturity',
+                description: 'Measures effective interest rate on debt.',
+                inputs: [
+                    { name: 'interest_expense', label: 'Interest Expense', placeholder: 'e.g., 50000000', tooltip: 'Interest expense from income statement.'},
+                    { name: 'total_debt_book', label: 'Total Debt (Book)', placeholder: 'e.g., 1000000000', tooltip: 'Total liabilities from balance sheet.'}
+                ],
+                calculate: (inputs) => (inputs.interest_expense / inputs.total_debt_book) * 100,
+                resultLabel: 'Cost of Debt (%)',
+                interpretation: (result) => `A cost of debt of ${result.toFixed(2)}% indicates the cost of borrowing, used for ${result > 5 ? 'higher-cost debt.' : 'lower-cost debt.'}`,
+                note: 'Use YTM for market-based WACC.',
+                integrationHook: 'Input for WACC in project finance or LBO models.'
+            },
+            interest_coverage: {
+                name: 'Interest Coverage Ratio',
+                formula: 'Interest Coverage = EBIT / Interest Expense',
+                description: 'Measures ability to cover interest with earnings.',
+                inputs: [
+                    { name: 'ebit', label: 'EBIT', placeholder: 'e.g., 300000000', tooltip: 'Earnings before interest and taxes from income statement.'},
+                    { name: 'interest_expense', label: 'Interest Expense', placeholder: 'e.g., 50000000', tooltip: 'Interest expense from income statement.'}
+                ],
+                calculate: (inputs) => inputs.ebit / inputs.interest_expense,
+                resultLabel: 'Interest Coverage Ratio',
+                interpretation: (result) => `A ratio of ${result.toFixed(2)} indicates the firm can cover interest ${result.toFixed(2)}x, suggesting ${result > 2 ? 'strong debt capacity.' : 'potential debt servicing issues.'}`,
+                note: 'Key for credit covenant testing.',
+                integrationHook: 'Use in credit covenant testing for loan agreements.'
+            },
+            cash_interest_coverage: {
+                name: 'Cash Interest Coverage Ratio',
+                formula: 'Cash Interest Coverage = Cash Flow from Operations / Interest Expense',
+                description: 'Assesses interest payment capacity using cash flows.',
+                inputs: [
+                    { name: 'cash_flow_operations', label: 'Cash Flow from Operations', placeholder: 'e.g., 200000000', tooltip: 'Operating cash flow from cash flow statement.'},
+                    { name: 'interest_expense', label: 'Interest Expense', placeholder: 'e.g., 50000000', tooltip: 'Interest expense from income statement.'}
+                ],
+                calculate: (inputs) => inputs.cash_flow_operations / inputs.interest_expense,
+                resultLabel: 'Cash Interest Coverage Ratio',
+                interpretation: (result) => `A ratio of ${result.toFixed(2)} shows cash covers interest ${result.toFixed(2)}x, indicating ${result > 2 ? 'strong liquidity.' : 'potential liquidity issues.'}`,
+                note: 'Preferred for volatile earnings.',
+                integrationHook: 'Use in cash flow waterfall analysis for credit models.'
+            },
+            dscr: {
+                name: 'Debt Service Coverage Ratio (DSCR)',
+                formula: 'DSCR = Net Operating Income / Total Debt Service',
+                description: 'Evaluates ability to cover principal and interest.',
+                inputs: [
+                    { name: 'net_operating_income', label: 'Net Operating Income', placeholder: 'e.g., 250000000', tooltip: 'Operating income from income statement.'},
+                    { name: 'total_debt_service', label: 'Total Debt Service', placeholder: 'e.g., 100000000', tooltip: 'Principal and interest payments from debt schedule.'}
+                ],
+                calculate: (inputs) => inputs.net_operating_income / inputs.total_debt_service,
+                resultLabel: 'Debt Service Coverage Ratio',
+                interpretation: (result) => `A DSCR of ${result.toFixed(2)} indicates debt service coverage ${result.toFixed(2)}x, suggesting ${result > 1.5 ? 'strong repayment capacity.' : 'potential repayment issues.'}`,
+                note: 'Key for project finance or real estate lending.',
+                integrationHook: 'Use in project finance or real estate lending models.'
+            },
+            cash_flow_to_debt: {
+                name: 'Cash Flow-to-Debt Ratio',
+                formula: 'Cash Flow-to-Debt = Cash Flow from Operations / Total Debt_book',
+                description: 'Measures debt repayment capacity with cash flows.',
+                inputs: [
+                    { name: 'cash_flow_operations', label: 'Cash Flow from Operations', placeholder: 'e.g., 200000000', tooltip: 'Operating cash flow from cash flow statement.'},
+                    { name: 'total_debt_book', label: 'Total Debt (Book)', placeholder: 'e.g., 1000000000', tooltip: 'Total liabilities from balance sheet.'}
+                ],
+                calculate: (inputs) => inputs.cash_flow_operations / inputs.total_debt_book,
+                resultLabel: 'Cash Flow-to-Debt Ratio',
+                interpretation: (result) => `A ratio of ${result.toFixed(2)} indicates cash flow covers ${result * 100}% of debt, suggesting ${result > 0.2 ? 'strong repayment capacity.' : 'limited repayment capacity.'}`,
+                note: 'Use for debt sustainability analysis.',
+                integrationHook: 'Use in debt capacity analysis for restructuring plans.'
+            },
+            net_debt_ebitda: {
+                name: 'Net Debt-to-EBITDA Ratio',
+                formula: 'Net Debt-to-EBITDA = (Total Debt_book - Cash and Cash Equivalents) / EBITDA',
+                description: 'Gauges leverage relative to earnings.',
+                inputs: [
+                    { name: 'total_debt_book', label: 'Total Debt (Book)', placeholder: 'e.g., 1000000000', tooltip: 'Total liabilities from balance sheet.'},
+                    { name: 'cash_equivalents', label: 'Cash and Cash Equivalents', placeholder: 'e.g., 200000000', tooltip: 'Cash from balance sheet.'},
+                    { name: 'ebitda', label: 'EBITDA', placeholder: 'e.g., 300000000', tooltip: 'Earnings before interest, taxes, depreciation, and amortization from income statement.'}
+                ],
+                calculate: (inputs) => (inputs.total_debt_book - inputs.cash_equivalents) / inputs.ebitda,
+                resultLabel: 'Net Debt-to-EBITDA Ratio',
+                interpretation: (result) => `A ratio of ${result.toFixed(2)} indicates net debt is ${result.toFixed(2)}x EBITDA, suggesting ${result < 3 ? 'manageable leverage.' : 'higher leverage risk.'}`,
+                note: 'Common in credit and M&A analysis.',
+                integrationHook: 'Use in credit covenant testing for bank lending models.'
+            },
+            preferred_dividend_coverage: {
+                name: 'Preferred Dividend Coverage Ratio',
+                formula: 'Preferred Dividend Coverage = EBIT / Preferred Dividends',
+                description: 'Measures ability to cover preferred stock dividends.',
+                inputs: [
+                    { name: 'ebit', label: 'EBIT', placeholder: 'e.g., 300000000', tooltip: 'Earnings before interest and taxes from income statement.'},
+                    { name: 'preferred_dividends', label: 'Preferred Dividends', placeholder: 'e.g., 20000000', tooltip: 'Preferred dividends from financial statements.'}
+                ],
+                calculate: (inputs) => inputs.ebit / inputs.preferred_dividends,
+                resultLabel: 'Preferred Dividend Coverage Ratio',
+                interpretation: (result) => `A ratio of ${result.toFixed(2)} indicates EBIT covers preferred dividends ${result.toFixed(2)}x, suggesting ${result > 2 ? 'strong dividend capacity.' : 'potential dividend payment issues.'}`,
+                note: 'Use for firms with preferred equity.',
+                integrationHook: 'Use in capital structure analysis for firms with preferred equity.'
+            },
+            short_term_debt_ratio: {
+                name: 'Short-Term Debt Ratio',
+                formula: 'Short-Term Debt Ratio = Short-Term Debt_book / Total Assets_book',
+                description: 'Highlights reliance on short-term debt.',
+                inputs: [
+                    { name: 'short_term_debt_book', label: 'Short-Term Debt (Book)', placeholder: 'e.g., 300000000', tooltip: 'Short-term liabilities from balance sheet.'},
+                    { name: 'total_assets_book', label: 'Total Assets (Book)', placeholder: 'e.g., 2000000000', tooltip: 'Total assets from balance sheet.'}
+                ],
+                calculate: (inputs) => inputs.short_term_debt_book / inputs.total_assets_book,
+                resultLabel: 'Short-Term Debt Ratio',
+                interpretation: (result) => `A ratio of ${result.toFixed(2)} indicates ${result * 100}% of assets are financed by short-term debt, suggesting ${result > 0.2 ? 'higher liquidity risk.' : 'lower liquidity risk.'}`,
+                note: 'Use for liquidity stress testing.',
+                integrationHook: 'Use in liquidity stress testing for credit models.'
+            }
+        };
+
+        // Validate inputs
+        function validateInput(inputElement) {
+            if (inputElement.value === '' || isNaN(parseFloat(inputElement.value))) {
+                inputElement.setCustomValidity('Please enter a valid number.');
+                inputElement.reportValidity();
+                return false;
+            } else {
+                inputElement.setCustomValidity('');
+                return true;
+            }
+        }
+
+        // Form submission handler
+        const form = document.getElementById('ratio-form');
+        const formulaSelect = document.getElementById('formula-select');
+        const formulaDisplay = document.getElementById('formula-display');
+        const formulaText = document.getElementById('formula-text');
+        const formulaDescription = document.getElementById('formula-description');
+        const inputFields = document.getElementById('input-fields');
+        const resultsSection = document.getElementById('results-section');
+        const resultLabel = document.getElementById('result-label');
+        const ratioResult = document.getElementById('ratio-result');
+        const targetInterpretationText = document.getElementById('target-interpretation-text');
+        const resultTableHead = document.getElementById('result-table-head');
+        const ratioResultsTable = document.getElementById('ratio-results-table');
+        const resultNote = document.getElementById('result-note');
+        const errorMessage = document.getElementById('error-message');
+        const errorText = document.getElementById('error-text');
+        const resetBtn = document.getElementById('reset-calculator');
+
+        function updateFormula() {
+            const selectedFormula = formulaSelect.value;
+            const formula = formulas[selectedFormula];
+            formulaDisplay.classList.remove('hidden');
+            formulaText.textContent = formula.formula;
+            formulaDescription.textContent = formula.description;
+
+            // Update input fields
+            inputFields.innerHTML = '';
+            formula.inputs.forEach((input, index) => {
+                inputFields.innerHTML += `
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">${input.label}</label>
+                        <input type="number" step="any" name="${input.name}" placeholder="${input.placeholder}" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
+                        <div class="tooltip mt-2">
+                            <i class="fas fa-info-circle text-gray-500"></i>
+                            <span class="tooltiptext">${input.tooltip}</span>
+                        </div>
+                        <div class="form-error text-danger text-sm mt-2 hidden" id="${input.name}-error">Please enter a valid number.</div>
+                    </div>
+                `;
+            });
+
+            // Update table headers
+            resultTableHead.innerHTML = `
+                <tr>
+                    <th>Input</th>
+                    <th>Value</th>
+                    <th>Result</th>
+                </tr>
+            `;
+        }
+
+        formulaSelect.addEventListener('change', updateFormula);
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // Reset error state
+            errorMessage.classList.add('hidden');
+            document.querySelectorAll('.form-error').forEach(el => el.classList.add('hidden'));
+
+            const selectedFormula = formulaSelect.value;
+            const formula = formulas[selectedFormula];
+            const inputs = {};
+            let valid = true;
+
+            formula.inputs.forEach(input => {
+                const inputElement = document.querySelector(`input[name="${input.name}"]`);
+                const value = inputElement.value ? parseFloat(inputElement.value) : null;
+                if (value === null || isNaN(value)) {
+                    document.getElementById(`${input.name}-error`).classList.remove('hidden');
+                    valid = false;
+                } else {
+                    inputs[input.name] = value;
+                }
+            });
+
+            if (!valid) {
+                errorText.textContent = 'Please provide valid inputs for all required fields.';
+                errorMessage.classList.remove('hidden');
+                return;
+            }
+
+            // Calculate result
+            const result = formula.calculate(inputs);
+
+            // Populate results
+            resultLabel.textContent = formula.resultLabel;
+            ratioResult.textContent = `${result.toFixed(2)}${selectedFormula.includes('percent') || selectedFormula === 'wacc' || selectedFormula === 'cost_equity_capm' || selectedFormula === 'cost_debt' ? '%' : ''}`;
+            targetInterpretationText.textContent = formula.integrationHook;
+            resultNote.textContent = formula.note;
+
+            // Populate table
+            ratioResultsTable.innerHTML = '';
+            formula.inputs.forEach(input => {
+                const row = `
+                    <tr>
+                        <td>${input.label}</td>
+                        <td>${inputs[input.name].toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')}</td>
+                        <td>-</td>
+                    </tr>
+                `;
+                ratioResultsTable.innerHTML += row;
+            });
+            ratioResultsTable.innerHTML += `
+                <tr>
+                    <td><strong>${formula.resultLabel}</strong></td>
+                    <td>-</td>
+                    <td><strong>${result.toFixed(2)}${selectedFormula.includes('percent') || selectedFormula === 'wacc' || selectedFormula === 'cost_equity_capm' || selectedFormula === 'cost_debt' ? '%' : ''}</strong></td>
+                </tr>
+            `;
+
+            resultsSection.classList.remove('hidden');
+            resultsSection.scrollIntoView({ behavior: 'smooth' });
+        });
+
+        resetBtn.addEventListener('click', function() {
+            form.reset();
+            resultsSection.classList.add('hidden');
+            errorMessage.classList.add('hidden');
+            document.querySelectorAll('.form-error').forEach(el => el.classList.add('hidden'));
+            updateFormula();
+        });
+
+        // Initialize form on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            updateFormula();
+            document.querySelectorAll('input[type="number"]').forEach(input => {
+                input.value = '';
+                input.addEventListener('input', () => validateInput(input));
+            });
+        });
+    </script>
+</body>
+</html>

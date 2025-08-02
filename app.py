@@ -2818,6 +2818,16 @@ def calculate_pe_target(eps, g, years, pe):
     projected_eps = eps * (1 + g)**years
     return projected_eps * pe
 
+
+@app.route('/leverage_ratios')
+def leverage_ratios():
+    return render_template('leverage_ratios.html')
+
+@app.route('/cost_sustainability')
+def cost_sustainability():
+    return render_template('cost_sustainability.html')
+
+
 @app.route('/multi-method-valuation', methods=['GET', 'POST'])
 def multi_method_valuation():
     if request.method == 'POST':
