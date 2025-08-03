@@ -1732,6 +1732,10 @@ def dcf_calculator():
             error = str(e)
     return render_template('dcf.html', error=error, results=results)
 
+@app.route('/fcf_forecasting')
+def fcf_forecasting():
+    return render_template('fcf_forecasting.html')
+
 @app.route('/dvm', methods=['GET', 'POST'])
 def dvm_calculator():
     error = None
