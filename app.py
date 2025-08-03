@@ -643,6 +643,11 @@ def ads_txt():
 def index():
     return render_template('index.html')
 
+@app.route('/fcf_forecast')
+def fcf_forecast():
+    return render_template('fcf_forecasting.html')
+
+
 @app.route('/help')
 def help():
     try:
@@ -1690,6 +1695,15 @@ def portfolio_diversification():
             return render_template('portfolio_diversification.html', result=str(e), form_data=request.form)
     return render_template('portfolio_diversification.html', form_data={})
 
+@dataclass
+class DCFResult:
+    total_pv: float
+    pv_cash_flows: list
+    terminal_value: float
+    pv_terminal: float
+    total_dcf: float
+    intrinsic_per_share: float = None  # New field for per-share value
+
 @app.route('/dcf', methods=['GET', 'POST'])
 def dcf_calculator():
     error = None
@@ -1701,15 +1715,19 @@ def dcf_calculator():
                 raise ValueError("Years must be between 1 and 10")
             discount_rate = float(request.form['discount_rate']) / 100
             terminal_growth = float(request.form['terminal_growth']) / 100
+            shares_outstanding = float(request.form.get('shares_outstanding', 0))
             if discount_rate <= terminal_growth:
-                raise ValueError("Discount rate must exceed terminal growth")
+                raise ValueError("Discount rate must exceed terminal growth rate")
+            if shares_outstanding <= 0:
+                raise ValueError("Shares outstanding must be a positive number")
             cash_flows = [float(request.form[f'cash_flow_{i}']) for i in range(1, years + 1)]
             pv_cash_flows = [cf / (1 + discount_rate) ** i for i, cf in enumerate(cash_flows, 1)]
             total_pv = sum(pv_cash_flows)
             terminal_value = (cash_flows[-1] * (1 + terminal_growth)) / (discount_rate - terminal_growth)
             pv_terminal = terminal_value / (1 + discount_rate) ** years
             total_dcf = total_pv + pv_terminal
-            results = DCFResult(total_pv, pv_cash_flows, terminal_value, pv_terminal, total_dcf)
+            intrinsic_per_share = total_dcf / shares_outstanding if shares_outstanding > 0 else None
+            results = DCFResult(total_pv, pv_cash_flows, terminal_value, pv_terminal, total_dcf, intrinsic_per_share)
         except ValueError as e:
             error = str(e)
     return render_template('dcf.html', error=error, results=results)

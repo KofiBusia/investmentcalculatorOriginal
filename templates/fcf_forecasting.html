@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Free Cash Flow Forecasting Calculator - Young Investor</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4f46e5',
+                        secondary: '#818cf8',
+                        accent: '#a5b4fc',
+                        dark: '#1e293b',
+                        light: '#f8fafc',
+                        success: '#10b981',
+                        info: '#0ea5e9',
+                        warning: '#f59e0b',
+                        danger: '#ef4444'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #f0f4f8 0%, #e6e9ff 100%);
+            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+        }
+        .input-field {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+        .input-field:focus {
+            border-color: #a5b4fc;
+            box-shadow: 0 0 0 4px rgba(165, 180, 252, 0.25);
+        }
+        .input-field:valid {
+            border-color: #10b981;
+        }
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+        }
+        .back-to-top.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 250px;
+            background-color: #1e293b;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 10px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -125px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+        .nav-button {
+            display: flex;
+            align-items: center;
+            padding: 10px 20px;
+            background: white;
+            border-radius: 8px;
+            font-weight: 500;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s ease;
+        }
+        .nav-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+        }
+        .nav-button.home {
+            background: #4f46e5;
+            color: white;
+        }
+        .nav-button.calculators {
+            background: #10b981;
+            color: white;
+        }
+        .nav-button i {
+            margin-right: 8px;
+        }
+        .target-price {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #4f46e5;
+            margin: 10px 0;
+        }
+        .target-interpretation {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 10px;
+            background-color: #f0f9ff;
+            border-left: 4px solid #0ea5e9;
+        }
+        .formula {
+            font-family: 'Courier New', monospace;
+            background-color: #f8fafc;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        th {
+            background-color: #f8fafc;
+            font-weight: 600;
+            color: #1e293b;
+        }
+        td {
+            color: #374151;
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+    <header class="gradient-bg text-white py-8 px-4 md:px-8">
+        <div class="max-w-6xl mx-auto">
+            <nav class="hidden md:flex justify-between items-center mb-6">
+                <div class="flex items-center space-x-4">
+                    <a href="/" class="text-white hover:text-indigo-200">Home</a>
+                    <a href="/#calculators" class="text-white font-medium border-b-2 border-white">Calculators</a>
+                    <a href="/help" class="text-white hover:text-indigo-200">Help Center</a>
+                    <a href="/articles" class="text-white hover:text-indigo-200">Resources</a>
+                </div>
+                <a href="/help" class="bg-white text-primary px-4 py-2 rounded-lg font-medium hover:bg-indigo-50">Get Started</a>
+            </nav>
+            <div class="max-w-3xl">
+                <h1 class="text-4xl md:text-5xl font-bold mb-4">Free Cash Flow Forecasting Calculator</h1>
+                <p class="text-xl md:text-2xl text-indigo-100 mb-6">Easily forecast Free Cash Flow (FCF) over 3–5 years for valuation and investment analysis.</p>
+                <div class="flex flex-wrap gap-3">
+                    <div class="bg-white/20 px-4 py-2 rounded-full flex items-center">
+                        <i class="fas fa-lightbulb mr-2"></i>
+                        <span>Beginner Friendly</span>
+                    </div>
+                    <div class="bg-white/20 px-4 py-2 rounded-full flex items-center">
+                        <i class="fas fa-download mr-2"></i>
+                        <span>Downloadable Guide</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="max-w-6xl mx-auto px-4 py-8">
+        <div class="nav-buttons mb-6">
+            <a href="/" class="nav-button home"><i class="fas fa-home"></i> Return to Home</a>
+            <a href="/#calculators" class="nav-button calculators"><i class="fas fa-calculator"></i> Other Calculators</a>
+        </div>
+
+        <div class="card p-6 mb-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Forecast Free Cash Flow</h2>
+            <p class="text-gray-600 mb-6">Enter financial assumptions for up to 5 years to forecast Free Cash Flow (FCF). All monetary values in Ghanaian Cedi (GHS). Refer to tooltips for typical ranges.</p>
+            <div class="formula">
+                <p class="text-lg font-semibold">FCF Formula</p>
+                <p class="mt-2">FCF = [Revenue × EBIT Margin × (1 - Tax Rate)] + (Revenue × D&A %) - (Revenue × CapEx %) - ΔNWC</p>
+                <p id="formula-description" class="text-sm mt-2 text-gray-600">Free Cash Flow (FCF) represents the cash available after operating expenses, taxes, and investments in capital and working capital, ideal for valuation or investment decisions.</p>
+            </div>
+            <div class="flex justify-between items-center mb-4">
+                <p class="text-gray-600">Years Added: <span id="year-counter">1/5</span></p>
+                <p class="text-sm text-gray-500">Add up to 5 years for a comprehensive forecast.</p>
+            </div>
+            <form id="fcf-forecasting-form" class="space-y-6">
+                <div id="annual-inputs" class="space-y-6"></div>
+                <div class="flex gap-4">
+                    <button type="button" id="add-year" class="px-6 py-3 bg-secondary text-white rounded-lg font-medium hover:bg-indigo-500">Add Another Year</button>
+                    <button type="submit" class="px-6 py-3 bg-primary text-white rounded-lg font-medium hover:bg-indigo-700"><i class="fas fa-calculator mr-2"></i> Calculate</button>
+                    <button type="reset" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300"><i class="fas fa-eraser mr-2"></i> Clear</button>
+                </div>
+            </form>
+            <div id="results-section" class="mt-8 hidden">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">Forecasting Results</h3>
+                <div class="text-center mb-6">
+                    <p class="text-gray-600" id="results-title">FCF Forecast for Selected Years</p>
+                    <div class="target-price" id="fcf-average-result">0.00 GHS</div>
+                    <div class="target-interpretation">
+                        <p class="font-medium">Interpretation:</p>
+                        <p id="target-interpretation-text"></p>
+                    </div>
+                </div>
+                <table id="results-table">
+                    <thead id="results-table-head"></thead>
+                    <tbody id="fcf-results-table"></tbody>
+                </table>
+                <p class="text-gray-600 mt-4">Use these FCF projections for Discounted Cash Flow (DCF) valuation or investment analysis.</p>
+                <button id="reset-calculator" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium flex items-center inline-block mt-6"><i class="fas fa-redo mr-2"></i> Calculate Another</button>
+            </div>
+            <div id="error-message" class="mt-6 hidden">
+                <div class="bg-red-50 p-4 rounded-lg">
+                    <p class="text-red-700 font-medium" id="error-text"></p>
+                </div>
+            </div>
+        </div>
+
+        <div class="card p-6">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Understanding Free Cash Flow Forecasting</h2>
+            <p class="text-gray-600 mb-6">FCF forecasting estimates a company’s cash flow available for investors, critical for valuation, investment planning, or assessing financial health.</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div class="bg-blue-50 p-5 rounded-lg">
+                    <div class="text-3xl font-bold text-blue-700 mb-2">Low FCF</div>
+                    <h3 class="font-bold text-gray-800 mb-2">e.g., Negative or Low FCF</h3>
+                    <p class="text-gray-600">May indicate high reinvestment needs, operational inefficiencies, or growth-phase spending.</p>
+                </div>
+                <div class="bg-orange-50 p-5 rounded-lg">
+                    <div class="text-3xl font-bold text-orange-700 mb-2">High FCF</div>
+                    <h3 class="font-bold text-gray-800 mb-2">e.g., Strong Positive FCF</h3>
+                    <p class="text-gray-600">Reflects efficient operations, financial flexibility, and potential for dividends or reinvestment.</p>
+                </div>
+            </div>
+            <h3 class="text-xl font-bold text-gray-800 mt-8 mb-4">How to Use This Calculator</h3>
+            <ol class="list-decimal pl-6 space-y-4">
+                <li><strong>Gather Financial Data</strong>
+                    <p>Collect the following inputs from reliable sources:</p>
+                    <ul class="list-disc pl-6 space-y-2">
+                        <li><strong>Revenue (Year 1)</strong>: Find total sales or revenue from the income statement in the company’s annual report or 10-K filing. For example, a company might report GHS 1,000,000,000 in revenue.</li>
+                        <li><strong>Revenue Growth Rate (%)</strong>: Estimate from management guidance in annual reports, investor presentations, or analyst forecasts (e.g., Bloomberg, Yahoo Finance). Use historical growth rates if unavailable: <br><span class="formula inline-block my-2">Growth Rate = [(Current Year Revenue / Previous Year Revenue) - 1] × 100</span><br>Typical range: 5%–15% for stable companies.</li>
+                        <li><strong>EBIT Margin (%)</strong>: Calculate from the income statement: <br><span class="formula inline-block my-2">EBIT Margin = (EBIT / Revenue) × 100</span><br>EBIT (Earnings Before Interest and Taxes) is often listed as operating income. Typical range: 10%–20%.</li>
+                        <li><strong>Tax Rate (%)</strong>: Use the effective tax rate from the income statement: <br><span class="formula inline-block my-2">Effective Tax Rate = (Income Tax Expense / Pre-Tax Income) × 100</span><br>If unavailable, use statutory rates (e.g., 25% in Ghana) or industry averages (20%–30%).</li>
+                        <li><strong>D&A as % of Revenue (%)</strong>: Find Depreciation and Amortization (D&A) in the cash flow statement and divide by revenue: <br><span class="formula inline-block my-2">D&A % = (D&A / Revenue) × 100</span><br>Typical range: 3%–8%.</li>
+                        <li><strong>CapEx as % of Revenue (%)</strong>: Find capital expenditures in the cash flow statement (under investing activities) and divide by revenue: <br><span class="formula inline-block my-2">CapEx % = (Capital Expenditures / Revenue) × 100</span><br>Typical range: 5%–10%.</li>
+                        <li><strong>NWC as % of Revenue (%)</strong>: Calculate Net Working Capital (NWC = Current Assets - Current Liabilities) from the balance sheet, then divide by revenue: <br><span class="formula inline-block my-2">NWC % = (NWC / Revenue) × 100</span><br>Typical range: 5%–20%. For subsequent years, ΔNWC is calculated as the difference between NWC values.</li>
+                    </ul>
+                    <p>Sources: Company filings (10-K, 10-Q), annual reports, Bloomberg, Yahoo Finance, or industry reports.</p>
+                </li>
+                <li><strong>Input Year 1 Data</strong><p>Enter the starting revenue and assumptions for Year 1 using the values gathered. Refer to tooltips for typical ranges if unsure (e.g., 10%–20% for EBIT margin).</p></li>
+                <li><strong>Add Forecast Years</strong><p>Click “Add Another Year” to project up to 5 years. Revenue for subsequent years is automatically calculated using the growth rate from the previous year.</p></li>
+                <li><strong>Validate Inputs</strong><p>Ensure all fields are filled with valid positive numbers. Errors are highlighted in red with feedback (e.g., “Please enter a valid number”).</p></li>
+                <li><strong>Calculate FCF</strong><p>Click “Calculate” to generate the FCF forecast. The results table shows detailed projections per year, including revenue, EBIT, D&A, CapEx, ΔNWC, and FCF.</p></li>
+                <li><strong>Analyze Results</strong><p>Use the forecasted FCF for Discounted Cash Flow (DCF) valuation in the <a href="https://younginvestorcalculator.com/dcf" class="text-primary hover:underline">DCF Calculator</a>, investment decisions, or to compare with industry peers. Check the interpretation for insights (e.g., negative FCF may indicate reinvestment needs).</p></li>
+                <li><strong>Refine Assumptions</strong><p>Adjust inputs (e.g., lower growth rate for conservative estimates) to test scenarios (optimistic, pessimistic) and recalculate to see how FCF changes.</p></li>
+            </ol>
+            <p class="text-gray-600 mt-4"><strong>Tip:</strong> Cross-check assumptions with management guidance or analyst estimates from sources like Bloomberg or Yahoo Finance for accuracy.</p>
+            <div class="flex flex-wrap gap-3 mt-6">
+                <a href="/download_guide" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium flex items-center"><i class="fas fa-download mr-2"></i> Download Guide</a>
+                <a href="/tutorial" class="px-4 py-2 bg-primary text-white rounded-lg font-medium flex items-center"><i class="fas fa-play-circle mr-2"></i> Watch Tutorial</a>
+            </div>
+        </div>
+
+        <div class="card p-6 mb-8">
+            <button type="button" onclick="toggleHelpSection()" class="w-full text-left text-2xl font-bold text-gray-800 flex justify-between items-center focus:outline-none">
+                <span>How to Find Data</span>
+                <span id="help-toggle-icon" class="text-gray-500 text-xl">➕</span>
+            </button>
+            <div id="help-section" class="hidden mt-4 text-gray-600">
+                <p class="mb-2">To forecast FCF accurately, gather data from reliable sources:</p>
+                <ul class="list-disc pl-6 space-y-2">
+                    <li><strong>Financial Statements</strong>: Find revenue, EBIT, D&A, CapEx, and NWC components (current assets, liabilities) in income statements, balance sheets, and cash flow statements.</li>
+                    <li><strong>Management Guidance</strong>: Check annual reports, investor presentations, or earnings calls for revenue growth and margin projections.</li>
+                    <li><strong>Industry Benchmarks</strong>: Use industry averages for EBIT margin (10%–20%), D&A (3%–8%), CapEx (5%–10%), and NWC (5%–20%) from sources like Bloomberg, Yahoo Finance, or analyst reports.</li>
+                    <li><strong>Historical Data</strong>: Analyze past financials from company filings (e.g., 10-K, 10-Q) to estimate realistic growth rates and percentages.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="nav-buttons mt-6">
+            <a href="/" class="nav-button home"><i class="fas fa-home"></i> Return to Home</a>
+            <a href="/#calculators" class="nav-button calculators"><i class="fas fa-calculator"></i> Other Calculators</a>
+        </div>
+    </div>
+
+    <button id="backToTop" class="back-to-top w-12 h-12 bg-primary text-white rounded-full shadow-lg flex items-center justify-center">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <script>
+        const backToTopBtn = document.getElementById('backToTop');
+        window.addEventListener('scroll', () => {
+            backToTopBtn.classList.toggle('visible', window.pageYOffset > 300);
+        });
+        backToTopBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+
+        const annualInputs = document.getElementById('annual-inputs');
+        const form = document.getElementById('fcf-forecasting-form');
+        const resultsSection = document.getElementById('results-section');
+        const fcfAverageResult = document.getElementById('fcf-average-result');
+        const fcfResultsTable = document.getElementById('fcf-results-table');
+        const resultsTableHead = document.getElementById('results-table-head');
+        const resultsTitle = document.getElementById('results-title');
+        const targetInterpretationText = document.getElementById('target-interpretation-text');
+        const errorMessage = document.getElementById('error-message');
+        const errorText = document.getElementById('error-text');
+        const resetBtn = document.getElementById('reset-calculator');
+        const addYearBtn = document.getElementById('add-year');
+        const yearCounter = document.getElementById('year-counter');
+
+        let yearCount = 1;
+        const maxYears = 5;
+
+        const inputFields = [
+            'revenue', 'revenue_growth', 'ebit_margin', 'tax_rate', 'da_percentage', 'capex_percentage', 'nwc_percentage'
+        ];
+
+        const fieldLabels = {
+            revenue: { label: 'Revenue (GHS)', placeholder: 'e.g., 1000000000', tooltip: 'Total sales or revenue from the income statement. Example: GHS 1,000,000,000 for a mid-sized company.' },
+            revenue_growth: { label: 'Revenue Growth Rate (%)', placeholder: 'e.g., 10', tooltip: 'Expected annual revenue growth rate. Typical range: 5%–15% for stable companies, higher for growth firms.' },
+            ebit_margin: { label: 'EBIT Margin (%)', placeholder: 'e.g., 15', tooltip: 'Operating income as a percentage of revenue. Typical range: 10%–20% for most industries.' },
+            tax_rate: { label: 'Tax Rate (%)', placeholder: 'e.g., 25', tooltip: 'Effective tax rate from the income statement or estimates. Typical range: 20%–30%.' },
+            da_percentage: { label: 'D&A as % of Revenue (%)', placeholder: 'e.g., 5', tooltip: 'Depreciation & Amortization as a percentage of revenue. Typical range: 3%–8%.' },
+            capex_percentage: { label: 'CapEx as % of Revenue (%)', placeholder: 'e.g., 7', tooltip: 'Capital expenditure as a percentage of revenue. Typical range: 5%–10% for most industries.' },
+            nwc_percentage: { label: 'NWC as % of Revenue (%)', placeholder: 'e.g., 10', tooltip: 'Net Working Capital as a percentage of revenue. Typical range: 5%–20% depending on working capital needs.' }
+        };
+
+        function renderInitialInputs() {
+            annualInputs.innerHTML = `
+                <div class="bg-indigo-50 p-4 rounded-lg year-section" data-year="1">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-3">Year 1</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 dynamic-inputs"></div>
+                </div>
+            `;
+            const dynamicInputs = annualInputs.querySelector('.dynamic-inputs');
+            inputFields.forEach(field => {
+                const { label, placeholder, tooltip } = fieldLabels[field];
+                dynamicInputs.insertAdjacentHTML('beforeend', `
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">${label}</label>
+                        <input type="number" step="any" name="${field}_1" placeholder="${placeholder}" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
+                        <div class="tooltip mt-2"><i class="fas fa-info-circle text-gray-500"></i><span class="tooltiptext">${tooltip}</span></div>
+                        <div class="form-error text-danger text-sm mt-2 hidden" id="${field}_1-error">Please enter a valid number (e.g., ${placeholder.split('e.g., ')[1]}).</div>
+                    </div>
+                `);
+            });
+            yearCounter.textContent = `${yearCount}/${maxYears}`;
+        }
+
+        addYearBtn.addEventListener('click', () => {
+            if (yearCount >= maxYears) {
+                errorText.textContent = `Maximum of ${maxYears} years reached.`;
+                errorMessage.classList.remove('hidden');
+                return;
+            }
+            yearCount++;
+            const newYearSection = document.createElement('div');
+            newYearSection.className = 'bg-indigo-50 p-4 rounded-lg year-section';
+            newYearSection.setAttribute('data-year', yearCount);
+            newYearSection.innerHTML = `
+                <h3 class="text-lg font-semibold text-gray-800 mb-3">Year ${yearCount}</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
+            `;
+            const newInputs = newYearSection.querySelector('div');
+            inputFields.slice(1).forEach(field => {
+                const { label, placeholder, tooltip } = fieldLabels[field];
+                newInputs.insertAdjacentHTML('beforeend', `
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">${label}</label>
+                        <input type="number" step="any" name="${field}_${yearCount}" placeholder="${placeholder}" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
+                        <div class="tooltip mt-2"><i class="fas fa-info-circle text-gray-500"></i><span class="tooltiptext">${tooltip}</span></div>
+                        <div class="form-error text-danger text-sm mt-2 hidden" id="${field}_${yearCount}-error">Please enter a valid number (e.g., ${placeholder.split('e.g., ')[1]}).</div>
+                    </div>
+                `);
+            });
+            annualInputs.appendChild(newYearSection);
+            yearCounter.textContent = `${yearCount}/${maxYears}`;
+        });
+
+        function calculateFCF(data, year, prevRevenue = 0, prevNWC = 0) {
+            const revenue = year === 1 ? data.revenue : prevRevenue * (1 + data.revenue_growth / 100);
+            const ebit = revenue * (data.ebit_margin / 100);
+            const da = revenue * (data.da_percentage / 100);
+            const capex = revenue * (data.capex_percentage / 100);
+            const nwc = revenue * (data.nwc_percentage / 100);
+            const deltaNWC = nwc - prevNWC;
+            const fcf = (ebit * (1 - data.tax_rate / 100)) + da - capex - deltaNWC;
+            return { revenue, ebit, da, capex, nwc, deltaNWC, fcf };
+        }
+
+        form.addEventListener('submit', e => {
+            e.preventDefault();
+            errorMessage.classList.add('hidden');
+            document.querySelectorAll('.form-error').forEach(el => el.classList.add('hidden'));
+            const results = [];
+            let valid = true;
+            let prevRevenue = 0;
+            let prevNWC = 0;
+
+            for (let i = 1; i <= yearCount; i++) {
+                const data = {};
+                const fields = i === 1 ? inputFields : inputFields.slice(1);
+                fields.forEach(field => {
+                    const input = document.querySelector(`[name="${field}_${i}"]`);
+                    data[field] = input ? parseFloat(input.value) : NaN;
+                    if (isNaN(data[field]) || data[field] < 0) {
+                        document.getElementById(`${field}_${i}-error`).classList.remove('hidden');
+                        valid = false;
+                    }
+                });
+                if (valid) {
+                    const result = calculateFCF(data, i, prevRevenue, prevNWC);
+                    if (isNaN(result.fcf) || !isFinite(result.fcf)) {
+                        valid = false;
+                        errorText.textContent = 'Invalid calculation (e.g., division by zero or invalid input).';
+                        errorMessage.classList.remove('hidden');
+                    } else {
+                        results.push({ year: i, ...data, ...result });
+                        prevRevenue = result.revenue;
+                        prevNWC = result.nwc;
+                    }
+                }
+            }
+
+            if (!valid || results.length === 0) {
+                errorText.textContent = errorText.textContent || 'Please provide valid positive numbers for all required fields.';
+                errorMessage.classList.remove('hidden');
+                return;
+            }
+
+            resultsSection.classList.remove('hidden');
+            resultsTitle.textContent = `FCF Forecast for ${results.length} Year(s)`;
+            const averageFCF = results.reduce((sum, r) => sum + r.fcf, 0) / results.length;
+            fcfAverageResult.textContent = `${averageFCF.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')} GHS`;
+            targetInterpretationText.textContent = `The forecasted Free Cash Flow (${averageFCF < 0 ? 'negative' : 'positive'}) reflects the cash available for dividends, debt repayment, or reinvestment. ${averageFCF < 0 ? 'Negative FCF may indicate high reinvestment or operational challenges.' : 'Positive FCF suggests financial flexibility and potential for growth.'}`;
+
+            resultsTableHead.innerHTML = `
+                <tr>
+                    <th>Year</th>
+                    <th>Revenue (GHS)</th>
+                    ${yearCount > 1 ? '<th>Revenue Growth Rate (%)</th>' : ''}
+                    <th>EBIT Margin (%)</th>
+                    <th>Tax Rate (%)</th>
+                    <th>D&A (%)</th>
+                    <th>CapEx (%)</th>
+                    <th>NWC (%)</th>
+                    <th>EBIT (GHS)</th>
+                    <th>D&A (GHS)</th>
+                    <th>CapEx (GHS)</th>
+                    <th>ΔNWC (GHS)</th>
+                    <th>FCF (GHS)</th>
+                </tr>
+            `;
+            fcfResultsTable.innerHTML = results.map(row => `
+                <tr>
+                    <td>Year ${row.year}</td>
+                    <td>GHS ${row.revenue.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')}</td>
+                    ${yearCount > 1 ? `<td>${row.revenue_growth ? row.revenue_growth.toFixed(2) + '%' : 'N/A'}</td>` : ''}
+                    <td>${row.ebit_margin.toFixed(2)}%</td>
+                    <td>${row.tax_rate.toFixed(2)}%</td>
+                    <td>${row.da_percentage.toFixed(2)}%</td>
+                    <td>${row.capex_percentage.toFixed(2)}%</td>
+                    <td>${row.nwc_percentage.toFixed(2)}%</td>
+                    <td>GHS ${row.ebit.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')}</td>
+                    <td>GHS ${row.da.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')}</td>
+                    <td>GHS ${row.capex.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')}</td>
+                    <td>GHS ${row.deltaNWC.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')}</td>
+                    <td>GHS ${row.fcf.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')}</td>
+                </tr>
+            `).join('');
+        });
+
+        resetBtn.addEventListener('click', () => {
+            form.reset();
+            yearCount = 1;
+            resultsSection.classList.add('hidden');
+            errorMessage.classList.add('hidden');
+            document.querySelectorAll('.form-error').forEach(el => el.classList.add('hidden'));
+            renderInitialInputs();
+        });
+
+        form.addEventListener('reset', () => {
+            yearCount = 1;
+            resultsSection.classList.add('hidden');
+            errorMessage.classList.add('hidden');
+            document.querySelectorAll('.form-error').forEach(el => el.classList.add('hidden'));
+            renderInitialInputs();
+        });
+
+        function toggleHelpSection() {
+            const helpSection = document.getElementById('help-section');
+            const toggleIcon = document.getElementById('help-toggle-icon');
+            helpSection.classList.toggle('hidden');
+            toggleIcon.textContent = helpSection.classList.contains('hidden') ? '➕' : '➖';
+        }
+
+        renderInitialInputs();
+    </script>
+</body>
+</html>

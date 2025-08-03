@@ -265,19 +265,26 @@
         <!-- Calculator Form -->
         <div class="card p-6 mb-8">
             <h2 class="text-2xl font-bold text-gray-800 mb-4">Calculate DCF Valuation</h2>
-            <p class="text-gray-600 mb-6">Enter projected cash flows, discount rate, and terminal growth rate to estimate the intrinsic value of an investment. All monetary values should be in Ghanaian Cedi (GHS). Example: Use FCFE data from Access Bank Ghana (174 million shares).</p>
+            <p class="text-gray-600 mb-6">Enter projected cash flows, discount rate, terminal growth rate, and shares outstanding to estimate the intrinsic value of an investment and per-share value. All monetary values should be in Ghanaian Cedi (GHS). Example: Use FCFE data from Access Bank Ghana (174 million shares).</p>
             <div class="formula">
                 <p class="text-lg font-semibold">DCF Formula</p>
                 <p class="text-xl mt-2">DCF = Σ (Cash Flowₜ / (1 + Discount Rate)ᵗ) + Terminal Value / (1 + Discount Rate)ⁿ</p>
-                <p class="text-sm mt-2 text-gray-600">Where Terminal Value = (Final Year Cash Flow × (1 + Terminal Growth Rate)) / (Discount Rate - Terminal Growth Rate).</p>
+                <p class="text-sm mt-2 text-gray-600">Where Terminal Value = (Final Year Cash Flow × (1 + Terminal Growth Rate)) / (Discount Rate - Terminal Growth Rate). Per-share value = Total DCF ÷ Shares Outstanding.</p>
             </div>
             <form id="dcf-form" class="space-y-6">
                 <div>
                     <label class="block text-gray-700 font-medium mb-2">Forecast Period (Years)</label>
                     <select name="years" id="years" class="input-field" required>
-                        {% for i in range(1, 11) %}
-                        <option value="{{ i }}" {{ 'selected' if i == 5 else '' }}>{{ i }}</option>
-                        {% endfor %}
+                        <option value="1">1</option>
+                        <option value="2">2</option>
+                        <option value="3">3</option>
+                        <option value="4">4</option>
+                        <option value="5" selected>5</option>
+                        <option value="6">6</option>
+                        <option value="7">7</option>
+                        <option value="8">8</option>
+                        <option value="9">9</option>
+                        <option value="10">10</option>
                     </select>
                     <div class="tooltip mt-2">
                         <i class="fas fa-info-circle text-gray-500"></i>
@@ -286,36 +293,124 @@
                     <div class="form-error text-danger text-sm mt-2 hidden" id="years-error">Please select a valid number of years.</div>
                 </div>
                 <div id="cash-flow-inputs" class="space-y-4">
-                    {% for i in range(1, 11) %}
-                    <div class="cash-flow hidden" id="cf_group_{{ i }}">
-                        <label class="block text-gray-700 font-medium mb-2">Year {{ i }} Cash Flow (GHS)</label>
-                        <input type="number" step="1" name="cash_flow_{{ i }}" id="cash_flow_{{ i }}" placeholder="e.g., 1000000" min="0" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
+                    <div class="cash-flow" id="cf_group_1">
+                        <label class="block text-gray-700 font-medium mb-2">Year 1 Cash Flow (GHS)</label>
+                        <input type="number" step="0.01" name="cash_flow_1" id="cash_flow_1" placeholder="e.g., 1000000.00" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
                         <div class="tooltip mt-2">
                             <i class="fas fa-info-circle text-gray-500"></i>
-                            <span class="tooltiptext">Projected cash flow for Year {{ i }} (e.g., FCFE from financial statements).</span>
+                            <span class="tooltiptext">Projected cash flow for Year 1 (e.g., FCFE from financial statements).</span>
                         </div>
-                        <div class="form-error text-danger text-sm mt-2 hidden" id="cash_flow_{{ i }}-error">Please enter a valid number.</div>
+                        <div class="form-error text-danger text-sm mt-2 hidden" id="cash_flow_1-error">Please enter a valid number.</div>
                     </div>
-                    {% endfor %}
+                    <div class="cash-flow hidden" id="cf_group_2">
+                        <label class="block text-gray-700 font-medium mb-2">Year 2 Cash Flow (GHS)</label>
+                        <input type="number" step="0.01" name="cash_flow_2" id="cash_flow_2" placeholder="e.g., 1000000.00" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
+                        <div class="tooltip mt-2">
+                            <i class="fas fa-info-circle text-gray-500"></i>
+                            <span class="tooltiptext">Projected cash flow for Year 2 (e.g., FCFE from financial statements).</span>
+                        </div>
+                        <div class="form-error text-danger text-sm mt-2 hidden" id="cash_flow_2-error">Please enter a valid number.</div>
+                    </div>
+                    <div class="cash-flow hidden" id="cf_group_3">
+                        <label class="block text-gray-700 font-medium mb-2">Year 3 Cash Flow (GHS)</label>
+                        <input type="number" step="0.01" name="cash_flow_3" id="cash_flow_3" placeholder="e.g., 1000000.00" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
+                        <div class="tooltip mt-2">
+                            <i class="fas fa-info-circle text-gray-500"></i>
+                            <span class="tooltiptext">Projected cash flow for Year 3 (e.g., FCFE from financial statements).</span>
+                        </div>
+                        <div class="form-error text-danger text-sm mt-2 hidden" id="cash_flow_3-error">Please enter a valid number.</div>
+                    </div>
+                    <div class="cash-flow hidden" id="cf_group_4">
+                        <label class="block text-gray-700 font-medium mb-2">Year 4 Cash Flow (GHS)</label>
+                        <input type="number" step="0.01" name="cash_flow_4" id="cash_flow_4" placeholder="e.g., 1000000.00" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
+                        <div class="tooltip mt-2">
+                            <i class="fas fa-info-circle text-gray-500"></i>
+                            <span class="tooltiptext">Projected cash flow for Year 4 (e.g., FCFE from financial statements).</span>
+                        </div>
+                        <div class="form-error text-danger text-sm mt-2 hidden" id="cash_flow_4-error">Please enter a valid number.</div>
+                    </div>
+                    <div class="cash-flow hidden" id="cf_group_5">
+                        <label class="block text-gray-700 font-medium mb-2">Year 5 Cash Flow (GHS)</label>
+                        <input type="number" step="0.01" name="cash_flow_5" id="cash_flow_5" placeholder="e.g., 1000000.00" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
+                        <div class="tooltip mt-2">
+                            <i class="fas fa-info-circle text-gray-500"></i>
+                            <span class="tooltiptext">Projected cash flow for Year 5 (e.g., FCFE from financial statements).</span>
+                        </div>
+                        <div class="form-error text-danger text-sm mt-2 hidden" id="cash_flow_5-error">Please enter a valid number.</div>
+                    </div>
+                    <div class="cash-flow hidden" id="cf_group_6">
+                        <label class="block text-gray-700 font-medium mb-2">Year 6 Cash Flow (GHS)</label>
+                        <input type="number" step="0.01" name="cash_flow_6" id="cash_flow_6" placeholder="e.g., 1000000.00" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
+                        <div class="tooltip mt-2">
+                            <i class="fas fa-info-circle text-gray-500"></i>
+                            <span class="tooltiptext">Projected cash flow for Year 6 (e.g., FCFE from financial statements).</span>
+                        </div>
+                        <div class="form-error text-danger text-sm mt-2 hidden" id="cash_flow_6-error">Please enter a valid number.</div>
+                    </div>
+                    <div class="cash-flow hidden" id="cf_group_7">
+                        <label class="block text-gray-700 font-medium mb-2">Year 7 Cash Flow (GHS)</label>
+                        <input type="number" step="0.01" name="cash_flow_7" id="cash_flow_7" placeholder="e.g., 1000000.00" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
+                        <div class="tooltip mt-2">
+                            <i class="fas fa-info-circle text-gray-500"></i>
+                            <span class="tooltiptext">Projected cash flow for Year 7 (e.g., FCFE from financial statements).</span>
+                        </div>
+                        <div class="form-error text-danger text-sm mt-2 hidden" id="cash_flow_7-error">Please enter a valid number.</div>
+                    </div>
+                    <div class="cash-flow hidden" id="cf_group_8">
+                        <label class="block text-gray-700 font-medium mb-2">Year 8 Cash Flow (GHS)</label>
+                        <input type="number" step="0.01" name="cash_flow_8" id="cash_flow_8" placeholder="e.g., 1000000.00" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
+                        <div class="tooltip mt-2">
+                            <i class="fas fa-info-circle text-gray-500"></i>
+                            <span class="tooltiptext">Projected cash flow for Year 8 (e.g., FCFE from financial statements).</span>
+                        </div>
+                        <div class="form-error text-danger text-sm mt-2 hidden" id="cash_flow_8-error">Please enter a valid number.</div>
+                    </div>
+                    <div class="cash-flow hidden" id="cf_group_9">
+                        <label class="block text-gray-700 font-medium mb-2">Year 9 Cash Flow (GHS)</label>
+                        <input type="number" step="0.01" name="cash_flow_9" id="cash_flow_9" placeholder="e.g., 1000000.00" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
+                        <div class="tooltip mt-2">
+                            <i class="fas fa-info-circle text-gray-500"></i>
+                            <span class="tooltiptext">Projected cash flow for Year 9 (e.g., FCFE from financial statements).</span>
+                        </div>
+                        <div class="form-error text-danger text-sm mt-2 hidden" id="cash_flow_9-error">Please enter a valid number.</div>
+                    </div>
+                    <div class="cash-flow hidden" id="cf_group_10">
+                        <label class="block text-gray-700 font-medium mb-2">Year 10 Cash Flow (GHS)</label>
+                        <input type="number" step="0.01" name="cash_flow_10" id="cash_flow_10" placeholder="e.g., 1000000.00" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
+                        <div class="tooltip mt-2">
+                            <i class="fas fa-info-circle text-gray-500"></i>
+                            <span class="tooltiptext">Projected cash flow for Year 10 (e.g., FCFE from financial statements).</span>
+                        </div>
+                        <div class="form-error text-danger text-sm mt-2 hidden" id="cash_flow_10-error">Please enter a valid number.</div>
+                    </div>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label class="block text-gray-700 font-medium mb-2">Discount Rate (%)</label>
-                        <input type="number" step="0.01" name="discount_rate" id="discount_rate" placeholder="e.g., 8.0" min="0" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
+                        <input type="number" step="0.01" name="discount_rate" id="discount_rate" placeholder="e.g., 8.00" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
                         <div class="tooltip mt-2">
                             <i class="fas fa-info-circle text-gray-500"></i>
-                            <span class="tooltiptext">Rate to discount future cash flows (e.g., WACC or required return).</span>
+                            <span class="tooltiptext">Rate to discount future cash flows (e.g., WACC or required return, typically 5-12%).</span>
                         </div>
-                        <div class="form-error text-danger text-sm mt-2 hidden" id="discount_rate-error">Please enter a valid number.</div>
+                        <div class="form-error text-danger text-sm mt-2 hidden" id="discount_rate-error">Please enter a valid number (e.g., 8.00).</div>
                     </div>
                     <div>
                         <label class="block text-gray-700 font-medium mb-2">Terminal Growth Rate (%)</label>
-                        <input type="number" step="0.01" name="terminal_growth" id="terminal_growth" placeholder="e.g., 2.0" min="0" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
+                        <input type="number" step="0.01" name="terminal_growth" id="terminal_growth" placeholder="e.g., 2.00" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
                         <div class="tooltip mt-2">
                             <i class="fas fa-info-circle text-gray-500"></i>
-                            <span class="tooltiptext">Perpetual growth rate for cash flows after the forecast period.</span>
+                            <span class="tooltiptext">Perpetual growth rate for cash flows after the forecast period (typically 1-3%).</span>
                         </div>
-                        <div class="form-error text-danger text-sm mt-2 hidden" id="terminal_growth-error">Please enter a valid number.</div>
+                        <div class="form-error text-danger text-sm mt-2 hidden" id="terminal_growth-error">Please enter a valid number (e.g., 2.00).</div>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">Shares Outstanding (millions)</label>
+                        <input type="number" step="0.01" name="shares_outstanding" id="shares_outstanding" placeholder="e.g., 174.00" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
+                        <div class="tooltip mt-2">
+                            <i class="fas fa-info-circle text-gray-500"></i>
+                            <span class="tooltiptext">Total number of shares outstanding in millions (e.g., 174 for Access Bank Ghana).</span>
+                        </div>
+                        <div class="form-error text-danger text-sm mt-2 hidden" id="shares_outstanding-error">Please enter a valid positive number (e.g., 174.00).</div>
                     </div>
                 </div>
                 <div class="flex gap-4">
@@ -333,6 +428,8 @@
                 <div class="text-center mb-6">
                     <p class="text-gray-600">Intrinsic Value</p>
                     <div class="target-price" id="total-dcf-result">GHS 0.00</div>
+                    <p class="text-gray-600 mt-4">Intrinsic Value per Share</p>
+                    <div class="target-price" id="per-share-result">GHS 0.00</div>
                     <div class="target-interpretation">
                         <p class="font-medium">Interpretation:</p>
                         <p id="target-interpretation-text"></p>
@@ -362,7 +459,7 @@
                         </tr>
                     </tfoot>
                 </table>
-                <p class="text-gray-600 mt-4">Use the total DCF value to assess the intrinsic value of the investment. Divide by shares outstanding (e.g., 174 million for Access Bank Ghana) to get intrinsic value per share.</p>
+                <p class="text-gray-600 mt-4">Use the total DCF value and per-share value to assess the intrinsic value of the investment. The per-share value is calculated by dividing the total DCF by shares outstanding (e.g., 174 million for Access Bank Ghana).</p>
                 <div class="mt-6">
                     <button id="reset-calculator" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium flex items-center inline-block">
                         <i class="fas fa-redo mr-2"></i> Calculate Another
@@ -401,19 +498,23 @@
                 </li>
                 <li>
                     <strong>Enter Cash Flows</strong>
-                    <p>Input projected cash flows (e.g., FCFE) for each year, sourced from financial statements or estimates.</p>
+                    <p>Input projected cash flows (e.g., FCFE) for each year, sourced from financial statements, estimates, or the <a href="https://younginvestorcalculator.com/fcf_forecasting" class="text-primary hover:underline">Free Cash Flow (FCF) Forecasting Calculator</a>. Negative values are acceptable for years with expected cash outflows.</p>
                 </li>
                 <li>
                     <strong>Enter Discount Rate</strong>
-                    <p>Provide the discount rate (e.g., WACC or required return, typically 5-10%).</p>
+                    <p>Provide the discount rate (e.g., WACC or required return, typically 5-12%), which can be calculated using the <a href="https://younginvestorcalculator.com/calculate-cost-of-equity" class="text-primary hover:underline">Cost of Equity Calculator</a>.</p>
                 </li>
                 <li>
                     <strong>Enter Terminal Growth Rate</strong>
                     <p>Input the perpetual growth rate for cash flows after the forecast period (e.g., 1-3%).</p>
                 </li>
                 <li>
+                    <strong>Enter Shares Outstanding</strong>
+                    <p>Input the total number of shares outstanding in millions (e.g., 174 for Access Bank Ghana) to calculate the intrinsic value per share.</p>
+                </li>
+                <li>
                     <strong>Calculate and Review</strong>
-                    <p>Click “Calculate” to compute the DCF value. Use the result to assess intrinsic value or per-share value.</p>
+                    <p>Click “Calculate” to compute the DCF value and per-share value. Use the results to assess intrinsic value or compare with the current share price.</p>
                 </li>
             </ol>
             <div class="mt-8">
@@ -448,7 +549,7 @@
                         <strong>Cash Flows</strong>
                         <p>Use Free Cash Flow to Equity (FCFE) or Free Cash Flow to the Firm (FCFF):</p>
                         <ul class="list-disc list-inside ml-6 space-y-2">
-                            <li><strong>FCFE</strong>: Calculate using the FCFE Calculator or source from cash flow statements (Yahoo Finance, gse.com.gh).</li>
+                            <li><strong>FCFE</strong>: Calculate using the <a href="https://younginvestorcalculator.com/fcf_forecasting" class="text-primary hover:underline">FCF Forecasting Calculator</a> or source from cash flow statements (Yahoo Finance, gse.com.gh).</li>
                             <li><strong>FCFF</strong>: Find in cash flow statements under “Operating Cash Flow” minus capital expenditures.</li>
                             <li><strong>Projections</strong>: Use analyst estimates from Yahoo Finance “Analysis” tab or company guidance.</li>
                         </ul>
@@ -470,6 +571,14 @@
                         </ul>
                     </li>
                     <li>
+                        <strong>Shares Outstanding</strong>
+                        <p>Find the total number of shares outstanding:</p>
+                        <ul class="list-disc list-inside ml-6 space-y-2">
+                            <li><strong>Sources</strong>: Company annual reports, 10-K filings, or financial websites like Yahoo Finance or gse.com.gh.</li>
+                            <li><strong>Example</strong>: Access Bank Ghana has 174 million shares outstanding (source: gse.com.gh).</li>
+                        </ul>
+                    </li>
+                    <li>
                         <strong>Tips</strong>
                         <ul class="list-disc list-inside ml-6 space-y-2">
                             <li>Verify data from multiple sources (e.g., Yahoo Finance, gse.com.gh, annualreportsghana.com).</li>
@@ -480,8 +589,8 @@
                 </ol>
                 <p class="mt-4"><strong>Examples</strong>:</p>
                 <ul class="list-disc list-inside ml-6 space-y-2">
-                    <li><strong>Access Bank Ghana (ABG)</strong>: FCFE = GHS 217.5M (Year 1), Discount Rate = 8%, Terminal Growth = 2% (from gse.com.gh).</li>
-                    <li><strong>JPMorgan Chase (JPM)</strong>: FCFF = $40B, Discount Rate = 7%, Terminal Growth = 2.5% (from Yahoo Finance).</li>
+                    <li><strong>Access Bank Ghana (ABG)</strong>: FCFE = GHS 217.5M (Year 1), Discount Rate = 8%, Terminal Growth = 2%, Shares Outstanding = 174M (from gse.com.gh).</li>
+                    <li><strong>JPMorgan Chase (JPM)</strong>: FCFF = $40B, Discount Rate = 7%, Terminal Growth = 2.5%, Shares Outstanding = 2.9B (from Yahoo Finance).</li>
                 </ul>
             </div>
         </div>
@@ -519,8 +628,8 @@
 
         // Validate inputs
         function validateInput(inputElement) {
-            if (!inputElement.value || isNaN(parseFloat(inputElement.value))) {
-                inputElement.setCustomValidity('Please enter a valid number.');
+            if (!inputElement.value || isNaN(parseFloat(inputElement.value)) || (inputElement.name === 'shares_outstanding' && parseFloat(inputElement.value) <= 0)) {
+                inputElement.setCustomValidity(inputElement.name === 'shares_outstanding' ? 'Please enter a valid positive number.' : 'Please enter a valid number.');
                 inputElement.reportValidity();
                 return false;
             } else {
@@ -558,6 +667,7 @@
         const form = document.getElementById('dcf-form');
         const resultsSection = document.getElementById('results-section');
         const totalDcfResult = document.getElementById('total-dcf-result');
+        const perShareResult = document.getElementById('per-share-result');
         const cashFlowResultsTable = document.getElementById('cash-flow-results-table');
         const terminalValueCell = document.getElementById('terminal-value');
         const pvTerminalValueCell = document.getElementById('pv-terminal-value');
@@ -578,6 +688,7 @@
             const years = parseInt(document.getElementById('years').value);
             const discountRate = parseFloat(document.getElementById('discount_rate').value) / 100;
             const terminalGrowth = parseFloat(document.getElementById('terminal_growth').value) / 100;
+            const sharesOutstanding = parseFloat(document.getElementById('shares_outstanding').value);
             const cashFlows = [];
             let valid = true;
 
@@ -599,10 +710,14 @@
                 errorMessage.classList.remove('hidden');
                 valid = false;
             }
+            if (isNaN(sharesOutstanding) || sharesOutstanding <= 0) {
+                document.getElementById('shares_outstanding-error').classList.remove('hidden');
+                valid = false;
+            }
 
             for (let i = 1; i <= years; i++) {
                 const cashFlow = parseFloat(document.getElementById(`cash_flow_${i}`).value);
-                if (isNaN(cashFlow) || cashFlow < 0) {
+                if (isNaN(cashFlow)) {
                     document.getElementById(`cash_flow_${i}-error`).classList.remove('hidden');
                     valid = false;
                 } else {
@@ -629,6 +744,7 @@
             const terminalValue = (finalCashFlow * (1 + terminalGrowth)) / (discountRate - terminalGrowth);
             const pvTerminal = terminalValue / Math.pow(1 + discountRate, years);
             totalPv += pvTerminal;
+            const intrinsicPerShare = totalPv / sharesOutstanding;
 
             // Populate results table
             cashFlowResultsTable.innerHTML = '';
@@ -648,7 +764,8 @@
             pvTerminalValueCell.textContent = `GHS ${pvTerminal.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')}`;
             totalPvCell.textContent = `GHS ${totalPv.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')}`;
             totalDcfResult.textContent = `GHS ${totalPv.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')}`;
-            targetInterpretationText.textContent = `The intrinsic value of GHS ${totalPv.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')} is the sum of the present value of ${years} years of cash flows (GHS ${pvCashFlows.reduce((sum, pv) => sum + pv, 0).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')}) and the present value of the terminal value (GHS ${pvTerminal.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')}), discounted at ${discountRate * 100}% with a terminal growth rate of ${terminalGrowth * 100}%.`;
+            perShareResult.textContent = `GHS ${intrinsicPerShare.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')}`;
+            targetInterpretationText.textContent = `The intrinsic value of GHS ${totalPv.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')} is the sum of the present value of ${years} years of cash flows (GHS ${pvCashFlows.reduce((sum, pv) => sum + pv, 0).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')}) and the present value of the terminal value (GHS ${pvTerminal.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')}), discounted at ${discountRate * 100}% with a terminal growth rate of ${terminalGrowth * 100}%. The intrinsic value per share is GHS ${intrinsicPerShare.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')} based on ${sharesOutstanding} million shares outstanding.`;
 
             resultsSection.classList.remove('hidden');
             resultsSection.scrollIntoView({ behavior: 'smooth' });
