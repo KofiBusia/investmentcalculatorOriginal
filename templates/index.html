@@ -618,6 +618,81 @@
             font-size: 14px;
         }
 
+        /* Pop-up Styles */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .popup-container {
+            display: none; /* Hidden by default */
+            position: fixed;
+            z-index: 90; /* Below header (z-index: 100) */
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.6);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .popup-content {
+            background-color: #ffffff;
+            margin: auto;
+            padding: 25px;
+            border: 1px solid #ddd;
+            width: 85%;
+            max-width: 450px;
+            text-align: center;
+            border-radius: 10px;
+            position: relative;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        .close-btn {
+            color: #aaa;
+            position: absolute;
+            top: 10px;
+            right: 20px;
+            font-size: 30px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .close-btn:hover,
+        .close-btn:focus {
+            color: #333;
+        }
+
+        .popup-content h2 {
+            color: #2c3e50; /* Dark Slate Blue */
+            margin-top: 0;
+        }
+
+        .popup-button {
+            background-color: #2ecc71; /* Vibrant Green */
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 15px;
+            text-decoration: none;
+            display: inline-block;
+            border-radius: 5px;
+            font-size: 1.1em;
+            font-weight: bold;
+            transition: background-color 0.2s, transform 0.2s;
+        }
+
+        .popup-button:hover {
+            background-color: #27ae60; /* Darker Green */
+            transform: scale(1.05);
+        }
+
         /* Responsive Styles */
         @media (max-width: 992px) {
             .hero-title {
@@ -680,6 +755,16 @@
     </style>
 </head>
 <body>
+    <!-- Pop-up -->
+    <div id="promo-popup" class="popup-container">
+        <div class="popup-content">
+            <span class="close-btn">&times;</span>
+            <h2>Master Python from Scratch!</h2>
+            <p>Our new Python course makes learning to code simple and fun. Go from beginner to pro with hands-on projects.</p>
+            <a href="https://www.tezcode.tech/" target="_blank" class="popup-button">Start Your Python Journey!</a>
+        </div>
+    </div>
+
     <!-- Header -->
     <header>
         <div class="container header-container">
@@ -1623,11 +1708,13 @@
         </div>
     </footer>
 
-    <!-- JavaScript for Category Filtering -->
+    <!-- JavaScript for Category Filtering, Pop-up, and Search -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Category Filtering
             const filters = document.querySelectorAll('.category-filter');
             const calculatorCards = document.querySelectorAll('.calculator-card');
+            const searchInput = document.querySelector('.search-input');
 
             filters.forEach(filter => {
                 filter.addEventListener('click', function() {
@@ -1637,6 +1724,9 @@
                     this.classList.add('active');
 
                     const selectedCategory = this.getAttribute('data-filter');
+
+                    // Reset search input
+                    searchInput.value = '';
 
                     // Show or hide calculator cards based on category
                     calculatorCards.forEach(card => {
@@ -1649,6 +1739,55 @@
                     });
                 });
             });
+
+            // Search Functionality
+            searchInput.addEventListener('input', function() {
+                const searchTerm = this.value.trim().toLowerCase();
+                const activeFilter = document.querySelector('.category-filter.active');
+                const selectedCategory = activeFilter ? activeFilter.getAttribute('data-filter') : 'all';
+
+                calculatorCards.forEach(card => {
+                    const cardCategory = card.getAttribute('data-category');
+                    const title = card.querySelector('.calculator-title').textContent.toLowerCase();
+                    const description = card.querySelector('.calculator-desc').textContent.toLowerCase();
+
+                    // Check if card matches the active category filter (or 'all')
+                    const matchesCategory = selectedCategory === 'all' || cardCategory === selectedCategory;
+
+                    // Check if card matches the search term
+                    const matchesSearch = searchTerm === '' || 
+                                         title.includes(searchTerm) || 
+                                         description.includes(searchTerm);
+
+                    // Show card only if it matches both category and search criteria
+                    if (matchesCategory && matchesSearch) {
+                        card.classList.remove('hidden');
+                    } else {
+                        card.classList.add('hidden');
+                    }
+                });
+            });
+
+            // Pop-up Functionality
+            const popup = document.getElementById('promo-popup');
+            const closeBtn = document.querySelector('.close-btn');
+
+            // Show popup after a delay
+            setTimeout(() => {
+                popup.style.display = 'flex';
+            }, 2500); // 2.5 seconds delay
+
+            // Close popup when 'x' is clicked
+            closeBtn.onclick = function() {
+                popup.style.display = 'none';
+            }
+
+            // Close popup when clicking outside of the content
+            window.onclick = function(event) {
+                if (event.target == popup) {
+                    popup.style.display = 'none';
+                }
+            }
         });
     </script>
 </body>
