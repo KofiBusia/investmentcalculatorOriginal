@@ -1,5 +1,6 @@
 # STANDARD LIBRARY IMPORTS
 # ------------------------
+from flask_wtf import CSRFProtect
 import io
 import logging
 import os
@@ -12,13 +13,30 @@ from datetime import datetime
 from PIL import Image
 from flask import Flask, render_template, request, redirect, url_for
 import math
+from flask import Flask, request, render_template
+from flask_wtf import FlaskForm
+from wtforms import HiddenField
+from flask_wtf.csrf import CSRFProtect
+from flask_sqlalchemy import SQLAlchemy
+from flask_bcrypt import Bcrypt
+from flask_uploads import UploadSet, IMAGES, configure_uploads
+from flask_migrate import Migrate
+from flask_login import LoginManager
+import os
+import logging
+
 
 app = Flask(__name__)
 import logging
 if os.getenv('FLASK_ENV') == 'production':
     logging.basicConfig(level=logging.INFO, filename='app.log', filemode='a',
                         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    
+   
+   # Logging for debugging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+ 
+ 
 # THIRD-PARTY IMPORTS
 # -------------------
 from dotenv import load_dotenv
@@ -33,7 +51,7 @@ from flask_login import (
 )
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
-from flask_uploads import UploadSet, IMAGES, configure_uploads
+from flask_uploads import UploadSet, IMAGES, configure_uploads, IMAGES
 from flask_wtf import FlaskForm
 from slugify import slugify
 from wtforms import (
@@ -60,11 +78,11 @@ import os
 
 # Security
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'e1efa2b32b1bac66588d074bac02a168212082d8befd0b6466f5ee37a8c2836a')
-
 app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # 5 MB limit
+csrf = CSRFProtect(app)
 
 # Database
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'mysql+pymysql://root:IFokbu%40m%401@localhost/investment_insights')
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///investment_insights.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
     'pool_size': 10,
@@ -82,8 +100,7 @@ app.config['UPLOADED_PHOTOS_DEST'] = os.path.join(app.root_path, 'static', 'auth
 #
 
 # Email
-# EXTENSIONS INITIALIZATION (AFTER APP CREATION)
-# ---------------------------------------------
+# Initialize extensions
 db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
 migrate = Migrate(app, db)
@@ -94,6 +111,12 @@ login_manager.login_view = 'login'
 
 # (Add remaining application components like models, routes, and forms below)
 
+# CSRF Form
+class ValuationForm(FlaskForm):
+    csrf_token = HiddenField()
+
+from wtforms import HiddenField
+from flask_wtf.csrf import CSRFProtect
 
 # MODELS BLOCK
 # ------------
@@ -2631,9 +2654,20 @@ app.jinja_env.filters['currency'] = format_currency
 # Register the filter with Jinja2
 app.jinja_env.filters['format_currency'] = format_currency
 
-def currency_filter(value):
+# Custom filter for currency formatting
+@app.template_filter('currency')
+def currency_filter(value, currency='USD'):
     try:
-        return f"GHS {float(value):.2f}"
+        value = float(value)
+        currency_symbols = {
+            'USD': '$',
+            'GHS': 'GHS ',
+            'EUR': '€',
+            'GBP': '£',
+            'JPY': '¥'
+        }
+        symbol = currency_symbols.get(currency, '')
+        return f"{symbol}{value:,.2f}"
     except (TypeError, ValueError):
         return value
 
@@ -2840,7 +2874,6 @@ def calculate_pe_target(eps, g, years, pe):
     projected_eps = eps * (1 + g)**years
     return projected_eps * pe
 
-
 @app.route('/leverage_ratios')
 def leverage_ratios():
     return render_template('leverage_ratios.html')
@@ -2852,9 +2885,11 @@ def cost_sustainability():
 
 @app.route('/multi-method-valuation', methods=['GET', 'POST'])
 def multi_method_valuation():
-    if request.method == 'POST':
+    form = ValuationForm()
+    if request.method == 'POST' and form.validate_on_submit():
         try:
             # Parse form inputs
+            currency = request.form['currency']
             weight_scenario = request.form['weight_scenario']
             current_price = float(request.form['current_price'])
             years_high = int(request.form['years_high'])
@@ -2872,10 +2907,24 @@ def multi_method_valuation():
             # Validate inputs
             if any(x < 0 for x in [current_price, years_high, ddm_base_dividend, ddm_sensitivity_dividend, dcf_fcfe, pe_eps, pe_multiple, pe_years]):
                 raise ValueError("All monetary values and years must be positive")
-            if any(x < 0 or x > 100 for x in [growth_high, growth_terminal, discount_rate, pe_growth]):
-                raise ValueError("Rates must be between 0 and 100")
+            if any(x < 0 or x > 100 for x in [growth_high, growth_terminal, pe_growth]) or discount_rate <= 0 or discount_rate > 50:
+                raise ValueError("Rates must be between 0 and 100, discount rate between 0.01 and 50")
+            if growth_terminal >= growth_high:
+                raise ValueError("Terminal growth rate must be less than high-growth rate")
+            if discount_rate <= growth_terminal:
+                raise ValueError("Discount rate must be greater than terminal growth rate")
+            if years_high > 20 or pe_years > 5:
+                raise ValueError("High-growth years must be <= 20, P/E years <= 5")
             if weight_scenario not in ['conservative', 'balanced', 'growth']:
                 raise ValueError("Invalid weighting scenario")
+            if currency not in ['USD', 'GHS', 'EUR', 'GBP', 'JPY']:
+                raise ValueError("Invalid currency selected")
+
+            logger.debug(f"Inputs: currency={currency}, weight_scenario={weight_scenario}, current_price={current_price}, "
+                         f"years_high={years_high}, growth_high={growth_high}, growth_terminal={growth_terminal}, "
+                         f"discount_rate={discount_rate}, ddm_base_dividend={ddm_base_dividend}, "
+                         f"ddm_sensitivity_dividend={ddm_sensitivity_dividend}, dcf_fcfe={dcf_fcfe}, "
+                         f"pe_eps={pe_eps}, pe_growth={pe_growth}, pe_multiple={pe_multiple}, pe_years={pe_years}")
 
             # Perform calculations
             ddm_base = calculate_two_stage_ddm(ddm_base_dividend, growth_high, years_high, growth_terminal, discount_rate)
@@ -2885,47 +2934,83 @@ def multi_method_valuation():
 
             # Set weights based on scenario
             if weight_scenario == 'conservative':
-                weights = [30, 20, 30, 20]  # DDM Base, DDM Sensitivity, DCF, P/E
+                weights = [30, 20, 30, 20]
                 weight_priority = 'DDM Base and DCF'
                 weight_rationale = 'emphasis on dividend stability and cash flow reliability'
-                weight_max_index = 0  # or 2, as both are 30%
+                weight_max_index = 0
             elif weight_scenario == 'balanced':
-                weights = [20, 20, 40, 20]  # DDM Base, DDM Sensitivity, DCF, P/E
+                weights = [20, 20, 40, 20]
                 weight_priority = 'DCF'
                 weight_rationale = 'cash flow focus'
                 weight_max_index = 2
             else:  # growth
-                weights = [20, 20, 30, 30]  # DDM Base, DDM Sensitivity, DCF, P/E
+                weights = [20, 20, 30, 30]
                 weight_priority = 'DCF and P/E'
                 weight_rationale = 'growth potential and market alignment'
-                weight_max_index = 2  # or 3, as both are 30%
+                weight_max_index = 2
 
             # Weighted average
             values = [ddm_base, ddm_sensitivity, dcf_value, pe_target]
             weighted_average = sum(v * w / 100 for v, w in zip(values, weights))
+
+            # Sensitivity analysis
+            sensitivity = {
+                'discount_rate_low': discount_rate * 0.9,
+                'discount_rate_high': discount_rate * 1.1,
+                'growth_high_low': growth_high * 0.9,
+                'growth_high_high': growth_high * 1.1,
+                'value_low': sum([
+                    calculate_two_stage_ddm(ddm_base_dividend, growth_high * 0.9, years_high, growth_terminal, discount_rate * 0.9) * (weights[0] / 100),
+                    calculate_two_stage_ddm(ddm_sensitivity_dividend, growth_high * 0.9, years_high, growth_terminal, discount_rate * 0.9) * (weights[1] / 100),
+                    calculate_two_stage_dcf(dcf_fcfe, growth_high * 0.9, years_high, growth_terminal, discount_rate * 0.9) * (weights[2] / 100),
+                    calculate_pe_target(pe_eps, pe_growth * 0.9, pe_years, pe_multiple) * (weights[3] / 100)
+                ]),
+                'value_high': sum([
+                    calculate_two_stage_ddm(ddm_base_dividend, growth_high * 1.1, years_high, growth_terminal, discount_rate * 1.1) * (weights[0] / 100),
+                    calculate_two_stage_ddm(ddm_sensitivity_dividend, growth_high * 1.1, years_high, growth_terminal, discount_rate * 1.1) * (weights[1] / 100),
+                    calculate_two_stage_dcf(dcf_fcfe, growth_high * 1.1, years_high, growth_terminal, discount_rate * 1.1) * (weights[2] / 100),
+                    calculate_pe_target(pe_eps, pe_growth * 1.1, pe_years, pe_multiple) * (weights[3] / 100)
+                ])
+            }
 
             # Implied metrics
             over_under_valuation = (current_price / weighted_average - 1) * 100 if weighted_average > 0 else float('inf')
 
             # Prepare results
             result = {
-                'ddm_base': round(ddm_base, 4),
-                'ddm_sensitivity': round(ddm_sensitivity, 4),
-                'dcf': round(dcf_value, 4),
-                'pe_target': round(pe_target, 4),
-                'weighted_average': round(weighted_average, 4),
+                'currency': currency,
+                'ddm_base': round(ddm_base, 2),
+                'ddm_sensitivity': round(ddm_sensitivity, 2),
+                'dcf': round(dcf_value, 2),
+                'pe_target': round(pe_target, 2),
+                'weighted_average': round(weighted_average, 2),
                 'over_under_valuation': round(over_under_valuation, 2),
                 'pe_years': pe_years,
                 'current_price': round(current_price, 2),
                 'weights': weights,
                 'weight_priority': weight_priority,
                 'weight_rationale': weight_rationale,
-                'weight_max_index': weight_max_index
+                'weight_max_index': weight_max_index,
+                'discount_rate': round(discount_rate, 2),
+                'growth_high': round(growth_high, 2),
+                'sensitivity': {
+                    'discount_rate_low': round(sensitivity['discount_rate_low'], 2),
+                    'discount_rate_high': round(sensitivity['discount_rate_high'], 2),
+                    'growth_high_low': round(sensitivity['growth_high_low'], 2),
+                    'growth_high_high': round(sensitivity['growth_high_high'], 2),
+                    'value_low': round(sensitivity['value_low'], 2),
+                    'value_high': round(sensitivity['value_high'], 2)
+                }
             }
-            return render_template('multi_method_valuation.html', result=result)
+            logger.debug(f"Results: {result}")
+            return render_template('multi_method_valuation.html', result=result, form=form)
         except ValueError as e:
-            return render_template('multi_method_valuation.html', error=str(e))
-    return render_template('multi_method_valuation.html')
+            logger.error(f"ValueError: {str(e)}")
+            return render_template('multi_method_valuation.html', error=str(e), form=form)
+        except Exception as e:
+            logger.error(f"Unexpected error: {str(e)}")
+            return render_template('multi_method_valuation.html', error="An unexpected error occurred. Please try again.", form=form)
+    return render_template('multi_method_valuation.html', form=form)
 
 @app.route('/calculate-cost-of-equity', methods=['GET', 'POST'])
 def calculate_cost_of_equity():
@@ -3342,6 +3427,16 @@ def press():
 # Runs the application with Waitress locally
 import os
 import platform
+
+# Create admin user on startup
+with app.app_context():
+    db.create_all()
+    if not User.query.filter_by(username='admin').first():
+        hashed_password = bcrypt.generate_password_hash('admin123').decode('utf-8')
+        admin_user = User(username='admin', password_hash=hashed_password)
+        db.session.add(admin_user)
+        db.session.commit()
+        print("Admin user created!")
 
 if __name__ == '__main__':
     if os.getenv('FLASK_ENV') != 'production':
