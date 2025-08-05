@@ -269,13 +269,13 @@
                         <li><strong>Tax Rate (%)</strong>: Use the effective tax rate from the income statement: <br><span class="formula inline-block my-2">Effective Tax Rate = (Income Tax Expense / Pre-Tax Income) × 100</span><br>If unavailable, use statutory rates (e.g., 25% in Ghana) or industry averages (20%–30%).</li>
                         <li><strong>D&A as % of Revenue (%)</strong>: Find Depreciation and Amortization (D&A) in the cash flow statement and divide by revenue: <br><span class="formula inline-block my-2">D&A % = (D&A / Revenue) × 100</span><br>Typical range: 3%–8%.</li>
                         <li><strong>CapEx as % of Revenue (%)</strong>: Find capital expenditures in the cash flow statement (under investing activities) and divide by revenue: <br><span class="formula inline-block my-2">CapEx % = (Capital Expenditures / Revenue) × 100</span><br>Typical range: 5%–10%.</li>
-                        <li><strong>NWC as % of Revenue (%)</strong>: Calculate Net Working Capital (NWC = Current Assets - Current Liabilities) from the balance sheet, then divide by revenue: <br><span class="formula inline-block my-2">NWC % = (NWC / Revenue) × 100</span><br>Typical range: 5%–20%. For subsequent years, ΔNWC is calculated as the difference between NWC values.</li>
+                        <li><strong>NWC as % of Revenue (%)</strong>: Calculate Net Working Capital (NWC = Current Assets - Current Liabilities) from the balance sheet, then divide by revenue: <br><span class="formula inline-block my-2">NWC % = (NWC / Revenue) × 100</span><br>Typical range: -1,000% to 20% for financial institutions, 5%–20% for other industries.</li>
                     </ul>
                     <p>Sources: Company filings (10-K, 10-Q), annual reports, Bloomberg, Yahoo Finance, or industry reports.</p>
                 </li>
                 <li><strong>Input Year 1 Data</strong><p>Enter the starting revenue and assumptions for Year 1 using the values gathered. Refer to tooltips for typical ranges if unsure (e.g., 10%–20% for EBIT margin).</p></li>
                 <li><strong>Add Forecast Years</strong><p>Click “Add Another Year” to project up to 5 years. Revenue for subsequent years is automatically calculated using the growth rate from the previous year.</p></li>
-                <li><strong>Validate Inputs</strong><p>Ensure all fields are filled with valid positive numbers. Errors are highlighted in red with feedback (e.g., “Please enter a valid number”).</p></li>
+                <li><strong>Validate Inputs</strong><p>Ensure all fields are filled with valid numbers. Errors are highlighted in red with feedback (e.g., “Please enter a valid number”).</p></li>
                 <li><strong>Calculate FCF</strong><p>Click “Calculate” to generate the FCF forecast. The results table shows detailed projections per year, including revenue, EBIT, D&A, CapEx, ΔNWC, and FCF.</p></li>
                 <li><strong>Analyze Results</strong><p>Use the forecasted FCF for Discounted Cash Flow (DCF) valuation in the <a href="https://younginvestorcalculator.com/dcf" class="text-primary hover:underline">DCF Calculator</a>, investment decisions, or to compare with industry peers. Check the interpretation for insights (e.g., negative FCF may indicate reinvestment needs).</p></li>
                 <li><strong>Refine Assumptions</strong><p>Adjust inputs (e.g., lower growth rate for conservative estimates) to test scenarios (optimistic, pessimistic) and recalculate to see how FCF changes.</p></li>
@@ -297,7 +297,7 @@
                 <ul class="list-disc pl-6 space-y-2">
                     <li><strong>Financial Statements</strong>: Find revenue, EBIT, D&A, CapEx, and NWC components (current assets, liabilities) in income statements, balance sheets, and cash flow statements.</li>
                     <li><strong>Management Guidance</strong>: Check annual reports, investor presentations, or earnings calls for revenue growth and margin projections.</li>
-                    <li><strong>Industry Benchmarks</strong>: Use industry averages for EBIT margin (10%–20%), D&A (3%–8%), CapEx (5%–10%), and NWC (5%–20%) from sources like Bloomberg, Yahoo Finance, or analyst reports.</li>
+                    <li><strong>Industry Benchmarks</strong>: Use industry averages for EBIT margin (10%–20%), D&A (3%–8%), CapEx (5%–10%), and NWC (-1,000% to 20% for financial institutions, 5%–20% for others) from sources like Bloomberg, Yahoo Finance, or analyst reports.</li>
                     <li><strong>Historical Data</strong>: Analyze past financials from company filings (e.g., 10-K, 10-Q) to estimate realistic growth rates and percentages.</li>
                 </ul>
             </div>
@@ -348,14 +348,21 @@
             tax_rate: { label: 'Tax Rate (%)', placeholder: 'e.g., 25', tooltip: 'Effective tax rate from the income statement or estimates. Typical range: 20%–30%.' },
             da_percentage: { label: 'D&A as % of Revenue (%)', placeholder: 'e.g., 5', tooltip: 'Depreciation & Amortization as a percentage of revenue. Typical range: 3%–8%.' },
             capex_percentage: { label: 'CapEx as % of Revenue (%)', placeholder: 'e.g., 7', tooltip: 'Capital expenditure as a percentage of revenue. Typical range: 5%–10% for most industries.' },
-            nwc_percentage: { label: 'NWC as % of Revenue (%)', placeholder: 'e.g., 10', tooltip: 'Net Working Capital as a percentage of revenue. Typical range: 5%–20% depending on working capital needs.' }
+            nwc_percentage: { label: 'NWC as % of Revenue (%)', placeholder: 'e.g., -100', tooltip: 'Net Working Capital as a percentage of revenue. Typical range: -1,000% to 20% for financial institutions, 5%–20% for other industries.' }
         };
 
         function renderInitialInputs() {
             annualInputs.innerHTML = `
                 <div class="bg-indigo-50 p-4 rounded-lg year-section" data-year="1">
                     <h3 class="text-lg font-semibold text-gray-800 mb-3">Year 1</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 dynamic-inputs"></div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 dynamic-inputs">
+                        <div>
+                            <label class="block text-gray-700 font-medium mb-2">Prior Year NWC (GHS)</label>
+                            <input type="number" step="any" name="prior_nwc_1" placeholder="e.g., 0" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
+                            <div class="tooltip mt-2"><i class="fas fa-info-circle text-gray-500"></i><span class="tooltiptext">Net Working Capital for the year prior to Year 1. Default is 0 if unknown.</span></div>
+                            <div class="form-error text-danger text-sm mt-2 hidden" id="prior_nwc_1-error">Please enter a valid number (e.g., 0).</div>
+                        </div>
+                    </div>
                 </div>
             `;
             const dynamicInputs = annualInputs.querySelector('.dynamic-inputs');
@@ -404,12 +411,27 @@
         });
 
         function calculateFCF(data, year, prevRevenue = 0, prevNWC = 0) {
+            const warnings = [];
+            if (Math.abs(data.nwc_percentage) > 200) {
+                warnings.push(`Warning: NWC % (${data.nwc_percentage}%) is unusually high. For financial institutions, typical range is -1,000% to 20%.`);
+            }
+            if (data.da_percentage > 10) {
+                warnings.push(`Warning: D&A % (${data.da_percentage}%) exceeds typical range (3%–8%). Verify the input.`);
+            }
+            if (data.capex_percentage > 20) {
+                warnings.push(`Warning: CapEx % (${data.capex_percentage}%) exceeds typical range (5%–10%) for most industries. Verify for investment-heavy years.`);
+            }
+            if (warnings.length > 0) {
+                errorText.textContent = warnings.join(' ');
+                errorMessage.classList.remove('hidden');
+            }
+
             const revenue = year === 1 ? data.revenue : prevRevenue * (1 + data.revenue_growth / 100);
             const ebit = revenue * (data.ebit_margin / 100);
             const da = revenue * (data.da_percentage / 100);
             const capex = revenue * (data.capex_percentage / 100);
             const nwc = revenue * (data.nwc_percentage / 100);
-            const deltaNWC = nwc - prevNWC;
+            const deltaNWC = year === 1 ? (data.prior_nwc ? nwc - data.prior_nwc : 0) : nwc - prevNWC;
             const fcf = (ebit * (1 - data.tax_rate / 100)) + da - capex - deltaNWC;
             return { revenue, ebit, da, capex, nwc, deltaNWC, fcf };
         }
@@ -425,11 +447,14 @@
 
             for (let i = 1; i <= yearCount; i++) {
                 const data = {};
-                const fields = i === 1 ? inputFields : inputFields.slice(1);
+                const fields = i === 1 ? [...inputFields, 'prior_nwc'] : inputFields.slice(1);
                 fields.forEach(field => {
                     const input = document.querySelector(`[name="${field}_${i}"]`);
-                    data[field] = input ? parseFloat(input.value) : NaN;
-                    if (isNaN(data[field]) || data[field] < 0) {
+                    data[field] = input ? parseFloat(input.value) || 0 : NaN;
+                    if (field !== 'prior_nwc' && field !== 'nwc_percentage' && (isNaN(data[field]) || data[field] < 0)) {
+                        document.getElementById(`${field}_${i}-error`).classList.remove('hidden');
+                        valid = false;
+                    } else if (field === 'prior_nwc' && isNaN(data[field])) {
                         document.getElementById(`${field}_${i}-error`).classList.remove('hidden');
                         valid = false;
                     }
@@ -449,7 +474,7 @@
             }
 
             if (!valid || results.length === 0) {
-                errorText.textContent = errorText.textContent || 'Please provide valid positive numbers for all required fields.';
+                errorText.textContent = errorText.textContent || 'Please provide valid numbers for all required fields.';
                 errorMessage.classList.remove('hidden');
                 return;
             }
