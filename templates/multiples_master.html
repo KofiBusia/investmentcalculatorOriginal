@@ -463,7 +463,7 @@
                     <button type="submit" class="px-6 py-3 bg-primary text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors">
                         <i class="fas fa-calculator mr-2"></i> Calculate
                     </button>
-                    <button type="reset" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors">
+                    <button type="reset" id="clear-form-btn" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors">
                         <i class="fas fa-eraser mr-2"></i> Clear Form
                     </button>
                     <button type="submit" name="clear_periods" value="true" id="clear-periods-btn" class="px-6 py-3 bg-danger text-white rounded-lg font-medium hover:bg-red-600 transition-colors">
@@ -688,7 +688,7 @@
                 </li>
                 <li>
                     <strong>Calculate and Compare</strong>
-                    <p>Click “Calculate” to compute intrinsic values for all periods. Review the comparison table and chart. Use “Clear Periods” to reset.</p>
+                    <p>Click “Calculate” to compute intrinsic values for all periods. Review the comparison table and chart. Use “Clear Form” to reset inputs or “Clear Periods” to reset periods.</p>
                 </li>
             </ol>
             <div class="flex flex-wrap gap-3 mt-6">
@@ -828,6 +828,19 @@
             periodsContainer.children[0].querySelector('select[name="weight_scenario"]').value = 'balanced';
             periodsContainer.children[0].setAttribute('data-period-index', 1);
             updateAddPeriodButton();
+        });
+
+        // Clear form inputs on Clear Form button click
+        const clearFormBtn = document.getElementById('clear-form-btn');
+        clearFormBtn.addEventListener('click', function() {
+            const form = document.getElementById('multiples-master-form');
+            form.querySelectorAll('input[type="number"]').forEach(input => input.value = '');
+            form.querySelectorAll('input[name="period_name"]').forEach((input, index) => {
+                input.value = `Q${index + 1}`;
+                input.style.borderColor = '';
+            });
+            form.querySelectorAll('select[name="currency"]').forEach(select => select.value = 'USD');
+            form.querySelectorAll('select[name="weight_scenario"]').forEach(select => select.value = 'balanced');
         });
 
         function updateAddPeriodButton() {
