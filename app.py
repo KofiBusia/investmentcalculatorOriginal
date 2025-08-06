@@ -3461,19 +3461,19 @@ class PeriodForm(FlaskForm):
         ('conservative', 'Conservative (40% P/B, 30% P/TBV, 20% P/E, 10% DDM)'),
         ('growth', 'Growth (40% P/E, 30% P/B, 20% P/TBV, 10% DDM)')
     ], validators=[DataRequired()])
-    current_price = FloatField('Current Stock Price', validators=[DataRequired(), NumberRange(min=0)])
-    required_return = FloatField('Required Return (%)', validators=[DataRequired(), NumberRange(min=0, max=100)])
-    book_value_per_share = FloatField('Book Value per Share', validators=[DataRequired(), NumberRange(min=0)])
-    pb_multiple = FloatField('P/B Multiple', validators=[DataRequired(), NumberRange(min=0)])
-    tangible_book_value_per_share = FloatField('Tangible Book Value per Share', validators=[DataRequired(), NumberRange(min=0)])
-    ptbv_multiple = FloatField('P/TBV Multiple', validators=[DataRequired(), NumberRange(min=0)])
-    eps = FloatField('Current EPS', validators=[DataRequired(), NumberRange(min=0)])
-    pe_multiple = FloatField('P/E Multiple', validators=[DataRequired(), NumberRange(min=0)])
-    eps_growth = FloatField('EPS Growth Rate (%)', validators=[DataRequired(), NumberRange(min=0, max=100)])
+    current_price = FloatField('Current Stock Price', validators=[DataRequired()])
+    required_return = FloatField('Required Return (%)', validators=[DataRequired()])
+    book_value_per_share = FloatField('Book Value per Share', validators=[DataRequired()])
+    pb_multiple = FloatField('P/B Multiple', validators=[DataRequired()])
+    tangible_book_value_per_share = FloatField('Tangible Book Value per Share', validators=[DataRequired()])
+    ptbv_multiple = FloatField('P/TBV Multiple', validators=[DataRequired()])
+    eps = FloatField('Current EPS', validators=[DataRequired()])
+    pe_multiple = FloatField('P/E Multiple', validators=[DataRequired()])
+    eps_growth = FloatField('EPS Growth Rate (%)', validators=[DataRequired()])
     pe_years = IntegerField('Projection Years for P/E', validators=[DataRequired(), NumberRange(min=1, max=5)])
     dividend_per_share = FloatField('Dividend per Share', validators=[DataRequired(), NumberRange(min=0)])
-    dividend_growth = FloatField('Dividend Growth Rate (%)', validators=[DataRequired(), NumberRange(min=0, max=100)])
-    roe = FloatField('Return on Equity (%)', validators=[DataRequired(), NumberRange(min=0, max=100)])
+    dividend_growth = FloatField('Dividend Growth Rate (%)', validators=[DataRequired()])
+    roe = FloatField('Return on Equity (%)', validators=[DataRequired()])
 
 # Custom filter for currency formatting
 @app.template_filter('currency')
@@ -3499,12 +3499,12 @@ def multiples_master_valuation():
     form = PeriodForm()
     error = None
     result = None
+    form_data = None
     period_count = session.get('period_count', 1)  # Default to 1 period
     
     if request.method == 'GET':
         session['period_results'] = []  # Clear session on GET to prevent stale data
     period_results = session.get('period_results', [])
-
 
     if request.method == 'POST':
         if 'clear_periods' in request.form:
@@ -3513,8 +3513,8 @@ def multiples_master_valuation():
             logger.info("Cleared all periods from session")
             return redirect(url_for('multiples_master_valuation'))
 
-        # Collect data for all periods
-        periods_data = []
+        # Collect raw form data for repopulation
+        form_data = []
         period_names = request.form.getlist('period_name')
         currencies = request.form.getlist('currency')
         weight_scenarios = request.form.getlist('weight_scenario')
@@ -3532,11 +3532,32 @@ def multiples_master_valuation():
         dividend_growths = request.form.getlist('dividend_growth')
         roes = request.form.getlist('roe')
 
+        # Build form_data for repopulation
+        for i in range(len(period_names)):
+            form_data.append({
+                'period_name': period_names[i],
+                'currency': currencies[i],
+                'weight_scenario': weight_scenarios[i],
+                'current_price': current_prices[i],
+                'required_return': required_returns[i],
+                'book_value_per_share': book_values[i],
+                'pb_multiple': pb_multiples[i],
+                'tangible_book_value_per_share': tangible_book_values[i],
+                'ptbv_multiple': ptbv_multiples[i],
+                'eps': eps_values[i],
+                'pe_multiple': pe_multiples[i],
+                'eps_growth': eps_growths[i],
+                'pe_years': pe_years_list[i],
+                'dividend_per_share': dividends[i],
+                'dividend_growth': dividend_growths[i],
+                'roe': roes[i]
+            })
+        
         # Validate the number of periods
         if len(period_names) > 5:
             error = "Cannot submit more than 5 periods."
             logger.error(error)
-            return render_template('multiples_master.html', form=form, error=error, period_results=period_results, period_count=period_count)
+            return render_template('multiples_master.html', form=form, error=error, form_data=form_data, period_results=period_results, period_count=len(period_names))
 
         # Validate unique period names and data
         unique_names = set()
@@ -3544,14 +3565,15 @@ def multiples_master_valuation():
             if not name.strip():
                 error = f"Period {i+1} name is required."
                 logger.error(error)
-                return render_template('multiples_master.html', form=form, error=error, period_results=period_results, period_count=period_count)
+                return render_template('multiples_master.html', form=form, error=error, form_data=form_data, period_results=period_results, period_count=len(period_names))
             if name in unique_names:
                 error = f"Period name '{name}' must be unique."
                 logger.error(error)
-                return render_template('multiples_master.html', form=form, error=error, period_results=period_results, period_count=period_count)
+                return render_template('multiples_master.html', form=form, error=error, form_data=form_data, period_results=period_results, period_count=len(period_names))
             unique_names.add(name)
 
         # Process each period
+        periods_data = []
         for i in range(len(period_names)):
             try:
                 period_data = {
@@ -3577,19 +3599,19 @@ def multiples_master_valuation():
                 if period_data['tangible_book_value_per_share'] > period_data['book_value_per_share']:
                     error = f"Period {i+1}: Tangible book value cannot exceed book value."
                     logger.error(error)
-                    return render_template('multiples_master.html', form=form, error=error, period_results=period_results, period_count=period_count)
+                    return render_template('multiples_master.html', form=form, error=error, form_data=form_data, period_results=period_results, period_count=len(period_names))
 
                 # Validate DDM inputs
                 if period_data['dividend_growth'] >= period_data['required_return']:
                     error = f"Period {i+1}: Dividend growth rate must be less than required return for DDM."
                     logger.error(error)
-                    return render_template('multiples_master.html', form=form, error=error, period_results=period_results, period_count=period_count)
+                    return render_template('multiples_master.html', form=form, error=error, form_data=form_data, period_results=period_results, period_count=len(period_names))
 
                 periods_data.append(period_data)
             except (ValueError, TypeError) as e:
                 error = f"Invalid input for Period {i+1}. Please ensure all fields are valid numbers."
                 logger.error(f"{error}: {e}")
-                return render_template('multiples_master.html', form=form, error=error, period_results=period_results, period_count=period_count)
+                return render_template('multiples_master.html', form=form, error=error, form_data=form_data, period_results=period_results, period_count=len(period_names))
 
         # Calculate valuations for each period
         period_results = []
@@ -3617,6 +3639,7 @@ def multiples_master_valuation():
                 )
 
                 # Over/under valuation
+                # Corrected logic: positive = undervalued, negative = overvalued
                 over_under_valuation = ((weighted_average - period_data['current_price']) / period_data['current_price']) * 100
 
                 # Sensitivity analysis (±15% for multiples and growth rates)
@@ -3627,10 +3650,10 @@ def multiples_master_valuation():
                     'ptbv_multiple_high': round(period_data['ptbv_multiple'] * 1.15, 2),
                     'pe_multiple_low': round(period_data['pe_multiple'] * 0.85, 2),
                     'pe_multiple_high': round(period_data['pe_multiple'] * 1.15, 2),
-                    'eps_growth_low': round(max(0, period_data['eps_growth'] * 0.85), 2),
-                    'eps_growth_high': round(min(100, period_data['eps_growth'] * 1.15), 2),
-                    'dividend_growth_low': round(max(0, period_data['dividend_growth'] * 0.85), 2),
-                    'dividend_growth_high': round(min(100, period_data['dividend_growth'] * 1.15), 2),
+                    'eps_growth_low': round(period_data['eps_growth'] * 0.85, 2),
+                    'eps_growth_high': round(period_data['eps_growth'] * 1.15, 2),
+                    'dividend_growth_low': round(period_data['dividend_growth'] * 0.85, 2),
+                    'dividend_growth_high': round(period_data['dividend_growth'] * 1.15, 2),
                     'value_low': round((
                         (period_data['book_value_per_share'] * (period_data['pb_multiple'] * 0.85)) * weights[0] / 100 +
                         (period_data['tangible_book_value_per_share'] * (period_data['ptbv_multiple'] * 0.85)) * weights[1] / 100 +
@@ -3680,7 +3703,7 @@ def multiples_master_valuation():
             except Exception as e:
                 error = f"Calculation error for Period {period_data['period_name']}: {str(e)}"
                 logger.error(error)
-                return render_template('multiples_master.html', form=form, error=error, period_results=period_results, period_count=period_count)
+                return render_template('multiples_master.html', form=form, error=error, form_data=form_data, period_results=period_results, period_count=len(period_names))
 
         # Store only the latest period as result
         result = period_results[-1] if period_results else None
@@ -3688,8 +3711,9 @@ def multiples_master_valuation():
         session['period_results'] = period_results
         session['period_count'] = len(period_names)
         logger.info(f"Processed {len(period_names)} periods successfully")
+        period_count = len(period_names)
 
-    return render_template('multiples_master.html', form=form, result=result, period_results=period_results, error=error, period_count=period_count)
+    return render_template('multiples_master.html', form=form, result=result, form_data=form_data, period_results=period_results, error=error, period_count=period_count)
 
 # APPLICATION RUNNER BLOCK
 # ------------------------
