@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1910810542133525" crossorigin="anonymous"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multiples Master Bank Valuation - Young Investor Calculator</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#4f46e5',
+                        secondary: '#818cf8',
+                        accent: '#a5b4fc',
+                        dark: '#1e293b',
+                        light: '#f8fafc',
+                        success: '#10b981',
+                        info: '#0ea5e9',
+                        warning: '#f59e0b',
+                        danger: '#ef4444'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        :root {
+            --header-height: 70px;
+            --sidebar-width: 300px;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f0f4f8 0%, #e6e9ff 100%);
+            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
+        }
+        
+        .input-field {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+        }
+        
+        .input-field:focus {
+            border-color: #a5b4fc;
+            box-shadow: 0 0 0 4px rgba(165, 180, 252, 0.25);
+        }
+        
+        .back-to-top {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s ease;
+        }
+        
+        .back-to-top.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        @media (max-width: 768px) {
+            .step-container {
+                flex-direction: column;
+            }
+        }
+        
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: #1e293b;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 8px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -100px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        .nav-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .nav-button {
+            display: flex;
+            align-items: center;
+            padding: 10px 20px;
+            background: white;
+            border-radius: 8px;
+            font-weight: 500;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s ease;
+        }
+        
+        .nav-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .nav-button.home {
+            background: #4f46e5;
+            color: white;
+        }
+        
+        .nav-button.calculators {
+            background: #10b981;
+            color: white;
+        }
+        
+        .nav-button i {
+            margin-right: 8px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        th {
+            background: #4f46e5;
+            color: white;
+            font-weight: 600;
+        }
+        
+        tr:last-child td {
+            border-bottom: none;
+        }
+        
+        tr:hover {
+            background: #f8fafc;
+        }
+
+        .period-section {
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+            background: rgba(255, 255, 255, 0.95);
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+    <!-- Header -->
+    <header class="gradient-bg text-white py-8 px-4 md:px-8">
+        <div class="max-w-6xl mx-auto">
+            <nav class="hidden md:flex justify-between items-center mb-6">
+                <div class="flex items-center space-x-4">
+                    <a href="/" class="text-white hover:text-indigo-200 transition-colors">Home</a>
+                    <a href="/#calculators" class="text-white font-medium border-b-2 border-white">Calculators</a>
+                    <a href="/help" class="text-white hover:text-indigo-200 transition-colors">Help Center</a>
+                </div>
+                <a href="#" class="bg-white text-primary px-4 py-2 rounded-lg font-medium hover:bg-indigo-50 transition-colors">
+                    Get Started
+                </a>
+            </nav>
+            <div class="max-w-3xl">
+                <h1 class="text-4xl md:text-5xl font-bold mb-4">Multiples Master Bank Valuation Calculator</h1>
+                <p class="text-xl md:text-2xl text-indigo-100 mb-6">
+                    Estimate and compare a bank's intrinsic value across up to 5 periods using Price-to-Book (P/B), Price-to-Tangible Book Value (P/TBV), Price-to-Earnings (P/E), and Dividend Discount Model methods
+                </p>
+                <div class="flex flex-wrap gap-3">
+                    <div class="bg-white/20 px-4 py-2 rounded-full flex items-center">
+                        <i class="fas fa-lightbulb mr-2"></i>
+                        <span>Beginner Friendly</span>
+                    </div>
+                    <div class="bg-white/20 px-4 py-2 rounded-full flex items-center">
+                        <i class="fas fa-download mr-2"></i>
+                        <span>Downloadable Guide</span>
+                    </div>
+                    <div class="bg-white/20 px-4 py-2 rounded-full flex items-center">
+                        <i class="fas fa-globe mr-2"></i>
+                        <span>Global Currency Support</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="max-w-6xl mx-auto px-4 py-8">
+        <!-- Navigation Buttons -->
+        <div class="nav-buttons">
+            <a href="https://younginvestorcalculator.com/" class="nav-button home">
+                <i class="fas fa-home"></i> Return to Home
+            </a>
+            <a href="https://younginvestorcalculator.com/#calculators" class="nav-button calculators">
+                <i class="fas fa-calculator"></i> Other Calculators
+            </a>
+            <a href="https://younginvestorcalculator.com/multiples-master-valuation" class="nav-button">
+                <i class="fas fa-calculator"></i> Use Multiples Master Valuation Calculator
+            </a>
+        </div>
+
+        <!-- Guidance on Multiples -->
+        <div class="card p-6 mb-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Guidance on Valuation Multiples</h2>
+            <p class="text-gray-600 mb-4">Use the following suggested ranges for multiples, based on typical bank valuation metrics. Adjust based on peer comparisons or industry data from sources like Bloomberg or Yahoo Finance.</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Multiple</th>
+                        <th>Suggested Range</th>
+                        <th>Notes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>P/B Multiple</td>
+                        <td>0.5–2.0</td>
+                        <td>Lower for banks with high risk or low ROE; higher for stable, high-quality banks.</td>
+                    </tr>
+                    <tr>
+                        <td>P/TBV Multiple</td>
+                        <td>0.7–2.0</td>
+                        <td>Reflects tangible assets; typically higher than P/B for banks with significant intangibles.</td>
+                    </tr>
+                    <tr>
+                        <td>P/E Multiple</td>
+                        <td>8–15</td>
+                        <td>Higher for banks with strong growth prospects; lower for mature or cyclical banks.</td>
+                    </tr>
+                    <tr>
+                        <td>Required Return</td>
+                        <td>6–12%</td>
+                        <td>Based on CAPM (e.g., Risk-Free Rate + Beta * Market Risk Premium). Adjust for bank-specific risk.</td>
+                    </tr>
+                    <tr>
+                        <td>Dividend Growth Rate</td>
+                        <td>0–5%</td>
+                        <td>Conservative estimate based on historical dividend growth or analyst forecasts.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Calculator Form -->
+        <div class="card p-6 mb-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Calculate Bank Intrinsic Value</h2>
+            <p class="text-gray-600 mb-6">Enter parameters for up to 5 periods (e.g., Q1, Y1) to estimate and compare a bank's intrinsic value.</p>
+            {% if error %}
+                <div class="bg-red-50 p-4 rounded-lg mb-6">
+                    <p class="text-red-700">{{ error }}</p>
+                </div>
+            {% endif %}
+            <form method="POST" action="{{ url_for('multiples_master_valuation') }}" id="multiples-master-form" class="space-y-6">
+                {{ form.hidden_tag() }}
+                <div id="periods-container">
+                    {% for i in range(period_count) %}
+                    <div class="period-section" data-period-index="{{ i + 1 }}">
+                        <h3 class="text-xl font-semibold text-gray-800 mb-4">Period {{ i + 1 }}</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div class="md:col-span-2">
+                                <label class="block text-gray-700 font-medium mb-2">Period Name</label>
+                                <input type="text" name="period_name" placeholder="e.g., Q1, Y1" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" value="Q{{ i + 1 }}" required maxlength="10">
+                                <div class="tooltip mt-1">
+                                    <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                                    <span class="tooltiptext">Enter a unique name for this period (e.g., Q1, Y1, 2023).</span>
+                                </div>
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-gray-700 font-medium mb-2">Currency</label>
+                                <select name="currency" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
+                                    <option value="USD">USD - US Dollar</option>
+                                    <option value="GHS">GHS - Ghanaian Cedi</option>
+                                    <option value="EUR">EUR - Euro</option>
+                                    <option value="GBP">GBP - British Pound</option>
+                                    <option value="JPY">JPY - Japanese Yen</option>
+                                </select>
+                                <div class="tooltip mt-1">
+                                    <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                                    <span class="tooltiptext">Select the currency for all monetary inputs and outputs.</span>
+                                </div>
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-gray-700 font-medium mb-2">Weighting Scenario</label>
+                                <select name="weight_scenario" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
+                                    <option value="balanced">Balanced (25% each P/B, P/TBV, P/E, DDM)</option>
+                                    <option value="conservative">Conservative (40% P/B, 30% P/TBV, 20% P/E, 10% DDM)</option>
+                                    <option value="growth">Growth (40% P/E, 30% P/B, 20% P/TBV, 10% DDM)</option>
+                                </select>
+                                <div class="tooltip mt-1">
+                                    <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                                    <span class="tooltiptext">Choose a scenario to weight the valuation methods. Balanced uses equal weights, Conservative emphasizes P/B and P/TBV, Growth favors P/E.</span>
+                                </div>
+                            </div>
+                            
+                            <h3 class="text-xl font-semibold text-gray-800 md:col-span-2">General Parameters</h3>
+                            <div>
+                                <label class="block text-gray-700 font-medium mb-2">Current Stock Price</label>
+                                <input type="number" step="0.01" name="current_price" placeholder="e.g., 50.00" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required min="0">
+                                <div class="tooltip mt-1">
+                                    <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                                    <span class="tooltiptext">Current market price of the bank's stock. Find on financial websites like Yahoo Finance.</span>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 font-medium mb-2">Required Return (%)</label>
+                                <input type="number" step="0.01" name="required_return" placeholder="e.g., 8.0" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required min="0" max="100">
+                                <div class="tooltip mt-1">
+                                    <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                                    <span class="tooltiptext">Cost of equity (e.g., from CAPM: Risk-Free Rate + Beta * Market Risk Premium). Typical range: 6–12%.</span>
+                                </div>
+                            </div>
+                            
+                            <h3 class="text-xl font-semibold text-gray-800 md:col-span-2">P/B Parameters</h3>
+                            <div>
+                                <label class="block text-gray-700 font-medium mb-2">Book Value per Share</label>
+                                <input type="number" step="0.01" name="book_value_per_share" placeholder="e.g., 40.00" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required min="0">
+                                <div class="tooltip mt-1">
+                                    <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                                    <span class="tooltiptext">Book value per share from the bank's balance sheet. Find in financial statements.</span>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 font-medium mb-2">P/B Multiple</label>
+                                <input type="number" step="0.01" name="pb_multiple" placeholder="e.g., 1.2" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required min="0">
+                                <div class="tooltip mt-1">
+                                    <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                                    <span class="tooltiptext">Price-to-Book multiple. Suggested range: 0.5–2.0, based on peer banks.</span>
+                                </div>
+                            </div>
+                            
+                            <h3 class="text-xl font-semibold text-gray-800 md:col-span-2">P/TBV Parameters</h3>
+                            <div>
+                                <label class="block text-gray-700 font-medium mb-2">Tangible Book Value per Share</label>
+                                <input type="number" step="0.01" name="tangible_book_value_per_share" placeholder="e.g., 35.00" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required min="0">
+                                <div class="tooltip mt-1">
+                                    <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                                    <span class="tooltiptext">Tangible book value per share (excludes intangibles like goodwill). Find in financial statements.</span>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 font-medium mb-2">P/TBV Multiple</label>
+                                <input type="number" step="0.01" name="ptbv_multiple" placeholder="e.g., 1.4" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required min="0">
+                                <div class="tooltip mt-1">
+                                    <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                                    <span class="tooltiptext">Price-to-Tangible Book Value multiple. Suggested range: 0.7–2.0, based on peer banks.</span>
+                                </div>
+                            </div>
+                            
+                            <h3 class="text-xl font-semibold text-gray-800 md:col-span-2">P/E Parameters</h3>
+                            <div>
+                                <label class="block text-gray-700 font-medium mb-2">Current EPS</label>
+                                <input type="number" step="0.01" name="eps" placeholder="e.g., 4.00" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required min="0">
+                                <div class="tooltip mt-1">
+                                    <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                                    <span class="tooltiptext">Current Earnings Per Share. Find on financial websites or company reports.</span>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 font-medium mb-2">P/E Multiple</label>
+                                <input type="number" step="0.01" name="pe_multiple" placeholder="e.g., 12.0" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required min="0">
+                                <div class="tooltip mt-1">
+                                    <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                                    <span class="tooltiptext">Price-to-Earnings multiple. Suggested range: 8–15, based on peer banks.</span>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 font-medium mb-2">EPS Growth Rate (%)</label>
+                                <input type="number" step="0.01" name="eps_growth" placeholder="e.g., 5.0" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required min="0" max="100">
+                                <div class="tooltip mt-1">
+                                    <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                                    <span class="tooltiptext">Expected EPS growth rate (%). Estimate from analyst forecasts or historical data.</span>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 font-medium mb-2">Projection Years for P/E</label>
+                                <input type="number" step="1" name="pe_years" placeholder="e.g., 2" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required min="1" max="5">
+                                <div class="tooltip mt-1">
+                                    <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                                    <span class="tooltiptext">Number of years for P/E projection (1–5 years).</span>
+                                </div>
+                            </div>
+                            
+                            <h3 class="text-xl font-semibold text-gray-800 md:col-span-2">Dividend Discount Model Parameters</h3>
+                            <div>
+                                <label class="block text-gray-700 font-medium mb-2">Dividend per Share</label>
+                                <input type="number" step="0.01" name="dividend_per_share" placeholder="e.g., 2.00" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required min="0">
+                                <div class="tooltip mt-1">
+                                    <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                                    <span class="tooltiptext">Current dividend per share. Find on financial websites or company reports.</span>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 font-medium mb-2">Dividend Growth Rate (%)</label>
+                                <input type="number" step="0.01" name="dividend_growth" placeholder="e.g., 3.0" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required min="0" max="100">
+                                <div class="tooltip mt-1">
+                                    <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                                    <span class="tooltiptext">Expected dividend growth rate (%). Suggested range: 0–5%, based on historical data or analyst forecasts.</span>
+                                </div>
+                            </div>
+                            
+                            <h3 class="text-xl font-semibold text-gray-800 md:col-span-2">ROE Parameters</h3>
+                            <div>
+                                <label class="block text-gray-700 font-medium mb-2">Return on Equity (%)</label>
+                                <input type="number" step="0.01" name="roe" placeholder="e.g., 12.0" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required min="0" max="100">
+                                <div class="tooltip mt-1">
+                                    <i class="fas fa-info-circle text-gray-500 ml-2"></i>
+                                    <span class="tooltiptext">Return on Equity (%). Find in financial statements or calculate as Net Income / Total Equity.</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="flex gap-4">
+                    <button type="button" id="add-period-btn" class="px-6 py-3 bg-secondary text-white rounded-lg font-medium hover:bg-indigo-500 transition-colors">
+                        <i class="fas fa-plus mr-2"></i> Add Period
+                    </button>
+                    <button type="submit" class="px-6 py-3 bg-primary text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors">
+                        <i class="fas fa-calculator mr-2"></i> Calculate
+                    </button>
+                    <button type="reset" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors">
+                        <i class="fas fa-eraser mr-2"></i> Clear Form
+                    </button>
+                    <button type="submit" name="clear_periods" value="true" id="clear-periods-btn" class="px-6 py-3 bg-danger text-white rounded-lg font-medium hover:bg-red-600 transition-colors">
+                        <i class="fas fa-trash mr-2"></i> Clear Periods
+                    </button>
+                    <a href="/" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors flex items-center">
+                        <i class="fas fa-home mr-2"></i> Back to Home
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <!-- Period Comparison Section -->
+        {% if period_results %}
+        <div class="card p-6 mb-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Period Comparison</h2>
+            <p class="text-gray-600 mb-6">Compare intrinsic values and over/under-valuation across different periods.</p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Period</th>
+                        <th>P/B Value</th>
+                        <th>P/TBV Value</th>
+                        <th>P/E Value</th>
+                        <th>DDM Value</th>
+                        <th>Weighted Average</th>
+                        <th>Current Price</th>
+                        <th>Over/Under Valuation (%)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for pr in period_results %}
+                    <tr>
+                        <td>{{ pr.period_name }}</td>
+                        <td>{{ pr.pb_value | currency(pr.currency) }}</td>
+                        <td>{{ pr.ptbv_value | currency(pr.currency) }}</td>
+                        <td>{{ pr.pe_value | currency(pr.currency) }}</td>
+                        <td>{{ pr.ddm_value | currency(pr.currency) }}</td>
+                        <td>{{ pr.weighted_average | currency(pr.currency) }}</td>
+                        <td>{{ pr.current_price | currency(pr.currency) }}</td>
+                        <td class="{{ 'text-success' if pr.over_under_valuation < 0 else 'text-danger' }}">
+                            {{ pr.over_under_valuation | abs }}% {{ 'Undervalued' if pr.over_under_valuation < 0 else 'Overvalued' }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <div class="mt-6">
+                <canvas id="comparisonChart" height="100"></canvas>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Results Section for Latest Period -->
+        {% if result %}
+        <div class="card p-6 mb-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Valuation for {{ result.period_name }}</h2>
+            <h3 class="text-lg font-semibold text-gray-800 mb-4">Intrinsic Value Summary ({{ result.currency }})</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Valuation Method</th>
+                        <th>Intrinsic Value ({{ result.currency }})</th>
+                        <th>Weight</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>P/B</td>
+                        <td>{{ result.pb_value | currency(result.currency) }}</td>
+                        <td>{{ result.weights[0] }}%</td>
+                    </tr>
+                    <tr>
+                        <td>P/TBV</td>
+                        <td>{{ result.ptbv_value | currency(result.currency) }}</td>
+                        <td>{{ result.weights[1] }}%</td>
+                    </tr>
+                    <tr>
+                        <td>P/E ({{ result.pe_years }}-year)</td>
+                        <td>{{ result.pe_value | currency(result.currency) }}</td>
+                        <td>{{ result.weights[2] }}%</td>
+                    </tr>
+                    <tr>
+                        <td>Dividend Discount Model</td>
+                        <td>{{ result.ddm_value | currency(result.currency) }}</td>
+                        <td>{{ result.weights[3] }}%</td>
+                    </tr>
+                    <tr class="font-bold">
+                        <td>Weighted Average</td>
+                        <td>{{ result.weighted_average | currency(result.currency) }}</td>
+                        <td>100%</td>
+                    </tr>
+                </tbody>
+            </table>
+            <p class="text-gray-700 mt-4">
+                The weighted average intrinsic value for {{ result.period_name }} is {{ result.weighted_average | currency(result.currency) }} ({{ result.currency }}), with {{ result.weight_priority }} weighted highest ({{ result.weights[result.weight_max_index] }}%) due to its {{ result.weight_rationale }}. Compared to the current price ({{ result.current_price | currency(result.currency) }}), the stock appears 
+                <span class="font-bold {{ 'text-success' if result.over_under_valuation < 0 else 'text-danger' }}">
+                    {{ 'undervalued' if result.over_under_valuation < 0 else 'overvalued' }}
+                </span> 
+                by {{ result.over_under_valuation | abs }}%.
+            </p>
+            <div class="mt-6">
+                <canvas id="valuationChart" height="100"></canvas>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-800 mt-6 mb-4">Sensitivity Analysis for {{ result.period_name }}</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Parameter</th>
+                        <th>Low (-15%)</th>
+                        <th>Base</th>
+                        <th>High (+15%)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>P/B Multiple</td>
+                        <td>{{ result.sensitivity.pb_multiple_low }}</td>
+                        <td>{{ result.pb_multiple }}</td>
+                        <td>{{ result.sensitivity.pb_multiple_high }}</td>
+                    </tr>
+                    <tr>
+                        <td>P/TBV Multiple</td>
+                        <td>{{ result.sensitivity.ptbv_multiple_low }}</td>
+                        <td>{{ result.ptbv_multiple }}</td>
+                        <td>{{ result.sensitivity.ptbv_multiple_high }}</td>
+                    </tr>
+                    <tr>
+                        <td>P/E Multiple</td>
+                        <td>{{ result.sensitivity.pe_multiple_low }}</td>
+                        <td>{{ result.pe_multiple }}</td>
+                        <td>{{ result.sensitivity.pe_multiple_high }}</td>
+                    </tr>
+                    <tr>
+                        <td>EPS Growth Rate (%)</td>
+                        <td>{{ result.sensitivity.eps_growth_low }}</td>
+                        <td>{{ result.eps_growth }}</td>
+                        <td>{{ result.sensitivity.eps_growth_high }}</td>
+                    </tr>
+                    <tr>
+                        <td>Dividend Growth Rate (%)</td>
+                        <td>{{ result.sensitivity.dividend_growth_low }}</td>
+                        <td>{{ result.dividend_growth }}</td>
+                        <td>{{ result.sensitivity.dividend_growth_high }}</td>
+                    </tr>
+                    <tr>
+                        <td>Weighted Average Value ({{ result.currency }})</td>
+                        <td>{{ result.sensitivity.value_low | currency(result.currency) }}</td>
+                        <td>{{ result.weighted_average | currency(result.currency) }}</td>
+                        <td>{{ result.sensitivity.value_high | currency(result.currency) }}</td>
+                    </tr>
+                </tbody>
+            </table>
+            <h3 class="text-lg font-semibold text-gray-800 mt-6 mb-4">Methodology</h3>
+            <p class="text-gray-600 mb-4">
+                <strong>P/B (Price-to-Book):</strong> Multiplies book value per share by a P/B multiple to estimate intrinsic value, reflecting the bank's net asset value. Sensitive to accounting standards (e.g., IFRS vs. GAAP) and asset quality.
+            </p>
+            <p class="text-gray-600 mb-4">
+                <strong>P/TBV (Price-to-Tangible Book Value):</strong> Multiplies tangible book value per share (excludes intangibles like goodwill) by a P/TBV multiple, focusing on tangible assets. Useful for banks with significant intangibles.
+            </p>
+            <p class="text-gray-600 mb-4">
+                <strong>P/E (Price-to-Earnings):</strong> Projects future EPS based on growth rate, applies a P/E multiple, and discounts to present value using the required return. Assumes stable growth, which may not hold for cyclical banks.
+            </p>
+            <p class="text-gray-600 mb-4">
+                <strong>Dividend Discount Model (DDM):</strong> Estimates value as dividend per share divided by (required return - dividend growth rate), assuming sustainable dividends. Requires accurate growth and return estimates.
+            </p>
+            <p class="text-gray-600 mb-4">
+                <strong>Limitations:</strong> Valuations depend on user inputs, which should be sourced from reliable data (e.g., financial statements, analyst reports). Multiples should be based on peer comparisons. The DDM assumes perpetual dividend growth, which may not apply to all banks. Results are sensitive to economic conditions and bank-specific risks (e.g., non-performing loans).
+            </p>
+            <div class="mt-6">
+                <a href="/multiples-master-valuation" class="px-4 py-2 bg-primary text-white rounded-lg font-medium flex items-center inline-block">
+                    <i class="fas fa-redo mr-2"></i> Calculate Another Period
+                </a>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Guide Section -->
+        <div class="card p-6">
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">How to Use the Multiples Master Bank Valuation Calculator</h2>
+            <p class="text-gray-600 mb-6">Follow these steps to estimate and compare a bank's intrinsic value across up to 5 periods.</p>
+            <ol class="list-decimal pl-6 space-y-4">
+                <li>
+                    <strong>Add Periods</strong>
+                    <p>Click "Add Period" to include up to 5 periods for comparison (e.g., Q1, Y1, 2023).</p>
+                </li>
+                <li>
+                    <strong>Name Each Period</strong>
+                    <p>Enter a unique name for each period in the respective input fields.</p>
+                </li>
+                <li>
+                    <strong>Select Currency</strong>
+                    <p>Choose the currency for each period's monetary inputs and outputs (e.g., USD, GHS).</p>
+                </li>
+                <li>
+                    <strong>Select Weighting Scenario</strong>
+                    <p>Choose Conservative, Balanced, or Growth to weight the valuation methods (P/B, P/TBV, P/E, DDM).</p>
+                </li>
+                <li>
+                    <strong>Enter General Parameters</strong>
+                    <p>Provide the current stock price and required return (e.g., from CAPM). Use sources like financial websites or company reports.</p>
+                </li>
+                <li>
+                    <strong>Enter P/B Parameters</strong>
+                    <p>Input book value per share and P/B multiple. Find book value in financial statements and use suggested range (0.5–2.0) or peer data.</p>
+                </li>
+                <li>
+                    <strong>Enter P/TBV Parameters</strong>
+                    <p>Input tangible book value per share and P/TBV multiple. Ensure tangible book value excludes intangibles; use suggested range (0.7–2.0).</p>
+                </li>
+                <li>
+                    <strong>Enter P/E Parameters</strong>
+                    <p>Input current EPS, EPS growth rate, P/E multiple, and projection years. Use historical data or analyst forecasts for growth; suggested P/E range: 8–15.</p>
+                </li>
+                <li>
+                    <strong>Enter DDM Parameters</strong>
+                    <p>Input dividend per share and dividend growth rate. Find dividends in company reports; suggested growth range: 0–5%.</p>
+                </li>
+                <li>
+                    <strong>Enter ROE Parameters</strong>
+                    <p>Input Return on Equity (%). Calculate as Net Income / Total Equity or find in financial statements.</p>
+                </li>
+                <li>
+                    <strong>Calculate and Compare</strong>
+                    <p>Click “Calculate” to compute intrinsic values for all periods. Review the comparison table and chart. Use “Clear Periods” to reset.</p>
+                </li>
+            </ol>
+            <div class="flex flex-wrap gap-3 mt-6">
+                <a href="/download_guide" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium flex items-center">
+                    <i class="fas fa-download mr-2"></i> Download Guide
+                </a>
+                <a href="/tutorial" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium flex items-center">
+                    <i class="fas fa-play-circle mr-2"></i> Watch Tutorial
+                </a>
+            </div>
+        </div>
+
+        <!-- Navigation Buttons at Bottom -->
+        <div class="nav-buttons mt-6">
+            <a href="https://younginvestorcalculator.com/" class="nav-button home">
+                <i class="fas fa-home"></i> Return to Home
+            </a>
+            <a href="https://younginvestorcalculator.com/#calculators" class="nav-button calculators">
+                <i class="fas fa-calculator"></i> Other Calculators
+            </a>
+            <a href="https://younginvestorcalculator.com/multiples-master-valuation" class="nav-button">
+                <i class="fas fa-calculator"></i> Use Multiples Master Valuation Calculator
+            </a>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-12">
+        <div class="max-w-6xl mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+                <div>
+                    <h3 class="text-lg font-bold mb-4">InvestIQ</h3>
+                    <p class="text-gray-400 mb-4">
+                        Empowering investors with advanced tools, insights, and calculators to make smarter financial decisions.
+                    </p>
+                    <div class="flex gap-3">
+                        <a href="#" class="w-10 h-10 bg-gray-800 text-white rounded-full flex items-center justify-center hover:bg-primary transition-colors">
+                            <i class="fab fa-twitter"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 bg-gray-800 text-white rounded-full flex items-center justify-center hover:bg-primary transition-colors">
+                            <i class="fab fa-linkedin-in"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 bg-gray-800 text-white rounded-full flex items-center justify-center hover:bg-primary transition-colors">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 bg-gray-800 text-white rounded-full flex items-center justify-center hover:bg-primary transition-colors">
+                            <i class="fab fa-youtube"></i>
+                        </a>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold mb-4">Quick Links</h3>
+                    <ul class="space-y-2">
+                        <li><a href="/#calculators" class="text-gray-400 hover:text-white transition-colors flex items-center"><i class="fas fa-calculator mr-2"></i> Calculators</a></li>
+                        <li><a href="/help" class="text-gray-400 hover:text-white transition-colors flex items-center"><i class="fas fa-question-circle mr-2"></i> Help Center</a></li>
+                        <li><a href="/about" class="text-gray-400 hover:text-white transition-colors flex items-center"><i class="fas fa-info-circle mr-2"></i> About Us</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold mb-4">Resources</h3>
+                    <ul class="space-y-2">
+                        <li><a href="/non_portfolio_risk_help" class="text-gray-400 hover:text-white transition-colors flex items-center"><i class="fas fa-book mr-2"></i> Non-Portfolio Risk Guide</a></li>
+                        <li><a href="/portfolio_risk_help" class="text-gray-400 hover:text-white transition-colors flex items-center"><i class="fas fa-book mr-2"></i> Portfolio Risk Guide</a></li>
+                        <li><a href="/bond_risk_help" class="text-gray-400 hover:text-white transition-colors flex items-center"><i class="fas fa-book mr-2"></i> Bond Risk Guide</a></li>
+                        <li><a href="/contact" class="text-gray-400 hover:text-white transition-colors flex items-center"><i class="fas fa-envelope mr-2"></i> Contact Us</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold mb-4">Contact</h3>
+                    <ul class="space-y-2">
+                        <li><a href="mailto:info@cleanvisionhr.com" class="text-gray-400 hover:text-white transition-colors flex items-center"><i class="fas fa-envelope mr-2"></i> info@cleanvisionhr.com</a></li>
+                        <li><a href="tel:+233503566913" class="text-gray-400 hover:text-white transition-colors flex items-center"><i class="fas fa-phone mr-2"></i> +233 50 356 6913</a></li>
+                        <li><a href="/contact" class="text-gray-400 hover:text-white transition-colors flex items-center"><i class="fas fa-map-marker-alt mr-2"></i> Contact Form</a></li>
+                        <li><a href="/faq" class="text-gray-400 hover:text-white transition-colors flex items-center"><i class="fas fa-question-circle mr-2"></i> FAQ</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-800 pt-6 text-center">
+                <p class="text-gray-400">© 2025 InvestIQ. All rights reserved. | <a href="/privacy" class="text-gray-400 hover:text-white">Privacy Policy</a> | <a href="/terms" class="text-gray-400 hover:text-white">Terms of Service</a></p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Back to Top Button -->
+    <button id="backToTop" class="back-to-top w-12 h-12 bg-primary text-white rounded-full shadow-lg flex items-center justify-center">
+        <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <!-- JavaScript -->
+    <script>
+        // Back to top button
+        const backToTopBtn = document.getElementById('backToTop');
+        window.addEventListener('scroll', function() {
+            if (window.pageYOffset > 300) {
+                backToTopBtn.classList.add('visible');
+            } else {
+                backToTopBtn.classList.remove('visible');
+            }
+        });
+        backToTopBtn.addEventListener('click', function() {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        // Dynamic period addition
+        const periodsContainer = document.getElementById('periods-container');
+        const addPeriodBtn = document.getElementById('add-period-btn');
+        let periodCount = {{ period_count | default(1) }};
+
+        addPeriodBtn.addEventListener('click', function() {
+            if (periodCount >= 5) {
+                alert('Cannot add more than 5 periods.');
+                return;
+            }
+            periodCount++;
+            const newPeriod = periodsContainer.children[0].cloneNode(true);
+            newPeriod.querySelector('h3').textContent = `Period ${periodCount}`;
+            newPeriod.querySelector('input[name="period_name"]').value = `Q${periodCount}`;
+            newPeriod.querySelectorAll('input[type="number"]').forEach(input => input.value = '');
+            newPeriod.querySelector('select[name="currency"]').value = 'USD';
+            newPeriod.querySelector('select[name="weight_scenario"]').value = 'balanced';
+            newPeriod.setAttribute('data-period-index', periodCount);
+            periodsContainer.appendChild(newPeriod);
+            updateAddPeriodButton();
+        });
+
+        // Reset periods on Clear Periods button click
+        const clearPeriodsBtn = document.getElementById('clear-periods-btn');
+        clearPeriodsBtn.addEventListener('click', function() {
+            while (periodsContainer.children.length > 1) {
+                periodsContainer.removeChild(periodsContainer.lastChild);
+            }
+            periodCount = 1;
+            periodsContainer.children[0].querySelector('h3').textContent = 'Period 1';
+            periodsContainer.children[0].querySelector('input[name="period_name"]').value = 'Q1';
+            periodsContainer.children[0].querySelectorAll('input[type="number"]').forEach(input => input.value = '');
+            periodsContainer.children[0].querySelector('select[name="currency"]').value = 'USD';
+            periodsContainer.children[0].querySelector('select[name="weight_scenario"]').value = 'balanced';
+            periodsContainer.children[0].setAttribute('data-period-index', 1);
+            updateAddPeriodButton();
+        });
+
+        function updateAddPeriodButton() {
+            addPeriodBtn.disabled = periodCount >= 5;
+            addPeriodBtn.classList.toggle('opacity-50', periodCount >= 5);
+            addPeriodBtn.classList.toggle('cursor-not-allowed', periodCount >= 5);
+        }
+
+        // Form validation
+        document.getElementById('multiples-master-form').addEventListener('submit', function(e) {
+            let valid = true;
+            const errorMessages = [];
+            const periodNames = new Set();
+
+            // Validate each period
+            const periods = periodsContainer.querySelectorAll('.period-section');
+            periods.forEach((period, index) => {
+                const periodName = period.querySelector('input[name="period_name"]').value.trim();
+                const numberInputs = period.querySelectorAll('input[type="number"]');
+
+                // Validate period name
+                if (!periodName) {
+                    errorMessages.push(`Period ${index + 1} name is required.`);
+                    period.querySelector('input[name="period_name"]').style.borderColor = '#ef4444';
+                    valid = false;
+                } else if (periodName.length > 10) {
+                    errorMessages.push(`Period ${index + 1} name must be 10 characters or less.`);
+                    period.querySelector('input[name="period_name"]').style.borderColor = '#ef4444';
+                    valid = false;
+                } else if (periodNames.has(periodName)) {
+                    errorMessages.push(`Period ${index + 1} name '${periodName}' must be unique.`);
+                    period.querySelector('input[name="period_name"]').style.borderColor = '#ef4444';
+                    valid = false;
+                } else {
+                    periodNames.add(periodName);
+                    period.querySelector('input[name="period_name"]').style.borderColor = '';
+                }
+
+                // Validate number inputs
+                numberInputs.forEach(input => {
+                    const value = parseFloat(input.value);
+                    const min = parseFloat(input.getAttribute('min')) || 0;
+                    const max = parseFloat(input.getAttribute('max')) || Infinity;
+                    const name = input.name;
+
+                    if (isNaN(value)) {
+                        errorMessages.push(`Period ${index + 1}: ${name.replace('_', ' ').toUpperCase()} is required.`);
+                        input.style.borderColor = '#ef4444';
+                        valid = false;
+                    } else if (value < min || value > max) {
+                        errorMessages.push(`Period ${index + 1}: ${name.replace('_', ' ').toUpperCase()} must be between ${min} and ${max}.`);
+                        input.style.borderColor = '#ef4444';
+                        valid = false;
+                    } else {
+                        input.style.borderColor = '';
+                    }
+                });
+
+                // Validate tangible book value
+                const bookValue = parseFloat(period.querySelector('input[name="book_value_per_share"]').value);
+                const tangibleBookValue = parseFloat(period.querySelector('input[name="tangible_book_value_per_share"]').value);
+
+                if (!isNaN(bookValue) && !isNaN(tangibleBookValue) && tangibleBookValue > bookValue) {
+                    errorMessages.push(`Period ${index + 1}: Tangible book value cannot exceed book value.`);
+                    period.querySelector('input[name="tangible_book_value_per_share"]').style.borderColor = '#ef4444';
+                    valid = false;
+                }
+
+                // Validate DDM inputs
+                const requiredReturn = parseFloat(period.querySelector('input[name="required_return"]').value);
+                const dividendGrowth = parseFloat(period.querySelector('input[name="dividend_growth"]').value);
+                if (!isNaN(requiredReturn) && !isNaN(dividendGrowth) && dividendGrowth >= requiredReturn) {
+                    errorMessages.push(`Period ${index + 1}: Dividend growth rate must be less than required return for DDM.`);
+                    period.querySelector('input[name="dividend_growth"]').style.borderColor = '#ef4444';
+                    valid = false;
+                }
+            });
+
+            if (!valid) {
+                e.preventDefault();
+                alert('Validation errors:\n' + errorMessages.join('\n'));
+            }
+        });
+
+        // Chart rendering for latest period
+        {% if result %}
+        const ctx = document.getElementById('valuationChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['P/B', 'P/TBV', 'P/E', 'DDM', 'Weighted Avg'],
+                datasets: [{
+                    label: 'Intrinsic Value ({{ result.currency }})',
+                    data: [{{ result.pb_value }}, {{ result.ptbv_value }}, {{ result.pe_value }}, {{ result.ddm_value }}, {{ result.weighted_average }}],
+                    backgroundColor: ['#4f46e5', '#818cf8', '#10b981', '#f59e0b', '#ef4444'],
+                    borderColor: ['#3b37b3', '#6366f1', '#059669', '#d97706', '#dc2626'],
+                    borderWidth: 1
+                }, {
+                    label: 'Current Price',
+                    data: [{{ result.current_price }}, {{ result.current_price }}, {{ result.current_price }}, {{ result.current_price }}, {{ result.current_price }}],
+                    type: 'line',
+                    borderColor: '#000000',
+                    borderWidth: 2,
+                    fill: false,
+                    pointRadius: 0
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Value ({{ result.currency }})'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    }
+                }
+            }
+        });
+        {% endif %}
+
+        // Comparison chart for periods
+        {% if period_results %}
+        const compCtx = document.getElementById('comparisonChart').getContext('2d');
+        new Chart(compCtx, {
+            type: 'bar',
+            data: {
+                labels: {{ period_results | map(attribute='period_name') | list | tojson }},
+                datasets: [
+                    {
+                        label: 'P/B Value',
+                        data: {{ period_results | map(attribute='pb_value') | list | tojson }},
+                        backgroundColor: '#4f46e5',
+                        borderColor: '#3b37b3',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'P/TBV Value',
+                        data: {{ period_results | map(attribute='ptbv_value') | list | tojson }},
+                        backgroundColor: '#818cf8',
+                        borderColor: '#6366f1',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'P/E Value',
+                        data: {{ period_results | map(attribute='pe_value') | list | tojson }},
+                        backgroundColor: '#10b981',
+                        borderColor: '#059669',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'DDM Value',
+                        data: {{ period_results | map(attribute='ddm_value') | list | tojson }},
+                        backgroundColor: '#f59e0b',
+                        borderColor: '#d97706',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Weighted Average',
+                        data: {{ period_results | map(attribute='weighted_average') | list | tojson }},
+                        backgroundColor: '#ef4444',
+                        borderColor: '#dc2626',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Current Price',
+                        data: {{ period_results | map(attribute='current_price') | list | tojson }},
+                        type: 'line',
+                        borderColor: '#000000',
+                        borderWidth: 2,
+                        fill: false,
+                        pointRadius: 0
+                    }
+                ]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Value'
+                        }
+                    },
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Period'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top'
+                    }
+                }
+            }
+        });
+        {% endif %}
+    </script>
+</body>
+</html>

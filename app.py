@@ -14,7 +14,6 @@ from PIL import Image
 from flask import Flask, render_template, request, redirect, url_for
 import math
 from flask import Flask, request, render_template
-from flask_wtf import FlaskForm
 from wtforms import HiddenField
 from flask_wtf.csrf import CSRFProtect
 from flask_sqlalchemy import SQLAlchemy
@@ -24,6 +23,12 @@ from flask_migrate import Migrate
 from flask_login import LoginManager
 import os
 import logging
+import logging
+from flask import Flask, render_template, request, redirect, url_for
+from wtforms import StringField, FloatField, SelectField, IntegerField
+from wtforms.validators import DataRequired, NumberRange, Length
+import uuid
+
 
 
 app = Flask(__name__)
@@ -3055,6 +3060,7 @@ def calculate_cost_of_equity():
     return render_template('cost_of_equity.html')
 
 
+
 @app.route('/valuation-performance', methods=['GET', 'POST'])
 def valuation_performance():
     if request.method == 'POST':
@@ -3421,6 +3427,269 @@ def careers():
 @app.route('/press')
 def press():
     return render_template('press.html')
+
+
+
+#MULTIPLES MASTER
+# Configuration (assumes SECRET_KEY, MAX_CONTENT_LENGTH, and CSRFProtect are set in main app.py)
+app.config['SESSION_TYPE'] = 'filesystem'  # Required for session storage
+app.config['SESSION_FILE_DIR'] = os.path.join(app.instance_path, 'sessions')  # Explicit session directory
+app.config['SESSION_FILE_THRESHOLD'] = 500  # Limit number of session files
+app.config['SESSION_PERMANENT'] = True
+app.config['PERMANENT_SESSION_LIFETIME'] = 86400  # 24 hours
+app.config['WTF_CSRF_TIME_LIMIT'] = 7200  # Extend CSRF token timeout to 2 hours
+
+
+# Ensure session directory exists
+os.makedirs(app.config['SESSION_FILE_DIR'], exist_ok=True)
+
+
+
+# Define the form for each period
+# Define the form for each period
+class PeriodForm(FlaskForm):
+    period_name = StringField('Period Name', validators=[DataRequired(), Length(max=10)])
+    currency = SelectField('Currency', choices=[
+        ('USD', 'USD - US Dollar'),
+        ('GHS', 'GHS - Ghanaian Cedi'),
+        ('EUR', 'EUR - Euro'),
+        ('GBP', 'GBP - British Pound'),
+        ('JPY', 'JPY - Japanese Yen')
+    ], validators=[DataRequired()])
+    weight_scenario = SelectField('Weighting Scenario', choices=[
+        ('balanced', 'Balanced (25% each P/B, P/TBV, P/E, DDM)'),
+        ('conservative', 'Conservative (40% P/B, 30% P/TBV, 20% P/E, 10% DDM)'),
+        ('growth', 'Growth (40% P/E, 30% P/B, 20% P/TBV, 10% DDM)')
+    ], validators=[DataRequired()])
+    current_price = FloatField('Current Stock Price', validators=[DataRequired(), NumberRange(min=0)])
+    required_return = FloatField('Required Return (%)', validators=[DataRequired(), NumberRange(min=0, max=100)])
+    book_value_per_share = FloatField('Book Value per Share', validators=[DataRequired(), NumberRange(min=0)])
+    pb_multiple = FloatField('P/B Multiple', validators=[DataRequired(), NumberRange(min=0)])
+    tangible_book_value_per_share = FloatField('Tangible Book Value per Share', validators=[DataRequired(), NumberRange(min=0)])
+    ptbv_multiple = FloatField('P/TBV Multiple', validators=[DataRequired(), NumberRange(min=0)])
+    eps = FloatField('Current EPS', validators=[DataRequired(), NumberRange(min=0)])
+    pe_multiple = FloatField('P/E Multiple', validators=[DataRequired(), NumberRange(min=0)])
+    eps_growth = FloatField('EPS Growth Rate (%)', validators=[DataRequired(), NumberRange(min=0, max=100)])
+    pe_years = IntegerField('Projection Years for P/E', validators=[DataRequired(), NumberRange(min=1, max=5)])
+    dividend_per_share = FloatField('Dividend per Share', validators=[DataRequired(), NumberRange(min=0)])
+    dividend_growth = FloatField('Dividend Growth Rate (%)', validators=[DataRequired(), NumberRange(min=0, max=100)])
+    roe = FloatField('Return on Equity (%)', validators=[DataRequired(), NumberRange(min=0, max=100)])
+
+# Custom filter for currency formatting
+@app.template_filter('currency')
+def currency_filter(value, currency):
+    try:
+        value = round(float(value), 2)
+        currency_symbols = {
+            'USD': '$',
+            'GHS': '₵',
+            'EUR': '€',
+            'GBP': '£',
+            'JPY': '¥'
+        }
+        symbol = currency_symbols.get(currency, '')
+        return f"{symbol}{value:,.2f}"
+    except (ValueError, TypeError) as e:
+        logger.error(f"Currency filter error: {e}")
+        return "N/A"
+
+# Route for Multiples Master Valuation
+@app.route('/multiples-master-valuation', methods=['GET', 'POST'])
+def multiples_master_valuation():
+    form = PeriodForm()
+    error = None
+    result = None
+    period_count = session.get('period_count', 1)  # Default to 1 period
+    
+    if request.method == 'GET':
+        session['period_results'] = []  # Clear session on GET to prevent stale data
+    period_results = session.get('period_results', [])
+
+
+    if request.method == 'POST':
+        if 'clear_periods' in request.form:
+            session['period_results'] = []
+            session['period_count'] = 1
+            logger.info("Cleared all periods from session")
+            return redirect(url_for('multiples_master_valuation'))
+
+        # Collect data for all periods
+        periods_data = []
+        period_names = request.form.getlist('period_name')
+        currencies = request.form.getlist('currency')
+        weight_scenarios = request.form.getlist('weight_scenario')
+        current_prices = request.form.getlist('current_price')
+        required_returns = request.form.getlist('required_return')
+        book_values = request.form.getlist('book_value_per_share')
+        pb_multiples = request.form.getlist('pb_multiple')
+        tangible_book_values = request.form.getlist('tangible_book_value_per_share')
+        ptbv_multiples = request.form.getlist('ptbv_multiple')
+        eps_values = request.form.getlist('eps')
+        pe_multiples = request.form.getlist('pe_multiple')
+        eps_growths = request.form.getlist('eps_growth')
+        pe_years_list = request.form.getlist('pe_years')
+        dividends = request.form.getlist('dividend_per_share')
+        dividend_growths = request.form.getlist('dividend_growth')
+        roes = request.form.getlist('roe')
+
+        # Validate the number of periods
+        if len(period_names) > 5:
+            error = "Cannot submit more than 5 periods."
+            logger.error(error)
+            return render_template('multiples_master.html', form=form, error=error, period_results=period_results, period_count=period_count)
+
+        # Validate unique period names and data
+        unique_names = set()
+        for i, name in enumerate(period_names):
+            if not name.strip():
+                error = f"Period {i+1} name is required."
+                logger.error(error)
+                return render_template('multiples_master.html', form=form, error=error, period_results=period_results, period_count=period_count)
+            if name in unique_names:
+                error = f"Period name '{name}' must be unique."
+                logger.error(error)
+                return render_template('multiples_master.html', form=form, error=error, period_results=period_results, period_count=period_count)
+            unique_names.add(name)
+
+        # Process each period
+        for i in range(len(period_names)):
+            try:
+                period_data = {
+                    'period_name': period_names[i],
+                    'currency': currencies[i],
+                    'weight_scenario': weight_scenarios[i],
+                    'current_price': float(current_prices[i]),
+                    'required_return': float(required_returns[i]),
+                    'book_value_per_share': float(book_values[i]),
+                    'pb_multiple': float(pb_multiples[i]),
+                    'tangible_book_value_per_share': float(tangible_book_values[i]),
+                    'ptbv_multiple': float(ptbv_multiples[i]),
+                    'eps': float(eps_values[i]),
+                    'pe_multiple': float(pe_multiples[i]),
+                    'eps_growth': float(eps_growths[i]),
+                    'pe_years': int(pe_years_list[i]),
+                    'dividend_per_share': float(dividends[i]),
+                    'dividend_growth': float(dividend_growths[i]),
+                    'roe': float(roes[i])
+                }
+
+                # Validate tangible book value
+                if period_data['tangible_book_value_per_share'] > period_data['book_value_per_share']:
+                    error = f"Period {i+1}: Tangible book value cannot exceed book value."
+                    logger.error(error)
+                    return render_template('multiples_master.html', form=form, error=error, period_results=period_results, period_count=period_count)
+
+                # Validate DDM inputs
+                if period_data['dividend_growth'] >= period_data['required_return']:
+                    error = f"Period {i+1}: Dividend growth rate must be less than required return for DDM."
+                    logger.error(error)
+                    return render_template('multiples_master.html', form=form, error=error, period_results=period_results, period_count=period_count)
+
+                periods_data.append(period_data)
+            except (ValueError, TypeError) as e:
+                error = f"Invalid input for Period {i+1}. Please ensure all fields are valid numbers."
+                logger.error(f"{error}: {e}")
+                return render_template('multiples_master.html', form=form, error=error, period_results=period_results, period_count=period_count)
+
+        # Calculate valuations for each period
+        period_results = []
+        for period_data in periods_data:
+            try:
+                # Valuation calculations
+                pb_value = period_data['book_value_per_share'] * period_data['pb_multiple']
+                ptbv_value = period_data['tangible_book_value_per_share'] * period_data['ptbv_multiple']
+                future_eps = period_data['eps'] * (1 + period_data['eps_growth'] / 100) ** period_data['pe_years']
+                pe_value = (future_eps * period_data['pe_multiple']) / ((1 + period_data['required_return'] / 100) ** period_data['pe_years'])
+                ddm_value = (period_data['dividend_per_share'] * (1 + period_data['dividend_growth'] / 100)) / (period_data['required_return'] / 100 - period_data['dividend_growth'] / 100) if period_data['dividend_per_share'] > 0 else 0
+
+                # Weighting scenarios
+                weights = {
+                    'balanced': [25, 25, 25, 25],
+                    'conservative': [40, 30, 20, 10],
+                    'growth': [30, 20, 40, 10]
+                }[period_data['weight_scenario']]
+
+                weighted_average = (
+                    pb_value * weights[0] / 100 +
+                    ptbv_value * weights[1] / 100 +
+                    pe_value * weights[2] / 100 +
+                    ddm_value * weights[3] / 100
+                )
+
+                # Over/under valuation
+                over_under_valuation = ((weighted_average - period_data['current_price']) / period_data['current_price']) * 100
+
+                # Sensitivity analysis (±15% for multiples and growth rates)
+                sensitivity = {
+                    'pb_multiple_low': round(period_data['pb_multiple'] * 0.85, 2),
+                    'pb_multiple_high': round(period_data['pb_multiple'] * 1.15, 2),
+                    'ptbv_multiple_low': round(period_data['ptbv_multiple'] * 0.85, 2),
+                    'ptbv_multiple_high': round(period_data['ptbv_multiple'] * 1.15, 2),
+                    'pe_multiple_low': round(period_data['pe_multiple'] * 0.85, 2),
+                    'pe_multiple_high': round(period_data['pe_multiple'] * 1.15, 2),
+                    'eps_growth_low': round(max(0, period_data['eps_growth'] * 0.85), 2),
+                    'eps_growth_high': round(min(100, period_data['eps_growth'] * 1.15), 2),
+                    'dividend_growth_low': round(max(0, period_data['dividend_growth'] * 0.85), 2),
+                    'dividend_growth_high': round(min(100, period_data['dividend_growth'] * 1.15), 2),
+                    'value_low': round((
+                        (period_data['book_value_per_share'] * (period_data['pb_multiple'] * 0.85)) * weights[0] / 100 +
+                        (period_data['tangible_book_value_per_share'] * (period_data['ptbv_multiple'] * 0.85)) * weights[1] / 100 +
+                        (period_data['eps'] * (1 + (period_data['eps_growth'] * 0.85) / 100) ** period_data['pe_years'] * (period_data['pe_multiple'] * 0.85) / ((1 + period_data['required_return'] / 100) ** period_data['pe_years'])) * weights[2] / 100 +
+                        ((period_data['dividend_per_share'] * (1 + (period_data['dividend_growth'] * 0.85) / 100)) / (period_data['required_return'] / 100 - (period_data['dividend_growth'] * 0.85) / 100) if period_data['dividend_per_share'] > 0 and period_data['dividend_growth'] * 0.85 < period_data['required_return'] else 0) * weights[3] / 100
+                    ), 2),
+                    'value_high': round((
+                        (period_data['book_value_per_share'] * (period_data['pb_multiple'] * 1.15)) * weights[0] / 100 +
+                        (period_data['tangible_book_value_per_share'] * (period_data['ptbv_multiple'] * 1.15)) * weights[1] / 100 +
+                        (period_data['eps'] * (1 + (period_data['eps_growth'] * 1.15) / 100) ** period_data['pe_years'] * (period_data['pe_multiple'] * 1.15) / ((1 + period_data['required_return'] / 100) ** period_data['pe_years'])) * weights[2] / 100 +
+                        ((period_data['dividend_per_share'] * (1 + (period_data['dividend_growth'] * 1.15) / 100)) / (period_data['required_return'] / 100 - (period_data['dividend_growth'] * 1.15) / 100) if period_data['dividend_per_share'] > 0 and period_data['dividend_growth'] * 1.15 < period_data['required_return'] else 0) * weights[3] / 100
+                    ), 2)
+                }
+
+                # Determine weight priority and rationale
+                weight_max_index = weights.index(max(weights))
+                weight_priority = ['P/B', 'P/TBV', 'P/E', 'DDM'][weight_max_index]
+                weight_rationale = {
+                    'balanced': 'equal contribution across methods',
+                    'conservative': 'emphasis on book value stability',
+                    'growth': 'focus on earnings growth potential'
+                }[period_data['weight_scenario']]
+
+                period_result = {
+                    'period_name': period_data['period_name'],
+                    'currency': period_data['currency'],
+                    'pb_value': round(pb_value, 2),
+                    'ptbv_value': round(ptbv_value, 2),
+                    'pe_value': round(pe_value, 2),
+                    'ddm_value': round(ddm_value, 2),
+                    'weighted_average': round(weighted_average, 2),
+                    'current_price': round(period_data['current_price'], 2),
+                    'over_under_valuation': round(over_under_valuation, 2),
+                    'weights': weights,
+                    'weight_priority': weight_priority,
+                    'weight_rationale': weight_rationale,
+                    'weight_max_index': weight_max_index,
+                    'pb_multiple': round(period_data['pb_multiple'], 2),
+                    'ptbv_multiple': round(period_data['ptbv_multiple'], 2),
+                    'pe_multiple': round(period_data['pe_multiple'], 2),
+                    'eps_growth': round(period_data['eps_growth'], 2),
+                    'dividend_growth': round(period_data['dividend_growth'], 2),
+                    'pe_years': period_data['pe_years'],
+                    'sensitivity': sensitivity
+                }
+                period_results.append(period_result)
+            except Exception as e:
+                error = f"Calculation error for Period {period_data['period_name']}: {str(e)}"
+                logger.error(error)
+                return render_template('multiples_master.html', form=form, error=error, period_results=period_results, period_count=period_count)
+
+        # Store only the latest period as result
+        result = period_results[-1] if period_results else None
+        # Update session with all period results and period count
+        session['period_results'] = period_results
+        session['period_count'] = len(period_names)
+        logger.info(f"Processed {len(period_names)} periods successfully")
+
+    return render_template('multiples_master.html', form=form, result=result, period_results=period_results, error=error, period_count=period_count)
 
 # APPLICATION RUNNER BLOCK
 # ------------------------
