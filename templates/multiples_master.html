@@ -142,12 +142,12 @@
         }
         
         .nav-button.home {
-            background: #4f46e5;
+            background: '#4f46e5';
             color: white;
         }
         
         .nav-button.calculators {
-            background: #10b981;
+            background: '#10b981';
             color: white;
         }
         
@@ -170,7 +170,7 @@
         }
         
         th {
-            background: #4f46e5;
+            background: '#4f46e5';
             color: white;
             font-weight: 600;
         }
@@ -180,7 +180,7 @@
         }
         
         tr:hover {
-            background: #f8fafc;
+            background: '#f8fafc';
         }
 
         .period-section {
@@ -279,8 +279,13 @@
                     </tr>
                     <tr>
                         <td>Dividend Growth Rate</td>
-                        <td>0–5%</td>
-                        <td>Conservative estimate based on historical dividend growth or analyst forecasts.</td>
+                        <td>-5–10%</td>
+                        <td>Can be negative during downturns; positive during growth periods.</td>
+                    </tr>
+                    <tr>
+                        <td>EPS Growth Rate</td>
+                        <td>-10–20%</td>
+                        <td>Can be negative during recessions; positive during expansion.</td>
                     </tr>
                 </tbody>
             </table>
@@ -304,7 +309,7 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div class="md:col-span-2">
                                 <label class="block text-gray-700 font-medium mb-2">Period Name</label>
-                                <input type="text" name="period_name" placeholder="e.g., Q1, Y1" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" value="Q{{ i + 1 }}" required maxlength="10">
+                                <input type="text" name="period_name" placeholder="e.g., Q1, Y1" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" value="{% if form_data and i < form_data|length %}{{ form_data[i].period_name }}{% else %}Q{{ i+1 }}{% endif %}" required maxlength="10">
                                 <div class="tooltip mt-1">
                                     <i class="fas fa-info-circle text-gray-500 ml-2"></i>
                                     <span class="tooltiptext">Enter a unique name for this period (e.g., Q1, Y1, 2023).</span>
@@ -313,11 +318,9 @@
                             <div class="md:col-span-2">
                                 <label class="block text-gray-700 font-medium mb-2">Currency</label>
                                 <select name="currency" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
-                                    <option value="USD">USD - US Dollar</option>
-                                    <option value="GHS">GHS - Ghanaian Cedi</option>
-                                    <option value="EUR">EUR - Euro</option>
-                                    <option value="GBP">GBP - British Pound</option>
-                                    <option value="JPY">JPY - Japanese Yen</option>
+                                    {% for currency in [('USD', 'USD - US Dollar'), ('GHS', 'GHS - Ghanaian Cedi'), ('EUR', 'EUR - Euro'), ('GBP', 'GBP - British Pound'), ('JPY', 'JPY - Japanese Yen')] %}
+                                    <option value="{{ currency[0] }}" {% if (form_data and i < form_data|length and form_data[i].currency == currency[0]) or (not form_data and currency[0] == 'USD') %}selected{% endif %}>{{ currency[1] }}</option>
+                                    {% endfor %}
                                 </select>
                                 <div class="tooltip mt-1">
                                     <i class="fas fa-info-circle text-gray-500 ml-2"></i>
@@ -327,9 +330,9 @@
                             <div class="md:col-span-2">
                                 <label class="block text-gray-700 font-medium mb-2">Weighting Scenario</label>
                                 <select name="weight_scenario" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
-                                    <option value="balanced">Balanced (25% each P/B, P/TBV, P/E, DDM)</option>
-                                    <option value="conservative">Conservative (40% P/B, 30% P/TBV, 20% P/E, 10% DDM)</option>
-                                    <option value="growth">Growth (40% P/E, 30% P/B, 20% P/TBV, 10% DDM)</option>
+                                    {% for scenario in [('balanced', 'Balanced (25% each P/B, P/TBV, P/E, DDM)'), ('conservative', 'Conservative (40% P/B, 30% P/TBV, 20% P/E, 10% DDM)'), ('growth', 'Growth (40% P/E, 30% P/B, 20% P/TBV, 10% DDM)')] %}
+                                    <option value="{{ scenario[0] }}" {% if (form_data and i < form_data|length and form_data[i].weight_scenario == scenario[0]) or (not form_data and scenario[0] == 'balanced') %}selected{% endif %}>{{ scenario[1] }}</option>
+                                    {% endfor %}
                                 </select>
                                 <div class="tooltip mt-1">
                                     <i class="fas fa-info-circle text-gray-500 ml-2"></i>
@@ -340,7 +343,7 @@
                             <h3 class="text-xl font-semibold text-gray-800 md:col-span-2">General Parameters</h3>
                             <div>
                                 <label class="block text-gray-700 font-medium mb-2">Current Stock Price</label>
-                                <input type="number" step="0.01" name="current_price" placeholder="e.g., 50.00" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required min="0">
+                                <input type="number" step="0.01" name="current_price" placeholder="e.g., 50.00" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" value="{% if form_data and i < form_data|length %}{{ form_data[i].current_price }}{% endif %}" required min="0">
                                 <div class="tooltip mt-1">
                                     <i class="fas fa-info-circle text-gray-500 ml-2"></i>
                                     <span class="tooltiptext">Current market price of the bank's stock. Find on financial websites like Yahoo Finance.</span>
@@ -348,17 +351,17 @@
                             </div>
                             <div>
                                 <label class="block text-gray-700 font-medium mb-2">Required Return (%)</label>
-                                <input type="number" step="0.01" name="required_return" placeholder="e.g., 8.0" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required min="0" max="100">
+                                <input type="number" step="0.01" name="required_return" placeholder="e.g., 8.0" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" value="{% if form_data and i < form_data|length %}{{ form_data[i].required_return }}{% endif %}" required>
                                 <div class="tooltip mt-1">
                                     <i class="fas fa-info-circle text-gray-500 ml-2"></i>
-                                    <span class="tooltiptext">Cost of equity (e.g., from CAPM: Risk-Free Rate + Beta * Market Risk Premium). Typical range: 6–12%.</span>
+                                    <span class="tooltiptext">Cost of equity (e.g., from CAPM: Risk-Free Rate + Beta * Market Risk Premium).</span>
                                 </div>
                             </div>
                             
                             <h3 class="text-xl font-semibold text-gray-800 md:col-span-2">P/B Parameters</h3>
                             <div>
                                 <label class="block text-gray-700 font-medium mb-2">Book Value per Share</label>
-                                <input type="number" step="0.01" name="book_value_per_share" placeholder="e.g., 40.00" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required min="0">
+                                <input type="number" step="0.01" name="book_value_per_share" placeholder="e.g., 40.00" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" value="{% if form_data and i < form_data|length %}{{ form_data[i].book_value_per_share }}{% endif %}" required>
                                 <div class="tooltip mt-1">
                                     <i class="fas fa-info-circle text-gray-500 ml-2"></i>
                                     <span class="tooltiptext">Book value per share from the bank's balance sheet. Find in financial statements.</span>
@@ -366,7 +369,7 @@
                             </div>
                             <div>
                                 <label class="block text-gray-700 font-medium mb-2">P/B Multiple</label>
-                                <input type="number" step="0.01" name="pb_multiple" placeholder="e.g., 1.2" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required min="0">
+                                <input type="number" step="0.01" name="pb_multiple" placeholder="e.g., 1.2" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" value="{% if form_data and i < form_data|length %}{{ form_data[i].pb_multiple }}{% endif %}" required>
                                 <div class="tooltip mt-1">
                                     <i class="fas fa-info-circle text-gray-500 ml-2"></i>
                                     <span class="tooltiptext">Price-to-Book multiple. Suggested range: 0.5–2.0, based on peer banks.</span>
@@ -376,7 +379,7 @@
                             <h3 class="text-xl font-semibold text-gray-800 md:col-span-2">P/TBV Parameters</h3>
                             <div>
                                 <label class="block text-gray-700 font-medium mb-2">Tangible Book Value per Share</label>
-                                <input type="number" step="0.01" name="tangible_book_value_per_share" placeholder="e.g., 35.00" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required min="0">
+                                <input type="number" step="0.01" name="tangible_book_value_per_share" placeholder="e.g., 35.00" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" value="{% if form_data and i < form_data|length %}{{ form_data[i].tangible_book_value_per_share }}{% endif %}" required>
                                 <div class="tooltip mt-1">
                                     <i class="fas fa-info-circle text-gray-500 ml-2"></i>
                                     <span class="tooltiptext">Tangible book value per share (excludes intangibles like goodwill). Find in financial statements.</span>
@@ -384,7 +387,7 @@
                             </div>
                             <div>
                                 <label class="block text-gray-700 font-medium mb-2">P/TBV Multiple</label>
-                                <input type="number" step="0.01" name="ptbv_multiple" placeholder="e.g., 1.4" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required min="0">
+                                <input type="number" step="0.01" name="ptbv_multiple" placeholder="e.g., 1.4" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" value="{% if form_data and i < form_data|length %}{{ form_data[i].ptbv_multiple }}{% endif %}" required>
                                 <div class="tooltip mt-1">
                                     <i class="fas fa-info-circle text-gray-500 ml-2"></i>
                                     <span class="tooltiptext">Price-to-Tangible Book Value multiple. Suggested range: 0.7–2.0, based on peer banks.</span>
@@ -394,7 +397,7 @@
                             <h3 class="text-xl font-semibold text-gray-800 md:col-span-2">P/E Parameters</h3>
                             <div>
                                 <label class="block text-gray-700 font-medium mb-2">Current EPS</label>
-                                <input type="number" step="0.01" name="eps" placeholder="e.g., 4.00" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required min="0">
+                                <input type="number" step="0.01" name="eps" placeholder="e.g., 4.00" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" value="{% if form_data and i < form_data|length %}{{ form_data[i].eps }}{% endif %}" required>
                                 <div class="tooltip mt-1">
                                     <i class="fas fa-info-circle text-gray-500 ml-2"></i>
                                     <span class="tooltiptext">Current Earnings Per Share. Find on financial websites or company reports.</span>
@@ -402,7 +405,7 @@
                             </div>
                             <div>
                                 <label class="block text-gray-700 font-medium mb-2">P/E Multiple</label>
-                                <input type="number" step="0.01" name="pe_multiple" placeholder="e.g., 12.0" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required min="0">
+                                <input type="number" step="0.01" name="pe_multiple" placeholder="e.g., 12.0" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" value="{% if form_data and i < form_data|length %}{{ form_data[i].pe_multiple }}{% endif %}" required>
                                 <div class="tooltip mt-1">
                                     <i class="fas fa-info-circle text-gray-500 ml-2"></i>
                                     <span class="tooltiptext">Price-to-Earnings multiple. Suggested range: 8–15, based on peer banks.</span>
@@ -410,7 +413,7 @@
                             </div>
                             <div>
                                 <label class="block text-gray-700 font-medium mb-2">EPS Growth Rate (%)</label>
-                                <input type="number" step="0.01" name="eps_growth" placeholder="e.g., 5.0" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required min="0" max="100">
+                                <input type="number" step="0.01" name="eps_growth" placeholder="e.g., 5.0" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" value="{% if form_data and i < form_data|length %}{{ form_data[i].eps_growth }}{% endif %}" required>
                                 <div class="tooltip mt-1">
                                     <i class="fas fa-info-circle text-gray-500 ml-2"></i>
                                     <span class="tooltiptext">Expected EPS growth rate (%). Estimate from analyst forecasts or historical data.</span>
@@ -418,7 +421,7 @@
                             </div>
                             <div>
                                 <label class="block text-gray-700 font-medium mb-2">Projection Years for P/E</label>
-                                <input type="number" step="1" name="pe_years" placeholder="e.g., 2" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required min="1" max="5">
+                                <input type="number" step="1" name="pe_years" placeholder="e.g., 2" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" value="{% if form_data and i < form_data|length %}{{ form_data[i].pe_years }}{% else %}2{% endif %}" required min="1" max="5">
                                 <div class="tooltip mt-1">
                                     <i class="fas fa-info-circle text-gray-500 ml-2"></i>
                                     <span class="tooltiptext">Number of years for P/E projection (1–5 years).</span>
@@ -428,7 +431,7 @@
                             <h3 class="text-xl font-semibold text-gray-800 md:col-span-2">Dividend Discount Model Parameters</h3>
                             <div>
                                 <label class="block text-gray-700 font-medium mb-2">Dividend per Share</label>
-                                <input type="number" step="0.01" name="dividend_per_share" placeholder="e.g., 2.00" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required min="0">
+                                <input type="number" step="0.01" name="dividend_per_share" placeholder="e.g., 2.00" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" value="{% if form_data and i < form_data|length %}{{ form_data[i].dividend_per_share }}{% endif %}" required min="0">
                                 <div class="tooltip mt-1">
                                     <i class="fas fa-info-circle text-gray-500 ml-2"></i>
                                     <span class="tooltiptext">Current dividend per share. Find on financial websites or company reports.</span>
@@ -436,17 +439,17 @@
                             </div>
                             <div>
                                 <label class="block text-gray-700 font-medium mb-2">Dividend Growth Rate (%)</label>
-                                <input type="number" step="0.01" name="dividend_growth" placeholder="e.g., 3.0" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required min="0" max="100">
+                                <input type="number" step="0.01" name="dividend_growth" placeholder="e.g., 3.0" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" value="{% if form_data and i < form_data|length %}{{ form_data[i].dividend_growth }}{% endif %}" required>
                                 <div class="tooltip mt-1">
                                     <i class="fas fa-info-circle text-gray-500 ml-2"></i>
-                                    <span class="tooltiptext">Expected dividend growth rate (%). Suggested range: 0–5%, based on historical data or analyst forecasts.</span>
+                                    <span class="tooltiptext">Expected dividend growth rate (%). Can be negative during downturns.</span>
                                 </div>
                             </div>
                             
                             <h3 class="text-xl font-semibold text-gray-800 md:col-span-2">ROE Parameters</h3>
                             <div>
                                 <label class="block text-gray-700 font-medium mb-2">Return on Equity (%)</label>
-                                <input type="number" step="0.01" name="roe" placeholder="e.g., 12.0" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required min="0" max="100">
+                                <input type="number" step="0.01" name="roe" placeholder="e.g., 12.0" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" value="{% if form_data and i < form_data|length %}{{ form_data[i].roe }}{% endif %}" required>
                                 <div class="tooltip mt-1">
                                     <i class="fas fa-info-circle text-gray-500 ml-2"></i>
                                     <span class="tooltiptext">Return on Equity (%). Find in financial statements or calculate as Net Income / Total Equity.</span>
@@ -491,7 +494,7 @@
                         <th>DDM Value</th>
                         <th>Weighted Average</th>
                         <th>Current Price</th>
-                        <th>Over/Under Valuation (%)</th>
+                        <th>Over/Under Valuation</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -504,8 +507,9 @@
                         <td>{{ pr.ddm_value | currency(pr.currency) }}</td>
                         <td>{{ pr.weighted_average | currency(pr.currency) }}</td>
                         <td>{{ pr.current_price | currency(pr.currency) }}</td>
-                        <td class="{{ 'text-success' if pr.over_under_valuation < 0 else 'text-danger' }}">
-                            {{ pr.over_under_valuation | abs }}% {{ 'Undervalued' if pr.over_under_valuation < 0 else 'Overvalued' }}
+                        <td class="{{ 'text-success' if pr.over_under_valuation > 0 else 'text-danger' }}">
+                            {{ pr.over_under_valuation | abs }}% 
+                            {{ 'Undervalued' if pr.over_under_valuation > 0 else 'Overvalued' }}
                         </td>
                     </tr>
                     {% endfor %}
@@ -560,8 +564,8 @@
             </table>
             <p class="text-gray-700 mt-4">
                 The weighted average intrinsic value for {{ result.period_name }} is {{ result.weighted_average | currency(result.currency) }} ({{ result.currency }}), with {{ result.weight_priority }} weighted highest ({{ result.weights[result.weight_max_index] }}%) due to its {{ result.weight_rationale }}. Compared to the current price ({{ result.current_price | currency(result.currency) }}), the stock appears 
-                <span class="font-bold {{ 'text-success' if result.over_under_valuation < 0 else 'text-danger' }}">
-                    {{ 'undervalued' if result.over_under_valuation < 0 else 'overvalued' }}
+                <span class="font-bold {{ 'text-success' if result.over_under_valuation > 0 else 'text-danger' }}">
+                    {{ 'undervalued' if result.over_under_valuation > 0 else 'overvalued' }}
                 </span> 
                 by {{ result.over_under_valuation | abs }}%.
             </p>
@@ -628,7 +632,7 @@
                 <strong>P/E (Price-to-Earnings):</strong> Projects future EPS based on growth rate, applies a P/E multiple, and discounts to present value using the required return. Assumes stable growth, which may not hold for cyclical banks.
             </p>
             <p class="text-gray-600 mb-4">
-                <strong>Dividend Discount Model (DDM):</strong> Estimates value as dividend per share divided by (required return - dividend growth rate), assuming sustainable dividends. Requires accurate growth and return estimates.
+                <strong>Dividend Discount Model (DDM):</strong> Estimates value as dividend per share divided by (required return - dividend growth rate), assuming sustainable dividends. Requires accurate growth and return estimates. Negative growth rates are supported.
             </p>
             <p class="text-gray-600 mb-4">
                 <strong>Limitations:</strong> Valuations depend on user inputs, which should be sourced from reliable data (e.g., financial statements, analyst reports). Multiples should be based on peer comparisons. The DDM assumes perpetual dividend growth, which may not apply to all banks. Results are sensitive to economic conditions and bank-specific risks (e.g., non-performing loans).
@@ -680,7 +684,7 @@
                 </li>
                 <li>
                     <strong>Enter DDM Parameters</strong>
-                    <p>Input dividend per share and dividend growth rate. Find dividends in company reports; suggested growth range: 0–5%.</p>
+                    <p>Input dividend per share and dividend growth rate. Find dividends in company reports; growth rates can be negative during downturns.</p>
                 </li>
                 <li>
                     <strong>Enter ROE Parameters</strong>
@@ -881,17 +885,11 @@
 
                 // Validate number inputs
                 numberInputs.forEach(input => {
-                    const value = parseFloat(input.value);
-                    const min = parseFloat(input.getAttribute('min')) || 0;
-                    const max = parseFloat(input.getAttribute('max')) || Infinity;
+                    const value = input.value;
                     const name = input.name;
 
-                    if (isNaN(value)) {
+                    if (value === '') {
                         errorMessages.push(`Period ${index + 1}: ${name.replace('_', ' ').toUpperCase()} is required.`);
-                        input.style.borderColor = '#ef4444';
-                        valid = false;
-                    } else if (value < min || value > max) {
-                        errorMessages.push(`Period ${index + 1}: ${name.replace('_', ' ').toUpperCase()} must be between ${min} and ${max}.`);
                         input.style.borderColor = '#ef4444';
                         valid = false;
                     } else {
