@@ -2808,38 +2808,63 @@ def calculate_fcfe():
     currency_symbol = 'GHS '  # Adjust as needed
     if request.method == 'POST':
         try:
+            num_years = int(request.form.get('num_years', 5))
+            if num_years < 3 or num_years > 5:
+                raise ValueError("Number of years must be between 3 and 5.")
+
             net_incomes = []
-            net_capexes = []
+            non_cashes = []
+            capexes = []
             changes_wc = []
             net_borrowings = []
             fcfe_results = []
 
-            for i in range(1, 6):
+            for i in range(1, num_years + 1):
                 net_income = float(request.form.get(f'net_income_{i}', 0))
-                net_capex = float(request.form.get(f'net_capex_{i}', 0))
+                non_cash = float(request.form.get(f'non_cash_{i}', 0))
+                capex = float(request.form.get(f'capex_{i}', 0))
                 change_wc = float(request.form.get(f'change_wc_{i}', 0))
                 net_borrowing = float(request.form.get(f'net_borrowing_{i}', 0))
 
                 net_incomes.append(net_income)
-                net_capexes.append(net_capex)
+                non_cashes.append(non_cash)
+                capexes.append(capex)
                 changes_wc.append(change_wc)
                 net_borrowings.append(net_borrowing)
 
-                fcfe = net_income - net_capex - change_wc + net_borrowing
+                fcfe = net_income + non_cash - capex - change_wc + net_borrowing
                 fcfe_results.append(fcfe)
+
+            # Intrinsic parameters
+            cost_equity = float(request.form.get('cost_equity', 0)) / 100
+            growth_rate = float(request.form.get('growth_rate', 0)) / 100
+            shares_outstanding = float(request.form.get('shares_outstanding', 0))
+
+            intrinsic_per_share = 0
+            if cost_equity > growth_rate > 0 and shares_outstanding > 0 and fcfe_results:
+                total_pv = 0
+                n = len(fcfe_results)
+                for t in range(1, n + 1):
+                    total_pv += fcfe_results[t - 1] / (1 + cost_equity) ** t
+                terminal = (fcfe_results[-1] * (1 + growth_rate)) / (cost_equity - growth_rate)
+                total_pv += terminal / (1 + cost_equity) ** n
+                intrinsic_per_share = total_pv / shares_outstanding
 
             return render_template('FCFE.html', 
                                  net_incomes=net_incomes, 
-                                 net_capexes=net_capexes, 
+                                 non_cashes=non_cashes,
+                                 capexes=capexes, 
                                  changes_wc=changes_wc, 
                                  net_borrowings=net_borrowings, 
                                  fcfe_results=fcfe_results, 
+                                 intrinsic_per_share=intrinsic_per_share,
+                                 num_years=num_years,
                                  currency_symbol=currency_symbol)
         except ValueError:
-            error = "Please enter valid numerical values for all fields."
-            return render_template('FCFE.html', error=error, currency_symbol=currency_symbol)
+            error = "Please enter valid numerical values for all fields and a valid number of years (3 to 5)."
+            return render_template('FCFE.html', error=error, currency_symbol=currency_symbol, num_years=5)
     
-    return render_template('FCFE.html', currency_symbol=currency_symbol)
+    return render_template('FCFE.html', currency_symbol=currency_symbol, num_years=5)
 
 # Helper functions for valuation calculations
 def calculate_two_stage_ddm(dividend, g_high, years_high, g_terminal, r):
