@@ -250,7 +250,7 @@
                 <p class="text-xl mt-2">FCFE = Net Income + Non-Cash Charges - Capex - Change in Working Capital + Net Borrowing</p>
                 <p class="text-sm mt-2 text-gray-600">Where Net Income is profit after taxes, Non-Cash Charges are depreciation and amortization, Capex is capital expenditures, Change in Working Capital is the year-over-year change in current assets minus liabilities, and Net Borrowing is new debt minus repayments.</p>
             </div>
-            <form id="fcfe-form" class="space-y-6">
+            <form id="fcfe-form" class="space-y-6" method="POST">
                 <div class="bg-indigo-50 p-4 rounded-lg">
                     <h3 class="text-lg font-semibold text-gray-800 mb-3">Select Number of Years</h3>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -341,6 +341,24 @@
                                 <span class="tooltiptext">Long-term growth rate for FCFE after forecast (e.g., Ghana GDP growth ~3-5%).</span>
                             </div>
                             <div class="form-error text-danger text-sm mt-2 hidden" id="growth_rate-error">Please enter a valid number less than cost of equity.</div>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 font-medium mb-2">Start Year</label>
+                            <input type="number" step="1" name="start_year" placeholder="e.g., 2021" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
+                            <div class="tooltip mt-2">
+                                <i class="fas fa-info-circle text-gray-500"></i>
+                                <span class="tooltiptext">The year for the first FCFE input (Year 1).</span>
+                            </div>
+                            <div class="form-error text-danger text-sm mt-2 hidden" id="start_year-error">Please enter a valid year.</div>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 font-medium mb-2">Valuation Year</label>
+                            <input type="number" step="1" name="valuation_year" placeholder="e.g., 2025" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
+                            <div class="tooltip mt-2">
+                                <i class="fas fa-info-circle text-gray-500"></i>
+                                <span class="tooltiptext">The present valuation year for discounting cash flows (CFA standard).</span>
+                            </div>
+                            <div class="form-error text-danger text-sm mt-2 hidden" id="valuation_year-error">Please enter a valid year.</div>
                         </div>
                         <div>
                             <label class="block text-gray-700 font-medium mb-2">Shares Outstanding</label>
@@ -448,8 +466,8 @@
                     <p>Provide new debt minus repayments from the cash flow statement.</p>
                 </li>
                 <li>
-                    <strong>Enter Cost of Equity, Perpetual Growth Rate, and Shares Outstanding</strong>
-                    <p>Input these for DCF-based intrinsic value per share calculation.</p>
+                    <strong>Enter Cost of Equity, Perpetual Growth Rate, Start Year, Valuation Year, and Shares Outstanding</strong>
+                    <p>Input these for DCF-based intrinsic value per share calculation. Start Year is the year of the first FCFE input, and Valuation Year is the present year for discounting (CFA standard).</p>
                 </li>
                 <li>
                     <strong>Calculate and Review</strong>
@@ -737,9 +755,13 @@
             const costEquityInput = document.querySelector('input[name="cost_equity"]');
             const growthRateInput = document.querySelector('input[name="growth_rate"]');
             const sharesInput = document.querySelector('input[name="shares_outstanding"]');
+            const startYearInput = document.querySelector('input[name="start_year"]');
+            const valuationYearInput = document.querySelector('input[name="valuation_year"]');
             const costEquity = costEquityInput.value ? parseFloat(costEquityInput.value) / 100 : NaN;
             const growthRate = growthRateInput.value ? parseFloat(growthRateInput.value) / 100 : NaN;
             const shares = sharesInput.value ? parseFloat(sharesInput.value) : NaN;
+            const startYear = startYearInput.value ? parseInt(startYearInput.value) : 0;
+            const valuationYear = valuationYearInput.value ? parseInt(valuationYearInput.value) : 0;
 
             let intrinsicValid = true;
             if (isNaN(costEquity) || costEquity <= 0) {
@@ -752,6 +774,14 @@
             }
             if (isNaN(shares) || shares <= 0) {
                 document.getElementById('shares_outstanding-error').classList.remove('hidden');
+                intrinsicValid = false;
+            }
+            if (startYearInput.value && (isNaN(startYear) || startYear <= 0)) {
+                document.getElementById('start_year-error').classList.remove('hidden');
+                intrinsicValid = false;
+            }
+            if (valuationYearInput.value && (isNaN(valuationYear) || valuationYear <= 0)) {
+                document.getElementById('valuation_year-error').classList.remove('hidden');
                 intrinsicValid = false;
             }
 
@@ -776,11 +806,33 @@
             if (intrinsicValid) {
                 let totalPV = 0;
                 const n = fcfes.length;
-                for (let t = 1; t <= n; t++) {
-                    totalPV += fcfes[t - 1] / Math.pow(1 + costEquity, t);
+                const useCustomDiscounting = startYear > 0 && valuationYear > 0;
+                if (useCustomDiscounting) {
+                    for (let t = 1; t <= n; t++) {
+                        const year = startYear + t - 1;
+                        const timePeriod = year - valuationYear;
+                        const fcfe = fcfes[t - 1];
+                        let pv;
+                        if (timePeriod < 0) {
+                            pv = fcfe * Math.pow((1 + costEquity), -timePeriod);
+                        } else if (timePeriod > 0) {
+                            pv = fcfe / Math.pow((1 + costEquity), timePeriod);
+                        } else {
+                            pv = fcfe;
+                        }
+                        totalPV += pv;
+                    }
+                    const lastYear = startYear + n - 1;
+                    const timePeriodTerminal = Math.max(lastYear - valuationYear, 0) + 1;
+                    const terminal = (fcfes[n - 1] * (1 + growthRate)) / (costEquity - growthRate);
+                    totalPV += terminal / Math.pow((1 + costEquity), timePeriodTerminal);
+                } else {
+                    for (let t = 1; t <= n; t++) {
+                        totalPV += fcfes[t - 1] / Math.pow(1 + costEquity, t);
+                    }
+                    const terminal = (fcfes[n - 1] * (1 + growthRate)) / (costEquity - growthRate);
+                    totalPV += terminal / Math.pow(1 + costEquity, n);
                 }
-                const terminal = (fcfes[n - 1] * (1 + growthRate)) / (costEquity - growthRate);
-                totalPV += terminal / Math.pow(1 + costEquity, n);
                 intrinsicPerShare = totalPV / shares;
                 intrinsicText = ` The estimated intrinsic value per share is GHS ${intrinsicPerShare.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')}, based on discounting the FCFEs and terminal value at the cost of equity. Compare to current stock price for valuation insights.`;
                 intrinsicValueResult.textContent = `GHS ${intrinsicPerShare.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,')} (Intrinsic Value Per Share)`;

@@ -2802,7 +2802,6 @@ def target_price():
     return render_template('target_price.html')
 
 #Additional FUNCTIONS ADDED 13TH JUNE 2025
-
 @app.route('/calculate-fcfe', methods=['GET', 'POST'])
 def calculate_fcfe():
     currency_symbol = 'GHS '  # Adjust as needed
@@ -2840,14 +2839,45 @@ def calculate_fcfe():
             growth_rate = float(request.form.get('growth_rate', 0)) / 100
             shares_outstanding = float(request.form.get('shares_outstanding', 0))
 
+            # New parameters for CFA-compliant discounting
+            start_year = int(request.form.get('start_year', 0))
+            valuation_year = int(request.form.get('valuation_year', 0))
+
             intrinsic_per_share = 0
             if cost_equity > growth_rate > 0 and shares_outstanding > 0 and fcfe_results:
                 total_pv = 0
                 n = len(fcfe_results)
-                for t in range(1, n + 1):
-                    total_pv += fcfe_results[t - 1] / (1 + cost_equity) ** t
-                terminal = (fcfe_results[-1] * (1 + growth_rate)) / (cost_equity - growth_rate)
-                total_pv += terminal / (1 + cost_equity) ** n
+                use_custom_discounting = start_year > 0 and valuation_year > 0
+
+                if use_custom_discounting:
+                    # CFA-standard discounting based on valuation year
+                    for t in range(1, n + 1):
+                        year = start_year + t - 1
+                        time_period = year - valuation_year
+                        fcfe = fcfe_results[t - 1]
+                        if time_period < 0:
+                            # Compound forward for past cash flows
+                            pv = fcfe * (1 + cost_equity) ** (-time_period)
+                        elif time_period > 0:
+                            # Discount back for future cash flows
+                            pv = fcfe / (1 + cost_equity) ** time_period
+                        else:
+                            # Current year
+                            pv = fcfe
+                        total_pv += pv
+
+                    # Terminal value discounting
+                    last_year = start_year + n - 1
+                    time_period_terminal = max(last_year - valuation_year, 0) + 1
+                    terminal = (fcfe_results[-1] * (1 + growth_rate)) / (cost_equity - growth_rate)
+                    total_pv += terminal / (1 + cost_equity) ** time_period_terminal
+                else:
+                    # Fallback to original logic if start_year or valuation_year not provided
+                    for t in range(1, n + 1):
+                        total_pv += fcfe_results[t - 1] / (1 + cost_equity) ** t
+                    terminal = (fcfe_results[-1] * (1 + growth_rate)) / (cost_equity - growth_rate)
+                    total_pv += terminal / (1 + cost_equity) ** n
+
                 intrinsic_per_share = total_pv / shares_outstanding
 
             return render_template('FCFE.html', 
