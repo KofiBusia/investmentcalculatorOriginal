@@ -2802,9 +2802,22 @@ def target_price():
     return render_template('target_price.html')
 
 #Additional FUNCTIONS ADDED 13TH JUNE 2025
+from datetime import datetime
+
+# Define custom Jinja2 filter for number formatting
+def format_number(value):
+    try:
+        return "{:,.2f}".format(float(value))
+    except (ValueError, TypeError):
+        return "0.00"
+
+# Register the filter with Jinja2
+app.jinja_env.filters['format_number'] = format_number
+
 @app.route('/calculate-fcfe', methods=['GET', 'POST'])
 def calculate_fcfe():
     currency_symbol = 'GHS '  # Adjust as needed
+    warning_message = None  # Initialize warning message for past cash flows
     if request.method == 'POST':
         try:
             num_years = int(request.form.get('num_years', 5))
@@ -2842,6 +2855,21 @@ def calculate_fcfe():
             # New parameters for CFA-compliant discounting
             start_year = int(request.form.get('start_year', 0))
             valuation_year = int(request.form.get('valuation_year', 0))
+
+            # Fallback to standard DCF if start_year or valuation_year not provided
+            if start_year == 0 or valuation_year == 0:
+                valuation_year = datetime.now().year
+                start_year = valuation_year  # Default to standard DCF
+
+            # Additional validation for compliance
+            if valuation_year < start_year:
+                raise ValueError("Error: Valuation year must be >= start year for forward projections.")
+            if (valuation_year - start_year) > 10:
+                raise ValueError("Error: Projection period exceeds 10 years.")
+
+            # Warning for past cash flows
+            if start_year < valuation_year:
+                warning_message = "You are valuing PAST cash flows. These will be compounded forward to the valuation year."
 
             intrinsic_per_share = 0
             if cost_equity > growth_rate > 0 and shares_outstanding > 0 and fcfe_results:
@@ -2889,13 +2917,19 @@ def calculate_fcfe():
                                  fcfe_results=fcfe_results, 
                                  intrinsic_per_share=intrinsic_per_share,
                                  num_years=num_years,
-                                 currency_symbol=currency_symbol)
-        except ValueError:
-            error = "Please enter valid numerical values for all fields and a valid number of years (3 to 5)."
+                                 currency_symbol=currency_symbol,
+                                 warning_message=warning_message,
+                                 start_year=start_year,
+                                 valuation_year=valuation_year)
+        except ValueError as e:
+            error = str(e) if str(e).startswith("Error:") else "Please enter valid numerical values for all fields and a valid number of years (3 to 5)."
             return render_template('FCFE.html', error=error, currency_symbol=currency_symbol, num_years=5)
     
-    return render_template('FCFE.html', currency_symbol=currency_symbol, num_years=5)
-
+    # Default start_year and valuation_year to current year for GET requests
+    current_year = datetime.now().year
+    return render_template('FCFE.html', currency_symbol=currency_symbol, num_years=5, start_year=current_year, valuation_year=current_year)
+    
+    
 # Helper functions for valuation calculations
 def calculate_two_stage_ddm(dividend, g_high, years_high, g_terminal, r):
     g_high = g_high / 100
