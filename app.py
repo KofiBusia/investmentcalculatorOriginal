@@ -116,14 +116,6 @@ class PeriodForm(FlaskForm):
     dividend_growth = FloatField('Dividend Growth Rate (%)', validators=[DataRequired()])
     roe = FloatField('Return on Equity (%)', validators=[DataRequired()])
 
-class FCFEForm(FlaskForm):
-    net_income = FloatField('Net Income', validators=[DataRequired(), NumberRange(min=-1000000, max=1000000)])
-    capex = FloatField('Capital Expenditures', validators=[DataRequired(), NumberRange(min=0, max=1000000)])
-    depreciation = FloatField('Depreciation', validators=[DataRequired(), NumberRange(min=0, max=1000000)])
-    change_in_working_capital = FloatField('Change in Working Capital', validators=[DataRequired(), NumberRange(min=-1000000, max=1000000)])
-    debt_issued = FloatField('Debt Issued', validators=[DataRequired(), NumberRange(min=0, max=1000000)])
-    debt_repaid = FloatField('Debt Repaid', validators=[DataRequired(), NumberRange(min=0, max=1000000)])
-
 # --- JINJA FILTERS ---
 def format_number(value, decimal_places=2, is_percentage=False, is_currency=False):
     if isinstance(value, (int, float)):
@@ -235,10 +227,6 @@ def calculate_tbills_rediscount(face_value, discount_rate, days_to_maturity):
     discount_amount = face_value * discount_rate * (days_to_maturity / 365)
     return face_value - discount_amount
 
-def calculate_fcfe(net_income, capex, depreciation, change_in_working_capital, debt_issued, debt_repaid):
-    """Calculate Free Cash Flow to Equity (FCFE)."""
-    return net_income + depreciation - capex - change_in_working_capital + debt_issued - debt_repaid
-
 # --- ROUTES ---
 @app.route('/')
 def index():
@@ -312,6 +300,163 @@ def dcf_calculator():
             error = str(e)
             logger.error(f"DCF calculation error: {e}")
     return render_template('dcf.html', error=error, results=results, form_data=form_data)
+
+@app.route('/fcfe', methods=['GET', 'POST'])
+def fcfe_calculator():
+    """Handle FCFE calculator form and calculations."""
+    current_year = 2025  # Based on current date August 26, 2025
+    form_data = {}
+    error = None
+    results = None
+
+    if request.method == 'POST':
+        form_data = request.form
+        try:
+            # Input data from form
+            num_years = int(form_data.get('num_years', 5))
+            if num_years < 3 or num_years > 5:
+                raise ValueError("Number of years must be between 3 and 5.")
+            cost_of_equity = float(form_data.get('cost_equity', 23.08)) / 100
+            perpetual_growth_rate = float(form_data.get('growth_rate', 4.0)) / 100
+            shares_outstanding = float(form_data.get('shares_outstanding', 265000))
+            start_year = int(form_data.get('start_year', current_year))
+            valuation_year = int(form_data.get('valuation_year', current_year))
+
+            if cost_of_equity <= 0:
+                raise ValueError("Cost of equity must be positive.")
+            if perpetual_growth_rate >= cost_of_equity:
+                raise ValueError("Perpetual growth rate must be less than cost of equity.")
+            if shares_outstanding <= 0:
+                raise ValueError("Shares outstanding must be positive.")
+            if valuation_year < start_year:
+                raise ValueError("Valuation year must be greater than or equal to start year.")
+            if (valuation_year - start_year) > 10:
+                raise ValueError("Projection period cannot exceed 10 years.")
+
+            # Collect data for available years
+            net_incomes = []
+            non_cash_charges = []
+            capexes = []
+            changes_wc = []
+            net_borrowings = []
+            fcfe_results = []
+
+            for i in range(1, num_years + 1):
+                ni_key = f'net_income_{i}'
+                nc_key = f'non_cash_{i}'
+                cap_key = f'capex_{i}'
+                cwc_key = f'change_wc_{i}'
+                nb_key = f'net_borrowing_{i}'
+
+                if ni_key in form_data and nc_key in form_data and cap_key in form_data and cwc_key in form_data and nb_key in form_data:
+                    ni = float(form_data[ni_key])
+                    nc = float(form_data[nc_key])
+                    cap = float(form_data[cap_key])
+                    cwc = float(form_data[cwc_key])
+                    nb = float(form_data[nb_key])
+
+                    fcfe = ni + nc - cap - cwc + nb
+
+                    net_incomes.append(ni)
+                    non_cash_charges.append(nc)
+                    capexes.append(cap)
+                    changes_wc.append(cwc)
+                    net_borrowings.append(nb)
+                    fcfe_results.append(fcfe)
+                else:
+                    raise ValueError(f"Missing data for Year {i}.")
+
+            # Calculate average FCFE
+            avg_fcfe = sum(fcfe_results) / num_years if fcfe_results else 0
+
+            # Forecast FV FCFE using perpetual growth rate
+            fv_fcfe = [avg_fcfe * (1 + perpetual_growth_rate) ** t for t in range(0, num_years + 1)]
+
+            # Calculate PV of FCFE
+            pv_fcfe = [
+                fv_fcfe[i] / (1 + cost_of_equity) ** (i if i == 0 else i) for i in range(num_years)
+            ]
+
+            # Calculate Terminal Value at year 5
+            terminal_value = fv_fcfe[-1] * (1 + perpetual_growth_rate) / (cost_of_equity - perpetual_growth_rate)
+            terminal_value_pv = terminal_value / (1 + cost_of_equity) ** num_years
+
+            # Total Present Value
+            total_pv = sum(pv_fcfe) + terminal_value_pv
+
+            # Intrinsic Value Per Share
+            intrinsic_value_per_share = round(total_pv / shares_outstanding, 2)
+
+            # Prepare DCF table
+            dcf_table = []
+            for i in range(num_years):
+                actual_year = start_year + i
+                time_period = i
+                dcf_table.append({
+                    'forecast_year': i + 1,
+                    'actual_year': actual_year,
+                    'time_period': time_period,
+                    'fv_fcfe': round(fv_fcfe[i], 2),
+                    'pv_fcfe': round(pv_fcfe[i], 2)
+                })
+
+            # Add Terminal Value to DCF table
+            dcf_table.append({
+                'forecast_year': 'Terminal Value',
+                'actual_year': start_year + num_years,
+                'time_period': num_years,
+                'fv_fcfe': round(terminal_value, 2),
+                'pv_fcfe': round(terminal_value_pv, 2)
+            })
+
+            # Prepare results for template
+            results = {
+                'avg_fcfe': round(avg_fcfe, 2),
+                'intrinsic_value_per_share': intrinsic_value_per_share,
+                'interpretation': (
+                    f"The company’s Free Cash Flow to Equity averages GHS {avg_fcfe:,.2f} over {num_years} year(s). "
+                    f"The estimated intrinsic value per share is GHS {intrinsic_value_per_share:,.2f}. Compare to current stock price."
+                ),
+                'dcf_table': dcf_table,
+                'fcfe_data': [
+                    {
+                        'year': i + 1,
+                        'net_income': net_incomes[i],
+                        'non_cash_charges': non_cash_charges[i],
+                        'capex': capexes[i],
+                        'change_wc': changes_wc[i],
+                        'net_borrowing': net_borrowings[i],
+                        'fcfe': round(fcfe_results[i], 2)
+                    } for i in range(num_years)
+                ]
+            }
+
+            logger.info("FCFE calculation successful")
+            return render_template(
+                'intrinsic_value_fcfe.html',
+                form_data=form_data,
+                error=error,
+                results=results,
+                num_years=num_years,
+                start_year=start_year,
+                valuation_year=valuation_year,
+                currency_symbol='GHS '
+            )
+
+        except (KeyError, ValueError) as e:
+            error = str(e)
+            logger.error(f"FCFE calculation error: {e}")
+
+    return render_template(
+        'intrinsic_value_fcfe.html',
+        form_data=form_data,
+        error=error,
+        results=results,
+        num_years=5,
+        start_year=current_year,
+        valuation_year=current_year,
+        currency_symbol='GHS '
+    )
 
 @app.route('/valuation_methods', methods=['GET', 'POST'])
 def valuation_methods():
@@ -603,200 +748,6 @@ def valuation_performance():
             return render_template('valuation_performance_multiples.html', error=f"An error occurred: {str(e)}", form_data=form_data)
     return render_template('valuation_performance_multiples.html', form_data=form_data)
 
-@app.route('/specialized-industry', methods=['GET', 'POST'])
-def specialized_industry():
-    """Handle specialized industry multiples calculations."""
-    form_data = request.form.to_dict() if request.method == 'POST' else {}
-    if request.method == 'POST':
-        try:
-            data = request.form
-            selected_formula = data.get('formula')
-            results = []
-            input_data = []
-            periods_filled = 0
-
-            if selected_formula == 'ltm_ebitda':
-                for i in range(1, 5):
-                    try:
-                        ebitda = float(data.get(f'ebitda_q{i}', 0)) if data.get(f'ebitda_q{i}') else None
-                        is_quarter_filled = ebitda is not None
-                        is_quarter_empty = ebitda is None
-
-                        if i == 1 and not is_quarter_filled:
-                            return render_template('specialized_industry_multiples.html', error=f'Please provide all required inputs for Quarter {i}.', form_data=form_data)
-                        if not is_quarter_empty and not is_quarter_filled:
-                            return render_template('specialized_industry_multiples.html', error=f'Please provide all required inputs for Quarter {i} or leave it empty.', form_data=form_data)
-                        if is_quarter_filled:
-                            results.append(ebitda)
-                            input_data.append({'quarter': i, 'ebitda': ebitda, 'result': ebitda})
-                            periods_filled += 1
-                    except ValueError:
-                        return render_template('specialized_industry_multiples.html', error=f'Invalid input for Quarter {i}. Please ensure all inputs are valid numbers.', form_data=form_data)
-
-                if periods_filled == 0:
-                    return render_template('specialized_industry_multiples.html', error='Please provide at least one quarter of data.', form_data=form_data)
-
-                average_result = sum(results)
-                unit = 'GHS'
-                logger.info(f"Specialized industry LTM EBITDA calculated for {periods_filled} quarters")
-                return render_template('specialized_industry_multiples.html', results=input_data, average_result=average_result, unit=unit, form_data=form_data, selected_formula=selected_formula)
-
-            elif selected_formula == 'ntm_ebitda':
-                try:
-                    current_fy = float(data.get('current_fy_ebitda', 0)) if data.get('current_fy_ebitda') else None
-                    next_fy = float(data.get('next_fy_ebitda', 0)) if data.get('next_fy_ebitda') else None
-                    months_remaining = float(data.get('months_remaining', 0)) if data.get('months_remaining') else None
-                    months_passed = float(data.get('months_passed', 0)) if data.get('months_passed') else None
-
-                    if any(v is None for v in [current_fy, next_fy, months_remaining, months_passed]):
-                        return render_template('specialized_industry_multiples.html', error='Please provide all required inputs for NTM EBITDA.', form_data=form_data)
-                    if months_remaining + months_passed != 12:
-                        return render_template('specialized_industry_multiples.html', error='Months Remaining and Months Passed must sum to 12.', form_data=form_data)
-
-                    result = (current_fy * months_remaining / 12) + (next_fy * months_passed / 12)
-                    input_data.append({
-                        'current_fy': current_fy,
-                        'next_fy': next_fy,
-                        'months_remaining': months_remaining,
-                        'months_passed': months_passed,
-                        'result': result
-                    })
-                    results.append(result)
-                    periods_filled = 1
-                    average_result = result
-                    unit = 'GHS'
-                    logger.info("Specialized industry NTM EBITDA calculated")
-                    return render_template('specialized_industry_multiples.html', results=input_data, average_result=average_result, unit=unit, form_data=form_data, selected_formula=selected_formula)
-                except ValueError:
-                    return render_template('specialized_industry_multiples.html', error='Invalid input for NTM EBITDA. Please ensure all inputs are valid numbers.', form_data=form_data)
-
-            else:
-                for i in range(1, 6):
-                    try:
-                        market_cap = float(data.get(f'market_cap_{i}', 0)) if data.get(f'market_cap_{i}') else None
-                        total_debt = float(data.get(f'total_debt_{i}', 0)) if data.get(f'total_debt_{i}') else None
-                        preferred_stock = float(data.get(f'preferred_stock_{i}', 0)) if data.get(f'preferred_stock_{i}') else None
-                        minority_interest = float(data.get(f'minority_interest_{i}', 0)) if data.get(f'minority_interest_{i}') else None
-                        cash = float(data.get(f'cash_{i}', 0)) if data.get(f'cash_{i}') else None
-                        non_operating_assets = float(data.get(f'non_operating_assets_{i}', 0)) if data.get(f'non_operating_assets_{i}') else None
-                        ebitda = float(data.get(f'ebitda_{i}', 0)) if data.get(f'ebitda_{i}') else None
-                        ebit = float(data.get(f'ebit_{i}', 0)) if data.get(f'ebit_{i}') else None
-                        revenue = float(data.get(f'revenue_{i}', 0)) if data.get(f'revenue_{i}') else None
-                        prior_revenue = float(data.get(f'prior_revenue_{i}', 0)) if data.get(f'prior_revenue_{i}') else None
-                        eps = float(data.get(f'eps_{i}', 0)) if data.get(f'eps_{i}') else None
-                        prior_eps = float(data.get(f'prior_eps_{i}', 0)) if data.get(f'prior_eps_{i}') else None
-                        tax_rate = float(data.get(f'tax_rate_{i}', 0)) if data.get(f'tax_rate_{i}') else None
-                        rent_expense = float(data.get(f'rent_expense_{i}', 0)) if data.get(f'rent_expense_{i}') else None
-                        subscribers = float(data.get(f'subscribers_{i}', 0)) if data.get(f'subscribers_{i}') else None
-                        boe = float(data.get(f'boe_{i}', 0)) if data.get(f'boe_{i}') else None
-                        square_footage = float(data.get(f'square_footage_{i}', 0)) if data.get(f'square_footage_{i}') else None
-                        mau = float(data.get(f'mau_{i}', 0)) if data.get(f'mau_{i}') else None
-                        ffo_per_share = float(data.get(f'ffo_per_share_{i}', 0)) if data.get(f'ffo_per_share_{i}') else None
-                        tangible_bvps = float(data.get(f'tangible_bvps_{i}', 0)) if data.get(f'tangible_bvps_{i}') else None
-                        share_price = float(data.get(f'share_price_{i}', 0)) if data.get(f'share_price_{i}') else None
-
-                        is_year_filled = all(v is not None for v in [market_cap, total_debt, preferred_stock, minority_interest, cash, non_operating_assets, ebitda, ebit, revenue, prior_revenue, eps, prior_eps, tax_rate, rent_expense, subscribers, boe, square_footage, mau, ffo_per_share, tangible_bvps, share_price])
-                        is_year_empty = all(v is None for v in [market_cap, total_debt, preferred_stock, minority_interest, cash, non_operating_assets, ebitda, ebit, revenue, prior_revenue, eps, prior_eps, tax_rate, rent_expense, subscribers, boe, square_footage, mau, ffo_per_share, tangible_bvps, share_price])
-
-                        if i == 1 and not is_year_filled:
-                            return render_template('specialized_industry_multiples.html', error=f'Please provide all required inputs for Year {i}.', form_data=form_data)
-                        if not is_year_empty and not is_year_filled:
-                            return render_template('specialized_industry_multiples.html', error=f'Please provide all required inputs for Year {i} or leave it empty.', form_data=form_data)
-                        if is_year_filled:
-                            ev = market_cap + total_debt + preferred_stock + minority_interest - cash - non_operating_assets
-                            result = None
-                            if selected_formula == 'net_debt':
-                                result = total_debt - cash
-                            elif selected_formula == 'net_debt_ebitda':
-                                if ebitda == 0:
-                                    return render_template('specialized_industry_multiples.html', error=f'EBITDA cannot be zero for Year {i} in Net Debt/EBITDA calculation.', form_data=form_data)
-                                result = (total_debt - cash) / ebitda
-                            elif selected_formula == 'revenue_growth':
-                                if prior_revenue == 0:
-                                    return render_template('specialized_industry_multiples.html', error=f'Prior Revenue cannot be zero for Year {i} in Revenue Growth calculation.', form_data=form_data)
-                                result = ((revenue - prior_revenue) / prior_revenue) * 100
-                            elif selected_formula == 'eps_growth':
-                                if prior_eps == 0:
-                                    return render_template('specialized_industry_multiples.html', error=f'Prior EPS cannot be zero for Year {i} in EPS Growth calculation.', form_data=form_data)
-                                result = ((eps - prior_eps) / prior_eps) * 100
-                            elif selected_formula == 'unlevered_pe':
-                                ebiat = ebit * (1 - tax_rate / 100)
-                                if ebiat == 0:
-                                    return render_template('specialized_industry_multiples.html', error=f'EBIAT cannot be zero for Year {i} in Unlevered P/E calculation.', form_data=form_data)
-                                result = ev / ebiat
-                            elif selected_formula == 'tev_ebitdar':
-                                ebitdar = ebitda + rent_expense
-                                tev = ev
-                                if ebitdar == 0:
-                                    return render_template('specialized_industry_multiples.html', error=f'EBITDAR cannot be zero for Year {i} in TEV/EBITDAR calculation.', form_data=form_data)
-                                result = tev / ebitdar
-                            elif selected_formula == 'ev_subscribers':
-                                if subscribers == 0:
-                                    return render_template('specialized_industry_multiples.html', error=f'Subscribers cannot be zero for Year {i} in EV/Subscribers calculation.', form_data=form_data)
-                                result = ev / subscribers
-                            elif selected_formula == 'ev_boe':
-                                if boe == 0:
-                                    return render_template('specialized_industry_multiples.html', error=f'BOE cannot be zero for Year {i} in EV/BOE calculation.', form_data=form_data)
-                                result = ev / boe
-                            elif selected_formula == 'ev_square_foot':
-                                if square_footage == 0:
-                                    return render_template('specialized_industry_multiples.html', error=f'Square Footage cannot be zero for Year {i} in EV/Square Foot calculation.', form_data=form_data)
-                                result = ev / square_footage
-                            elif selected_formula == 'ev_mau':
-                                if mau == 0:
-                                    return render_template('specialized_industry_multiples.html', error=f'MAU cannot be zero for Year {i} in EV/MAU calculation.', form_data=form_data)
-                                result = ev / mau
-                            elif selected_formula == 'p_ffo':
-                                if ffo_per_share == 0:
-                                    return render_template('specialized_industry_multiples.html', error=f'FFO Per Share cannot be zero for Year {i} in P/FFO calculation.', form_data=form_data)
-                                result = share_price / ffo_per_share
-                            elif selected_formula == 'p_tbv':
-                                if tangible_bvps == 0:
-                                    return render_template('specialized_industry_multiples.html', error=f'Tangible Book Value Per Share cannot be zero for Year {i} in P/TBV calculation.', form_data=form_data)
-                                result = share_price / tangible_bvps
-
-                            input_data.append({
-                                'year': i,
-                                'market_cap': market_cap,
-                                'total_debt': total_debt,
-                                'preferred_stock': preferred_stock,
-                                'minority_interest': minority_interest,
-                                'cash': cash,
-                                'non_operating_assets': non_operating_assets,
-                                'ebitda': ebitda,
-                                'ebit': ebit,
-                                'revenue': revenue,
-                                'prior_revenue': prior_revenue,
-                                'eps': eps,
-                                'prior_eps': prior_eps,
-                                'tax_rate': tax_rate,
-                                'rent_expense': rent_expense,
-                                'subscribers': subscribers,
-                                'boe': boe,
-                                'square_footage': square_footage,
-                                'mau': mau,
-                                'ffo_per_share': ffo_per_share,
-                                'tangible_bvps': tangible_bvps,
-                                'share_price': share_price,
-                                'result': result
-                            })
-                            results.append(result)
-                            periods_filled += 1
-                    except ValueError:
-                        return render_template('specialized_industry_multiples.html', error=f'Invalid input for Year {i}. Please ensure all inputs are valid numbers.', form_data=form_data)
-
-                if periods_filled == 0:
-                    return render_template('specialized_industry_multiples.html', error='Please provide at least one year of data.', form_data=form_data)
-
-                average_result = sum(results) / periods_filled
-                unit = '%' if selected_formula in ['revenue_growth', 'eps_growth'] else 'GHS' if selected_formula == 'net_debt' else 'x'
-                logger.info(f"Specialized industry calculated for {periods_filled} periods with formula {selected_formula}")
-                return render_template('specialized_industry_multiples.html', results=input_data, average_result=average_result, unit=unit, form_data=form_data, selected_formula=selected_formula)
-        except Exception as e:
-            logger.error(f"Specialized industry error: {e}")
-            return render_template('specialized_industry_multiples.html', error=f"An error occurred: {str(e)}", form_data=form_data)
-    return render_template('specialized_industry_multiples.html', form_data=form_data)
-
 @app.route('/multiples-master-valuation', methods=['GET', 'POST'])
 def multiples_master_valuation():
     """Handle multiples master valuation form and calculations."""
@@ -914,151 +865,6 @@ def tbills_rediscount():
             logger.error(f"T-Bill rediscount error: {e}")
             return render_template('tbills_rediscount.html', error=str(e), form_data=form_data)
     return render_template('tbills_rediscount.html', form_data=form_data)
-
-@app.route('/calculate-fcfe', methods=['GET', 'POST'])
-def calculate_fcfe_route():
-    """Handle FCFE calculation form and results."""
-    form = FCFEForm()
-    form_data = request.form.to_dict() if request.method == 'POST' else {}
-    start_year = int(form_data.get('start_year', datetime.now().year))  # Default to current year
-    if request.method == 'POST' and form.validate_on_submit():
-        try:
-            net_income = form.net_income.data
-            capex = form.capex.data
-            depreciation = form.depreciation.data
-            change_in_working_capital = form.change_in_working_capital.data
-            debt_issued = form.debt_issued.data
-            debt_repaid = form.debt_repaid.data
-
-            fcfe = calculate_fcfe(net_income, capex, depreciation, change_in_working_capital, debt_issued, debt_repaid)
-            logger.info("FCFE calculation successful")
-            return render_template('fcfe.html', result={'fcfe': round(fcfe, 2)}, form=form, form_data=form_data, start_year=start_year)
-        except ValueError as e:
-            logger.error(f"FCFE calculation error: {e}")
-            return render_template('fcfe.html', error=str(e), form=form, form_data=form_data, start_year=start_year)
-        except Exception as e:
-            logger.error(f"Unexpected error in FCFE calculation: {e}")
-            return render_template('fcfe.html', error="An unexpected error occurred. Please try again.", form=form, form_data=form_data, start_year=start_year)
-    return render_template('fcfe.html', form=form, form_data=form_data, start_year=start_year)
-
-@app.route('/multi-method-valuation', methods=['GET', 'POST'])
-def multi_method_valuation():
-    """Handle multi-method valuation form and calculations."""
-    form = PeriodForm()  # Reuse PeriodForm for validation
-    form_data = request.form.to_dict() if request.method == 'POST' else {}
-    if request.method == 'POST' and form.validate_on_submit():
-        try:
-            currency = form.currency.data
-            weight_scenario = form.weight_scenario.data
-            current_price = form.current_price.data
-            years_high = int(form.pe_years.data)  # Reuse pe_years as years_high
-            growth_high = form.eps_growth.data  # Reuse eps_growth as growth_high
-            growth_terminal = form.dividend_growth.data  # Reuse dividend_growth as terminal growth
-            discount_rate = form.required_return.data
-            ddm_base_dividend = form.dividend_per_share.data
-            ddm_sensitivity_dividend = ddm_base_dividend * 0.9  # Sensitivity at 90% of base
-            dcf_fcfe = form.eps.data  # Reuse eps as proxy for fcfe
-            pe_eps = form.eps.data
-            pe_growth = form.eps_growth.data
-            pe_multiple = form.pe_multiple.data
-            pe_years = form.pe_years.data
-
-            # Enhanced validation
-            if any(x <= 0 for x in [current_price, ddm_base_dividend, dcf_fcfe, pe_eps, pe_multiple, pe_years, years_high]):
-                raise ValueError("All monetary values and years must be positive and non-zero")
-            if any(x < 0 or x > 100 for x in [growth_high, growth_terminal, pe_growth]) or discount_rate <= 0 or discount_rate > 50:
-                raise ValueError("Rates must be between 0 and 100%, discount rate between 0.01 and 50")
-            if growth_terminal >= growth_high:
-                raise ValueError("Terminal growth rate must be less than high-growth rate")
-            if discount_rate <= growth_terminal:
-                raise ValueError("Discount rate must be greater than terminal growth rate")
-            if years_high > 20 or pe_years > 5:
-                raise ValueError("High-growth years must be <= 20, P/E years <= 5")
-            if weight_scenario not in ['conservative', 'balanced', 'growth']:
-                raise ValueError("Invalid weighting scenario")
-            if currency not in ['USD', 'GHS', 'EUR', 'GBP', 'JPY']:
-                raise ValueError("Invalid currency selected")
-
-            ddm_base = calculate_two_stage_ddm(ddm_base_dividend, growth_high, years_high, growth_terminal, discount_rate)
-            ddm_sensitivity = calculate_two_stage_ddm(ddm_sensitivity_dividend, growth_high, years_high, growth_terminal, discount_rate)
-            dcf_value = calculate_two_stage_dcf(dcf_fcfe, growth_high, years_high, growth_terminal, discount_rate)
-            pe_target = calculate_pe_target(pe_eps, pe_growth, pe_years, pe_multiple)
-
-            weights = {
-                'conservative': [30, 20, 30, 20],
-                'balanced': [20, 20, 40, 20],
-                'growth': [20, 20, 30, 30]
-            }[weight_scenario]
-            weight_priority = {
-                'conservative': 'DDM Base and DCF',
-                'balanced': 'DCF',
-                'growth': 'DCF and P/E'
-            }[weight_scenario]
-            weight_rationale = {
-                'conservative': 'emphasis on dividend stability and cash flow reliability',
-                'balanced': 'cash flow focus',
-                'growth': 'growth potential and market alignment'
-            }[weight_scenario]
-            weight_max_index = {'conservative': 0, 'balanced': 2, 'growth': 2}[weight_scenario]
-
-            values = [ddm_base, ddm_sensitivity, dcf_value, pe_target]
-            weighted_average = sum(v * w / 100 for v, w in zip(values, weights))
-
-            sensitivity = {
-                'discount_rate_low': discount_rate * 0.9,
-                'discount_rate_high': discount_rate * 1.1,
-                'growth_high_low': growth_high * 0.9,
-                'growth_high_high': growth_high * 1.1,
-                'value_low': sum([
-                    calculate_two_stage_ddm(ddm_base_dividend, growth_high * 0.9, years_high, growth_terminal, discount_rate * 0.9) * (weights[0] / 100),
-                    calculate_two_stage_ddm(ddm_sensitivity_dividend, growth_high * 0.9, years_high, growth_terminal, discount_rate * 0.9) * (weights[1] / 100),
-                    calculate_two_stage_dcf(dcf_fcfe, growth_high * 0.9, years_high, growth_terminal, discount_rate * 0.9) * (weights[2] / 100),
-                    calculate_pe_target(pe_eps, pe_growth * 0.9, pe_years, pe_multiple) * (weights[3] / 100)
-                ]),
-                'value_high': sum([
-                    calculate_two_stage_ddm(ddm_base_dividend, growth_high * 1.1, years_high, growth_terminal, discount_rate * 1.1) * (weights[0] / 100),
-                    calculate_two_stage_ddm(ddm_sensitivity_dividend, growth_high * 1.1, years_high, growth_terminal, discount_rate * 1.1) * (weights[1] / 100),
-                    calculate_two_stage_dcf(dcf_fcfe, growth_high * 1.1, years_high, growth_terminal, discount_rate * 1.1) * (weights[2] / 100),
-                    calculate_pe_target(pe_eps, pe_growth * 1.1, pe_years, pe_multiple) * (weights[3] / 100)
-                ])
-            }
-
-            over_under_valuation = (current_price / weighted_average - 1) * 100 if weighted_average > 0 else float('inf')
-
-            result = {
-                'currency': currency,
-                'ddm_base': round(ddm_base, 2),
-                'ddm_sensitivity': round(ddm_sensitivity, 2),
-                'dcf': round(dcf_value, 2),
-                'pe_target': round(pe_target, 2),
-                'weighted_average': round(weighted_average, 2),
-                'over_under_valuation': round(over_under_valuation, 2),
-                'pe_years': pe_years,
-                'current_price': round(current_price, 2),
-                'weights': weights,
-                'weight_priority': weight_priority,
-                'weight_rationale': weight_rationale,
-                'weight_max_index': weight_max_index,
-                'discount_rate': round(discount_rate, 2),
-                'growth_high': round(growth_high, 2),
-                'sensitivity': {
-                    'discount_rate_low': round(sensitivity['discount_rate_low'], 2),
-                    'discount_rate_high': round(sensitivity['discount_rate_high'], 2),
-                    'growth_high_low': round(sensitivity['growth_high_low'], 2),
-                    'growth_high_high': round(sensitivity['growth_high_high'], 2),
-                    'value_low': round(sensitivity['value_low'], 2),
-                    'value_high': round(sensitivity['value_high'], 2)
-                }
-            }
-            logger.info("Multi-method valuation calculation successful")
-            return render_template('multi_method_valuation.html', result=result, form=form, form_data=form_data)
-        except ValueError as e:
-            logger.error(f"Multi-method valuation error: {e}")
-            return render_template('multi_method_valuation.html', error=str(e), form=form, form_data=form_data)
-        except Exception as e:
-            logger.error(f"Unexpected error in multi-method valuation: {e}")
-            return render_template('multi_method_valuation.html', error="An unexpected error occurred. Please try again.", form=form, form_data=form_data)
-    return render_template('multi_method_valuation.html', form=form, form_data=form_data)
 
 @app.route('/bank-intrinsic-value', methods=['GET', 'POST'])
 def bank_intrinsic_value():
