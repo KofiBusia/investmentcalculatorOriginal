@@ -1,87 +1,103 @@
-Exception on /calculate-fcfe [GET]
+Exception on /multi-method-valuation [GET]
 Traceback (most recent call last):
-  File "C:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\flask\app.py", line 1511, in wsgi_app
+  File "c:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\flask\app.py", line 1511, in wsgi_app
     response = self.full_dispatch_request()
-  File "C:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\flask\app.py", line 919, in full_dispatch_request
+  File "c:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\flask\app.py", line 919, in full_dispatch_request
     rv = self.handle_user_exception(e)
-  File "C:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+  File "c:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\flask\app.py", line 917, in full_dispatch_request
     rv = self.dispatch_request()
-  File "C:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\flask\app.py", line 902, in dispatch_request
+  File "c:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\flask\app.py", line 902, in dispatch_request
     return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
-  File "C:\Users\kkyei\Desktop\Investment_Calculator3\app.py", line 2920, in calculate_fcfe
-    return render_template('FCFE.html', currency_symbol=currency_symbol, num_years=5, start_year=current_year, valuation_year=current_year)
-  File "C:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\flask\templating.py", line 149, in render_template
-    template = app.jinja_env.get_or_select_template(template_name_or_list)
-  File "C:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\jinja2\environment.py", line 1087, in get_or_select_template
-    return self.get_template(template_name_or_list, parent, globals)
-  File "C:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\jinja2\environment.py", line 1016, in get_template
-    return self._load_template(name, globals)
-  File "C:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\jinja2\environment.py", line 975, in _load_template
-    template = self.loader.load(self, name, self.make_globals(globals))
-  File "C:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\jinja2\loaders.py", line 138, in load
-    code = environment.compile(source, name, filename)
-  File "C:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\jinja2\environment.py", line 771, in compile
-    self.handle_exception(source=source_hint)
-  File "C:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\jinja2\environment.py", line 942, in handle_exception
+  File "C:\Users\kkyei\Desktop\Investment_Calculator3\app.py", line 1141, in multi_method_valuation
+    return render_template('multi_method_valuation.html', form_data=form_data)
+  File "c:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\flask\templating.py", line 150, in render_template
+    return _render(app, template, context)
+  File "c:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\flask\templating.py", line 131, in _render
+    rv = template.render(context)
+  File "c:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\jinja2\environment.py", line 1295, in render
+    self.environment.handle_exception()
+  File "c:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\jinja2\environment.py", line 942, in handle_exception
     raise rewrite_traceback_stack(source=source)
-  File "C:\Users\kkyei\Desktop\Investment_Calculator3\templates\FCFE.html", line 467, in template
-    <td>{{ currency_symbol }}{{ net_incomes[i] | float | format_number }}</td>
-jinja2.exceptions.TemplateAssertionError: No filter named 'format_number'.
-Exception on /calculate-fcfe [GET]
+  File "C:\Users\kkyei\Desktop\Investment_Calculator3\templates\multi_method_valuation.html", line 249, in top-level template code
+    {{ form.hidden_tag() }}
+  File "c:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\jinja2\environment.py", line 490, in getattr
+    return getattr(obj, attribute)
+jinja2.exceptions.UndefinedError: 'form' is undefined
+Exception on /multi-method-valuation [GET]
 Traceback (most recent call last):
-  File "C:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\flask\app.py", line 1511, in wsgi_app
+  File "c:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\flask\app.py", line 1511, in wsgi_app
     response = self.full_dispatch_request()
-  File "C:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\flask\app.py", line 919, in full_dispatch_request
+  File "c:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\flask\app.py", line 919, in full_dispatch_request
     rv = self.handle_user_exception(e)
-  File "C:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+  File "c:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\flask\app.py", line 917, in full_dispatch_request
     rv = self.dispatch_request()
-  File "C:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\flask\app.py", line 902, in dispatch_request
+  File "c:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\flask\app.py", line 902, in dispatch_request
     return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
-  File "C:\Users\kkyei\Desktop\Investment_Calculator3\app.py", line 2920, in calculate_fcfe
-    return render_template('FCFE.html', currency_symbol=currency_symbol, num_years=5, start_year=current_year, valuation_year=current_year)
-  File "C:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\flask\templating.py", line 149, in render_template
-    template = app.jinja_env.get_or_select_template(template_name_or_list)
-  File "C:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\jinja2\environment.py", line 1087, in get_or_select_template
-    return self.get_template(template_name_or_list, parent, globals)
-  File "C:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\jinja2\environment.py", line 1016, in get_template
-    return self._load_template(name, globals)
-  File "C:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\jinja2\environment.py", line 975, in _load_template
-    template = self.loader.load(self, name, self.make_globals(globals))
-  File "C:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\jinja2\loaders.py", line 138, in load
-    code = environment.compile(source, name, filename)
-  File "C:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\jinja2\environment.py", line 771, in compile
-    self.handle_exception(source=source_hint)
-  File "C:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\jinja2\environment.py", line 942, in handle_exception
+  File "C:\Users\kkyei\Desktop\Investment_Calculator3\app.py", line 1141, in multi_method_valuation
+    return render_template('multi_method_valuation.html', form_data=form_data)
+  File "c:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\flask\templating.py", line 150, in render_template
+    return _render(app, template, context)
+  File "c:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\flask\templating.py", line 131, in _render
+    rv = template.render(context)
+  File "c:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\jinja2\environment.py", line 1295, in render
+    self.environment.handle_exception()
+  File "c:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\jinja2\environment.py", line 942, in handle_exception
     raise rewrite_traceback_stack(source=source)
-  File "C:\Users\kkyei\Desktop\Investment_Calculator3\templates\FCFE.html", line 467, in template
-    <td>{{ currency_symbol }}{{ net_incomes[i] | float | format_number }}</td>
-jinja2.exceptions.TemplateAssertionError: No filter named 'format_number'.
-Exception on /calculate-fcfe [GET]
+  File "C:\Users\kkyei\Desktop\Investment_Calculator3\templates\multi_method_valuation.html", line 249, in top-level template code
+    {{ form.hidden_tag() }}
+  File "c:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\jinja2\environment.py", line 490, in getattr
+    return getattr(obj, attribute)
+jinja2.exceptions.UndefinedError: 'form' is undefined
+T-Bill rediscount error: All inputs must be positive numbers.
+T-Bill rediscount error: All inputs must be positive numbers.
+T-Bill rediscount error: All inputs must be positive numbers.
+Exception on /multi-method-valuation [GET]
 Traceback (most recent call last):
-  File "C:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\flask\app.py", line 1511, in wsgi_app
+  File "c:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\flask\app.py", line 1511, in wsgi_app
     response = self.full_dispatch_request()
-  File "C:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\flask\app.py", line 919, in full_dispatch_request
+  File "c:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\flask\app.py", line 919, in full_dispatch_request
     rv = self.handle_user_exception(e)
-  File "C:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+  File "c:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\flask\app.py", line 917, in full_dispatch_request
     rv = self.dispatch_request()
-  File "C:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\flask\app.py", line 902, in dispatch_request
+  File "c:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\flask\app.py", line 902, in dispatch_request
     return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
-  File "C:\Users\kkyei\Desktop\Investment_Calculator3\app.py", line 2920, in calculate_fcfe
-    return render_template('FCFE.html', currency_symbol=currency_symbol, num_years=5, start_year=current_year, valuation_year=current_year)
-  File "C:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\flask\templating.py", line 149, in render_template
-    template = app.jinja_env.get_or_select_template(template_name_or_list)
-  File "C:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\jinja2\environment.py", line 1087, in get_or_select_template
-    return self.get_template(template_name_or_list, parent, globals)
-  File "C:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\jinja2\environment.py", line 1016, in get_template
-    return self._load_template(name, globals)
-  File "C:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\jinja2\environment.py", line 975, in _load_template
-    template = self.loader.load(self, name, self.make_globals(globals))
-  File "C:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\jinja2\loaders.py", line 138, in load
-    code = environment.compile(source, name, filename)
-  File "C:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\jinja2\environment.py", line 771, in compile
-    self.handle_exception(source=source_hint)
-  File "C:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\jinja2\environment.py", line 942, in handle_exception
+  File "C:\Users\kkyei\Desktop\Investment_Calculator3\app.py", line 1141, in multi_method_valuation
+    return render_template('multi_method_valuation.html', form_data=form_data)
+  File "c:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\flask\templating.py", line 150, in render_template
+    return _render(app, template, context)
+  File "c:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\flask\templating.py", line 131, in _render
+    rv = template.render(context)
+  File "c:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\jinja2\environment.py", line 1295, in render
+    self.environment.handle_exception()
+  File "c:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\jinja2\environment.py", line 942, in handle_exception
     raise rewrite_traceback_stack(source=source)
-  File "C:\Users\kkyei\Desktop\Investment_Calculator3\templates\FCFE.html", line 467, in template
-    <td>{{ currency_symbol }}{{ net_incomes[i] | float | format_number }}</td>
-jinja2.exceptions.TemplateAssertionError: No filter named 'format_number'.
+  File "C:\Users\kkyei\Desktop\Investment_Calculator3\templates\multi_method_valuation.html", line 249, in top-level template code
+    {{ form.hidden_tag() }}
+  File "c:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\jinja2\environment.py", line 490, in getattr
+    return getattr(obj, attribute)
+jinja2.exceptions.UndefinedError: 'form' is undefined
+Exception on /multi-method-valuation [GET]
+Traceback (most recent call last):
+  File "c:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\flask\app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+  File "c:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\flask\app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+  File "c:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+  File "c:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\flask\app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+  File "C:\Users\kkyei\Desktop\Investment_Calculator3\app.py", line 1141, in multi_method_valuation
+    return render_template('multi_method_valuation.html', form_data=form_data)
+  File "c:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\flask\templating.py", line 150, in render_template
+    return _render(app, template, context)
+  File "c:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\flask\templating.py", line 131, in _render
+    rv = template.render(context)
+  File "c:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\jinja2\environment.py", line 1295, in render
+    self.environment.handle_exception()
+  File "c:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\jinja2\environment.py", line 942, in handle_exception
+    raise rewrite_traceback_stack(source=source)
+  File "C:\Users\kkyei\Desktop\Investment_Calculator3\templates\multi_method_valuation.html", line 249, in top-level template code
+    {{ form.hidden_tag() }}
+  File "c:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\jinja2\environment.py", line 490, in getattr
+    return getattr(obj, attribute)
+jinja2.exceptions.UndefinedError: 'form' is undefined

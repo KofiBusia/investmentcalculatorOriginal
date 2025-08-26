@@ -1,1727 +1,82 @@
-# STANDARD LIBRARY IMPORTS
-# ------------------------
-from flask_wtf import CSRFProtect
-import io
+# Investment Calculator Flask Application
+# File: app.py
+# Description: A Flask web application for financial calculations including DCF, valuation methods,
+#              leverage ratios, and more, with SQLAlchemy for database integration and WTForms for input validation.
+
+# --- STANDARD LIBRARY IMPORTS ---
+import json
 import logging
 import os
-import re
-import subprocess
-import tempfile
-from collections import namedtuple
-from dataclasses import dataclass
 from datetime import datetime
-from PIL import Image
-from flask import Flask, render_template, request, redirect, url_for
-import math
-from flask import Flask, request, render_template
-from wtforms import HiddenField
-from flask_wtf.csrf import CSRFProtect
-from flask_sqlalchemy import SQLAlchemy
-from flask_bcrypt import Bcrypt
-from flask_uploads import UploadSet, IMAGES, configure_uploads
-from flask_migrate import Migrate
-from flask_login import LoginManager
-import os
-import logging
-import logging
-from flask import Flask, render_template, request, redirect, url_for
-from wtforms import StringField, FloatField, SelectField, IntegerField
-from wtforms.validators import DataRequired, NumberRange, Length
-import uuid
-
-
-
-app = Flask(__name__)
-import logging
-if os.getenv('FLASK_ENV') == 'production':
-    logging.basicConfig(level=logging.INFO, filename='app.log', filemode='a',
-                        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-   
-   # Logging for debugging
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
- 
- 
-# THIRD-PARTY IMPORTS
-# -------------------
-from dotenv import load_dotenv
-from flask import (
-    Flask, abort, flash, redirect, render_template, request,
-    send_file, send_from_directory, session, url_for
-)
-from flask_bcrypt import Bcrypt
-from flask_login import (
-    LoginManager, UserMixin, current_user,
-    login_required, login_user, logout_user
-)
-from flask_migrate import Migrate
-from flask_sqlalchemy import SQLAlchemy
-from flask_uploads import UploadSet, IMAGES, configure_uploads, IMAGES
-from flask_wtf import FlaskForm
-from slugify import slugify
-from wtforms import (
-    DateTimeField, FieldList, FileField, FormField, IntegerField,
-    SelectField, StringField, SubmitField, TextAreaField,
-    validators
-)
-import pandas as pd
-import numpy as np
-import numpy_financial as npf
-from wtforms.validators import DataRequired  # ← Add this line
-
-# ENVIRONMENT CONFIGURATION
-# --------------------------
-load_dotenv()
-
-# FLASK APPLICATION INITIALIZATION
-# --------------------------------
-app = Flask(__name__)
-
-# CONFIGURATION SETTINGS
-# ----------------------
-import os
-
-# Security
-app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'e1efa2b32b1bac66588d074bac02a168212082d8befd0b6466f5ee37a8c2836a')
-app.config['MAX_CONTENT_LENGTH'] = 5 * 1024 * 1024  # 5 MB limit
-csrf = CSRFProtect(app)
-
-# Database
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///investment_insights.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
-    'pool_size': 10,
-    'pool_timeout': 30,
-    'pool_recycle': 1800,
-}
-
-# File Uploads
-app.config['UPLOAD_FOLDER'] = 'static/author_photos'
-app.config['UPLOADED_PHOTOS_DEST'] = 'static/author_photos'
-
-app.config['UPLOAD_FOLDER'] = os.path.join(app.root_path, 'static', 'author_photos')
-app.config['UPLOADED_PHOTOS_DEST'] = os.path.join(app.root_path, 'static', 'author_photos')
-
-#
-
-# Email
-# Initialize extensions
-db = SQLAlchemy(app)
-bcrypt = Bcrypt(app)
-migrate = Migrate(app, db)
-photos = UploadSet('photos', IMAGES)
-configure_uploads(app, photos)
-login_manager = LoginManager(app)
-login_manager.login_view = 'login'
-
-# (Add remaining application components like models, routes, and forms below)
-
-# CSRF Form
-class ValuationForm(FlaskForm):
-    csrf_token = HiddenField()
-
-from wtforms import HiddenField
-from flask_wtf.csrf import CSRFProtect
-
-# MODELS BLOCK
-# ------------
-# Defines database models for the application
-class User(db.Model, UserMixin):
-    """User model for authentication"""
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(20), unique=True, nullable=False)
-    password = db.Column(db.String(60), nullable=False)
-
-class BlogPost(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(200), nullable=False)
-    content = db.Column(db.Text, nullable=False)
-    author = db.Column(db.String(100), nullable=False, default="Admin")
-    author_photo = db.Column(db.String(100), nullable=True)
-    main_image = db.Column(db.String(100), nullable=True)  # New field for main image
-    date_posted = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    slug = db.Column(db.String(200), nullable=False, unique=True)
-
-class Article(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(100), nullable=False)
-    slug = db.Column(db.String(100), unique=True, nullable=False)
-    author = db.Column(db.String(50), nullable=False)
-    author_photo = db.Column(db.String(100), nullable=True)
-    content = db.Column(db.Text, nullable=False)
-    date_posted = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-
-    def __repr__(self):
-        return f'<Article {self.title}>'
-    
-class ArticleForm(FlaskForm):
-    title = StringField('Title', validators=[
-        validators.DataRequired(),
-        validators.Length(min=5, max=100)
-    ])
-    author = StringField('Author', validators=[
-        validators.DataRequired(),
-        validators.Length(min=2, max=50)
-    ])
-    author_photo = FileField('Author Photo')
-    content = TextAreaField('Content', validators=[validators.DataRequired()])
-    submit = SubmitField('Post Article')
-    
-class BlogForm(FlaskForm):
-    title = StringField('Title', validators=[validators.DataRequired(), validators.Length(min=5, max=200)])
-    author = StringField('Author', validators=[validators.DataRequired(), validators.Length(min=2, max=100)])
-    author_photo = FileField('Author Photo')
-    main_image = FileField('Main Image')  # New field for main image
-    content = TextAreaField('Content', validators=[validators.DataRequired()])
-    submit = SubmitField('Post Blog')
-    
-# FORMS BLOCK
-# -----------
-# Defines form classes using Flask-WTF
-# HELPER FUNCTIONS BLOCK
-# ----------------------
-# Defines utility functions and namedtuples used in the application
-DCFResult = namedtuple('DCFResult', ['total_pv', 'pv_cash_flows', 'terminal_value', 'pv_terminal', 'total_dcf'])
-DVMResult = namedtuple('DVMResult', ['intrinsic_value', 'formula', 'pv_dividends', 'terminal_value', 'pv_terminal'])
-
-# Serve static files from author_photos
-from flask import send_from_directory, abort
-import os
-import logging
-
-from flask import send_from_directory
-
-@app.route('/author_photos/<filename>')
-def author_photo(filename):
-    return send_from_directory('static/author_photos', filename)
-
-@app.errorhandler(413)
-def request_entity_too_large(error):
-    flash('File too large. Maximum size is 5 MB.', 'danger')
-    return redirect(request.url)
-
-# Add to your app.py
-import logging
 from logging.handlers import RotatingFileHandler
 
-# Set up logging
+# --- THIRD-PARTY IMPORTS ---
+from flask import Flask, jsonify, render_template, request, send_from_directory, session, redirect, url_for
+from flask_wtf import FlaskForm
+from wtforms import StringField, SelectField, FloatField, IntegerField
+from wtforms.validators import DataRequired, Length, NumberRange
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
+from flask_session import Session
+from dotenv import load_dotenv
+import statistics
+
+# --- ENVIRONMENT CONFIGURATION ---
+load_dotenv()
+logger = logging.getLogger(__name__)
+
+# --- FLASK APPLICATION INITIALIZATION ---
+app = Flask(__name__)
+
+# --- CONFIGURATION SETTINGS ---
+app.config.update(
+    SECRET_KEY=os.getenv('SECRET_KEY', 'e1efa2b32b1bac66588d074bac02a168212082d8befd0b6466f5ee37a8c2836a'),
+    MAX_CONTENT_LENGTH=5 * 1024 * 1024,  # 5 MB limit
+    SESSION_TYPE='filesystem',
+    SESSION_FILE_THRESHOLD=500,
+    SESSION_PERMANENT=True,
+    PERMANENT_SESSION_LIFETIME=86400,
+    WTF_CSRF_TIME_LIMIT=7200,
+    SQLALCHEMY_DATABASE_URI=os.getenv('DATABASE_URL', 'sqlite:///site.db'),
+    SQLALCHEMY_TRACK_MODIFICATIONS=False,
+    SESSION_FILE_DIR=os.path.join(os.path.dirname(__file__), 'instance', 'sessions')
+)
+
+# Ensure session directory exists
+os.makedirs(app.config['SESSION_FILE_DIR'], exist_ok=True)
+
+# Initialize Flask-Session
+Session(app)
+
+# --- LOGGING CONFIGURATION ---
+logging.basicConfig(
+    level=logging.INFO if os.getenv('FLASK_ENV') == 'production' else logging.DEBUG,
+    filename='app.log' if os.getenv('FLASK_ENV') == 'production' else None,
+    filemode='a',
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 handler = RotatingFileHandler('app.log', maxBytes=10000, backupCount=1)
 handler.setLevel(logging.INFO)
 app.logger.addHandler(handler)
+logger.info("Application initialized")
 
-@app.route('/static/author_photos/<path:filename>')
-def serve_author_photos(filename):
-    upload_folder = 'static/author_photos'  # Adjust based on your config
-    try:
-        file_path = os.path.join(upload_folder, filename)
-        if os.path.exists(file_path):
-            return send_from_directory(upload_folder, filename)
-        else:
-            logging.error(f"Author photo not found: {file_path}")
-            default_image = 'default_author.jpg'  # Ensure this exists
-            default_path = os.path.join(upload_folder, default_image)
-            if os.path.exists(default_path):
-                return send_from_directory(upload_folder, default_image)
-            else:
-                abort(404)
-    except Exception as e:
-        logging.error(f"Error serving {filename}: {str(e)}")
-        abort(500)
-        
-# Create an admin user (run once in a Python shell)
-def create_admin_user():
-    with app.app_context():
-        admin = User.query.filter_by(username='admin').first()
-        if not admin:
-            hashed_password = bcrypt.generate_password_hash('admin_password').decode('utf-8')
-            admin = User(username='admin', password=hashed_password)
-            db.session.add(admin)
-            db.session.commit()
-            print("Admin user created!")
+# --- SQLALCHEMY INITIALIZATION ---
+db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 
-# Login route
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        user = User.query.filter_by(username=username).first()
-        if user and bcrypt.check_password_hash(user.password, password):
-            login_user(user)
-            return redirect(url_for('admin_articles'))
-        flash('Login failed. Check your credentials.', 'danger')
-    return render_template('login.html')
-
-# Logout route
-@app.route('/logout')
-@login_required
-def logout():
-    logout_user()
-    return redirect(url_for('index'))
-
-def generate_slug(title):
-    """Generate a URL-friendly slug from the title."""
-    slug = re.sub(r'[^\w\s-]', '', title.lower()).strip()
-    slug = re.sub(r'\s+', '-', slug)
-    base_slug = slug
-    counter = 1
-    while BlogPost.query.filter_by(slug=slug).first():
-        slug = f"{base_slug}-{counter}"
-        counter += 1
-    return slug
-
-def first_two_sentences(value):
-    sentences = value.split('.')
-    return Markup('. '.join(sentences[:2]) + '.')
-
-app.jinja_env.filters['first_two_sentences'] = first_two_sentences
-
-def calculate_twr(returns):
-    twr = 1
-    for r in returns:
-        twr *= (1 + r)
-    return twr - 1
-
-def calculate_mwr(cash_flows):
-    return npf.irr(cash_flows)
-
-def calculate_modified_dietz(mv0, mv1, cash_flow, weight):
-    return (mv1 - mv0 - cash_flow) / (mv0 + (cash_flow * weight))
-
-def calculate_simple_dietz(mv0, mv1, cash_flow):
-    return (mv1 - mv0 - cash_flow) / (mv0 + cash_flow / 2)
-
-def calculate_irr(cash_flows):
-    return npf.irr(cash_flows)
-
-def calculate_hpr(p0, p1, dividend):
-    return (p1 - p0 + dividend) / p0
-
-def calculate_annualized_return(r, n):
-    return (1 + r) ** (1 / n) - 1
-
-def calculate_geometric_mean_return(returns):
-    return np.prod([1 + r for r in returns]) ** (1 / len(returns)) - 1
-
-def calculate_arithmetic_mean_return(returns):
-    return sum(returns) / len(returns)
-
-def calculate_real_return(nominal_return, inflation_rate):
-    return (1 + nominal_return) / (1 + inflation_rate) - 1
-
-def calculate_time_weighted_inflation(monthly_inflations):
-    tw_inflation = np.prod([1 + (i / 100) for i in monthly_inflations]) - 1
-    return tw_inflation
-
-def calculate_cca(pe_ratio, earnings):
-    if pe_ratio <= 0 or earnings < 0:
-        raise ValueError("P/E ratio must be positive and earnings non-negative")
-    return pe_ratio * earnings
-
-def calculate_nav(assets, liabilities):
-    if assets < 0 or liabilities < 0:
-        raise ValueError("Assets and liabilities cannot be negative")
-    return assets - liabilities
-
-def calculate_market_cap(share_price, shares_outstanding):
-    if share_price < 0 or shares_outstanding < 0:
-        raise ValueError("Share price and shares outstanding cannot be negative")
-    return share_price * shares_outstanding
-
-def calculate_ev(market_cap, debt, cash):
-    if market_cap < 0 or debt < 0 or cash < 0:
-        raise ValueError("Market cap, debt, and cash cannot be negative")
-    return market_cap + debt - cash
-
-def calculate_replacement_cost(tangible_assets, intangible_assets, adjustment_factor):
-    if tangible_assets < 0 or intangible_assets < 0 or not 0 <= adjustment_factor <= 1:
-        raise ValueError("Invalid inputs for replacement cost")
-    return tangible_assets + intangible_assets * adjustment_factor
-
-def calculate_risk_adjusted_return(returns, risk_free_rate, beta, market_return):
-    if risk_free_rate < 0 or market_return < 0 or beta < 0:
-        raise ValueError("Invalid inputs for risk-adjusted return")
-    expected_return = risk_free_rate / 100 + beta * (market_return / 100 - risk_free_rate / 100)
-    return (returns / 100) - expected_return
-
-def parse_comma_separated(text):
-    try:
-        return [float(x.strip()) for x in text.split(',')]
-    except ValueError:
-        raise ValueError("Invalid numeric format")
-
-def parse_covariance_matrix(text, num_assets):
-    rows = text.split(';')
-    if len(rows) != num_assets:
-        raise ValueError(f"Covariance matrix must have {num_assets} rows")
-    matrix = [parse_comma_separated(row) for row in rows]
-    if any(len(row) != num_assets for row in matrix):
-        raise ValueError(f"Each row must have {num_assets} elements")
-    matrix = np.array(matrix)
-    if not np.allclose(matrix, matrix.T) or np.any(np.linalg.eigvals(matrix) < -1e-10):
-        raise ValueError("Covariance matrix must be symmetric and positive semi-definite")
-    return matrix
-
-def calculate_expected_return(weights, returns):
-    if len(weights) != len(returns) or not 0.99 <= sum(weights) <= 1.01 or any(w < 0 for w in weights):
-        raise ValueError("Invalid weights")
-    return np.sum(np.array(weights) * np.array(returns))
-
-def calculate_portfolio_metrics(num_assets, returns, weights, volatilities):
-    if num_assets != len(returns) or num_assets != len(weights) or num_assets != len(volatilities):
-        raise ValueError("Inconsistent input lengths")
-    if not 0.99 <= sum(weights) <= 1.01 or any(w < 0 for w in weights) or any(v < 0 for v in volatilities):
-        raise ValueError("Invalid weights or volatilities")
-    expected_return = sum(r * w for r, w in zip(returns, weights)) / 100
-    portfolio_volatility = np.sqrt(sum((w * v / 100) ** 2 for w, v in zip(weights, volatilities)))
-    return expected_return, portfolio_volatility
-
-def calculate_forex_profit(investment, initial_rate, final_rate):
-    if any(x <= 0 for x in [investment, initial_rate, final_rate]):
-        raise ValueError("All inputs must be positive")
-    foreign_currency = investment * initial_rate
-    final_value = foreign_currency / final_rate
-    return final_value - investment
-
-def calculate_cagr(start_value, end_value, years):
-    """
-    Calculate Compound Annual Growth Rate (CAGR) as a percentage.
-    Handles edge cases and caps the growth rate.
-    """
-    if not all(isinstance(x, (int, float)) for x in [start_value, end_value]) or years <= 0:
-        return 0
-    try:
-        if start_value == 0:
-            return 0
-        cagr = ((end_value / start_value) ** (1 / years) - 1) if start_value != 0 else 0
-        capped_cagr = min(max(cagr, -0.05), 0.05)  # Cap at ±5%
-        return capped_cagr * 100  # Return as percentage
-    except (ZeroDivisionError, ValueError):
-        return 0
-        
-def calculate_esg_metrics(esg_amount, total_portfolio, num_esg_assets, esg_scores, esg_weights):
-    if esg_amount > total_portfolio or esg_amount < 0 or total_portfolio <= 0:
-        raise ValueError("Invalid investment or portfolio values")
-    if num_esg_assets != len(esg_scores) or num_esg_assets != len(esg_weights):
-        raise ValueError("Inconsistent ESG inputs")
-    if not 0.99 <= sum(esg_weights) <= 1.01 or any(w < 0 for w in esg_weights) or any(s < 0 or s > 100 for s in esg_scores):
-        raise ValueError("Invalid ESG weights or scores")
-    esg_proportion = esg_amount / total_portfolio
-    weighted_esg_score = sum(s * w for s, w in zip(esg_scores, esg_weights))
-    return esg_proportion, weighted_esg_score
-
-def calculate_hedge_fund_returns(strategy, investment, leverage, target_return, volatility):
-    if any(x <= 0 for x in [investment, leverage, volatility]) or target_return < 0:
-        raise ValueError("Invalid inputs")
-    strategy_multipliers = {'long-short': 1.0, 'arbitrage': 0.8, 'global-macro': 1.2}
-    multiplier = strategy_multipliers.get(strategy, 1.0)
-    leveraged_return = target_return / 100 * leverage * multiplier
-    leveraged_volatility = volatility / 100 * leverage * multiplier
-    expected_value = investment * (1 + leveraged_return)
-    return expected_value, leveraged_return, leveraged_volatility
-
-def calculate_dcf(fcfs, risk_free_rate, market_return, beta, debt, equity, tax_rate, growth_rate, use_exit_multiple=False, exit_ebitda_multiple=None, ebitda_last_year=None):
-    assert len(fcfs) == 5, "Provide exactly 5 years of FCF"
-    total_value = debt + equity
-    if total_value <= 0:
-        raise ValueError("Total value must be positive")
-    cost_equity = risk_free_rate + beta * (market_return - risk_free_rate)
-    cost_debt = 0.05
-    wacc = (equity / total_value) * cost_equity + (debt / total_value) * cost_debt * (1 - tax_rate)
-    pv_fcfs = sum(fcf / (1 + wacc) ** (i + 1) for i, fcf in enumerate(fcfs))
-    last_fcf = fcfs[-1]
-    if use_exit_multiple:
-        if exit_ebitda_multiple is None or ebitda_last_year is None:
-            raise ValueError("Exit multiple and EBITDA required")
-        terminal_value = ebitda_last_year * exit_ebitda_multiple
-    else:
-        if wacc <= growth_rate:
-            raise ValueError("WACC must exceed growth rate")
-        fcf_next = last_fcf * (1 + growth_rate)
-        terminal_value = fcf_next / (wacc - growth_rate)
-    pv_terminal = terminal_value / (1 + wacc) ** 5
-    enterprise_value = pv_fcfs + pv_terminal
-    equity_value = max(enterprise_value - debt, 0)
-    return enterprise_value, equity_value
-
-def calculate_vc_method(exit_value, target_roi, investment_amount, exit_horizon, dilution_factor=1.0):
-    if any(x <= 0 for x in [exit_value, target_roi, investment_amount, exit_horizon]) or not 0 < dilution_factor <= 1:
-        raise ValueError("Invalid inputs")
-    adjusted_exit_value = exit_value * dilution_factor
-    post_money_valuation = adjusted_exit_value / target_roi
-    pre_money_valuation = post_money_valuation - investment_amount
-    return pre_money_valuation, post_money_valuation
-
-def calculate_arr_multiple(arr, arr_multiple, control_premium=0.0, illiquidity_discount=0.0):
-    if arr <= 0 or arr_multiple <= 0 or control_premium < 0 or illiquidity_discount < 0:
-        raise ValueError("Invalid inputs")
-    base_valuation = arr * arr_multiple
-    return base_valuation * (1 + control_premium) * (1 - illiquidity_discount)
-
-def calculate_target_price(fcf, explicit_growth, n, g, r, debt, cash, shares):
-    """
-    Calculate target price for a given projection period using discounted cash flows.
-    """
-    if not all(isinstance(x, (int, float)) for x in [fcf, explicit_growth, n, g, r, debt, cash, shares]):
-        raise ValueError("All inputs must be numeric")
-    if g >= r:
-        raise ValueError("Perpetual growth rate must be less than discount rate")
-    if shares <= 0:
-        raise ValueError("Shares outstanding must be positive")
-    if n <= 0:
-        raise ValueError("Projection period must be positive")
-    projected_fcf = fcf * (1 + explicit_growth) ** n
-    terminal_value = (projected_fcf * (1 + g)) / (r - g)
-    pv_terminal = terminal_value / (1 + r) ** n
-    target_price = max((pv_terminal - debt + cash) / shares, 0)
-    return target_price
-
-def calculate_portfolio_volatility(weights, cov_matrix):
-    weights_array = np.array(weights)
-    portfolio_variance = np.dot(weights_array.T, np.dot(cov_matrix, weights_array))
-    return np.sqrt(portfolio_variance)
-
-def calculate_gordon_growth(d1, r, g):
-    if r <= g:
-        raise ValueError("Discount rate must exceed growth rate")
-    intrinsic_value = d1 / (r - g)
-    formula = f"{d1:.2f} / ({r*100:.2f}% - {g*100:.2f}%)"
-    return {'intrinsic_value': intrinsic_value, 'formula': formula}
-
-def calculate_multi_stage(dividends, r, terminal_growth):
-    pv_dividends = [d / ((1 + r) ** (i + 1)) for i, d in enumerate(dividends)]
-    total_pv = sum(pv_dividends)
-    terminal_value = (dividends[-1] * (1 + terminal_growth)) / (r - terminal_growth)
-    pv_terminal = terminal_value / ((1 + r) ** len(dividends))
-    return {
-        'intrinsic_value': total_pv + pv_terminal,
-        'pv_dividends': pv_dividends,
-        'terminal_value': terminal_value,
-        'pv_terminal': pv_terminal
-    }
-
-def calculate_no_growth(d, r):
-    intrinsic_value = d / r
-    formula = f"{d:.2f} / {r*100:.2f}%"
-    return {'intrinsic_value': intrinsic_value, 'formula': formula}
-
-def calculate_ddm_intrinsic_value(dps_forecast, cost_of_equity, terminal_growth_rate, years):
-    if not all(dps >= 0 for dps in dps_forecast):
-        raise ValueError("Dividends per share must be non-negative.")
-    if cost_of_equity <= terminal_growth_rate:
-        raise ValueError("Cost of equity must be greater than terminal growth rate.")
-    if years <= 0:
-        raise ValueError("Number of years must be positive.")
+# --- DATABASE MODELS ---
+class ValuationResult(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    period_name = db.Column(db.String(10), nullable=False)
+    currency = db.Column(db.String(3), nullable=False)
+    weighted_average = db.Column(db.Float, nullable=False)
+    pb_value = db.Column(db.Float, nullable=False)
+    ptbv_value = db.Column(db.Float, nullable=False)
+    pe_value = db.Column(db.Float, nullable=False)
+    ddm_value = db.Column(db.Float, nullable=False)
     
-    pv_dividends = sum([dps / (1 + cost_of_equity)**t for t, dps in enumerate(dps_forecast, 1)])
-    final_dps = dps_forecast[-1] * (1 + terminal_growth_rate)
-    terminal_value = final_dps / (cost_of_equity - terminal_growth_rate)
-    pv_terminal_value = terminal_value / (1 + cost_of_equity)**years
-    return pv_dividends + pv_terminal_value
-
-def calculate_rim_intrinsic_value(book_value_per_share, eps_forecast, cost_of_equity, terminal_growth_rate, years):
-    if book_value_per_share < 0:
-        raise ValueError("Book value per share must be non-negative.")
-    if not all(eps >= 0 for eps in eps_forecast):
-        raise ValueError("EPS must be non-negative.")
-    if cost_of_equity <= terminal_growth_rate:
-        raise ValueError("Cost of equity must be greater than terminal growth rate.")
-    if years <= 0:
-        raise ValueError("Number of years must be positive.")
-    
-    intrinsic_value = book_value_per_share
-    current_book_value = book_value_per_share
-    
-    for year in range(1, years + 1):
-        eps = eps_forecast[year - 1]
-        required_return = cost_of_equity * current_book_value
-        residual_income = eps - required_return
-        discount_factor = (1 + cost_of_equity) ** year
-        pv_residual_income = residual_income / discount_factor
-        intrinsic_value += pv_residual_income
-        current_book_value += eps
-    
-    final_eps = eps_forecast[-1] * (1 + terminal_growth_rate)
-    final_required_return = cost_of_equity * current_book_value
-    final_residual_income = final_eps - final_required_return
-    terminal_value = final_residual_income / (cost_of_equity - terminal_growth_rate)
-    pv_terminal_value = terminal_value / (1 + cost_of_equity)**years
-    return intrinsic_value + pv_terminal_value
-
-def allowed_file(filename):
-    ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-# CUSTOM JINJA2 FILTERS BLOCK
-# ---------------------------
-# Defines custom filters for use in Jinja2 templates
-@app.template_filter('first_two_sentences')
-def first_two_sentences(content):
-    from bs4 import BeautifulSoup
-    soup = BeautifulSoup(content, 'html.parser')
-    text = soup.get_text()
-    sentences = re.split(r'(?<=[.!?])\s+', text.strip())
-    result = ' '.join(sentences[:2]).strip()
-    return result + ' Read more...' if result else 'Read more...'
-
-@app.template_filter('round')
-def round_filter(value, decimals=2):
-    return round(value, decimals)
-
-@app.template_filter('commafy')
-def commafy(value):
-    return "{:,.2f}".format(value)
-
-app.jinja_env.filters['commafy'] = commafy
-
-@login_manager.user_loader
-def load_user(user_id):
-    """Flask-Login user loader callback"""
-    return User.query.get(int(user_id))
-
-# ROUTES BLOCK
-# ------------
-# Defines all route handlers for the Flask application
-
-@app.route('/admin/articles', methods=['GET', 'POST'])
-@login_required
-def admin_articles():
-    form = ArticleForm()
-    if form.validate_on_submit():
-        slug = slugify(form.title.data)
-        if Article.query.filter_by(slug=slug).first():
-            flash('Title already exists!', 'danger')
-            return redirect(url_for('admin_articles'))
-        
-        article = Article(
-            title=form.title.data,
-            slug=slug,
-            author=form.author.data,
-            content=form.content.data
-        )
-        
-        if form.author_photo.data:
-            filename = photos.save(form.author_photo.data)
-            img_path = os.path.join(app.config['UPLOADED_PHOTOS_DEST'], filename)
-            article.author_photo = filename
-            try:
-                with Image.open(img_path) as img:
-                    max_size = (800, 800)  # Maximum width and height
-                    img.thumbnail(max_size, Image.Resampling.LANCZOS)  # Resize while maintaining aspect ratio
-                    img.save(img_path)  # Overwrite with resized image
-            except Exception as e:
-                app.logger.error(f'Error processing image {filename}: {str(e)}')
-                flash('Error processing image. Please try a different file.', 'danger')
-            else:
-                article.author_photo = filename
-                
-        db.session.add(article)
-        db.session.commit()
-        flash('Article created!', 'success')
-        return redirect(url_for('admin_articles'))
-    
-    articles = Article.query.order_by(Article.date_posted.desc()).all()
-    return render_template('admin_articles.html', form=form, articles=articles)
-
-@app.route('/articles')
-def articles():
-    articles = Article.query.order_by(Article.date_posted.desc()).all()
-    return render_template('articles.html', articles=articles)
-
-@app.route('/articles/<slug>')
-def article(slug):
-    article = Article.query.filter_by(slug=slug).first_or_404()
-    return render_template('article.html', article=article)
-
-@app.route('/admin/articles/edit/<slug>', methods=['GET', 'POST'])
-@login_required
-def edit_article(slug):
-    article = Article.query.filter_by(slug=slug).first_or_404()
-    form = ArticleForm()
-    if form.validate_on_submit():
-        article.title = form.title.data
-        article.author = form.author.data
-        article.content = form.content.data
-        if form.author_photo.data:
-            filename = photos.save(form.author_photo.data)
-            article.author_photo = filename
-        db.session.commit()
-        flash('Article updated successfully!', 'success')
-        return redirect(url_for('admin_articles'))
-    elif request.method == 'GET':
-        form.title.data = article.title
-        form.author.data = article.author
-        form.content.data = article.content
-    return render_template('edit_article.html', form=form, article=article)
-
-@app.route('/admin/articles/delete/<slug>', methods=['POST'])
-@login_required
-def delete_article(slug):
-    article = Article.query.filter_by(slug=slug).first_or_404()
-    db.session.delete(article)
-    db.session.commit()
-    flash('Article deleted successfully!', 'success')
-    return redirect(url_for('admin_articles'))
-
-@app.route('/ads.txt')
-def ads_txt():
-    return send_from_directory('static', 'ads.txt')
-
-@app.route('/')
-def index():
-    return render_template('index.html')
-
-@app.route('/fcf_forecast')
-def fcf_forecast():
-    return render_template('fcf_forecasting.html')
-
-
-@app.route('/help')
-def help():
-    try:
-        with open('calculators.json') as f:
-            calculators = json.load(f)
-    except FileNotFoundError:
-        calculators = []  # Fallback if file is missing
-    return render_template('help.html', calculators=calculators)
-
-# Bank Credit Risk Parameters
-BANK_BETAS = [-1.5, 0.8, -0.5, -0.2, 0.3]
-BANK_PARAMS = {
-    'recovery_rate': 0.4,
-}
-BANK_THRESHOLDS = {
-    'safe': {'pd': 0.02, 'lgd': 0.3, 'current_ratio': 1.5, 'quick_ratio': 1.0, 'cash_ratio': 0.5, 'interest_coverage': 3.0},
-    'caution': {'pd': 0.1, 'lgd': 0.6, 'current_ratio': 1.0, 'quick_ratio': 0.7, 'cash_ratio': 0.3, 'interest_coverage': 1.5}
-}
-
-# Corporate Bond Credit Risk Parameters
-BOND_BETAS = [-2.5, 0.6, -0.4, -0.3, 0.5, -0.2, -0.3, -0.2, 0.3]
-BOND_PARAMS = {
-    'collateral_haircut': 0.7,
-    'liquidity_weight': 0.5,
-    'asset_recovery_rate': 0.4,
-    'seniority_adjustment': 0.9,
-    'industry_recovery_factor': 0.75,
-    'recovery_cost': 0.15,
-    'discount_rate': 0.05,
-    'time_to_recovery': 2
-}
-BOND_CRISIS_PARAMS = {
-    'peak_default_rate': 0.12,
-    'average_default_rate': 0.04,
-    'crisis_recovery_rate': 0.35,
-    'average_recovery_rate': 0.60,
-    'lgd_increment': 0.22
-}
-BOND_THRESHOLDS = {
-    'manufacturing': {
-        'safe': {'pd': 0.018, 'lgd': 0.28, 'current_ratio': 1.5, 'interest_coverage': 3, 'debt_to_assets': 0.3, 'stressed_cash_flow': 0.4},
-        'caution': {'pd': 0.085, 'lgd': 0.55, 'current_ratio': 1, 'interest_coverage': 1.5, 'debt_to_assets': 0.6}
-    },
-    'financials': {
-        'safe': {'pd': 0.015, 'lgd': 0.25, 'current_ratio': 1.2, 'interest_coverage': 4, 'debt_to_assets': 0.4, 'stressed_cash_flow': 0.5},
-        'caution': {'pd': 0.08, 'lgd': 0.50, 'current_ratio': 0.8, 'interest_coverage': 2, 'debt_to_assets': 0.7}
-    }
-}
-
-# Helper function to format numbers
-def format_number(value, decimal_places=2, is_percentage=False, is_currency=False):
-    if isinstance(value, (int, float)):
-        if is_currency:
-            return f"GHS {value:,.{decimal_places}f}"
-        elif is_percentage:
-            return f"{value:.{decimal_places}f}%"
-        else:
-            # Format with commas for thousands and specified decimal places
-            return f"{value:,.{decimal_places}f}" if abs(value) >= 1000 else f"{value:.{decimal_places}f}"
-    return value
-
-# Bank Credit Risk Calculations
-def calculate_bank_pd(data, betas):
-    # Handle division by zero
-    npl_ratio = data['net_impairment_loss'] / data['loans_advances'] if data['loans_advances'] > 0 else 0
-    liquid_to_total_assets = data['liquid_assets'] / data['total_assets'] if data['total_assets'] > 0 else 0
-    current_ratio = data['current_assets'] / data['current_liabilities'] if data['current_liabilities'] > 0 else 0
-    interest_coverage = data['profit_before_tax'] / abs(data['interest_paid']) if data['interest_paid'] != 0 else 10
-    
-    # Apply constraints to prevent extreme values
-    npl_ratio = min(npl_ratio, 1.0)  # NPL ratio can't exceed 100%
-    liquid_to_total_assets = max(min(liquid_to_total_assets, 1.0), 0)  # Between 0-100%
-    
-    Z = (
-        betas[0] +
-        betas[1] * np.log(npl_ratio + 1e-5) +  # Add small value to avoid log(0)
-        betas[2] * liquid_to_total_assets +
-        betas[3] * current_ratio +
-        betas[4] * interest_coverage
-    )
-    return 1 / (1 + np.exp(-Z))
-
-def calculate_bank_lgd(data, params):
-    recovery_base = (data['liquid_assets'] + data['non_pledged_assets']) / data['total_assets'] if data['total_assets'] > 0 else 0
-    recovery_rate = min(1, max(0, recovery_base * params['recovery_rate']))  # Constrain between 0-1
-    lgd = 1 - recovery_rate
-    return max(0, min(1, lgd))
-
-def calculate_bank_el(ead, pd, lgd):
-    return ead * pd * lgd
-
-def calculate_bank_ratios(data):
-    current_liabilities = data['current_liabilities'] if data['current_liabilities'] > 0 else 1e-5  # Avoid division by zero
-    interest_paid = data['interest_paid'] if data['interest_paid'] != 0 else 1e-5
-    
-    return {
-        'current_ratio': data['current_assets'] / current_liabilities,
-        'quick_ratio': (data['current_assets'] - data['non_pledged_assets']) / current_liabilities,
-        'cash_ratio': data['liquid_assets'] / current_liabilities,
-        'interest_coverage_ratio': data['profit_before_tax'] / interest_paid
-    }
-    
-def bank_recommendation(pd, lgd, ratios, thresholds, bank_name, el_percentage):
-    safe = thresholds['safe']
-    caution = thresholds['caution']
-    
-    # Format values for display in the recommendation
-    el_percentage_display = format_number(el_percentage, 2)
-    cash_ratio_display = format_number(ratios['cash_ratio'], 2)
-    interest_coverage_display = format_number(ratios['interest_coverage_ratio'], 2)
-    
-    if (pd <= safe['pd'] and lgd <= safe['lgd'] and 
-        ratios['current_ratio'] >= safe['current_ratio'] and 
-        ratios['quick_ratio'] >= safe['quick_ratio'] and 
-        ratios['cash_ratio'] >= safe['cash_ratio'] and 
-        ratios['interest_coverage_ratio'] >= safe['interest_coverage']):
-        return (
-            f"Low Risk: {bank_name} is a premier choice for fund placement.",
-            f"{bank_name} exemplifies financial excellence with an Expected Loss of only {el_percentage_display}% of exposure. "
-            f"Its robust liquidity (Cash Ratio: {cash_ratio_display}x) and debt servicing capacity "
-            f"(Interest Coverage: {interest_coverage_display}x) align with international standards, "
-            f"making fixed deposits and repurchase agreements highly secure."
-        )
-    elif (pd <= caution['pd'] and lgd <= caution['lgd'] and 
-          ratios['current_ratio'] >= caution['current_ratio'] and 
-          ratios['quick_ratio'] >= caution['quick_ratio'] and 
-          ratios['cash_ratio'] >= caution['cash_ratio'] and 
-          ratios['interest_coverage_ratio'] >= caution['interest_coverage']):
-        return (
-            f"Moderate Risk: Exercise prudent oversight with {bank_name}.",
-            f"{bank_name} demonstrates acceptable risk metrics with an Expected Loss of {el_percentage_display}% of exposure. "
-            f"Its liquidity (Cash Ratio: {cash_ratio_display}x) and debt coverage (Interest Coverage: {interest_coverage_display}x) "
-            f"meet moderate stability thresholds. Enhanced due diligence is recommended."
-        )
-    return (
-        f"High Risk: Avoid fund placement with {bank_name}.",
-        f"{bank_name} exhibits significant credit vulnerabilities with an Expected Loss of {el_percentage_display}% of exposure. "
-        f"Inadequate liquidity (Cash Ratio: {cash_ratio_display}x) and weak debt coverage (Interest Coverage: {interest_coverage_display}x) "
-        f"signal a high risk of capital impairment. Consider alternative institutions."
-    )
-        
-# Corporate Bond Credit Risk Calculations
-def calculate_bond_pd(data, betas):
-    debt_ebitda = data['total_debt'] / data['ebitda'] if data['ebitda'] > 0 else 1e6
-    interest_coverage = data['ebitda'] / data['interest_paid'] if data['interest_paid'] > 0 else 0
-    current_ratio = data['current_assets'] / data['current_liabilities'] if data['current_liabilities'] > 0 else 0
-    debt_assets = data['total_debt'] / data['total_assets'] if data['total_assets'] > 0 else 0
-    cash_flow_debt = data['cfo'] / data['total_debt'] if data['total_debt'] > 0 else 0
-    ebitda_growth = (data['projected_ebitda'] / data['ebitda'] - 1) if data['ebitda'] > 0 else 0
-    Z = (
-        betas[0] +
-        betas[1] * np.log(debt_ebitda + 1) +
-        betas[2] * interest_coverage +
-        betas[3] * current_ratio +
-        betas[4] * debt_assets +
-        betas[5] * cash_flow_debt +
-        betas[6] * ebitda_growth +
-        betas[7] * data['gdp_growth'] +
-        betas[8] * data['inflation']
-    )
-    return 1 / (1 + np.exp(-Z))
-
-def calculate_bond_lgd(data, params):
-    adjusted_collateral = data['collateral_value'] * params['collateral_haircut']
-    recovery_base = (
-        adjusted_collateral +
-        data['liquid_assets'] * params['liquidity_weight'] +
-        data['other_recoverable_assets'] * params['asset_recovery_rate']
-    ) / data['ead']
-    recovery_rate = min(1, recovery_base * 
-                       params['seniority_adjustment'] * 
-                       params['industry_recovery_factor'] * 
-                       (1 - params['recovery_cost']) / 
-                       ((1 + params['discount_rate']) ** params['time_to_recovery']))
-    lgd = 1 - recovery_rate
-    return max(0, min(1, lgd))
-
-def calculate_bond_el(ead, pd, lgd):
-    return ead * pd * lgd
-
-def calculate_bond_ratios(data):
-    return {
-        'current_ratio': data['current_assets'] / data['current_liabilities'] if data['current_liabilities'] > 0 else 0,
-        'quick_ratio': (data['current_assets'] - data['inventory']) / data['current_liabilities'] if data['current_liabilities'] > 0 else 0,
-        'cash_ratio': data['liquid_assets'] / data['current_liabilities'] if data['current_liabilities'] > 0 else 0,
-        'interest_coverage': data['ebitda'] / data['interest_paid'] if data['interest_paid'] > 0 else 0,
-        'debt_to_assets': data['total_debt'] / data['total_assets'] if data['total_assets'] > 0 else 0,
-        'cash_flow_to_debt': data['cfo'] / data['total_debt'] if data['total_debt'] > 0 else 0,
-        'stressed_cash_flow': (data['cfo'] * 0.8) / data['total_debt'] if data['total_debt'] > 0 else 0
-    }
-
-def bond_stress_test(ead, pd, lgd, crisis_params):
-    pd_stress = pd * (crisis_params['peak_default_rate'] / crisis_params['average_default_rate'])
-    lgd_stress1 = lgd * (crisis_params['average_recovery_rate'] / crisis_params['crisis_recovery_rate'])
-    lgd_stress2 = lgd + crisis_params['lgd_increment']
-    lgd_stress = max(min(max(lgd_stress1, lgd_stress2), 1), 0)
-    return {
-        'pd_stress': pd_stress,
-        'lgd_stress': lgd_stress,
-        'el_stress': ead * pd_stress * lgd_stress
-    }
-
-def bond_recommendation(pd, lgd, ratios, cfo, sector, thresholds, entity_name, el_percentage):
-    sector_thresh = thresholds.get(sector, thresholds['manufacturing'])
-    safe = sector_thresh['safe']
-    caution = sector_thresh['caution']
-    if (cfo > 0 and 
-        pd <= safe['pd'] and 
-        lgd <= safe['lgd'] and 
-        ratios['current_ratio'] > safe['current_ratio'] and 
-        ratios['interest_coverage'] > safe['interest_coverage'] and 
-        ratios['debt_to_assets'] < safe['debt_to_assets'] and 
-        ratios['stressed_cash_flow'] > safe['stressed_cash_flow']):
-        return (
-            f"Low Risk: {entity_name} bonds represent a top-tier investment.",
-            f"{entity_name} demonstrates exceptional credit quality, with an Expected Loss of {el_percentage:.2f}% of exposure. "
-            f"Its superior liquidity (Cash Ratio: {ratios['cash_ratio']:.2f}) and robust debt coverage (Interest Coverage: {ratios['interest_coverage']:.2f}) "
-            f"meet global investment-grade standards, ensuring high confidence in bond security and minimal default risk."
-        )
-    elif (cfo > 0 and 
-          pd <= caution['pd'] and 
-          lgd <= caution['lgd'] and 
-          ratios['current_ratio'] > caution['current_ratio'] and 
-          ratios['interest_coverage'] > caution['interest_coverage'] and 
-          ratios['debt_to_assets'] < caution['debt_to_assets']):
-        return (
-            f"Moderate Risk: Selective investment in {entity_name} bonds advised.",
-            f"{entity_name} presents manageable risk, with an Expected Loss of {el_percentage:.2f}% of exposure. "
-            f"Adequate liquidity (Cash Ratio: {ratios['cash_ratio']:.2f}) and interest coverage (Interest Coverage: {ratios['interest_coverage']:.2f}) "
-            f"suggest resilience. Investors should implement covenant protections and continuous monitoring to mitigate risks."
-        )
-    return (
-        f"High Risk: Avoid investment in {entity_name} bonds.",
-        f"{entity_name} exhibits significant credit weaknesses, with an Expected Loss of {el_percentage:.2f}% of exposure. "
-        f"Insufficient liquidity (Cash Ratio: {ratios['cash_ratio']:.2f}) and poor debt coverage (Interest Coverage: {ratios['interest_coverage']:.2f}) "
-        f"indicate a high likelihood of capital loss. Investors should seek alternative issuers for capital preservation."
-    )
-
-# Routes
-# Routes
-@app.route('/credit_risk', methods=['GET', 'POST'])
-def credit_risk():
-    form_data = {}
-    results = []
-    error = None
-
-    if request.method == 'POST':
-        try:
-            # Collect and validate form data
-            form_data = {
-                'borrower': request.form.get('borrower', ''),
-                'ead': float(request.form.get('ead', 0)),
-                'net_impairment_loss': float(request.form.get('net_impairment_loss', 0)),
-                'loans_advances': float(request.form.get('loans_advances', 0)),
-                'liquid_assets': float(request.form.get('liquid_assets', 0)),
-                'total_assets': float(request.form.get('total_assets', 0)),
-                'current_assets': float(request.form.get('current_assets', 0)),
-                'current_liabilities': float(request.form.get('current_liabilities', 0)),
-                'non_pledged_assets': float(request.form.get('non_pledged_assets', 0)),
-                'profit_before_tax': float(request.form.get('profit_before_tax', 0)),
-                'interest_paid': float(request.form.get('interest_paid', 0))
-            }
-
-            # Validate inputs
-            if not form_data['borrower'].strip():
-                raise ValueError("Bank Name is required.")
-                
-            if any(x < 0 for x in [form_data['ead'], form_data['net_impairment_loss'], form_data['loans_advances'], 
-                                   form_data['liquid_assets'], form_data['total_assets'], form_data['current_assets'], 
-                                   form_data['current_liabilities'], form_data['non_pledged_assets'], 
-                                   form_data['profit_before_tax']]):
-                raise ValueError("All numerical inputs must be non-negative.")
-                
-            if form_data['loans_advances'] <= 0 or form_data['total_assets'] <= 0:
-                raise ValueError("Loans and Advances, and Total Assets must be positive values.")
-                
-            if form_data['liquid_assets'] > form_data['total_assets']:
-                raise ValueError("Liquid Assets cannot exceed Total Assets.")
-                
-            if form_data['non_pledged_assets'] > form_data['current_assets']:
-                raise ValueError("Non-Pledged Trading Assets cannot exceed Current Assets.")
-                
-            if form_data['current_liabilities'] <= 0:
-                raise ValueError("Current Liabilities must be a positive value.")
-
-            # Perform calculations
-            df = pd.DataFrame([form_data])
-            df['pd'] = calculate_bank_pd(form_data, BANK_BETAS)
-            df['lgd'] = calculate_bank_lgd(form_data, BANK_PARAMS)
-            df['expected_loss'] = calculate_bank_el(form_data['ead'], df['pd'], df['lgd'])
-            df['ratios'] = df.apply(lambda x: calculate_bank_ratios(x), axis=1)
-            df['el_percentage'] = (df['expected_loss'] / df['ead'] * 100) if df['ead'].iloc[0] > 0 else 0
-            
-            df['recommendation'], df['recommendation_interpretation'] = bank_recommendation(
-                df['pd'].iloc[0], df['lgd'].iloc[0], df['ratios'].iloc[0], BANK_THRESHOLDS, 
-                form_data['borrower'], df['el_percentage'].iloc[0]
-            )
-            
-            # Extract ratios for display
-            df['current_ratio'] = df['ratios'].apply(lambda x: x['current_ratio'])
-            df['quick_ratio'] = df['ratios'].apply(lambda x: x['quick_ratio'])
-            df['cash_ratio'] = df['ratios'].apply(lambda x: x['cash_ratio'])
-            df['interest_coverage_ratio'] = df['ratios'].apply(lambda x: x['interest_coverage_ratio'])
-            
-            # Create interpretations with proper formatting
-            npl_ratio = form_data['net_impairment_loss'] / form_data['loans_advances'] if form_data['loans_advances'] > 0 else 0
-            liquid_coverage = form_data['liquid_assets'] / form_data['current_liabilities'] if form_data['current_liabilities'] > 0 else 0
-            non_pledged_percent = (form_data['non_pledged_assets'] / form_data['current_assets'] * 100) if form_data['current_assets'] > 0 else 0
-            
-            df['borrower_interpretation'] = (
-                f"This assessment of {form_data['borrower']} adheres to globally recognized Basel III standards, "
-                f"providing a robust evaluation of counterparty credit risk using industry-leading methodologies."
-            )
-            
-            df['ead_interpretation'] = (
-                f"Exposure at Default: {format_number(form_data['ead'], is_currency=True)} thousand, "
-                f"representing {format_number(form_data['ead'] / form_data['total_assets'] * 100, 2)}% of total assets, "
-                f"quantifies the institution's gross credit exposure per IFRS 9 guidelines."
-            )
-            
-            # FIXED: Properly format PD as percentage value
-            df['pd_interpretation'] = (
-                f"Probability of Default: {format_number(df['pd'].iloc[0] * 100, 2, is_percentage=True)} reflects a historical Net NPL Ratio of "
-                f"{format_number(npl_ratio * 100, 2, is_percentage=True)} and incorporates forward-looking macroeconomic sensitivities."
-            )
-            
-            # FIXED: Removed extra % sign
-            df['lgd_interpretation'] = (
-                f"Loss Given Default: {format_number(df['lgd'].iloc[0] * 100, 2, is_percentage=True)} estimates potential loss severity, "
-                f"with liquid assets covering {format_number(liquid_coverage * 100, 2)}% of short-term obligations."
-            )
-            
-            df['current_ratio_interpretation'] = (
-                f"Current Ratio: {format_number(df['current_ratio'].iloc[0], 2)}x demonstrates liquidity coverage of "
-                f"{format_number(df['current_ratio'].iloc[0] * 100, 2)}% of current liabilities, "
-                f"benchmarked against a global standard of 1.00x."
-            )
-            
-            df['quick_ratio_interpretation'] = (
-                f"Quick Ratio: {format_number(df['quick_ratio'].iloc[0], 2)}x measures immediate liquidity, "
-                f"excluding non-pledged assets ({format_number(non_pledged_percent, 2)}% of current assets)."
-            )
-            
-            df['cash_ratio_interpretation'] = (
-                f"Cash Ratio: {format_number(df['cash_ratio'].iloc[0], 2)}x, the most conservative liquidity metric, "
-                f"covers {format_number(df['cash_ratio'].iloc[0] * 100, 2)}% of current obligations."
-            )
-            
-            df['interest_coverage_ratio_interpretation'] = (
-                f"Interest Coverage: {format_number(df['interest_coverage_ratio'].iloc[0], 2)}x reflects debt servicing capacity, "
-                f"covering interest expenses {format_number(df['interest_coverage_ratio'].iloc[0], 2)} times, "
-                f"per global financial standards."
-            )
-            
-            # FIXED: Properly format EL value
-            df['expected_loss_interpretation'] = (
-                f"Expected Loss: {format_number(df['expected_loss'].iloc[0], 2, is_currency=True)} thousand "
-                f"({format_number(df['el_percentage'].iloc[0], 2)}% of exposure) represents the probability-weighted capital requirement under Basel III."
-            )
-
-            # Create display versions of key metrics
-            # FIXED: PD should be displayed as percentage value
-            df['pd_display'] = format_number(df['pd'].iloc[0] * 100, 2, is_percentage=True)
-            df['lgd_display'] = format_number(df['lgd'].iloc[0] * 100, 2, is_percentage=True)
-            df['current_ratio_display'] = format_number(df['current_ratio'].iloc[0], 2)
-            df['quick_ratio_display'] = format_number(df['quick_ratio'].iloc[0], 2)
-            df['cash_ratio_display'] = format_number(df['cash_ratio'].iloc[0], 2)
-            df['interest_coverage_ratio_display'] = format_number(df['interest_coverage_ratio'].iloc[0], 2)
-            
-            # FIXED: EL should be formatted as currency
-            df['expected_loss_display'] = format_number(df['expected_loss'].iloc[0], 2, is_currency=True) + " thousand"
-            df['el_percentage_display'] = format_number(df['el_percentage'].iloc[0], 2, is_percentage=True)
-
-            # FIXED: EAD should be formatted as currency
-            df['ead_display'] = format_number(form_data['ead'], 2, is_currency=True) + " thousand"
-
-            results = df.to_dict('records')
-        except Exception as e:
-            error = str(e)
-
-    return render_template('credit_risk.html', form_data=form_data, results=results, error=error, currency_symbol='GHS ')
-
-@app.route('/bond_risk', methods=['GET', 'POST'])
-def bond_risk():
-    form_data = {}
-    results = []
-    error = None
-
-    if request.method == 'POST':
-        try:
-            form_data = {
-                'entity_name': request.form.get('entity_name', ''),
-                'sector': request.form.get('sector', 'manufacturing'),
-                'ead': float(request.form.get('ead', 0)),
-                'total_debt': float(request.form.get('total_debt', 0)),
-                'ebitda': float(request.form.get('ebitda', 0)),
-                'interest_paid': float(request.form.get('interest_paid', 0)),
-                'current_assets': float(request.form.get('current_assets', 0)),
-                'current_liabilities': float(request.form.get('current_liabilities', 0)),
-                'total_assets': float(request.form.get('total_assets', 0)),
-                'cfo': float(request.form.get('cfo', 0)),
-                'projected_ebitda': float(request.form.get('projected_ebitda', 0)),
-                'gdp_growth': float(request.form.get('gdp_growth', 0)),
-                'inflation': float(request.form.get('inflation', 0)),
-                'collateral_value': float(request.form.get('collateral_value', 0)),
-                'collateral_haircut': float(request.form.get('collateral_haircut', 0.7)),
-                'liquid_assets': float(request.form.get('liquid_assets', 0)),
-                'liquidity_weight': float(request.form.get('liquidity_weight', 0.5)),
-                'other_recoverable_assets': float(request.form.get('other_recoverable_assets', 0)),
-                'asset_recovery_rate': float(request.form.get('asset_recovery_rate', 0.4)),
-                'seniority_adjustment': float(request.form.get('seniority_adjustment', 0.9)),
-                'industry_recovery_factor': float(request.form.get('industry_recovery_factor', 0.75)),
-                'inventory': float(request.form.get('inventory', 0)),
-                'recovery_cost': float(request.form.get('recovery_cost', 0.15)),
-                'time_to_recovery': float(request.form.get('time_to_recovery', 2)),
-                'discount_rate': float(request.form.get('discount_rate', 0.05))
-            }
-
-            # Validate inputs
-            if not form_data['entity_name'].strip():
-                raise ValueError("Issuer Name is required.")
-            if any(x < 0 for x in [form_data['ead'], form_data['total_debt'], form_data['ebitda'], form_data['interest_paid'], 
-                                   form_data['current_assets'], form_data['current_liabilities'], form_data['total_assets'], 
-                                   form_data['cfo'], form_data['projected_ebitda'], form_data['collateral_value'], 
-                                   form_data['liquid_assets'], form_data['other_recoverable_assets'], form_data['inventory']]):
-                raise ValueError("All numerical inputs must be non-negative.")
-            if form_data['current_liabilities'] == 0 or form_data['total_assets'] == 0 or form_data['total_debt'] == 0:
-                raise ValueError("Current Liabilities, Total Assets, and Total Debt cannot be zero.")
-            if form_data['liquid_assets'] > form_data['total_assets']:
-                raise ValueError("Liquid Assets cannot exceed Total Assets.")
-            if form_data['inventory'] > form_data['current_assets']:
-                raise ValueError("Inventory cannot exceed Current Assets.")
-
-            df = pd.DataFrame([form_data])
-            df['pd'] = calculate_bond_pd(form_data, BOND_BETAS)
-            df['lgd'] = calculate_bond_lgd(form_data, BOND_PARAMS)
-            df['el'] = calculate_bond_el(form_data['ead'], df['pd'], df['lgd'])
-            df['ratios'] = df.apply(lambda x: calculate_bond_ratios(x), axis=1)
-            df['stress'] = df.apply(lambda x: bond_stress_test(x['ead'], x['pd'], x['lgd'], BOND_CRISIS_PARAMS), axis=1)
-            df['el_percentage'] = df['el'] / df['ead'] * 100 if df['ead'].iloc[0] > 0 else 0
-            df['recommendation'], df['recommendation_interpretation'] = bond_recommendation(
-                df['pd'].iloc[0], df['lgd'].iloc[0], df['ratios'].iloc[0], df['cfo'].iloc[0], 
-                df['sector'].iloc[0], BOND_THRESHOLDS, df['entity_name'].iloc[0], df['el_percentage'].iloc[0]
-            )
-            df['current_ratio'] = df['ratios'].apply(lambda x: x['current_ratio'])
-            df['quick_ratio'] = df['ratios'].apply(lambda x: x['quick_ratio'])
-            df['cash_ratio'] = df['ratios'].apply(lambda x: x['cash_ratio'])
-            df['interest_coverage'] = df['ratios'].apply(lambda x: x['interest_coverage'])
-            df['debt_to_assets'] = df['ratios'].apply(lambda x: x['debt_to_assets'])
-            df['cash_flow_to_debt'] = df['ratios'].apply(lambda x: x['cash_flow_to_debt'])
-            df['stressed_cash_flow'] = df['ratios'].apply(lambda x: x['stressed_cash_flow'])
-            df['pd_stress'] = df['stress'].apply(lambda x: x['pd_stress'])
-            df['lgd_stress'] = df['stress'].apply(lambda x: x['lgd_stress'])
-            df['el_stress'] = df['stress'].apply(lambda x: x['el_stress'])
-            df['entity_interpretation'] = (
-                f"This assessment evaluates the credit risk of investing in corporate bonds issued by {form_data['entity_name']}, "
-                f"based on its financial performance and bond terms."
-            )
-            df['ead_interpretation'] = (
-                f"The EAD (GHS {form_data['ead']*1000:,.2f}) is the amount at risk if {form_data['entity_name']} defaults, "
-                f"representing the bond’s face value or outstanding principal. "
-                f"A lower EAD relative to Total Assets (GHS {form_data['total_assets']*1000:,.2f}) suggests limited exposure."
-            )
-            df['pd_interpretation'] = (
-                f"The PD ({df['pd'].iloc[0]*100:.2f}%) is the likelihood of {form_data['entity_name']} defaulting, "
-                f"calculated using financial metrics like Debt/EBITDA ratio ({form_data['total_debt']/form_data['ebitda'] if form_data['ebitda'] > 0 else 0:.2f}x), "
-                f"projected EBITDA growth ({(form_data['projected_ebitda']/form_data['ebitda']-1)*100 if form_data['ebitda'] > 0 else 0:.2f}%), "
-                f"and macroeconomic factors (GDP Growth: {form_data['gdp_growth']:.2f}%, Inflation: {form_data['inflation']:.2f}%). "
-                f"A PD below 1.80% indicates low default risk for {form_data['sector']} firms."
-            )
-            df['lgd_interpretation'] = (
-                f"The LGD ({df['lgd'].iloc[0]*100:.2f}%) is the percentage of EAD lost if {form_data['entity_name']} defaults, "
-                f"calculated using Collateral Value (GHS {form_data['collateral_value']*1000:,.2f}), "
-                f"Liquid Assets (GHS {form_data['liquid_assets']*1000:,.2f}), Other Recoverable Assets "
-                f"(GHS {form_data['other_recoverable_assets']*1000:,.2f}), and adjustments for seniority, industry recovery, "
-                f"and time to recovery. An LGD below 28.00% suggests strong recovery potential for {form_data['sector']} firms."
-            )
-            df['current_ratio_interpretation'] = (
-                f"The Current Ratio ({df['current_ratio'].iloc[0]:.2f}) is Current Assets (GHS {form_data['current_assets']*1000:,.2f}) "
-                f"divided by Current Liabilities (GHS {form_data['current_liabilities']*1000:,.2f}), "
-                f"indicating broad short-term solvency. A ratio above 1.50 suggests adequate liquidity for {form_data['sector']} firms."
-            )
-            df['quick_ratio_interpretation'] = (
-                f"The Quick Ratio ({df['quick_ratio'].iloc[0]:.2f}) is (Current Assets - Inventory) "
-                f"(GHS {(form_data['current_assets'] - form_data['inventory'])*1000:,.2f}) divided by Current Liabilities, "
-                f"measuring immediate liquidity. A ratio above 1.00 is preferred."
-            )
-            df['cash_ratio_interpretation'] = (
-                f"The Cash Ratio ({df['cash_ratio'].iloc[0]:.2f}) is Liquid Assets (GHS {form_data['liquid_assets']*1000:,.2f}) "
-                f"divided by Current Liabilities, the most conservative liquidity measure. "
-                f"A ratio above 0.50 indicates strong repayment capacity."
-            )
-            df['interest_coverage_interpretation'] = (
-                f"The Interest Coverage Ratio ({df['interest_coverage'].iloc[0]:.2f}) is EBITDA (GHS {form_data['ebitda']*1000:,.2f}) "
-                f"divided by Interest Paid (GHS {form_data['interest_paid']*1000:,.2f}). "
-                f"A ratio above 3.00 confirms strong debt-servicing capacity for {form_data['sector']} firms."
-            )
-            df['debt_to_assets_interpretation'] = (
-                f"The Debt-to-Assets Ratio ({df['debt_to_assets'].iloc[0]:.2f}) is Total Debt (GHS {form_data['total_debt']*1000:,.2f}) "
-                f"divided by Total Assets (GHS {form_data['total_assets']*1000:,.2f}), indicating the proportion of assets financed by debt. "
-                f"A ratio below 0.30 is preferred for {form_data['sector']} firms."
-            )
-            df['cash_flow_to_debt_interpretation'] = (
-                f"The Cash Flow to Debt Ratio ({df['cash_flow_to_debt'].iloc[0]:.2f}) is Operating Cash Flow (GHS {form_data['cfo']*1000:,.2f}) "
-                f"divided by Total Debt, measuring debt repayment capacity. A ratio above 0.50 indicates strong financial health."
-            )
-            df['stressed_cash_flow_interpretation'] = (
-                f"The Stressed Cash Flow to Debt Ratio ({df['stressed_cash_flow'].iloc[0]:.2f}) is Operating Cash Flow reduced by 20% "
-                f"(GHS {form_data['cfo']*0.8*1000:,.2f}) divided by Total Debt, assessing repayment capacity under stress. "
-                f"A ratio above 0.40 is preferred for {form_data['sector']} firms."
-            )
-            df['pd_stress_interpretation'] = (
-                f"The Stressed PD ({df['pd_stress'].iloc[0]*100:.2f}%) is the likelihood of {form_data['entity_name']} defaulting under crisis conditions, "
-                f"adjusted to reflect a peak default rate. A Stressed PD below 5.00% indicates resilience for {form_data['sector']} firms."
-            )
-            df['lgd_stress_interpretation'] = (
-                f"The Stressed LGD ({df['lgd_stress'].iloc[0]*100:.2f}%) is the percentage of EAD lost under crisis conditions, "
-                f"adjusted for a lower recovery rate. A Stressed LGD below 50.00% suggests reasonable recovery potential."
-            )
-            df['el_stress_interpretation'] = (
-                f"The Stressed Expected Loss (GHS {df['el_stress'].iloc[0]*1000:,.2f}, {df['el_stress'].iloc[0]/form_data['ead']*100:.2f}% of EAD) "
-                f"is the expected loss if {form_data['entity_name']} defaults under crisis conditions, calculated as Stressed PD × Stressed LGD × EAD. "
-                f"A Stressed EL below 5.00% indicates low risk under stress."
-            )
-            df['expected_loss_interpretation'] = (
-                f"The Expected Loss (GHS {df['el'].iloc[0]*1000:,.2f}, {df['el_percentage'].iloc[0]:.2f}% of EAD) "
-                f"is the average loss if {form_data['entity_name']} defaults, calculated as PD × LGD × EAD. "
-                f"An EL below 1.00% indicates low risk for {form_data['sector']} firms."
-            )
-
-            results = df.to_dict('records')
-        except Exception as e:
-            error = str(e) if str(e) != "Invalid input" else "Please ensure all fields are filled with valid numbers from the financial statements."
-
-    return render_template('bond_risk.html', form_data=form_data, results=results, error=error, currency_symbol='GHS ')
-   
-    from scipy import stats
-# New route for the bond risk calculator help page
-@app.route('/bond_risk_help')
-def bond_risk_help():
-    return render_template('bond_risk_help.html')
-
-# Route for the NPRA-Compliant Asset Allocation Calculator
-@app.route('/asset-allocation')
-def asset_allocation():
-    return render_template('asset_allocation_npra.html')
-
-# New route for Risk Assessment Calculator
-@app.route('/risk-assessment', methods=['GET', 'POST'])
-def risk_assessment():
-    form_data = {}
-    result = None
-    npra_alerts = []
-
-    if request.method == 'POST':
-        try:
-            form_data = {
-                'gov_securities': float(request.form['gov_securities']),
-                'local_gov_securities': float(request.form['local_gov_securities']),
-                'equities': float(request.form['equities']),
-                'bank_securities': float(request.form['bank_securities']),
-                'corporate_debt': float(request.form['corporate_debt']),
-                'collective_schemes': float(request.form['collective_schemes']),
-                'alternatives': float(request.form['alternatives']),
-                'foreign': float(request.form['foreign']),
-                'portfolio_value': float(request.form['portfolio_value'])
-            }
-
-            # NPRA limits
-            npra_limits = {
-                'gov_securities': 75,
-                'local_gov_securities': 25,
-                'equities': 20,
-                'bank_securities': 35,
-                'corporate_debt': 35,
-                'collective_schemes': 15,
-                'alternatives': 25,
-                'foreign': 5
-            }
-
-            # Validate NPRA limits
-            for key, value in form_data.items():
-                if key in npra_limits and value > npra_limits[key]:
-                    npra_alerts.append({
-                        'type': 'warning',
-                        'message': f"{key.replace('_', ' ').title()} allocation ({value}%) exceeds NPRA limit of {npra_limits[key]}%."
-                    })
-
-            # Validate sum of percentages
-            total_allocation = sum([form_data[key] for key in form_data if key != 'portfolio_value'])
-            if abs(total_allocation - 100) > 0.01:
-                npra_alerts.append({
-                    'type': 'warning',
-                    'message': f"Total allocation ({total_allocation:.2f}%) must equal 100%."
-                })
-
-            # If no alerts, calculate results
-            if not npra_alerts:
-                weights = [
-                    form_data['gov_securities'] / 100,
-                    form_data['local_gov_securities'] / 100,
-                    form_data['equities'] / 100,
-                    form_data['bank_securities'] / 100,
-                    form_data['corporate_debt'] / 100,
-                    form_data['collective_schemes'] / 100,
-                    form_data['alternatives'] / 100,
-                    form_data['foreign'] / 100
-                ]
-                expected_returns = [0.05, 0.05, 0.12, 0.06, 0.07, 0.08, 0.10, 0.09]  # Example
-                volatilities = [0.02, 0.03, 0.20, 0.05, 0.06, 0.07, 0.15, 0.12]  # Example
-                portfolio_value = form_data['portfolio_value']
-                expected_return = sum(w * r for w, r in zip(weights, expected_returns)) * 100
-                volatility = np.sqrt(sum(w * v ** 2 for w, v in zip(weights, volatilities))) * 100
-                stress_loss = portfolio_value * sum(w * 0.10 for w in weights)  # 10% market drop
-                # Format stress_loss with commas and two decimal places
-                formatted_stress_loss = f"{stress_loss:,.2f}"
-                result = {
-                    'expected_return': round(expected_return, 2),
-                    'volatility': round(volatility, 2),
-                    'stress_loss': formatted_stress_loss
-                }
-                npra_alerts.append({
-                    'type': 'success',
-                    'message': 'Portfolio is compliant with NPRA guidelines.'
-                })
-
-        except (ValueError, KeyError):
-            npra_alerts.append({
-                'type': 'warning',
-                'message': 'Please enter valid numerical values for all fields.'
-            })
-
-    return render_template('risk_assessment.html', form_data=form_data, result=result, npra_alerts=npra_alerts)
-
-@app.route('/portfolio-risk', methods=['GET', 'POST'])
-def portfolio_risk():
-    form_data = {}
-    result = None
-    npra_alerts = []
-    risk_metrics = [
-        'Volatility', 'Beta', 'Systematic Risk', 'Unsystematic Risk', 'Sharpe Ratio',
-        'Sortino Ratio', 'Tracking Error', 'Drawdown', 'Value at Risk (VaR)',
-        'Conditional VaR (CVaR)', 'Portfolio Duration', 'Correlation', 'Covariance Matrix'
-    ]
-    asset_pairs = {
-        'gov_securities-foreign': (0, 7),
-        'equities-foreign': (2, 7),
-        'corporate_debt-foreign': (4, 7)
-    }
-
-    if request.method == 'POST':
-        try:
-            form_data = {
-                'risk_metric': request.form['risk_metric'],
-                'gov_securities': float(request.form['gov_securities']),
-                'local_gov_securities': float(request.form['local_gov_securities']),
-                'equities': float(request.form['equities']),
-                'bank_securities': float(request.form['bank_securities']),
-                'corporate_debt': float(request.form['corporate_debt']),
-                'collective_schemes': float(request.form['collective_schemes']),
-                'alternatives': float(request.form['alternatives']),
-                'foreign': float(request.form['foreign']),
-                'green_bonds': float(request.form['green_bonds']),
-                'portfolio_value': float(request.form['portfolio_value']),
-                'market_return': float(request.form['market_return']),
-                'market_volatility': float(request.form['market_volatility']),
-                'benchmark_return': float(request.form['benchmark_return']),
-                'benchmark_volatility': float(request.form['benchmark_volatility']),
-                'downside_volatility': float(request.form['downside_volatility']),
-                'peak_value': float(request.form['peak_value']),
-                'trough_value': float(request.form['trough_value']),
-                'correlation_pair': request.form.get('correlation_pair', 'equities-foreign')
-            }
-
-            # Validate risk metric
-            if form_data['risk_metric'] not in risk_metrics:
-                npra_alerts.append({
-                    'type': 'warning',
-                    'message': 'Invalid risk metric selected.'
-                })
-
-            # NPRA limits
-            npra_limits = {
-                'gov_securities': 75,
-                'local_gov_securities': 25,
-                'equities': 20,
-                'bank_securities': 35,
-                'corporate_debt': 35,
-                'collective_schemes': 15,
-                'alternatives': 25,
-                'foreign': 5
-            }
-
-            # Adjust for Green Bonds (up to 5% exemption)
-            green_bonds = min(form_data['green_bonds'], 5)
-            effective_gov_securities = form_data['gov_securities'] - green_bonds
-            effective_corporate_debt = form_data['corporate_debt'] - green_bonds
-
-            # Validate NPRA limits
-            for key, value in form_data.items():
-                if key in npra_limits and value > npra_limits[key]:
-                    npra_alerts.append({
-                        'type': 'warning',
-                        'message': f"{key.replace('_', ' ').title()} allocation ({value}%) exceeds NPRA limit of {npra_limits[key]}%."
-                    })
-            if effective_gov_securities > npra_limits['gov_securities']:
-                npra_alerts.append({
-                    'type': 'warning',
-                    'message': f"Government Securities ({effective_gov_securities}%) exceeds NPRA limit of 75% after Green Bonds exemption."
-                })
-            if effective_corporate_debt > npra_limits['corporate_debt']:
-                npra_alerts.append({
-                    'type': 'warning',
-                    'message': f"Corporate Debt ({effective_corporate_debt}%) exceeds NPRA limit of 35% after Green Bonds exemption."
-                })
-
-            # Validate sum of percentages
-            total_allocation = sum([form_data[key] for key in ['gov_securities', 'local_gov_securities', 'equities', 'bank_securities', 'corporate_debt', 'collective_schemes', 'alternatives', 'foreign']])
-            if abs(total_allocation - 100) > 0.01:
-                npra_alerts.append({
-                    'type': 'warning',
-                    'message': f"Total allocation ({total_allocation:.2f}%) must equal 100%."
-                })
-
-            # Calculate selected metric
-            if not npra_alerts:
-                weights = [
-                    form_data['gov_securities'] / 100,
-                    form_data['local_gov_securities'] / 100,
-                    form_data['equities'] / 100,
-                    form_data['bank_securities'] / 100,
-                    form_data['corporate_debt'] / 100,
-                    form_data['collective_schemes'] / 100,
-                    form_data['alternatives'] / 100,
-                    form_data['foreign'] / 100
-                ]
-                expected_returns = [0.05, 0.05, 0.12, 0.06, 0.07, 0.08, 0.10, 0.09]
-                volatilities = [0.02, 0.03, 0.20, 0.05, 0.06, 0.07, 0.15, 0.12]
-                betas = [0.1, 0.1, 1.5, 0.3, 0.4, 0.5, 0.8, 1.0]
-                durations = [5.0, 4.0, 0.0, 3.0, 4.0, 2.0, 1.0, 3.0]
-                correlations = [
-                    [1.0, 0.1, 0.3, 0.2, 0.2, 0.2, 0.3, 0.4],
-                    [0.1, 1.0, 0.2, 0.1, 0.1, 0.1, 0.2, 0.3],
-                    [0.3, 0.2, 1.0, 0.3, 0.3, 0.3, 0.4, 0.5],
-                    [0.2, 0.1, 0.3, 1.0, 0.2, 0.2, 0.3, 0.3],
-                    [0.2, 0.1, 0.3, 0.2, 1.0, 0.2, 0.3, 0.3],
-                    [0.2, 0.1, 0.3, 0.2, 0.2, 1.0, 0.2, 0.3],
-                    [0.3, 0.2, 0.4, 0.3, 0.3, 0.2, 1.0, 0.4],
-                    [0.4, 0.3, 0.5, 0.3, 0.3, 0.3, 0.4, 1.0]
-                ]
-
-                expected_return = sum(w * r for w, r in zip(weights, expected_returns))
-                volatility = np.sqrt(sum(w * v ** 2 for w, v in zip(weights, volatilities)) +
-                                     sum(w_i * w_j * correlations[i][j] * volatilities[i] * volatilities[j]
-                                         for i in range(len(weights))
-                                         for j in range(i + 1, len(weights))
-                                         for w_i, w_j in [(weights[i], weights[j])]))
-                portfolio_beta = sum(w * b for w, b in zip(weights, betas))
-                risk_free_rate = 0.03
-                z_score = 1.96  # For 95% confidence level
-                time_horizon = 1
-
-                metric = form_data['risk_metric']
-                if metric == 'Volatility':
-                    value = f"{volatility * 100:.2f}%"
-                    description = "Measures the standard deviation of portfolio returns, indicating overall risk."
-                elif metric == 'Beta':
-                    value = f"{portfolio_beta:.2f}"
-                    description = "Measures the portfolio's sensitivity to market movements."
-                elif metric == 'Systematic Risk':
-                    systematic_risk = portfolio_beta ** 2 * (form_data['market_volatility'] / 100) ** 2
-                    value = f"{systematic_risk * 100:.2f}%"
-                    description = "The portion of risk attributable to market movements."
-                elif metric == 'Unsystematic Risk':
-                    systematic_risk = portfolio_beta ** 2 * (form_data['market_volatility'] / 100) ** 2
-                    unsystematic_risk = (volatility ** 2) - systematic_risk
-                    value = f"{unsystematic_risk * 100:.2f}%"
-                    description = "The portion of risk specific to individual assets."
-                elif metric == 'Sharpe Ratio':
-                    sharpe_ratio = (expected_return - risk_free_rate) / volatility
-                    value = f"{sharpe_ratio:.2f}"
-                    description = "Measures risk-adjusted return relative to the risk-free rate."
-                elif metric == 'Sortino Ratio':
-                    sortino_ratio = (expected_return - risk_free_rate) / (form_data['downside_volatility'] / 100)
-                    value = f"{sortino_ratio:.2f}"
-                    description = "Measures return per unit of downside risk."
-                elif metric == 'Tracking Error':
-                    tracking_error = np.sqrt((volatility ** 2) + (form_data['benchmark_volatility'] / 100) ** 2 -
-                                             2 * volatility * (form_data['benchmark_volatility'] / 100) * 0.5)
-                    value = f"{tracking_error * 100:.2f}%"
-                    description = "Measures the volatility of portfolio returns relative to a benchmark."
-                elif metric == 'Drawdown':
-                    drawdown = (form_data['peak_value'] - form_data['trough_value']) / form_data['peak_value']
-                    value = f"{drawdown * 100:.2f}%"
-                    description = "Measures the peak-to-trough decline in portfolio value."
-                elif metric == 'Value at Risk (VaR)':
-                    var = z_score * volatility * np.sqrt(time_horizon) * form_data['portfolio_value']
-                    value = f"GHS {var:,.2f}"
-                    description = "Estimates the maximum loss at a 95% confidence level over a given period."
-                elif metric == 'Conditional VaR (CVaR)':
-                    cvar = z_score * volatility * np.sqrt(time_horizon) * form_data['portfolio_value'] / (1 - 0.95)
-                    value = f"GHS {cvar:,.2f}"
-                    description = "Estimates the expected loss in the worst 5% of scenarios."
-                elif metric == 'Portfolio Duration':
-                    portfolio_duration = sum(w * d for w, d in zip(weights, durations))
-                    value = f"{portfolio_duration:.2f} years"
-                    description = "Measures the portfolio's sensitivity to interest rate changes."
-                elif metric == 'Correlation':
-                    i, j = asset_pairs[form_data['correlation_pair']]
-                    correlation = correlations[i][j]
-                    asset_names = ['Government Securities', 'Local Government Securities', 'Equities',
-                                   'Bank Securities', 'Corporate Debt', 'Collective Schemes',
-                                   'Alternatives', 'Foreign Assets']
-                    value = f"{correlation:.2f}"
-                    description = f"Correlation between {asset_names[i]} and {asset_names[j]}."
-                elif metric == 'Covariance Matrix':
-                    covariance_matrix = [[correlations[i][j] * volatilities[i] * volatilities[j]
-                                         for j in range(len(volatilities))]
-                                        for i in range(len(volatilities))]
-                    value = '<br>'.join([', '.join([f"{x:.6f}" for x in row]) for row in covariance_matrix])
-                    description = "Matrix of covariances between asset returns."
-
-                result = {
-                    'metric': metric,
-                    'value': value,
-                    'description': description
-                }
-                npra_alerts.append({
-                    'type': 'success',
-                    'message': f"{metric} calculated successfully."
-                })
-
-        except (ValueError, KeyError) as e:
-            npra_alerts.append({
-                'type': 'warning',
-                'message': f"Invalid input: {str(e)}. Please check your entries."
-            })
-
-    return render_template('portfolio_risks.html',
-                          form_data=form_data,
-                          result=result,
-                          npra_alerts=npra_alerts,
-                          risk_metrics=risk_metrics)
-
-@app.route('/non-portfolio-risk', methods=['GET', 'POST'])
-def non_portfolio_risk():
-    form_data = {}
-    result = None
-    alerts = []
-    risk_metrics = [
-        'Credit Spread', 'Probability of Default (PD)', 'Loss Given Default (LGD)',
-        'Exposure at Default (EAD)', 'Expected Loss (EL)', 'Interest Rate Risk (Bond)',
-        'Modified Duration', 'Liquidity Risk (Bid-Ask Spread)', 'Call Risk',
-        'Prepayment Risk', 'Reinvestment Risk', 'Model Risk', 'Political/Regulatory/Operational Risk'
-    ]
-
-    if request.method == 'POST':
-        try:
-            form_data = {
-                'risk_metric': request.form['risk_metric'],
-                'corporate_yield': float(request.form['corporate_yield']),
-                'risk_free_yield': float(request.form['risk_free_yield']),
-                'probability_default': float(request.form['probability_default']),
-                'loss_given_default': float(request.form['loss_given_default']),
-                'exposure_at_default': float(request.form['exposure_at_default']),
-                'bond_price': float(request.form['bond_price']),
-                'macaulay_duration': float(request.form['macaulay_duration']),
-                'yield_to_maturity': float(request.form['yield_to_maturity']),
-                'compounding_periods': float(request.form['compounding_periods']),
-                'yield_change': float(request.form['yield_change']),
-                'bid_price': float(request.form['bid_price']),
-                'ask_price': float(request.form['ask_price'])
-            }
-
-            # Validate risk metric
-            if form_data['risk_metric'] not in risk_metrics:
-                alerts.append({
-                    'type': 'warning',
-                    'message': 'Invalid risk metric selected.'
-                })
-
-            # Validate inputs
-            if form_data['probability_default'] > 100 or form_data['probability_default'] < 0:
-                alerts.append({
-                    'type': 'warning',
-                    'message': 'Probability of Default must be between 0 and 100%.'
-                })
-            if form_data['loss_given_default'] > 100 or form_data['loss_given_default'] < 0:
-                alerts.append({
-                    'type': 'warning',
-                    'message': 'Loss Given Default must be between 0 and 100%.'
-                })
-            if form_data['compounding_periods'] < 1:
-                alerts.append({
-                    'type': 'warning',
-                    'message': 'Compounding periods must be at least 1.'
-                })
-
-            # Calculate selected metric
-            if not alerts:
-                metric = form_data['risk_metric']
-                if metric == 'Credit Spread':
-                    credit_spread = form_data['corporate_yield'] - form_data['risk_free_yield']
-                    value = f"{credit_spread:.2f}%"
-                    description = "The difference between corporate and risk-free yields."
-                elif metric == 'Probability of Default (PD)':
-                    value = f"{form_data['probability_default']:.2f}%"
-                    description = "The likelihood of the issuer defaulting on the bond."
-                elif metric == 'Loss Given Default (LGD)':
-                    value = f"{form_data['loss_given_default']:.2f}%"
-                    description = "The percentage of exposure lost if default occurs."
-                elif metric == 'Exposure at Default (EAD)':
-                    value = f"GHS {form_data['exposure_at_default']:,.2f}"
-                    description = "The amount exposed to loss at the time of default."
-                elif metric == 'Expected Loss (EL)':
-                    pd = form_data['probability_default'] / 100
-                    lgd = form_data['loss_given_default'] / 100
-                    ead = form_data['exposure_at_default']
-                    expected_loss = pd * lgd * ead
-                    value = f"GHS {expected_loss:,.2f}"
-                    description = "The expected loss due to default, calculated as PD × LGD × EAD."
-                elif metric == 'Interest Rate Risk (Bond)':
-                    duration = form_data['macaulay_duration']
-                    interest_rate_risk = -duration * (form_data['yield_change'] / 100) * form_data['bond_price']
-                    value = f"GHS {interest_rate_risk:,.2f}"
-                    description = "The change in bond price due to a change in yield."
-                elif metric == 'Modified Duration':
-                    modified_duration = form_data['macaulay_duration'] / (1 + form_data['yield_to_maturity'] / 100 / form_data['compounding_periods'])
-                    value = f"{modified_duration:.2f} years"
-                    description = "The bond's price sensitivity to yield changes, adjusted for compounding."
-                elif metric == 'Liquidity Risk (Bid-Ask Spread)':
-                    mid_price = (form_data['bid_price'] + form_data['ask_price']) / 2
-                    liquidity_risk = (form_data['ask_price'] - form_data['bid_price']) / mid_price
-                    value = f"{liquidity_risk * 100:.2f}%"
-                    description = "The cost of trading due to the bid-ask spread."
-                elif metric == 'Call Risk':
-                    value = "Qualitative Assessment"
-                    description = "Risk of the bond being called before maturity, reducing expected returns."
-                elif metric == 'Prepayment Risk':
-                    value = "Qualitative Assessment"
-                    description = "Risk of early repayment, affecting expected cash flows."
-                elif metric == 'Reinvestment Risk':
-                    value = "Qualitative Assessment"
-                    description = "Risk that future cash flows will be reinvested at lower rates."
-                elif metric == 'Model Risk':
-                    value = "Qualitative Assessment"
-                    description = "Risk of errors in financial models used for pricing or risk assessment."
-                elif metric == 'Political/Regulatory/Operational Risk':
-                    value = "Qualitative Assessment"
-                    description = "Risk from political, regulatory, or operational changes affecting the asset."
-
-                result = {
-                    'metric': metric,
-                    'value': value,
-                    'description': description
-                }
-                alerts.append({
-                    'type': 'success',
-                    'message': f"{metric} calculated successfully."
-                })
-
-        except (ValueError, KeyError) as e:
-            alerts.append({
-                'type': 'warning',
-                'message': f"Invalid input: {str(e)}. Please check your entries."
-            })
-
-    return render_template('risk_calculator.html',
-                          form_data=form_data,
-                          result=result,
-                          alerts=alerts,
-                          risk_metrics=risk_metrics)
-
-@app.route('/non_portfolio_risk_help')
-def non_portfolio_risk_help():
-    return render_template('non_portfolio_risk_help.html')
-
-@app.route('/portfolio_risk_help')
-def portfolio_risk_help():
-    return render_template('portfolio_risk_help.html')
-
-# Route for Download Guide (Placeholder)
-@app.route('/download_guide')
-def download_guide():
-    return "Download Guide functionality to be implemented"
-
-@app.route('/expected-return', methods=['GET', 'POST'])
-def expected_return():
-    if request.method == 'POST':
-        try:
-            num_assets = int(request.form['num_assets'])
-            weights = [float(request.form[f'weight_{i}']) for i in range(1, num_assets + 1)]
-            returns = [float(request.form[f'return_{i}']) for i in range(1, num_assets + 1)]
-            expected_return = calculate_expected_return(weights, returns)
-            result = f"<p>Portfolio Expected Return: {expected_return:.2%}</p>"
-            return render_template('expected_return.html', result=result, form_data=request.form)
-        except ValueError as e:
-            return render_template('expected_return.html', error=str(e), form_data=request.form)
-    return render_template('expected_return.html', form_data={})
-
-@app.route('/volatility', methods=['GET', 'POST'])
-def volatility():
-    if request.method == 'POST':
-        try:
-            num_assets = int(request.form['num_assets'])
-            weights = [float(request.form[f'weight_{i}']) for i in range(1, num_assets + 1)]
-            cov_matrix = np.array([[float(request.form[f'cov_{i}_{j}']) for j in range(1, num_assets + 1)] for i in range(1, num_assets + 1)])
-            portfolio_volatility = calculate_portfolio_volatility(weights, cov_matrix)
-            result = f"<p>Portfolio Volatility: {portfolio_volatility:.2%}</p>"
-            return render_template('volatility.html', result=result, form_data=request.form)
-        except ValueError as e:
-            return render_template('volatility.html', error=str(e), form_data=request.form)
-    return render_template('volatility.html', form_data={})
-
-@app.route('/calculate-fcf', methods=['GET', 'POST'])
-def calculate_fcf():
-    fcfs = None
-    ocfs = None
-    capex = None
-    error = None
-    if request.method == 'POST':
-        try:
-            ocfs = [float(request.form[f'ocf_{i}']) for i in range(1, 6)]
-            capex = [float(request.form[f'capex_{i}']) for i in range(1, 6)]
-            if any(ocf < 0 or cap < 0 for ocf, cap in zip(ocfs, capex)):
-                error = "OCF and CAPEX must be non-negative"
-            else:
-                fcfs = [ocf - cap for ocf, cap in zip(ocfs, capex)]
-        except ValueError:
-            error = "Invalid numbers entered"
-    return render_template('calculate_fcf.html', fcfs=fcfs, ocfs=ocfs, capex=capex, error=error, currency_symbol="$")
-
-@app.route('/portfolio-diversification', methods=['GET', 'POST'])
-def portfolio_diversification():
-    if request.method == 'POST':
-        try:
-            num_assets = int(request.form['num_assets'])
-            returns = [float(request.form[f'return_{i}']) for i in range(1, num_assets + 1)]
-            weights = [float(request.form[f'weight_{i}']) for i in range(1, num_assets + 1)]
-            volatilities = [float(request.form[f'volatility_{i}']) for i in range(1, num_assets + 1)]
-            expected_return, portfolio_volatility = calculate_portfolio_metrics(num_assets, returns, weights, volatilities)
-            result = f"<p>Portfolio Expected Return: {expected_return:.2%}</p><p>Portfolio Volatility: {portfolio_volatility:.2%}</p>"
-            return render_template('portfolio_diversification.html', result=result, form_data=request.form)
-        except ValueError as e:
-            return render_template('portfolio_diversification.html', result=str(e), form_data=request.form)
-    return render_template('portfolio_diversification.html', form_data={})
+# --- DATACLASSES ---
+from dataclasses import dataclass
 
 @dataclass
 class DCFResult:
@@ -1730,10 +85,198 @@ class DCFResult:
     terminal_value: float
     pv_terminal: float
     total_dcf: float
-    intrinsic_per_share: float = None  # New field for per-share value
+    intrinsic_per_share: float = None
+
+# --- FORMS ---
+class PeriodForm(FlaskForm):
+    period_name = StringField('Period Name', validators=[DataRequired(), Length(max=10)])
+    currency = SelectField('Currency', choices=[
+        ('USD', 'USD - US Dollar'),
+        ('GHS', 'GHS - Ghanaian Cedi'),
+        ('EUR', 'EUR - Euro'),
+        ('GBP', 'GBP - British Pound'),
+        ('JPY', 'JPY - Japanese Yen')
+    ], validators=[DataRequired()])
+    weight_scenario = SelectField('Weighting Scenario', choices=[
+        ('balanced', 'Balanced (25% each P/B, P/TBV, P/E, DDM)'),
+        ('conservative', 'Conservative (40% P/B, 30% P/TBV, 20% P/E, 10% DDM)'),
+        ('growth', 'Growth (40% P/E, 30% P/B, 20% P/TBV, 10% DDM)')
+    ], validators=[DataRequired()])
+    current_price = FloatField('Current Stock Price', validators=[DataRequired(), NumberRange(min=0)])
+    required_return = FloatField('Required Return (%)', validators=[DataRequired(), NumberRange(min=0)])
+    book_value_per_share = FloatField('Book Value per Share', validators=[DataRequired(), NumberRange(min=0)])
+    pb_multiple = FloatField('P/B Multiple', validators=[DataRequired(), NumberRange(min=0)])
+    tangible_book_value_per_share = FloatField('Tangible Book Value per Share', validators=[DataRequired(), NumberRange(min=0)])
+    ptbv_multiple = FloatField('P/TBV Multiple', validators=[DataRequired(), NumberRange(min=0)])
+    eps = FloatField('Current EPS', validators=[DataRequired()])
+    pe_multiple = FloatField('P/E Multiple', validators=[DataRequired(), NumberRange(min=0)])
+    eps_growth = FloatField('EPS Growth Rate (%)', validators=[DataRequired()])
+    pe_years = IntegerField('Projection Years for P/E', validators=[DataRequired(), NumberRange(min=1, max=5)])
+    dividend_per_share = FloatField('Dividend per Share', validators=[DataRequired(), NumberRange(min=0)])
+    dividend_growth = FloatField('Dividend Growth Rate (%)', validators=[DataRequired()])
+    roe = FloatField('Return on Equity (%)', validators=[DataRequired()])
+
+# --- JINJA FILTERS ---
+def format_number(value, decimal_places=2, is_percentage=False, is_currency=False):
+    if isinstance(value, (int, float)):
+        if is_currency:
+            return f"GHS {value:,.{decimal_places}f}"
+        elif is_percentage:
+            return f"{value:.{decimal_places}f}%"
+        else:
+            return f"{value:,.{decimal_places}f}" if abs(value) >= 1000 else f"{value:.{decimal_places}f}"
+    return value
+
+app.jinja_env.filters['format_number'] = format_number
+
+def format_currency(value, currency='GHS'):
+    try:
+        value = round(float(value), 2)
+        currency_symbols = {
+            'USD': '$',
+            'GHS': '₵',
+            'EUR': '€',
+            'GBP': '£',
+            'JPY': '¥'
+        }
+        symbol = currency_symbols.get(currency, '')
+        return f"{symbol}{value:,.2f}"
+    except (ValueError, TypeError):
+        return "0.00"
+
+app.jinja_env.filters['currency'] = format_currency
+
+# --- FINANCIAL CALCULATION FUNCTIONS ---
+def calculate_cca(pe_ratio, earnings):
+    """Calculate Comparable Company Analysis (CCA) valuation."""
+    return pe_ratio * earnings
+
+def calculate_nav(assets, liabilities):
+    """Calculate Net Asset Value (NAV)."""
+    return assets - liabilities
+
+def calculate_market_cap(share_price, shares_outstanding):
+    """Calculate Market Capitalization."""
+    return share_price * shares_outstanding
+
+def calculate_ev(market_cap, debt, cash):
+    """Calculate Enterprise Value (EV)."""
+    return market_cap + debt - cash
+
+def calculate_replacement_cost(tangible_assets, intangible_assets, adjustment_factor):
+    """Calculate Replacement Cost."""
+    return (tangible_assets + intangible_assets) * adjustment_factor
+
+def calculate_risk_adjusted_return(returns, risk_free_rate, beta, market_return):
+    """Calculate Risk-Adjusted Return using CAPM."""
+    return risk_free_rate + beta * (market_return - risk_free_rate)
+
+def calculate_two_stage_ddm(dividend, g_high, years_high, g_terminal, r):
+    """Calculate Two-Stage Dividend Discount Model (DDM)."""
+    g_high = g_high / 100
+    g_terminal = g_terminal / 100
+    r = r / 100
+    pv_dividends = 0
+    current_dividend = dividend
+    for t in range(1, years_high + 1):
+        current_dividend *= (1 + g_high)
+        pv_dividends += current_dividend / (1 + r)**t
+    terminal_dividend = current_dividend * (1 + g_terminal)
+    if r <= g_terminal:
+        raise ValueError("Discount rate must exceed terminal growth rate")
+    terminal_value = terminal_dividend / (r - g_terminal)
+    pv_terminal = terminal_value / (1 + r)**years_high
+    return pv_dividends + pv_terminal
+
+def calculate_two_stage_dcf(fcfe, g_high, years_high, g_terminal, r):
+    """Calculate Two-Stage Discounted Cash Flow (DCF)."""
+    g_high = g_high / 100
+    g_terminal = g_terminal / 100
+    r = r / 100
+    pv_fcfes = 0
+    current_fcf = fcfe
+    for t in range(1, years_high + 1):
+        current_fcf *= (1 + g_high)
+        pv_fcfes += current_fcf / (1 + r)**t
+    terminal_fcf = current_fcf * (1 + g_terminal)
+    if r <= g_terminal:
+        raise ValueError("Discount rate must exceed terminal growth rate")
+    terminal_value = terminal_fcf / (r - g_terminal)
+    pv_terminal = terminal_value / (1 + r)**years_high
+    return pv_fcfes + pv_terminal
+
+def calculate_pe_target(eps, g, years, pe):
+    """Calculate P/E Target Price."""
+    g = g / 100
+    projected_eps = eps * (1 + g)**years
+    return projected_eps * pe
+
+def calculate_beta(stock_returns, market_returns):
+    """Calculate Beta using covariance and variance."""
+    if len(stock_returns) != len(market_returns) or len(stock_returns) < 2:
+        raise ValueError("Stock and market returns must have equal length and at least 2 data points.")
+    cov = statistics.covariance(stock_returns, market_returns)
+    var = statistics.variance(market_returns)
+    if var == 0:
+        raise ValueError("Market returns variance cannot be zero.")
+    return cov / var
+
+def calculate_tbills_rediscount(face_value, discount_rate, days_to_maturity):
+    """Calculate T-Bill Rediscount Value."""
+    discount_rate = discount_rate / 100
+    discount_amount = face_value * discount_rate * (days_to_maturity / 365)
+    return face_value - discount_amount
+
+def calculate_fcfe(net_income, capex, depreciation, change_in_working_capital, debt_issued, debt_repaid):
+    """Calculate Free Cash Flow to Equity (FCFE)."""
+    return net_income + depreciation - capex - change_in_working_capital + debt_issued - debt_repaid
+
+# --- ROUTES ---
+@app.route('/')
+def index():
+    """Render the homepage."""
+    logger.debug("Rendering index page")
+    return render_template('index.html')
+
+@app.route('/help')
+def help():
+    """Render the help page with calculator information."""
+    try:
+        with open('calculators.json') as f:
+            calculators = json.load(f)
+    except FileNotFoundError:
+        calculators = []
+        logger.warning("calculators.json not found, returning empty list")
+    return render_template('help.html', calculators=calculators)
+
+@app.route('/asset-allocation')
+def asset_allocation():
+    """Render the asset allocation page."""
+    logger.debug("Rendering asset allocation page")
+    return render_template('asset_allocation_npra.html')
+
+@app.route('/bond_risk_help')
+def bond_risk_help():
+    """Render the bond risk help page."""
+    logger.debug("Rendering bond risk help page")
+    return render_template('bond_risk_help.html')
+
+@app.route('/portfolio_risk_help')
+def portfolio_risk_help():
+    """Render the portfolio risk help page."""
+    logger.debug("Rendering portfolio risk help page")
+    return render_template('portfolio_risk_help.html')
+
+@app.route('/non_portfolio_risk_help')
+def non_portfolio_risk_help():
+    """Render the non-portfolio risk help page."""
+    logger.debug("Rendering non-portfolio risk help page")
+    return render_template('non_portfolio_risk_help.html')
 
 @app.route('/dcf', methods=['GET', 'POST'])
 def dcf_calculator():
+    """Handle DCF calculator form and calculations."""
+    form_data = request.form.to_dict() if request.method == 'POST' else {}
     error = None
     results = None
     if request.method == 'POST':
@@ -1756,58 +299,19 @@ def dcf_calculator():
             total_dcf = total_pv + pv_terminal
             intrinsic_per_share = total_dcf / shares_outstanding if shares_outstanding > 0 else None
             results = DCFResult(total_pv, pv_cash_flows, terminal_value, pv_terminal, total_dcf, intrinsic_per_share)
+            logger.info("DCF calculation successful")
         except ValueError as e:
             error = str(e)
-    return render_template('dcf.html', error=error, results=results)
-
-@app.route('/fcf_forecasting')
-def fcf_forecasting():
-    return render_template('fcf_forecasting.html')
-
-@app.route('/dvm', methods=['GET', 'POST'])
-def dvm_calculator():
-    error = None
-    results = None
-    model_type = request.form.get('model_type', 'gordon_growth') if request.method == 'POST' else 'gordon_growth'
-    if request.method == 'POST':
-        try:
-            r = float(request.form['r']) / 100
-            if model_type == 'gordon_growth':
-                d1 = float(request.form['d1'])
-                g = float(request.form['g']) / 100
-                result = calculate_gordon_growth(d1, r, g)
-                results = DVMResult(result['intrinsic_value'], result['formula'], None, None, None)
-            elif model_type == 'multi_stage':
-                periods = int(request.form['periods'])
-                terminal_growth = float(request.form['terminal_growth']) / 100
-                dividends = [float(request.form[f'dividend_{i+1}']) for i in range(periods)]
-                result = calculate_multi_stage(dividends, r, terminal_growth)
-                results = DVMResult(result['intrinsic_value'], None, result['pv_dividends'], result['terminal_value'], result['pv_terminal'])
-            elif model_type == 'no_growth':
-                d = float(request.form['d'])
-                result = calculate_no_growth(d, r)
-                results = DVMResult(result['intrinsic_value'], result['formula'], None, None, None)
-        except ValueError as e:
-            error = str(e)
-    return render_template('dvm.html', error=error, results=results, model_type=model_type)
-
-@app.route('/forex', methods=['GET', 'POST'])
-def forex_calculator():
-    if request.method == 'POST':
-        try:
-            investment = float(request.form['investment'])
-            initial_rate = float(request.form['initial_rate'])
-            final_rate = float(request.form['final_rate'])
-            profit = calculate_forex_profit(investment, initial_rate, final_rate)
-            result = f"<p>Forex Profit/Loss: ${profit:,.2f}</p>"
-            return render_template('forex.html', result=result, form_data=request.form)
-        except ValueError as e:
-            return render_template('forex.html', result=str(e), form_data=request.form)
-    return render_template('forex.html', form_data={})
+            logger.error(f"DCF calculation error: {e}")
+    return render_template('dcf.html', error=error, results=results, form_data=form_data)
 
 @app.route('/valuation_methods', methods=['GET', 'POST'])
 def valuation_methods():
-    selected_method = request.form.get('method', 'CCA')
+    """Handle valuation methods form and calculations."""
+    selected_method = request.form.get('method', 'CCA') if request.method == 'POST' else 'CCA'
+    form_data = request.form.to_dict() if request.method == 'POST' else {}
+    error = None
+    result = None
     if request.method == 'POST':
         try:
             method = request.form['method']
@@ -1824,552 +328,44 @@ def valuation_methods():
                 result['value'] = f"GHS {calculate_replacement_cost(float(request.form['tangible_assets']), float(request.form['intangible_assets']), float(request.form['adjustment_factor'])):,.2f}"
             elif method == 'Risk-Adjusted Return':
                 result['value'] = f"{calculate_risk_adjusted_return(float(request.form['returns']), float(request.form['risk_free_rate']), float(request.form['beta']), float(request.form['market_return'])):.2%}"
-            return render_template('valuation_methods.html', result=result, selected_method=method)
-        except ValueError as e:
-            return render_template('valuation_methods.html', error=str(e), selected_method=method)
-    return render_template('valuation_methods.html', selected_method=selected_method)
-
-@app.route('/esg-investments', methods=['GET', 'POST'])
-def esg_investments():
-    if request.method == 'POST':
-        try:
-            esg_amount = float(request.form['esg_amount'])
-            total_portfolio = float(request.form['total_portfolio'])
-            num_esg_assets = int(request.form['num_esg_assets'])
-            esg_scores = [float(request.form[f'esg_score_{i}']) for i in range(1, num_esg_assets + 1)]
-            esg_weights = [float(request.form[f'esg_weight_{i}']) for i in range(1, num_esg_assets + 1)]
-            esg_proportion, weighted_esg_score = calculate_esg_metrics(esg_amount, total_portfolio, num_esg_assets, esg_scores, esg_weights)
-            result = f"<p>ESG Proportion: {esg_proportion:.2%}</p><p>Weighted ESG Score: {weighted_esg_score:.2f}/100</p>"
-            return render_template('esg.html', result=result, form_data=request.form)
-        except ValueError as e:
-            return render_template('esg.html', result=str(e), form_data=request.form)
-    return render_template('esg.html', form_data={})
-
-@app.route('/hedge-funds', methods=['GET', 'POST'])
-def hedge_funds():
-    if request.method == 'POST':
-        try:
-            strategy = request.form['strategy']
-            investment = float(request.form['investment'])
-            leverage = float(request.form['leverage'])
-            target_return = float(request.form['target_return'])
-            volatility = float(request.form['volatility'])
-            expected_value, leveraged_return, leveraged_volatility = calculate_hedge_fund_returns(strategy, investment, leverage, target_return, volatility)
-            result = f"<p>Expected Value: ${expected_value:,.2f}</p><p>Leveraged Return: {leveraged_return:.2%}</p><p>Leveraged Volatility: {leveraged_volatility:.2%}</p>"
-            return render_template('hedge_funds.html', result=result, form_data=request.form)
-        except ValueError as e:
-            return render_template('hedge_funds.html', result=str(e), form_data=request.form)
-    return render_template('hedge_funds.html', form_data={})
-
-@app.route('/calculate-beta', methods=['GET', 'POST'])
-def calculate_beta():
-    beta = None
-    error = None
-    if request.method == 'POST':
-        try:
-            stock_returns = parse_comma_separated(request.form['stock_returns'])
-            market_returns = parse_comma_separated(request.form['market_returns'])
-            if len(stock_returns) != len(market_returns) or len(stock_returns) < 2:
-                raise ValueError("Invalid return data")
-            cov_matrix = np.cov(stock_returns, market_returns)
-            beta = cov_matrix[0, 1] / cov_matrix[1, 1] if cov_matrix[1, 1] != 0 else None
-            if beta is None:
-                raise ValueError("Market variance is zero")
-            beta = round(beta, 4)
+            logger.info(f"Valuation method {method} calculated successfully")
         except ValueError as e:
             error = str(e)
-    return render_template('calculate_beta.html', beta=beta, error=error)
+            logger.error(f"Valuation methods error: {e}")
+    return render_template('valuation_methods.html', result=result, selected_method=selected_method, error=error, form_data=form_data)
 
-@app.route('/monthly-contribution', methods=['GET', 'POST'])
-def monthly_contribution():
-    result = None
-    if request.method == 'POST':
-        try:
-            target = float(request.form['target_amount'])
-            principal = float(request.form['starting_principal'])
-            period = float(request.form['period'])
-            rate = float(request.form['annual_return']) / 100
-            if target <= 0 or principal < 0 or period <= 0:
-                raise ValueError("Invalid inputs")
-            months = period * 12
-            monthly_rate = (1 + rate) ** (1 / 12) - 1 if rate != 0 else 0
-            future_principal = principal * (1 + monthly_rate) ** months if rate != 0 else principal
-            monthly_contribution = (target - future_principal) / (((1 + monthly_rate) ** months - 1) / monthly_rate) if rate != 0 else (target - principal) / months
-            result = "{:,.2f}".format(monthly_contribution)
-        except ValueError as e:
-            return render_template('monthly_contribution.html', error=str(e))
-    return render_template('monthly_contribution.html', result=result)
+@app.route('/ads.txt')
+def ads_txt():
+    """Serve ads.txt file from static directory."""
+    return send_from_directory('static', 'ads.txt')
 
-@app.route('/end-balance', methods=['GET', 'POST'])
-def end_balance():
-    result = None
-    if request.method == 'POST':
-        try:
-            monthly = float(request.form['monthly_contribution'])
-            principal = float(request.form['starting_principal'])
-            period = float(request.form['period'])
-            rate = float(request.form['annual_return']) / 100
-            if monthly < 0 or principal < 0 or period <= 0:
-                raise ValueError("Invalid inputs")
-            months = period * 12
-            monthly_rate = (1 + rate) ** (1 / 12) - 1 if rate != 0 else 0
-            future_principal = principal * (1 + monthly_rate) ** months if rate != 0 else principal
-            future_contributions = monthly * (((1 + monthly_rate) ** months - 1) / monthly_rate) if rate != 0 else monthly * months
-            end_balance = future_principal + future_contributions
-            result = "{:,.2f}".format(end_balance)
-        except ValueError as e:
-            return render_template('end_balance.html', error=str(e))
-    return render_template('end_balance.html', result=result)
+@app.route('/leverage_ratios')
+def leverage_ratios():
+    """Render the leverage ratios page."""
+    logger.debug("Rendering leverage ratios page")
+    return render_template('leverage_ratios.html')
 
-@app.route('/stocks', methods=['GET', 'POST'])
-def stocks():
-    if request.method == 'POST':
-        try:
-            num_shares = float(request.form['num_shares'])
-            purchase_price_per_share = float(request.form['purchase_price_per_share'])
-            purchase_commission = float(request.form['purchase_commission'])
-            selling_price_per_share = float(request.form['selling_price_per_share'])
-            sale_commission = float(request.form['sale_commission'])
-            dividends = float(request.form['dividends'])
+@app.route('/cost_sustainability')
+def cost_sustainability():
+    """Render the cost sustainability page."""
+    logger.debug("Rendering cost sustainability page")
+    return render_template('cost_sustainability.html')
 
-            if any(x < 0 for x in [num_shares, purchase_price_per_share, purchase_commission, selling_price_per_share, sale_commission, dividends]):
-                return render_template('stocks.html', error="All inputs must be non-negative.", request=request)
-
-            total_purchase_cost = num_shares * purchase_price_per_share * (1 + purchase_commission / 100)
-            net_sale_proceeds = num_shares * selling_price_per_share * (1 - sale_commission / 100)
-            capital_gain = ((net_sale_proceeds - total_purchase_cost) / total_purchase_cost) * 100
-            dividend_yield = (dividends / total_purchase_cost) * 100
-            total_return = capital_gain + dividend_yield
-
-            result = {
-                'capital_gain': f"{capital_gain:.2f}",
-                'dividend_yield': f"{dividend_yield:.2f}",
-                'total_return': f"{total_return:.2f}"
-            }
-            return render_template('stocks.html', result=result, request=request)
-        except ValueError:
-            return render_template('stocks.html', error="Please enter valid numeric values.", request=request)
-    return render_template('stocks.html', request=request)
-
-@app.route('/mna', methods=['GET', 'POST'])
-def mna_calculator():
-    if request.method == 'POST':
-        try:
-            acquirer_eps = float(request.form['acquirer_eps'])
-            acquirer_shares = float(request.form['acquirer_shares'])
-            target_eps = float(request.form['target_eps'])
-            target_shares = float(request.form['target_shares'])
-            new_shares_issued = float(request.form['new_shares_issued'])
-            synergy_value = float(request.form['synergy_value'])
-            acquirer_earnings = acquirer_eps * acquirer_shares
-            target_earnings = target_eps * target_shares
-            combined_earnings = acquirer_earnings + target_earnings + synergy_value
-            total_shares = acquirer_shares + new_shares_issued
-            combined_eps = combined_earnings / total_shares
-            eps_change = combined_eps - acquirer_eps
-            status = "Accretive" if eps_change > 0 else "Dilutive" if eps_change < 0 else "Neutral"
-            result = f"<p>Combined EPS: ${combined_eps:.2f}</p><p>EPS Change: ${eps_change:.2f} ({status})</p>"
-            return render_template('mna.html', result=result, form_data=request.form)
-        except ValueError as e:
-            return render_template('mna.html', result=str(e), form_data=request.form)
-    return render_template('mna.html', form_data={})
-
-@app.route('/pe-vc', methods=['GET', 'POST'])
-def pe_vc_valuation():
-    if request.method == 'POST':
-        try:
-            valuation_method = request.form['valuation_method']
-            if valuation_method == "dcf":
-                fcfs = [float(request.form[f'fcf_{i}']) for i in range(1, 6)]
-                risk_free_rate = float(request.form['risk_free_rate']) / 100
-                market_return = float(request.form['market_return']) / 100
-                beta = float(request.form['beta'])
-                debt = float(request.form['debt'])
-                equity = float(request.form['equity'])
-                tax_rate = float(request.form['tax_rate']) / 100
-                growth_rate = float(request.form['growth_rate']) / 100
-                use_exit_multiple = request.form.get('use_exit_multiple') == 'on'
-                exit_ebitda_multiple = float(request.form['exit_ebitda_multiple']) if use_exit_multiple else None
-                ebitda_last_year = float(request.form['ebitda_last_year']) if use_exit_multiple else None
-                enterprise_value, equity_value = calculate_dcf(fcfs, risk_free_rate, market_return, beta, debt, equity, tax_rate, growth_rate, use_exit_multiple, exit_ebitda_multiple, ebitda_last_year)
-                result = f"<p>Enterprise Value: ${enterprise_value:,.2f}</p><p>Equity Value: ${equity_value:,.2f}</p>"
-            elif valuation_method == "vc":
-                exit_value = float(request.form['exit_value'])
-                target_roi = float(request.form['target_roi'])
-                investment_amount = float(request.form['investment_amount'])
-                exit_horizon = float(request.form['exit_horizon'])
-                dilution_factor = float(request.form['dilution_factor'])
-                pre_money, post_money = calculate_vc_method(exit_value, target_roi, investment_amount, exit_horizon, dilution_factor)
-                result = f"<p>Pre-Money Valuation: ${pre_money:,.2f}</p><p>Post-Money Valuation: ${post_money:,.2f}</p>"
-            elif valuation_method == "arr":
-                arr = float(request.form['arr'])
-                arr_multiple = float(request.form['arr_multiple'])
-                control_premium = float(request.form['control_premium']) / 100
-                illiquidity_discount = float(request.form['illiquidity_discount']) / 100
-                valuation = calculate_arr_multiple(arr, arr_multiple, control_premium, illiquidity_discount)
-                result = f"<p>Valuation: ${valuation:,.2f}</p>"
-            return render_template('pe_vc.html', result=result, form_data=request.form)
-        except ValueError as e:
-            return render_template('pe_vc.html', result=str(e), form_data=request.form)
-    return render_template('pe_vc.html', form_data={})
-
-@app.route('/bonds', methods=['GET', 'POST'])
-def bonds():
-    form_data = {}
-    result = None
-    error = None
-
-    if request.method == 'POST':
-        try:
-            # Collect form data
-            form_data = request.form.to_dict()
-            
-            # Convert inputs to appropriate types
-            principal = float(form_data.get('principal', 0.0))
-            tenor = int(form_data.get('tenor', 1))
-            rate = float(form_data.get('rate', 0.0)) / 100
-            total_coupons = float(form_data.get('total_coupons', 0.0))
-
-            # Validate inputs
-            if any(x < 0 for x in [principal, rate, total_coupons]) or tenor < 1:
-                raise ValueError("Principal, rate, and total coupons must be non-negative; tenor must be at least 1 day.")
-            if principal == 0:
-                raise ValueError("Principal must be greater than 0 for yield calculation.")
-
-            # Calculate maturity amount (principal + total coupons)
-            maturity_amount = principal + total_coupons
-
-            # Calculate bond yield (annualized return based on coupons)
-            bond_yield = (total_coupons / principal) / (tenor / 365) * 100
-
-            # Ensure non-negative results and round to 2 decimal places
-            maturity_amount = round(max(float(maturity_amount), 0.0), 2)
-            bond_yield = round(max(float(bond_yield), 0.0), 2)
-
-            # Create result object
-            Result = namedtuple('Result', ['maturity_amount', 'bond_yield'])
-            result = Result(maturity_amount, bond_yield)
-
-        except (ValueError, TypeError) as e:
-            error = str(e)
-            result = None
-
-    return render_template(
-        'bonds.html',
-        result=result,
-        form_data=form_data,
-        error=error,
-        request=request
-    )
-    
-@app.route('/tbills', methods=['GET', 'POST'])
-def tbills():
-    result = None
-    error = None
-    if request.method == 'POST':
-        try:
-            # Collect form data with fallback to handle missing fields
-            principal = float(request.form.get('principal', ''))
-            rate = float(request.form.get('rate', '')) / 100
-            tenor = float(request.form.get('tenor', ''))
-
-            # Validate inputs
-            if not all([principal, rate, tenor]):  # Check for empty values
-                raise ValueError("All fields (Principal, Rate, Tenor) are required.")
-            if principal <= 0 or tenor <= 0:
-                raise ValueError("Principal and tenor must be positive.")
-
-            # Calculate interest and maturity value using the provided formula
-            interest = (principal * tenor * rate) / 364
-            maturity_value = principal + interest
-            result = {'maturity_value': "{:,.2f}".format(maturity_value)}
-
-        except ValueError as e:
-            error = str(e)
-            result = None
-
-    return render_template('tbills.html', result=result, error=error)
-
-@app.route('/mutual-funds', methods=['GET', 'POST'])
-def mutual_funds():
-    result = None
-    if request.method == 'POST':
-        try:
-            nav_start = float(request.form['nav_start'])
-            nav_end = float(request.form['nav_end'])
-            dividends = float(request.form['dividends'])
-            if nav_start <= 0:
-                raise ValueError("NAV at start must be positive")
-            total_return = (nav_end - nav_start + dividends) / nav_start * 100
-            result = {'total_return': round(total_return, 2)}
-        except ValueError as e:
-            return render_template('mutual_funds.html', error=str(e))
-    return render_template('mutual_funds.html', result=result)
-
-@app.route('/duration', methods=['GET', 'POST'])
-def duration():
-    if request.method == 'POST':
-        try:
-            num_periods = int(request.form['num_periods'])
-            cash_flows = [float(request.form[f'cf_{i}']) for i in range(1, num_periods + 1)]
-            yield_rate = float(request.form['yield']) / 100
-            compounding = int(request.form['compounding'])
-            initial_price = float(request.form['initial_price'])
-            price_drop = float(request.form['price_drop'])
-            price_rise = float(request.form['price_rise'])
-            if num_periods < 1 or num_periods > 10 or initial_price <= 0 or compounding < 1 or any(cf <= 0 for cf in cash_flows):
-                raise ValueError("Invalid inputs")
-            pv_sum = 0
-            weighted_pv_sum = 0
-            yield_per_period = yield_rate / compounding
-            for t in range(1, num_periods + 1):
-                pv = cash_flows[t-1] / (1 + yield_per_period) ** t
-                pv_sum += pv
-                weighted_pv_sum += (t / compounding) * pv
-            macaulay_duration = weighted_pv_sum / pv_sum
-            modified_duration = macaulay_duration / (1 + yield_rate / compounding)
-            effective_duration = (price_drop - price_rise) / (2 * 0.01 * initial_price)
-            result = {
-                'macaulay_duration': round(macaulay_duration, 2),
-                'modified_duration': round(modified_duration, 2),
-                'effective_duration': round(effective_duration, 2)
-            }
-            return render_template('duration.html', result=result)
-        except ValueError as e:
-            return render_template('duration.html', error=str(e))
-    return render_template('duration.html')
-
-@app.route('/portfolio_return', methods=['GET', 'POST'])
-def portfolio_return():
-    if request.method == 'POST':
-        try:
-            method = request.form['method']
-            data = parse_comma_separated(request.form['data'])
-            average_inflation = float(request.form['average_inflation']) / 100
-            monthly_inflation = parse_comma_separated(request.form['monthly_inflation']) if request.form['monthly_inflation'].strip() else []
-            if method == 'twr':
-                nominal_return = calculate_twr(data)
-            elif method == 'mwr':
-                nominal_return = calculate_mwr(data)
-            elif method == 'modified_dietz':
-                nominal_return = calculate_modified_dietz(*data)
-            elif method == 'simple_dietz':
-                nominal_return = calculate_simple_dietz(*data)
-            elif method == 'irr':
-                nominal_return = calculate_irr(data)
-            elif method == 'hpr':
-                nominal_return = calculate_hpr(*data)
-            elif method == 'annualized':
-                nominal_return = calculate_annualized_return(*data)
-            elif method == 'geometric_mean':
-                nominal_return = calculate_geometric_mean_return(data)
-            elif method == 'arithmetic_mean':
-                nominal_return = calculate_arithmetic_mean_return(data)
-            real_return_avg = calculate_real_return(nominal_return, average_inflation)
-            real_return_tw = calculate_real_return(nominal_return, calculate_time_weighted_inflation(monthly_inflation)) if monthly_inflation else None
-            result = {
-                'method': method.replace('_', ' ').title(),
-                'nominal_return': f"{nominal_return:.2%}",
-                'real_return_avg': f"{real_return_avg:.2%}",
-                'real_return_tw': f"{real_return_tw:.2%}" if real_return_tw is not None else "Not Provided"
-            }
-            return render_template('portfolio_return.html', result=result)
-        except ValueError as e:
-            return render_template('portfolio_return.html', error=str(e))
-    return render_template('portfolio_return.html')
-
-@app.route('/etfs', methods=['GET', 'POST'])
-def etfs():
-    result = None
-    if request.method == 'POST':
-        try:
-            purchase_price = float(request.form['purchase_price'])
-            selling_price = float(request.form['selling_price'])
-            dividends = float(request.form['dividends'])
-            if purchase_price <= 0:
-                raise ValueError("Purchase price must be positive")
-            total_return = (selling_price - purchase_price + dividends) / purchase_price * 100
-            result = {'total_return': round(total_return, 2)}
-        except ValueError as e:
-            return render_template('etfs.html', error=str(e))
-    return render_template('etfs.html', result=result)
-
-@app.route('/cds', methods=['GET', 'POST'])
-def cds():
-    result = None
-    if request.method == 'POST':
-        try:
-            principal = float(request.form['principal'])
-            rate = float(request.form['rate']) / 100
-            compounding_periods = float(request.form['compounding_periods'])
-            years = float(request.form['years'])
-            if principal <= 0 or compounding_periods <= 0 or years <= 0:
-                raise ValueError("Invalid inputs")
-            fv = principal * (1 + rate / compounding_periods) ** (years * compounding_periods)
-            result = {'future_value': "{:,.2f}".format(fv)}
-        except ValueError as e:
-            return render_template('cds.html', error=str(e))
-    return render_template('cds.html', result=result)
-
-@app.route('/money-market', methods=['GET', 'POST'])
-def money_market():
-    result = None
-    if request.method == 'POST':
-        try:
-            principal = float(request.form['principal'])
-            rate = float(request.form['rate']) / 100
-            days_held = float(request.form['days_held'])
-            if principal <= 0 or days_held <= 0:
-                raise ValueError("Invalid inputs")
-            interest_earned = principal * rate * (days_held / 365)
-            result = {'interest_earned': "{:,.2f}".format(interest_earned)}
-        except ValueError as e:
-            return render_template('money_market.html', error=str(e))
-    return render_template('money_market.html', result=result)
-
-@app.route('/options', methods=['GET', 'POST'])
-def options():
-    result = None
-    if request.method == 'POST':
-        try:
-            option_type = request.form['option_type']
-            stock_price = float(request.form['stock_price'])
-            strike_price = float(request.form['strike_price'])
-            premium = float(request.form['premium'])
-            if option_type == 'call':
-                profit = max(stock_price - strike_price - premium, 0)
-            elif option_type == 'put':
-                profit = max(strike_price - stock_price - premium, 0)
-            else:
-                raise ValueError("Invalid option type")
-            result = {'profit': "{:,.2f}".format(profit)}
-        except ValueError as e:
-            return render_template('options.html', error=str(e))
-    return render_template('options.html', result=result)
-
-@app.route('/futures', methods=['GET', 'POST'])
-def futures():
-    result = None
-    if request.method == 'POST':
-        try:
-            purchase_price = float(request.form['purchase_price'])
-            selling_price = float(request.form['selling_price'])
-            contract_size = float(request.form['contract_size'])
-            if contract_size <= 0:
-                raise ValueError("Contract size must be positive")
-            profit = (selling_price - purchase_price) * contract_size
-            result = {'profit': "{:,.2f}".format(profit)}
-        except ValueError as e:
-            return render_template('futures.html', error=str(e))
-    return render_template('futures.html', result=result)
-
-@app.route('/cryptocurrency', methods=['GET', 'POST'])
-def cryptocurrency():
-    result = None
-    if request.method == 'POST':
-        try:
-            purchase_price = float(request.form['purchase_price'])
-            selling_price = float(request.form['selling_price'])
-            if purchase_price <= 0:
-                raise ValueError("Purchase price must be positive")
-            total_return = (selling_price - purchase_price) / purchase_price * 100
-            result = {'total_return': round(total_return, 2)}
-        except ValueError as e:
-            return render_template('cryptocurrency.html', error=str(e))
-    return render_template('cryptocurrency.html', result=result)
-
-@app.route('/about')
-def about():
-    return render_template('about.html')
-
-@app.route('/privacy-policy')
-def privacy_policy():
-    return render_template('privacy_policy.html')
-
-@app.route('/terms')
-def terms_conditions():
-    return render_template('terms_conditions.html')
-
-@app.route('/contact')
-def contact():
-    return render_template('contact.html')
-
-@app.route('/early_exit', methods=['GET', 'POST'])
-def early_exit():
-    result = None
-    if request.method == 'POST':
-        try:
-            principal = float(request.form['principal'])
-            holding_period = float(request.form['holding_period'])
-            selling_price = float(request.form['selling_price'])
-            total_coupons = float(request.form.get('total_coupons', 0))
-            if principal <= 0 or holding_period <= 0:
-                raise ValueError("Invalid inputs")
-            holding_period_return = (total_coupons + (selling_price - principal)) / (principal * (holding_period / 365)) * 100
-            result = {'holding_period_return': round(holding_period_return, 2)}
-        except ValueError as e:
-            return render_template('early_exit.html', error=str(e))
-    return render_template('early_exit.html', result=result)
-
-@app.route('/tbills-rediscount', methods=['GET', 'POST'])
-def tbills_rediscount():
-    form_data = {
-        'settlement_amount': '',
-        'rate': '',
-        'days_to_maturity': '',
-        'initial_fv': ''
-    }
-    result = None
-    error = None
-
-    if request.method == 'POST':
-        try:
-            # Capture form inputs
-            form_data = {
-                'settlement_amount': request.form.get('settlement_amount', ''),
-                'rate': request.form.get('rate', ''),
-                'days_to_maturity': request.form.get('days_to_maturity', ''),
-                'initial_fv': request.form.get('initial_fv', '')
-            }
-
-            # Convert inputs for calculation
-            settlement_amount = float(form_data['settlement_amount'])
-            rate = float(form_data['rate']) / 100
-            days_to_maturity = float(form_data['days_to_maturity'])
-            initial_fv = float(form_data['initial_fv'])
-
-            # Validate inputs
-            if settlement_amount <= 0 or days_to_maturity <= 0 or initial_fv <= 0:
-                raise ValueError("Invalid inputs: All values must be positive.")
-
-            # Correct calculation
-            settlement_fv = settlement_amount * (1 + rate) ** (days_to_maturity / 364)
-            face_value_after_rediscount = initial_fv - settlement_fv
-
-            result = {
-                'settlement_fv': "{:,.2f}".format(settlement_fv),
-                'face_value_after_rediscount': "{:,.2f}".format(face_value_after_rediscount)
-            }
-        except ValueError as e:
-            error = str(e)
-
-    return render_template('tbills_rediscount.html', form_data=form_data, result=result, error=error)
-
-# ROUTES BLOCK
-# ------------
-# ROUTES BLOCK
-# ------------
 @app.route('/capital-structure', methods=['GET', 'POST'])
 def capital_structure():
+    """Handle capital structure form and WACC calculations."""
+    form_data = request.form.to_dict() if request.method == 'POST' else {}
+    error = None
+    result = None
+    debug = None
     if request.method == 'POST':
         try:
-            # Parse form data with defaults
             input_method = request.form.get('input_method', 'direct')
             if input_method == 'direct':
                 market_cap = float(request.form.get('market_cap', 0))
                 if market_cap <= 0:
                     raise ValueError("Market capitalization must be positive.")
-            else:  # shares
+            else:
                 share_price = float(request.form.get('share_price', 0))
                 outstanding_shares = float(request.form.get('outstanding_shares', 0))
                 if share_price <= 0 or outstanding_shares <= 0:
@@ -2377,53 +373,33 @@ def capital_structure():
                 market_cap = share_price * outstanding_shares
 
             total_debt = float(request.form.get('total_debt', 0))
-            if total_debt < 0:
-                raise ValueError("Total debt cannot be negative.")
             cash_and_equivalents = float(request.form.get('cash_and_equivalents', 0))
-            if cash_and_equivalents < 0:
-                raise ValueError("Cash and equivalents cannot be negative.")
-            
-            # New inputs for cost calculations
             risk_free_rate = float(request.form.get('risk_free_rate', 0)) / 100
-            if risk_free_rate < 0:
-                raise ValueError("Risk-free rate cannot be negative.")
             beta = float(request.form.get('beta', 0))
-            if beta < 0:
-                raise ValueError("Beta cannot be negative.")
             market_return = float(request.form.get('market_return', 0)) / 100
-            if market_return < 0:
-                raise ValueError("Market return cannot be negative.")
             interest_rate = float(request.form.get('interest_rate', 0)) / 100
-            if interest_rate < 0:
-                raise ValueError("Interest rate cannot be negative.")
             tax_rate = float(request.form.get('tax_rate', 0)) / 100
-            if tax_rate < 0 or tax_rate > 1:
+
+            if any(x < 0 for x in [total_debt, cash_and_equivalents, risk_free_rate, beta, market_return, interest_rate]):
+                raise ValueError("Inputs cannot be negative.")
+            if not (0 <= tax_rate <= 1):
                 raise ValueError("Tax rate must be between 0% and 100%.")
 
-            # Calculate net debt
-            net_debt = total_debt - cash_and_equivalents
-            if net_debt < 0:
-                net_debt = 0  # Net debt cannot be negative for weighting
-
-            # Calculate total capital
+            net_debt = max(total_debt - cash_and_equivalents, 0)
             total_capital = market_cap + net_debt
             if total_capital <= 0:
                 raise ValueError("Total capital must be positive.")
 
-            # Calculate weights
             equity_weight = market_cap / total_capital
             debt_weight = net_debt / total_capital
-
-            # Calculate costs
             cost_of_equity = risk_free_rate + beta * (market_return - risk_free_rate)
             cost_of_debt = interest_rate * (1 - tax_rate)
             wacc = (equity_weight * cost_of_equity) + (debt_weight * cost_of_debt)
 
-            # Sensitivity analysis for share price or market cap
             sensitivity = {'values': [], 'share_prices': [], 'market_caps': []}
             base_share_price = share_price if input_method == 'shares' else market_cap / outstanding_shares if outstanding_shares > 0 else 0
             base_market_cap = market_cap
-            price_multipliers = [0.8, 0.9, 1.0, 1.1, 1.2]  # ±20%, ±10%
+            price_multipliers = [0.8, 0.9, 1.0, 1.1, 1.2]
             for multiplier in price_multipliers:
                 adjusted_market_cap = base_market_cap * multiplier
                 adjusted_total_capital = adjusted_market_cap + net_debt
@@ -2439,7 +415,6 @@ def capital_structure():
                 else:
                     sensitivity['market_caps'].append(round(adjusted_market_cap, 2))
 
-            # Debug information
             debug = {
                 'market_cap': market_cap,
                 'total_debt': total_debt,
@@ -2454,555 +429,548 @@ def capital_structure():
                 'sensitivity': sensitivity
             }
 
-            # Warning for high leverage
             if debt_weight > 0.7:
                 debug['warning'] = "High debt weight detected (>70%). This may indicate significant financial leverage."
 
-            return render_template('capital_structure.html',
-                                   result={
-                                       'equity_weight': round(equity_weight * 100, 2),
-                                       'debt_weight': round(debt_weight * 100, 2),
-                                       'total_capital': round(total_capital, 2),
-                                       'cost_of_equity': round(cost_of_equity * 100, 2),
-                                       'cost_of_debt': round(cost_of_debt * 100, 2),
-                                       'wacc': round(wacc * 100, 2)
-                                   },
-                                   debug=debug,
-                                   form=request.form)
-        except ValueError as e:
-            return render_template('capital_structure.html',
-                                   error=str(e),
-                                   form=request.form)
-        except Exception as e:
-            return render_template('capital_structure.html',
-                                   error=f"An error occurred: {str(e)}",
-                                   form=request.form)
-    else:
-        return render_template('capital_structure.html', form={})
-    
- 
-    
-@app.route('/intrinsic-value', methods=['GET', 'POST'])
-def intrinsic_value():
-    if request.method == 'POST':
-        try:
-            # Parse form data with defaults
-            num_fcf_years = int(request.form.get('num_fcf_years', 3))
-            fcf = [float(request.form.get(f'fcf_{i}', 0)) for i in range(1, num_fcf_years + 1)]
-            if not fcf:
-                raise ValueError("At least one FCF value must be provided.")
-            last_fcf = fcf[-1]
-
-            risk_free_rate = float(request.form.get('risk_free_rate', 0)) / 100
-            market_return = float(request.form.get('market_return', 0)) / 100
-            beta = float(request.form.get('beta', 0))
-            equity_weight = float(request.form.get('equity_weight', 50)) / 100
-            debt_weight = float(request.form.get('debt_weight', 50)) / 100
-            cost_of_debt = float(request.form.get('cost_of_debt', 0)) / 100
-            tax_rate = float(request.form.get('tax_rate', 0)) / 100
-            outstanding_shares = float(request.form.get('outstanding_shares', 0))
-            total_debt = float(request.form.get('total_debt', 0))
-            cash_and_equivalents = float(request.form.get('cash_and_equivalents', 0))
-
-            growth_model = request.form.get('growth_model', 'two_stage')
-            terminal_method = request.form.get('terminal_method', 'gordon_growth')
-            high_growth_years = int(request.form.get('high_growth_years', 5))
-            high_growth_rate = float(request.form.get('high_growth_rate', 0)) / 100
-            terminal_growth_rate = float(request.form.get('terminal_growth_rate', 0)) / 100
-            exit_multiple = float(request.form.get('exit_multiple', 0)) if terminal_method == 'exit_multiple' else 0
-
-            discount_rate_method = request.form.get('discount_rate_method', 'capm')
-            if discount_rate_method == 'capm':
-                cost_of_equity = risk_free_rate + beta * (market_return - risk_free_rate)
-                after_tax_cost_of_debt = cost_of_debt * (1 - tax_rate)
-                discount_rate = (equity_weight * cost_of_equity) + (debt_weight * after_tax_cost_of_debt)
-            else:
-                discount_rate = float(request.form.get('manual_discount_rate', 0)) / 100
-
-            # Validate inputs
-            if outstanding_shares <= 0:
-                raise ValueError("Outstanding shares must be positive.")
-            if discount_rate <= 0:
-                raise ValueError("Discount rate must be positive.")
-            if equity_weight + debt_weight != 1.0:
-                raise ValueError("Equity and debt weights must sum to 100%.")
-            if growth_model == 'two_stage' and high_growth_years < 1:
-                raise ValueError("High growth years must be at least 1.")
-            if terminal_method == 'exit_multiple' and exit_multiple <= 0:
-                raise ValueError("Exit multiple must be positive.")
-            if terminal_method == 'gordon_growth' and discount_rate <= terminal_growth_rate:
-                raise ValueError("Discount rate must exceed terminal growth rate.")
-
-            # Calculate historical FCF growth rate for reference
-            historical_growth_rates = []
-            for i in range(1, len(fcf)):
-                if fcf[i-1] != 0:
-                    growth = (fcf[i] - fcf[i-1]) / abs(fcf[i-1])
-                    historical_growth_rates.append(growth)
-            avg_historical_growth = sum(historical_growth_rates) / len(historical_growth_rates) if historical_growth_rates else 0
-
-            # Project future FCFs for explicit period
-            fcf_projections = []
-            for i in range(1, high_growth_years + 1):
-                projected_fcf = last_fcf * (1 + high_growth_rate) ** i
-                fcf_projections.append(projected_fcf)
-
-            # Calculate enterprise value
-            enterprise_value = 0
-            # Discount historical FCFs to present (assuming valuation date is end of last FCF year)
-            for t, cash_flow in enumerate(fcf, 1):
-                enterprise_value += cash_flow / (1 + discount_rate) ** (num_fcf_years - t + 1)
-
-            # Discount projected FCFs
-            for t, cash_flow in enumerate(fcf_projections, 1):
-                enterprise_value += cash_flow / (1 + discount_rate) ** (num_fcf_years + t)
-
-            # Calculate terminal value
-            last_projected_fcf = fcf_projections[-1] if fcf_projections else last_fcf
-            if terminal_method == 'gordon_growth':
-                terminal_value = last_projected_fcf * (1 + terminal_growth_rate) / (discount_rate - terminal_growth_rate)
-            else:  # exit_multiple
-                terminal_value = last_projected_fcf * exit_multiple
-
-            # Discount terminal value to present
-            enterprise_value += terminal_value / (1 + discount_rate) ** (num_fcf_years + high_growth_years)
-
-            # Calculate equity value and intrinsic value per share
-            equity_value = enterprise_value - total_debt + cash_and_equivalents
-            intrinsic_value_per_share = equity_value / outstanding_shares
-
-            # Sensitivity analysis
-            sensitivity = {'values': [], 'g_rates': [], 'r_rates': []}
-            base_g = terminal_growth_rate if terminal_method == 'gordon_growth' else exit_multiple
-            if terminal_method == 'exit_multiple':
-                g_rates = [base_g * 0.8, base_g * 0.9, base_g, base_g * 1.1, base_g * 1.2]
-            else:
-                g_rates = [base_g - 0.02, base_g - 0.01, base_g, base_g + 0.01, base_g + 0.02]
-            r_rates = [discount_rate - 0.02, discount_rate - 0.01, discount_rate, discount_rate + 0.01, discount_rate + 0.02]
-
-            for g in g_rates:
-                row = []
-                for r in r_rates:
-                    if r > 0 and (terminal_method == 'exit_multiple' or (terminal_method == 'gordon_growth' and r > g)):
-                        ev = 0
-                        # Historical FCFs
-                        for t, cash_flow in enumerate(fcf, 1):
-                            ev += cash_flow / (1 + r) ** (num_fcf_years - t + 1)
-                        # Projected FCFs
-                        for t, cash_flow in enumerate(fcf_projections, 1):
-                            ev += cash_flow / (1 + r) ** (num_fcf_years + t)
-                        # Terminal value
-                        if terminal_method == 'gordon_growth':
-                            tv = last_projected_fcf * (1 + g) / (r - g)
-                        else:
-                            tv = last_projected_fcf * g
-                        ev += tv / (1 + r) ** (num_fcf_years + high_growth_years)
-                        eq_val = ev - total_debt + cash_and_equivalents
-                        iv = eq_val / outstanding_shares
-                        row.append(round(iv, 2))
-                    else:
-                        row.append('N/A')
-                sensitivity['values'].append(row)
-            sensitivity['g_rates'] = [round(g, 2) for g in g_rates]
-            sensitivity['r_rates'] = [round(r * 100, 2) for r in r_rates]
-
-            # Debug information
-            debug = {
-                'historical_fcf': fcf,
-                'projected_fcf': fcf_projections,
-                'avg_historical_growth': round(avg_historical_growth * 100, 2),
-                'discount_rate': discount_rate,
-                'growth_model': growth_model,
-                'terminal_method': terminal_method,
-                'terminal_growth_rate': terminal_growth_rate if terminal_method == 'gordon_growth' else None,
-                'exit_multiple': exit_multiple if terminal_method == 'exit_multiple' else None,
-                'enterprise_value': enterprise_value,
-                'equity_value': equity_value,
-                'sensitivity': sensitivity
+            result = {
+                'equity_weight': round(equity_weight * 100, 2),
+                'debt_weight': round(debt_weight * 100, 2),
+                'total_capital': round(total_capital, 2),
+                'cost_of_equity': round(cost_of_equity * 100, 2),
+                'cost_of_debt': round(cost_of_debt * 100, 2),
+                'wacc': round(wacc * 100, 2)
             }
-
-            # Warning for negative values
-            if last_fcf < 0:
-                debug['warning'] = "Last FCF is negative, which may affect valuation accuracy."
-            if intrinsic_value_per_share < 0:
-                debug['warning'] = "Negative intrinsic value calculated. Verify inputs, especially FCF and shares outstanding."
-
-            return render_template('intrinsic_value.html',
-                                   result=intrinsic_value_per_share,
-                                   debug=debug,
-                                   form=request.form)
+            logger.info("Capital structure calculation successful")
+            return render_template('capital_structure.html', result=result, debug=debug, form_data=form_data)
         except ValueError as e:
-            return render_template('intrinsic_value.html',
-                                   error=str(e),
-                                   form=request.form)
+            logger.error(f"Capital structure error: {e}")
+            return render_template('capital_structure.html', error=str(e), form_data=form_data)
         except Exception as e:
-            return render_template('intrinsic_value.html',
-                                   error=f"An error occurred: {str(e)}",
-                                   form=request.form)
-    else:
-        return render_template('intrinsic_value.html', form={})
-        
-# Custom filters
-app.jinja_env.filters['round'] = lambda value, decimals=2: round(float(value), decimals) if value else 0.0
-app.jinja_env.filters['commafy'] = lambda value: "{:,.2f}".format(float(value)) if value else "0.00"
+            logger.error(f"Unexpected error in capital structure: {e}")
+            return render_template('capital_structure.html', error=f"An error occurred: {str(e)}", form_data=form_data)
+    return render_template('capital_structure.html', form_data=form_data)
 
-# Custom filter for currency formatting
-def format_currency(value):
-    try:
-        # Format with commas and ensure two decimal places
-        return "{:,.2f}".format(float(value))
-    except (ValueError, TypeError):
-        return "0.00"
+@app.route('/valuation-performance', methods=['GET', 'POST'])
+def valuation_performance():
+    """Handle valuation performance multiples calculations."""
+    form_data = request.form.to_dict() if request.method == 'POST' else {}
+    if request.method == 'POST':
+        try:
+            data = request.form
+            selected_formula = data.get('formula')
+            results = []
+            input_data = []
+            years_filled = 0
 
-app.jinja_env.filters['currency'] = format_currency
+            for i in range(1, 6):
+                try:
+                    market_cap = float(data.get(f'market_cap_{i}', 0)) if data.get(f'market_cap_{i}') else None
+                    total_debt = float(data.get(f'total_debt_{i}', 0)) if data.get(f'total_debt_{i}') else None
+                    preferred_stock = float(data.get(f'preferred_stock_{i}', 0)) if data.get(f'preferred_stock_{i}') else None
+                    minority_interest = float(data.get(f'minority_interest_{i}', 0)) if data.get(f'minority_interest_{i}') else None
+                    cash = float(data.get(f'cash_{i}', 0)) if data.get(f'cash_{i}') else None
+                    non_operating_assets = float(data.get(f'non_operating_assets_{i}', 0)) if data.get(f'non_operating_assets_{i}') else None
+                    ebitda = float(data.get(f'ebitda_{i}', 0)) if data.get(f'ebitda_{i}') else None
+                    ebit = float(data.get(f'ebit_{i}', 0)) if data.get(f'ebit_{i}') else None
+                    revenue = float(data.get(f'revenue_{i}', 0)) if data.get(f'revenue_{i}') else None
+                    net_income = float(data.get(f'net_income_{i}', 0)) if data.get(f'net_income_{i}') else None
+                    equity = float(data.get(f'equity_{i}', 0)) if data.get(f'equity_{i}') else None
+                    total_assets = float(data.get(f'total_assets_{i}', 0)) if data.get(f'total_assets_{i}') else None
+                    avg_total_assets = float(data.get(f'avg_total_assets_{i}', 0)) if data.get(f'avg_total_assets_{i}') else None
+                    avg_equity = float(data.get(f'avg_equity_{i}', 0)) if data.get(f'avg_equity_{i}') else None
+                    share_price = float(data.get(f'share_price_{i}', 0)) if data.get(f'share_price_{i}') else None
+                    eps = float(data.get(f'eps_{i}', 0)) if data.get(f'eps_{i}') else None
+                    bvps = float(data.get(f'bvps_{i}', 0)) if data.get(f'bvps_{i}') else None
+                    eps_growth = float(data.get(f'eps_growth_{i}', 0)) if data.get(f'eps_growth_{i}') else None
+                    tax_rate = float(data.get(f'tax_rate_{i}', 0)) if data.get(f'tax_rate_{i}') else None
 
-# Register the filter with Jinja2
-app.jinja_env.filters['format_currency'] = format_currency
+                    is_year_filled = all(v is not None for v in [market_cap, total_debt, preferred_stock, minority_interest, cash, non_operating_assets, ebitda, ebit, revenue, net_income, equity, total_assets, avg_total_assets, avg_equity, share_price, eps, bvps, eps_growth, tax_rate])
+                    is_year_empty = all(v is None for v in [market_cap, total_debt, preferred_stock, minority_interest, cash, non_operating_assets, ebitda, ebit, revenue, net_income, equity, total_assets, avg_total_assets, avg_equity, share_price, eps, bvps, eps_growth, tax_rate])
 
-# Custom filter for currency formatting
-@app.template_filter('currency')
-def currency_filter(value, currency='USD'):
-    try:
-        value = float(value)
-        currency_symbols = {
-            'USD': '$',
-            'GHS': 'GHS ',
-            'EUR': '€',
-            'GBP': '£',
-            'JPY': '¥'
-        }
-        symbol = currency_symbols.get(currency, '')
-        return f"{symbol}{value:,.2f}"
-    except (TypeError, ValueError):
-        return value
+                    if i == 1 and not is_year_filled:
+                        return render_template('valuation_performance_multiples.html', error='Please provide all required inputs for Year 1.', form_data=form_data)
+                    if not is_year_empty and not is_year_filled:
+                        return render_template('valuation_performance_multiples.html', error=f'Please provide all required inputs for Year {i} or leave it empty.', form_data=form_data)
+                    if is_year_filled:
+                        ev = market_cap + total_debt + preferred_stock + minority_interest - cash - non_operating_assets
+                        result = None
+                        if selected_formula == 'ev':
+                            result = ev
+                        elif selected_formula == 'ev_ebitda':
+                            if ebitda == 0:
+                                return render_template('valuation_performance_multiples.html', error=f'EBITDA cannot be zero for Year {i} in EV/EBITDA calculation.', form_data=form_data)
+                            result = ev / ebitda
+                        elif selected_formula == 'ev_ebit':
+                            if ebit == 0:
+                                return render_template('valuation_performance_multiples.html', error=f'EBIT cannot be zero for Year {i} in EV/EBIT calculation.', form_data=form_data)
+                            result = ev / ebit
+                        elif selected_formula == 'ev_sales':
+                            if revenue == 0:
+                                return render_template('valuation_performance_multiples.html', error=f'Revenue cannot be zero for Year {i} in EV/Sales calculation.', form_data=form_data)
+                            result = ev / revenue
+                        elif selected_formula == 'pe':
+                            if eps == 0:
+                                return render_template('valuation_performance_multiples.html', error=f'EPS cannot be zero for Year {i} in P/E calculation.', form_data=form_data)
+                            result = share_price / eps
+                        elif selected_formula == 'pb':
+                            if bvps == 0:
+                                return render_template('valuation_performance_multiples.html', error=f'Book Value Per Share cannot be zero for Year {i} in P/B calculation.', form_data=form_data)
+                            result = share_price / bvps
+                        elif selected_formula == 'peg':
+                            if eps == 0 or eps_growth == 0:
+                                return render_template('valuation_performance_multiples.html', error=f'EPS or EPS Growth Rate cannot be zero for Year {i} in PEG calculation.', form_data=form_data)
+                            result = (share_price / eps) / (eps_growth / 100)
+                        elif selected_formula == 'ebitda_margin':
+                            if revenue == 0:
+                                return render_template('valuation_performance_multiples.html', error=f'Revenue cannot be zero for Year {i} in EBITDA Margin calculation.', form_data=form_data)
+                            result = (ebitda / revenue) * 100
+                        elif selected_formula == 'ebit_margin':
+                            if revenue == 0:
+                                return render_template('valuation_performance_multiples.html', error=f'Revenue cannot be zero for Year {i} in EBIT Margin calculation.', form_data=form_data)
+                            result = (ebit / revenue) * 100
+                        elif selected_formula == 'net_margin':
+                            if revenue == 0:
+                                return render_template('valuation_performance_multiples.html', error=f'Revenue cannot be zero for Year {i} in Net Margin calculation.', form_data=form_data)
+                            result = (net_income / revenue) * 100
+                        elif selected_formula == 'roe':
+                            if equity == 0:
+                                return render_template('valuation_performance_multiples.html', error=f'Equity cannot be zero for Year {i} in ROE calculation.', form_data=form_data)
+                            result = (net_income / equity) * 100
+                        elif selected_formula == 'roa':
+                            if total_assets == 0:
+                                return render_template('valuation_performance_multiples.html', error=f'Total Assets cannot be zero for Year {i} in ROA calculation.', form_data=form_data)
+                            result = (net_income / total_assets) * 100
+                        elif selected_formula == 'roic':
+                            nopat = ebit * (1 - tax_rate / 100)
+                            invested_capital = total_debt + equity - cash - non_operating_assets
+                            if invested_capital == 0:
+                                return render_template('valuation_performance_multiples.html', error=f'Invested Capital cannot be zero for Year {i} in ROIC calculation.', form_data=form_data)
+                            result = (nopat / invested_capital) * 100
+                        elif selected_formula == 'roa_fin':
+                            if avg_total_assets == 0:
+                                return render_template('valuation_performance_multiples.html', error=f'Average Total Assets cannot be zero for Year {i} in ROA (Financials) calculation.', form_data=form_data)
+                            result = (net_income / avg_total_assets) * 100
+                        elif selected_formula == 'roe_fin':
+                            if avg_equity == 0:
+                                return render_template('valuation_performance_multiples.html', error=f'Average Equity cannot be zero for Year {i} in ROE (Financials) calculation.', form_data=form_data)
+                            result = (net_income / avg_equity) * 100
 
-@app.route('/bank-intrinsic-value', methods=['GET', 'POST'])
-def bank_intrinsic_value():
+                        input_data.append({
+                            'year': i,
+                            'market_cap': market_cap,
+                            'total_debt': total_debt,
+                            'preferred_stock': preferred_stock,
+                            'minority_interest': minority_interest,
+                            'cash': cash,
+                            'non_operating_assets': non_operating_assets,
+                            'ebitda': ebitda,
+                            'ebit': ebit,
+                            'revenue': revenue,
+                            'net_income': net_income,
+                            'equity': equity,
+                            'total_assets': total_assets,
+                            'avg_total_assets': avg_total_assets,
+                            'avg_equity': avg_equity,
+                            'share_price': share_price,
+                            'eps': eps,
+                            'bvps': bvps,
+                            'eps_growth': eps_growth,
+                            'tax_rate': tax_rate,
+                            'result': result
+                        })
+                        results.append(result)
+                        years_filled += 1
+                except ValueError:
+                    return render_template('valuation_performance_multiples.html', error=f'Invalid input for Year {i}. Please ensure all inputs are valid numbers.', form_data=form_data)
+
+            if years_filled == 0:
+                return render_template('valuation_performance_multiples.html', error='Please provide at least one year of data.', form_data=form_data)
+
+            average_result = sum(results) / years_filled
+            unit = '%' if selected_formula in ['ebitda_margin', 'ebit_margin', 'net_margin', 'roe', 'roa', 'roic', 'roa_fin', 'roe_fin'] else 'x'
+            logger.info(f"Valuation performance calculated for {years_filled} years with formula {selected_formula}")
+            return render_template('valuation_performance_multiples.html', results=input_data, average_result=average_result, unit=unit, form_data=form_data, selected_formula=selected_formula)
+        except Exception as e:
+            logger.error(f"Valuation performance error: {e}")
+            return render_template('valuation_performance_multiples.html', error=f"An error occurred: {str(e)}", form_data=form_data)
+    return render_template('valuation_performance_multiples.html', form_data=form_data)
+
+@app.route('/specialized-industry', methods=['GET', 'POST'])
+def specialized_industry():
+    """Handle specialized industry multiples calculations."""
+    form_data = request.form.to_dict() if request.method == 'POST' else {}
+    if request.method == 'POST':
+        try:
+            data = request.form
+            selected_formula = data.get('formula')
+            results = []
+            input_data = []
+            periods_filled = 0
+
+            if selected_formula == 'ltm_ebitda':
+                for i in range(1, 5):
+                    try:
+                        ebitda = float(data.get(f'ebitda_q{i}', 0)) if data.get(f'ebitda_q{i}') else None
+                        is_quarter_filled = ebitda is not None
+                        is_quarter_empty = ebitda is None
+
+                        if i == 1 and not is_quarter_filled:
+                            return render_template('specialized_industry_multiples.html', error=f'Please provide all required inputs for Quarter {i}.', form_data=form_data)
+                        if not is_quarter_empty and not is_quarter_filled:
+                            return render_template('specialized_industry_multiples.html', error=f'Please provide all required inputs for Quarter {i} or leave it empty.', form_data=form_data)
+                        if is_quarter_filled:
+                            results.append(ebitda)
+                            input_data.append({'quarter': i, 'ebitda': ebitda, 'result': ebitda})
+                            periods_filled += 1
+                    except ValueError:
+                        return render_template('specialized_industry_multiples.html', error=f'Invalid input for Quarter {i}. Please ensure all inputs are valid numbers.', form_data=form_data)
+
+                if periods_filled == 0:
+                    return render_template('specialized_industry_multiples.html', error='Please provide at least one quarter of data.', form_data=form_data)
+
+                average_result = sum(results)
+                unit = 'GHS'
+                logger.info(f"Specialized industry LTM EBITDA calculated for {periods_filled} quarters")
+                return render_template('specialized_industry_multiples.html', results=input_data, average_result=average_result, unit=unit, form_data=form_data, selected_formula=selected_formula)
+
+            elif selected_formula == 'ntm_ebitda':
+                try:
+                    current_fy = float(data.get('current_fy_ebitda', 0)) if data.get('current_fy_ebitda') else None
+                    next_fy = float(data.get('next_fy_ebitda', 0)) if data.get('next_fy_ebitda') else None
+                    months_remaining = float(data.get('months_remaining', 0)) if data.get('months_remaining') else None
+                    months_passed = float(data.get('months_passed', 0)) if data.get('months_passed') else None
+
+                    if any(v is None for v in [current_fy, next_fy, months_remaining, months_passed]):
+                        return render_template('specialized_industry_multiples.html', error='Please provide all required inputs for NTM EBITDA.', form_data=form_data)
+                    if months_remaining + months_passed != 12:
+                        return render_template('specialized_industry_multiples.html', error='Months Remaining and Months Passed must sum to 12.', form_data=form_data)
+
+                    result = (current_fy * months_remaining / 12) + (next_fy * months_passed / 12)
+                    input_data.append({
+                        'current_fy': current_fy,
+                        'next_fy': next_fy,
+                        'months_remaining': months_remaining,
+                        'months_passed': months_passed,
+                        'result': result
+                    })
+                    results.append(result)
+                    periods_filled = 1
+                    average_result = result
+                    unit = 'GHS'
+                    logger.info("Specialized industry NTM EBITDA calculated")
+                    return render_template('specialized_industry_multiples.html', results=input_data, average_result=average_result, unit=unit, form_data=form_data, selected_formula=selected_formula)
+                except ValueError:
+                    return render_template('specialized_industry_multiples.html', error='Invalid input for NTM EBITDA. Please ensure all inputs are valid numbers.', form_data=form_data)
+
+            else:
+                for i in range(1, 6):
+                    try:
+                        market_cap = float(data.get(f'market_cap_{i}', 0)) if data.get(f'market_cap_{i}') else None
+                        total_debt = float(data.get(f'total_debt_{i}', 0)) if data.get(f'total_debt_{i}') else None
+                        preferred_stock = float(data.get(f'preferred_stock_{i}', 0)) if data.get(f'preferred_stock_{i}') else None
+                        minority_interest = float(data.get(f'minority_interest_{i}', 0)) if data.get(f'minority_interest_{i}') else None
+                        cash = float(data.get(f'cash_{i}', 0)) if data.get(f'cash_{i}') else None
+                        non_operating_assets = float(data.get(f'non_operating_assets_{i}', 0)) if data.get(f'non_operating_assets_{i}') else None
+                        ebitda = float(data.get(f'ebitda_{i}', 0)) if data.get(f'ebitda_{i}') else None
+                        ebit = float(data.get(f'ebit_{i}', 0)) if data.get(f'ebit_{i}') else None
+                        revenue = float(data.get(f'revenue_{i}', 0)) if data.get(f'revenue_{i}') else None
+                        prior_revenue = float(data.get(f'prior_revenue_{i}', 0)) if data.get(f'prior_revenue_{i}') else None
+                        eps = float(data.get(f'eps_{i}', 0)) if data.get(f'eps_{i}') else None
+                        prior_eps = float(data.get(f'prior_eps_{i}', 0)) if data.get(f'prior_eps_{i}') else None
+                        tax_rate = float(data.get(f'tax_rate_{i}', 0)) if data.get(f'tax_rate_{i}') else None
+                        rent_expense = float(data.get(f'rent_expense_{i}', 0)) if data.get(f'rent_expense_{i}') else None
+                        subscribers = float(data.get(f'subscribers_{i}', 0)) if data.get(f'subscribers_{i}') else None
+                        boe = float(data.get(f'boe_{i}', 0)) if data.get(f'boe_{i}') else None
+                        square_footage = float(data.get(f'square_footage_{i}', 0)) if data.get(f'square_footage_{i}') else None
+                        mau = float(data.get(f'mau_{i}', 0)) if data.get(f'mau_{i}') else None
+                        ffo_per_share = float(data.get(f'ffo_per_share_{i}', 0)) if data.get(f'ffo_per_share_{i}') else None
+                        tangible_bvps = float(data.get(f'tangible_bvps_{i}', 0)) if data.get(f'tangible_bvps_{i}') else None
+                        share_price = float(data.get(f'share_price_{i}', 0)) if data.get(f'share_price_{i}') else None
+
+                        is_year_filled = all(v is not None for v in [market_cap, total_debt, preferred_stock, minority_interest, cash, non_operating_assets, ebitda, ebit, revenue, prior_revenue, eps, prior_eps, tax_rate, rent_expense, subscribers, boe, square_footage, mau, ffo_per_share, tangible_bvps, share_price])
+                        is_year_empty = all(v is None for v in [market_cap, total_debt, preferred_stock, minority_interest, cash, non_operating_assets, ebitda, ebit, revenue, prior_revenue, eps, prior_eps, tax_rate, rent_expense, subscribers, boe, square_footage, mau, ffo_per_share, tangible_bvps, share_price])
+
+                        if i == 1 and not is_year_filled:
+                            return render_template('specialized_industry_multiples.html', error=f'Please provide all required inputs for Year {i}.', form_data=form_data)
+                        if not is_year_empty and not is_year_filled:
+                            return render_template('specialized_industry_multiples.html', error=f'Please provide all required inputs for Year {i} or leave it empty.', form_data=form_data)
+                        if is_year_filled:
+                            ev = market_cap + total_debt + preferred_stock + minority_interest - cash - non_operating_assets
+                            result = None
+                            if selected_formula == 'net_debt':
+                                result = total_debt - cash
+                            elif selected_formula == 'net_debt_ebitda':
+                                if ebitda == 0:
+                                    return render_template('specialized_industry_multiples.html', error=f'EBITDA cannot be zero for Year {i} in Net Debt/EBITDA calculation.', form_data=form_data)
+                                result = (total_debt - cash) / ebitda
+                            elif selected_formula == 'revenue_growth':
+                                if prior_revenue == 0:
+                                    return render_template('specialized_industry_multiples.html', error=f'Prior Revenue cannot be zero for Year {i} in Revenue Growth calculation.', form_data=form_data)
+                                result = ((revenue - prior_revenue) / prior_revenue) * 100
+                            elif selected_formula == 'eps_growth':
+                                if prior_eps == 0:
+                                    return render_template('specialized_industry_multiples.html', error=f'Prior EPS cannot be zero for Year {i} in EPS Growth calculation.', form_data=form_data)
+                                result = ((eps - prior_eps) / prior_eps) * 100
+                            elif selected_formula == 'unlevered_pe':
+                                ebiat = ebit * (1 - tax_rate / 100)
+                                if ebiat == 0:
+                                    return render_template('specialized_industry_multiples.html', error=f'EBIAT cannot be zero for Year {i} in Unlevered P/E calculation.', form_data=form_data)
+                                result = ev / ebiat
+                            elif selected_formula == 'tev_ebitdar':
+                                ebitdar = ebitda + rent_expense
+                                tev = ev
+                                if ebitdar == 0:
+                                    return render_template('specialized_industry_multiples.html', error=f'EBITDAR cannot be zero for Year {i} in TEV/EBITDAR calculation.', form_data=form_data)
+                                result = tev / ebitdar
+                            elif selected_formula == 'ev_subscribers':
+                                if subscribers == 0:
+                                    return render_template('specialized_industry_multiples.html', error=f'Subscribers cannot be zero for Year {i} in EV/Subscribers calculation.', form_data=form_data)
+                                result = ev / subscribers
+                            elif selected_formula == 'ev_boe':
+                                if boe == 0:
+                                    return render_template('specialized_industry_multiples.html', error=f'BOE cannot be zero for Year {i} in EV/BOE calculation.', form_data=form_data)
+                                result = ev / boe
+                            elif selected_formula == 'ev_square_foot':
+                                if square_footage == 0:
+                                    return render_template('specialized_industry_multiples.html', error=f'Square Footage cannot be zero for Year {i} in EV/Square Foot calculation.', form_data=form_data)
+                                result = ev / square_footage
+                            elif selected_formula == 'ev_mau':
+                                if mau == 0:
+                                    return render_template('specialized_industry_multiples.html', error=f'MAU cannot be zero for Year {i} in EV/MAU calculation.', form_data=form_data)
+                                result = ev / mau
+                            elif selected_formula == 'p_ffo':
+                                if ffo_per_share == 0:
+                                    return render_template('specialized_industry_multiples.html', error=f'FFO Per Share cannot be zero for Year {i} in P/FFO calculation.', form_data=form_data)
+                                result = share_price / ffo_per_share
+                            elif selected_formula == 'p_tbv':
+                                if tangible_bvps == 0:
+                                    return render_template('specialized_industry_multiples.html', error=f'Tangible Book Value Per Share cannot be zero for Year {i} in P/TBV calculation.', form_data=form_data)
+                                result = share_price / tangible_bvps
+
+                            input_data.append({
+                                'year': i,
+                                'market_cap': market_cap,
+                                'total_debt': total_debt,
+                                'preferred_stock': preferred_stock,
+                                'minority_interest': minority_interest,
+                                'cash': cash,
+                                'non_operating_assets': non_operating_assets,
+                                'ebitda': ebitda,
+                                'ebit': ebit,
+                                'revenue': revenue,
+                                'prior_revenue': prior_revenue,
+                                'eps': eps,
+                                'prior_eps': prior_eps,
+                                'tax_rate': tax_rate,
+                                'rent_expense': rent_expense,
+                                'subscribers': subscribers,
+                                'boe': boe,
+                                'square_footage': square_footage,
+                                'mau': mau,
+                                'ffo_per_share': ffo_per_share,
+                                'tangible_bvps': tangible_bvps,
+                                'share_price': share_price,
+                                'result': result
+                            })
+                            results.append(result)
+                            periods_filled += 1
+                    except ValueError:
+                        return render_template('specialized_industry_multiples.html', error=f'Invalid input for Year {i}. Please ensure all inputs are valid numbers.', form_data=form_data)
+
+                if periods_filled == 0:
+                    return render_template('specialized_industry_multiples.html', error='Please provide at least one year of data.', form_data=form_data)
+
+                average_result = sum(results) / periods_filled
+                unit = '%' if selected_formula in ['revenue_growth', 'eps_growth'] else 'GHS' if selected_formula == 'net_debt' else 'x'
+                logger.info(f"Specialized industry calculated for {periods_filled} periods with formula {selected_formula}")
+                return render_template('specialized_industry_multiples.html', results=input_data, average_result=average_result, unit=unit, form_data=form_data, selected_formula=selected_formula)
+        except Exception as e:
+            logger.error(f"Specialized industry error: {e}")
+            return render_template('specialized_industry_multiples.html', error=f"An error occurred: {str(e)}", form_data=form_data)
+    return render_template('specialized_industry_multiples.html', form_data=form_data)
+
+@app.route('/multiples-master-valuation', methods=['GET', 'POST'])
+def multiples_master_valuation():
+    """Handle multiples master valuation form and calculations."""
+    form = PeriodForm()
     form_data = {}
-    result = None
-    model = 'DDM'  # Default model
-    num_years = 5  # Default number of years
-    error = None
-    valuation_comment = ""
-
+    periods = []
     if request.method == 'POST':
         try:
-            # Collect form data
-            form_data = request.form.to_dict()
-            model = form_data.get('model', 'DDM')
-            num_years = int(form_data.get('num_years', 5))
+            for period in ['Q1', 'Q2', 'H1', 'FY']:
+                try:
+                    currency = request.form[f'{period}_currency']
+                    weight_scenario = request.form[f'{period}_weight_scenario']
+                    current_price = float(request.form[f'{period}_current_price'])
+                    pb_multiple = float(request.form[f'{period}_pb_multiple'])
+                    book_value_per_share = float(request.form[f'{period}_book_value_per_share'])
+                    ptbv_multiple = float(request.form[f'{period}_ptbv_multiple'])
+                    tangible_book_value = float(request.form[f'{period}_tangible_book_value'])
+                    pe_multiple = float(request.form[f'{period}_pe_multiple'])
+                    eps = float(request.form[f'{period}_eps'])
+                    dividend_per_share = float(request.form[f'{period}_dividend_per_share'])
+                    dividend_growth = float(request.form[f'{period}_dividend_growth'])
+                    required_return = float(request.form[f'{period}_required_return'])
 
-            # Convert numeric inputs to floats, default to 0.0 if empty
-            for key in form_data:
-                if key not in ['model', 'num_years']:
-                    form_data[key] = float(form_data[key]) if form_data[key] else 0.0
+                    if any(x <= 0 for x in [current_price, pb_multiple, book_value_per_share, ptbv_multiple, tangible_book_value, pe_multiple, eps, dividend_per_share, required_return]):
+                        raise ValueError("All monetary values and rates must be positive and non-zero")
+                    if any(x < 0 or x > 100 for x in [dividend_growth]) or required_return > 50:
+                        raise ValueError("Growth rates must be between 0 and 100%, discount rate between 0.01 and 50")
+                    if weight_scenario not in ['conservative', 'balanced', 'growth']:
+                        raise ValueError("Invalid weighting scenario")
+                    if currency not in ['USD', 'GHS', 'EUR', 'GBP', 'JPY']:
+                        raise ValueError("Invalid currency selected")
 
-            # Input length validation
-            if model == 'DDM':
-                dividends = [form_data.get(f'dividend_{i}', 0.0) for i in range(1, num_years + 1)]
-                if len(dividends) != num_years:
-                    raise ValueError(f"Exactly {num_years} dividend forecasts required")
-            elif model == 'RIM':
-                eps_list = [form_data.get(f'eps_{i}', 0.0) for i in range(1, num_years + 1)]
-                if len(eps_list) != num_years:
-                    raise ValueError(f"Exactly {num_years} EPS forecasts required")
+                    pb_value = pb_multiple * book_value_per_share
+                    ptbv_value = ptbv_multiple * tangible_book_value
+                    pe_value = pe_multiple * eps
+                    ddm_value = calculate_two_stage_ddm(dividend_per_share, dividend_growth, 5, dividend_growth * 0.5, required_return)
 
-            # CAPM: Calculate cost of equity (discount rate)
-            risk_free_rate = form_data.get('risk_free_rate', 0.0) / 100
-            market_return = form_data.get('market_return', 0.0) / 100
-            beta = form_data.get('beta', 0.0)
-            discount_rate = risk_free_rate + beta * (market_return - risk_free_rate)
+                    weights = {
+                        'conservative': [30, 20, 30, 20],
+                        'balanced': [25, 25, 25, 25],
+                        'growth': [20, 20, 30, 30]
+                    }[weight_scenario]
+                    values = [pb_value, ptbv_value, pe_value, ddm_value]
+                    weighted_average = sum(v * w / 100 for v, w in zip(values, weights))
+                    over_under_valuation = (current_price / weighted_average - 1) * 100 if weighted_average > 0 else float('inf')
 
-            terminal_growth_rate = form_data.get('terminal_growth_rate', 0.0) / 100
+                    period_data = {
+                        'period_name': period,
+                        'currency': currency,
+                        'current_price': round(current_price, 2),
+                        'pb_value': round(pb_value, 2),
+                        'ptbv_value': round(ptbv_value, 2),
+                        'pe_value': round(pe_value, 2),
+                        'ddm_value': round(ddm_value, 2),
+                        'weighted_average': round(weighted_average, 2),
+                        'over_under_valuation': round(over_under_valuation, 2),
+                        'weights': weights,
+                        'weight_scenario': weight_scenario
+                    }
+                    periods.append(period_data)
 
-            if model == 'DDM':
-                # DDM Calculation
-                pv_dividends = 0.0
-                for i in range(num_years):
-                    pv_dividends += dividends[i] / ((1 + discount_rate) ** (i + 1))
+                    valuation = ValuationResult(
+                        period_name=period,
+                        currency=currency,
+                        weighted_average=weighted_average,
+                        pb_value=pb_value,
+                        ptbv_value=ptbv_value,
+                        pe_value=pe_value,
+                        ddm_value=ddm_value
+                    )
+                    db.session.add(valuation)
+                except ValueError as e:
+                    logger.error(f"Calculation error for period {period}: {e}")
+                    periods.append({'period_name': period, 'error': str(e)})
+                    continue
+            db.session.commit()
+            logger.info("Multiples master valuation calculation and storage successful")
+            return render_template('multiples_master.html', periods=periods, form=form, form_data=request.form.to_dict())
+        except Exception as e:
+            logger.error(f"Unexpected error in multiples master valuation: {e}")
+            return render_template('multiples_master.html', error=f"An unexpected error occurred: {str(e)}", form=form, form_data=request.form.to_dict())
+    return render_template('multiples_master.html', form=form, form_data=form_data)
 
-                # Calculate terminal value and its present value
-                terminal_dividend = dividends[-1] * (1 + terminal_growth_rate)
-                terminal_value = terminal_dividend / (discount_rate - terminal_growth_rate)
-                pv_terminal_value = terminal_value / ((1 + discount_rate) ** num_years)
-
-                # Total intrinsic value
-                result = pv_dividends + pv_terminal_value
-
-            elif model == 'RIM':
-                # RIM Calculation
-                book_value = form_data.get('book_value', 0.0)
-                pv_residual_income = 0.0
-                current_book_value = book_value
-
-                # Calculate residual income for each year
-                for i in range(num_years):
-                    residual_income = eps_list[i] - (discount_rate * current_book_value)
-                    pv_residual_income += residual_income / ((1 + discount_rate) ** (i + 1))
-                    current_book_value += eps_list[i]  # Update book value for next year
-
-                # Calculate terminal value
-                terminal_eps = eps_list[-1] * (1 + terminal_growth_rate)
-                terminal_residual_income = terminal_eps - (discount_rate * current_book_value)
-                terminal_value = terminal_residual_income / (discount_rate - terminal_growth_rate)
-                pv_terminal_value = terminal_value / ((1 + discount_rate) ** num_years)
-
-                # Total intrinsic value
-                result = book_value + pv_residual_income + pv_terminal_value
-
-            # Ensure result is a float and non-negative
-            if result is not None:
-                result = max(float(result), 0.0)
-
-            # Generate valuation comment if market price is provided
-            if form_data.get('market_price'):
-                market_price = form_data['market_price']
-                if market_price < result:
-                    valuation_comment = "The stock may be <span class='font-bold text hiciera-green-600'>undervalued</span>."
-                elif market_price > result:
-                    valuation_comment = "The stock may be <span class='font-bold text-red-600'>overvalued</span>."
-                else:
-                    valuation_comment = "The stock is priced at its intrinsic value."
-
-        except (ValueError, ZeroDivisionError) as e:
-            error = str(e) if "forecasts required" in str(e) else "Invalid input or calculation error. Ensure all inputs are valid numbers and discount rate is greater than growth rate."
-            result = None
-
-    return render_template(
-        'bank_intrinsic_value.html',
-        result=result,
-        model=model,
-        num_years=num_years,
-        form_data=form_data,
-        error=error,
-        valuation_comment=valuation_comment
-    )
-        
-@app.route('/target-price', methods=['GET', 'POST'])
-def target_price():
+@app.route('/calculate-beta', methods=['GET', 'POST'])
+def calculate_beta_route():
+    """Handle Beta calculation form and results."""
+    form_data = request.form.to_dict() if request.method == 'POST' else {}
     if request.method == 'POST':
         try:
-            current_eps = float(request.form['current_eps'])
-            growth_rate = float(request.form['growth_rate']) / 100
-            pe_ratio = float(request.form['pe_ratio'])
+            stock_returns = [float(x) for x in request.form.get('stock_returns', '').split(',') if x.strip()]
+            market_returns = [float(x) for x in request.form.get('market_returns', '').split(',') if x.strip()]
+            beta = calculate_beta(stock_returns, market_returns)
+            logger.info("Beta calculation successful")
+            return render_template('calculate_beta.html', result={'beta': round(beta, 2)}, form_data=form_data)
+        except ValueError as e:
+            logger.error(f"Beta calculation error: {e}")
+            return render_template('calculate_beta.html', error=str(e), form_data=form_data)
+    return render_template('calculate_beta.html', form_data=form_data)
 
-            # Calculate for 1 year
-            future_eps_1 = current_eps * (1 + growth_rate)
-            target_price_1 = future_eps_1 * pe_ratio
+@app.route('/tbills-rediscount', methods=['GET', 'POST'])
+def tbills_rediscount():
+    """Handle T-Bill rediscount calculation form and results."""
+    form_data = request.form.to_dict() if request.method == 'POST' else {}
+    if request.method == 'POST':
+        try:
+            face_value = float(request.form.get('initial_fv', 0))
+            discount_rate = float(request.form.get('rate', 0))
+            days_to_maturity = int(request.form.get('days_to_maturity', 0))
+            if face_value <= 0 or discount_rate <= 0 or days_to_maturity <= 0:
+                raise ValueError("All inputs must be positive numbers.")
+            rediscount_value = calculate_tbills_rediscount(face_value, discount_rate, days_to_maturity)
+            logger.info("T-Bill rediscount calculation successful")
+            return render_template('tbills_rediscount.html', result={'settlement_fv': round(rediscount_value, 2), 'face_value_after_rediscount': round(face_value, 2)}, form_data=form_data)
+        except ValueError as e:
+            logger.error(f"T-Bill rediscount error: {e}")
+            return render_template('tbills_rediscount.html', error=str(e), form_data=form_data)
+    return render_template('tbills_rediscount.html', form_data=form_data)
 
-            # Calculate for 2 years
-            future_eps_2 = current_eps * (1 + growth_rate) ** 2
-            target_price_2 = future_eps_2 * pe_ratio
+from wtforms import FloatField, validators
 
-            return render_template('target_price.html', 
-                                   target_price_1=f"{target_price_1:.2f}",
-                                   target_price_2=f"{target_price_2:.2f}")
-        except ValueError:
-            return render_template('target_price.html', error="Invalid input. Please enter numeric values.")
-    return render_template('target_price.html')
-
-#Additional FUNCTIONS ADDED 13TH JUNE 2025
-from datetime import datetime
-
-# Define custom Jinja2 filter for number formatting
-def format_number(value):
-    try:
-        return "{:,.2f}".format(float(value))
-    except (ValueError, TypeError):
-        return "0.00"
-
-# Register the filter with Jinja2
-app.jinja_env.filters['format_number'] = format_number
+# Add a form for FCFE calculation
+class FCFEForm(FlaskForm):
+    net_income = FloatField('Net Income', validators=[DataRequired(), NumberRange(min=-1000000, max=1000000)])
+    capex = FloatField('Capital Expenditures', validators=[DataRequired(), NumberRange(min=0, max=1000000)])
+    depreciation = FloatField('Depreciation', validators=[DataRequired(), NumberRange(min=0, max=1000000)])
+    change_in_working_capital = FloatField('Change in Working Capital', validators=[DataRequired(), NumberRange(min=-1000000, max=1000000)])
+    debt_issued = FloatField('Debt Issued', validators=[DataRequired(), NumberRange(min=0, max=1000000)])
+    debt_repaid = FloatField('Debt Repaid', validators=[DataRequired(), NumberRange(min=0, max=1000000)])
 
 @app.route('/calculate-fcfe', methods=['GET', 'POST'])
-def calculate_fcfe():
-    currency_symbol = 'GHS '  # Adjust as needed
-    warning_message = None  # Initialize warning message for past cash flows
-    if request.method == 'POST':
+def calculate_fcfe_route():
+    """Handle FCFE calculation form and results."""
+    form = FCFEForm()
+    form_data = request.form.to_dict() if request.method == 'POST' else {}
+    start_year = int(form_data.get('start_year', datetime.now().year))  # Default to current year
+    if request.method == 'POST' and form.validate_on_submit():
         try:
-            num_years = int(request.form.get('num_years', 5))
-            if num_years < 3 or num_years > 5:
-                raise ValueError("Number of years must be between 3 and 5.")
+            net_income = form.net_income.data
+            capex = form.capex.data
+            depreciation = form.depreciation.data
+            change_in_working_capital = form.change_in_working_capital.data
+            debt_issued = form.debt_issued.data
+            debt_repaid = form.debt_repaid.data
 
-            net_incomes = []
-            non_cashes = []
-            capexes = []
-            changes_wc = []
-            net_borrowings = []
-            fcfe_results = []
-
-            for i in range(1, num_years + 1):
-                net_income = float(request.form.get(f'net_income_{i}', 0))
-                non_cash = float(request.form.get(f'non_cash_{i}', 0))
-                capex = float(request.form.get(f'capex_{i}', 0))
-                change_wc = float(request.form.get(f'change_wc_{i}', 0))
-                net_borrowing = float(request.form.get(f'net_borrowing_{i}', 0))
-
-                net_incomes.append(net_income)
-                non_cashes.append(non_cash)
-                capexes.append(capex)
-                changes_wc.append(change_wc)
-                net_borrowings.append(net_borrowing)
-
-                fcfe = net_income + non_cash - capex - change_wc + net_borrowing
-                fcfe_results.append(fcfe)
-
-            # Intrinsic parameters
-            cost_equity = float(request.form.get('cost_equity', 0)) / 100
-            growth_rate = float(request.form.get('growth_rate', 0)) / 100
-            shares_outstanding = float(request.form.get('shares_outstanding', 0))
-
-            # New parameters for CFA-compliant discounting
-            start_year = int(request.form.get('start_year', 0))
-            valuation_year = int(request.form.get('valuation_year', 0))
-
-            # Fallback to standard DCF if start_year or valuation_year not provided
-            if start_year == 0 or valuation_year == 0:
-                valuation_year = datetime.now().year
-                start_year = valuation_year  # Default to standard DCF
-
-            # Additional validation for compliance
-            if valuation_year < start_year:
-                raise ValueError("Error: Valuation year must be >= start year for forward projections.")
-            if (valuation_year - start_year) > 10:
-                raise ValueError("Error: Projection period exceeds 10 years.")
-
-            # Warning for past cash flows
-            if start_year < valuation_year:
-                warning_message = "You are valuing PAST cash flows. These will be compounded forward to the valuation year."
-
-            intrinsic_per_share = 0
-            if cost_equity > growth_rate > 0 and shares_outstanding > 0 and fcfe_results:
-                total_pv = 0
-                n = len(fcfe_results)
-                use_custom_discounting = start_year > 0 and valuation_year > 0
-
-                if use_custom_discounting:
-                    # CFA-standard discounting based on valuation year
-                    for t in range(1, n + 1):
-                        year = start_year + t - 1
-                        time_period = year - valuation_year
-                        fcfe = fcfe_results[t - 1]
-                        if time_period < 0:
-                            # Compound forward for past cash flows
-                            pv = fcfe * (1 + cost_equity) ** (-time_period)
-                        elif time_period > 0:
-                            # Discount back for future cash flows
-                            pv = fcfe / (1 + cost_equity) ** time_period
-                        else:
-                            # Current year
-                            pv = fcfe
-                        total_pv += pv
-
-                    # Terminal value discounting
-                    last_year = start_year + n - 1
-                    time_period_terminal = max(last_year - valuation_year, 0) + 1
-                    terminal = (fcfe_results[-1] * (1 + growth_rate)) / (cost_equity - growth_rate)
-                    total_pv += terminal / (1 + cost_equity) ** time_period_terminal
-                else:
-                    # Fallback to original logic if start_year or valuation_year not provided
-                    for t in range(1, n + 1):
-                        total_pv += fcfe_results[t - 1] / (1 + cost_equity) ** t
-                    terminal = (fcfe_results[-1] * (1 + growth_rate)) / (cost_equity - growth_rate)
-                    total_pv += terminal / (1 + cost_equity) ** n
-
-                intrinsic_per_share = total_pv / shares_outstanding
-
-            return render_template('FCFE.html', 
-                                 net_incomes=net_incomes, 
-                                 non_cashes=non_cashes,
-                                 capexes=capexes, 
-                                 changes_wc=changes_wc, 
-                                 net_borrowings=net_borrowings, 
-                                 fcfe_results=fcfe_results, 
-                                 intrinsic_per_share=intrinsic_per_share,
-                                 num_years=num_years,
-                                 currency_symbol=currency_symbol,
-                                 warning_message=warning_message,
-                                 start_year=start_year,
-                                 valuation_year=valuation_year)
+            fcfe = calculate_fcfe(net_income, capex, depreciation, change_in_working_capital, debt_issued, debt_repaid)
+            logger.info("FCFE calculation successful")
+            return render_template('fcfe.html', result={'fcfe': round(fcfe, 2)}, form=form, form_data=form_data, start_year=start_year)
         except ValueError as e:
-            error = str(e) if str(e).startswith("Error:") else "Please enter valid numerical values for all fields and a valid number of years (3 to 5)."
-            return render_template('FCFE.html', error=error, currency_symbol=currency_symbol, num_years=5)
-    
-    # Default start_year and valuation_year to current year for GET requests
-    current_year = datetime.now().year
-    return render_template('FCFE.html', currency_symbol=currency_symbol, num_years=5, start_year=current_year, valuation_year=current_year)
-    
-    
-# Helper functions for valuation calculations
-def calculate_two_stage_ddm(dividend, g_high, years_high, g_terminal, r):
-    g_high = g_high / 100
-    g_terminal = g_terminal / 100
-    r = r / 100
-    pv_dividends = 0
-    current_dividend = dividend
-    for t in range(1, years_high + 1):
-        current_dividend *= (1 + g_high)
-        pv_dividends += current_dividend / (1 + r)**t
-    terminal_dividend = current_dividend * (1 + g_terminal)
-    if r <= g_terminal:
-        raise ValueError("Discount rate must exceed terminal growth rate")
-    terminal_value = terminal_dividend / (r - g_terminal)
-    pv_terminal = terminal_value / (1 + r)**years_high
-    return pv_dividends + pv_terminal
-
-def calculate_two_stage_dcf(fcfe, g_high, years_high, g_terminal, r):
-    g_high = g_high / 100
-    g_terminal = g_terminal / 100
-    r = r / 100
-    pv_fcfes = 0
-    current_fcf = fcfe
-    for t in range(1, years_high + 1):
-        current_fcf *= (1 + g_high)
-        pv_fcfes += current_fcf / (1 + r)**t
-    terminal_fcf = current_fcf * (1 + g_terminal)
-    if r <= g_terminal:
-        raise ValueError("Discount rate must exceed terminal growth rate")
-    terminal_value = terminal_fcf / (r - g_terminal)
-    pv_terminal = terminal_value / (1 + r)**years_high
-    return pv_fcfes + pv_terminal
-
-def calculate_pe_target(eps, g, years, pe):
-    g = g / 100
-    projected_eps = eps * (1 + g)**years
-    return projected_eps * pe
-
-@app.route('/leverage_ratios')
-def leverage_ratios():
-    return render_template('leverage_ratios.html')
-
-@app.route('/cost_sustainability')
-def cost_sustainability():
-    return render_template('cost_sustainability.html')
-
+            logger.error(f"FCFE calculation error: {e}")
+            return render_template('fcfe.html', error=str(e), form=form, form_data=form_data, start_year=start_year)
+        except Exception as e:
+            logger.error(f"Unexpected error in FCFE calculation: {e}")
+            return render_template('fcfe.html', error="An unexpected error occurred. Please try again.", form=form, form_data=form_data, start_year=start_year)
+    return render_template('fcfe.html', form=form, form_data=form_data, start_year=start_year)
 
 @app.route('/multi-method-valuation', methods=['GET', 'POST'])
 def multi_method_valuation():
-    form = ValuationForm()
+    """Handle multi-method valuation form and calculations."""
+    form = PeriodForm()  # Reuse PeriodForm for validation
+    form_data = request.form.to_dict() if request.method == 'POST' else {}
     if request.method == 'POST' and form.validate_on_submit():
         try:
-            # Parse form inputs
-            currency = request.form['currency']
-            weight_scenario = request.form['weight_scenario']
-            current_price = float(request.form['current_price'])
-            years_high = int(request.form['years_high'])
-            growth_high = float(request.form['growth_high'])
-            growth_terminal = float(request.form['growth_terminal'])
-            discount_rate = float(request.form['discount_rate'])
-            ddm_base_dividend = float(request.form['ddm_base_dividend'])
-            ddm_sensitivity_dividend = float(request.form['ddm_sensitivity_dividend'])
-            dcf_fcfe = float(request.form['dcf_fcfe'])
-            pe_eps = float(request.form['pe_eps'])
-            pe_growth = float(request.form['pe_growth'])
-            pe_multiple = float(request.form['pe_multiple'])
-            pe_years = int(request.form['pe_years'])
+            currency = form.currency.data
+            weight_scenario = form.weight_scenario.data
+            current_price = form.current_price.data
+            years_high = int(form.pe_years.data)  # Reuse pe_years as years_high
+            growth_high = form.eps_growth.data  # Reuse eps_growth as growth_high
+            growth_terminal = form.dividend_growth.data  # Reuse dividend_growth as terminal growth
+            discount_rate = form.required_return.data
+            ddm_base_dividend = form.dividend_per_share.data
+            ddm_sensitivity_dividend = ddm_base_dividend * 0.9  # Sensitivity at 90% of base
+            dcf_fcfe = form.eps.data  # Reuse eps as proxy for fcfe
+            pe_eps = form.eps.data
+            pe_growth = form.eps_growth.data
+            pe_multiple = form.pe_multiple.data
+            pe_years = form.pe_years.data
 
-            # Validate inputs
-            if any(x < 0 for x in [current_price, years_high, ddm_base_dividend, ddm_sensitivity_dividend, dcf_fcfe, pe_eps, pe_multiple, pe_years]):
-                raise ValueError("All monetary values and years must be positive")
+            # Enhanced validation
+            if any(x <= 0 for x in [current_price, ddm_base_dividend, dcf_fcfe, pe_eps, pe_multiple, pe_years, years_high]):
+                raise ValueError("All monetary values and years must be positive and non-zero")
             if any(x < 0 or x > 100 for x in [growth_high, growth_terminal, pe_growth]) or discount_rate <= 0 or discount_rate > 50:
-                raise ValueError("Rates must be between 0 and 100, discount rate between 0.01 and 50")
+                raise ValueError("Rates must be between 0 and 100%, discount rate between 0.01 and 50")
             if growth_terminal >= growth_high:
                 raise ValueError("Terminal growth rate must be less than high-growth rate")
             if discount_rate <= growth_terminal:
@@ -3014,40 +982,31 @@ def multi_method_valuation():
             if currency not in ['USD', 'GHS', 'EUR', 'GBP', 'JPY']:
                 raise ValueError("Invalid currency selected")
 
-            logger.debug(f"Inputs: currency={currency}, weight_scenario={weight_scenario}, current_price={current_price}, "
-                         f"years_high={years_high}, growth_high={growth_high}, growth_terminal={growth_terminal}, "
-                         f"discount_rate={discount_rate}, ddm_base_dividend={ddm_base_dividend}, "
-                         f"ddm_sensitivity_dividend={ddm_sensitivity_dividend}, dcf_fcfe={dcf_fcfe}, "
-                         f"pe_eps={pe_eps}, pe_growth={pe_growth}, pe_multiple={pe_multiple}, pe_years={pe_years}")
-
-            # Perform calculations
             ddm_base = calculate_two_stage_ddm(ddm_base_dividend, growth_high, years_high, growth_terminal, discount_rate)
             ddm_sensitivity = calculate_two_stage_ddm(ddm_sensitivity_dividend, growth_high, years_high, growth_terminal, discount_rate)
             dcf_value = calculate_two_stage_dcf(dcf_fcfe, growth_high, years_high, growth_terminal, discount_rate)
             pe_target = calculate_pe_target(pe_eps, pe_growth, pe_years, pe_multiple)
 
-            # Set weights based on scenario
-            if weight_scenario == 'conservative':
-                weights = [30, 20, 30, 20]
-                weight_priority = 'DDM Base and DCF'
-                weight_rationale = 'emphasis on dividend stability and cash flow reliability'
-                weight_max_index = 0
-            elif weight_scenario == 'balanced':
-                weights = [20, 20, 40, 20]
-                weight_priority = 'DCF'
-                weight_rationale = 'cash flow focus'
-                weight_max_index = 2
-            else:  # growth
-                weights = [20, 20, 30, 30]
-                weight_priority = 'DCF and P/E'
-                weight_rationale = 'growth potential and market alignment'
-                weight_max_index = 2
+            weights = {
+                'conservative': [30, 20, 30, 20],
+                'balanced': [20, 20, 40, 20],
+                'growth': [20, 20, 30, 30]
+            }[weight_scenario]
+            weight_priority = {
+                'conservative': 'DDM Base and DCF',
+                'balanced': 'DCF',
+                'growth': 'DCF and P/E'
+            }[weight_scenario]
+            weight_rationale = {
+                'conservative': 'emphasis on dividend stability and cash flow reliability',
+                'balanced': 'cash flow focus',
+                'growth': 'growth potential and market alignment'
+            }[weight_scenario]
+            weight_max_index = {'conservative': 0, 'balanced': 2, 'growth': 2}[weight_scenario]
 
-            # Weighted average
             values = [ddm_base, ddm_sensitivity, dcf_value, pe_target]
             weighted_average = sum(v * w / 100 for v, w in zip(values, weights))
 
-            # Sensitivity analysis
             sensitivity = {
                 'discount_rate_low': discount_rate * 0.9,
                 'discount_rate_high': discount_rate * 1.1,
@@ -3067,10 +1026,8 @@ def multi_method_valuation():
                 ])
             }
 
-            # Implied metrics
             over_under_valuation = (current_price / weighted_average - 1) * 100 if weighted_average > 0 else float('inf')
 
-            # Prepare results
             result = {
                 'currency': currency,
                 'ddm_base': round(ddm_base, 2),
@@ -3096,734 +1053,150 @@ def multi_method_valuation():
                     'value_high': round(sensitivity['value_high'], 2)
                 }
             }
-            logger.debug(f"Results: {result}")
-            return render_template('multi_method_valuation.html', result=result, form=form)
+            logger.info("Multi-method valuation calculation successful")
+            return render_template('multi_method_valuation.html', result=result, form=form, form_data=form_data)
         except ValueError as e:
-            logger.error(f"ValueError: {str(e)}")
-            return render_template('multi_method_valuation.html', error=str(e), form=form)
+            logger.error(f"Multi-method valuation error: {e}")
+            return render_template('multi_method_valuation.html', error=str(e), form=form, form_data=form_data)
         except Exception as e:
-            logger.error(f"Unexpected error: {str(e)}")
-            return render_template('multi_method_valuation.html', error="An unexpected error occurred. Please try again.", form=form)
-    return render_template('multi_method_valuation.html', form=form)
+            logger.error(f"Unexpected error in multi-method valuation: {e}")
+            return render_template('multi_method_valuation.html', error="An unexpected error occurred. Please try again.", form=form, form_data=form_data)
+    return render_template('multi_method_valuation.html', form=form, form_data=form_data)
+
+@app.route('/bank-intrinsic-value', methods=['GET', 'POST'])
+def bank_intrinsic_value():
+    """Handle bank intrinsic value calculation."""
+    form_data = request.form.to_dict() if request.method == 'POST' else {}
+    result = None
+    model = form_data.get('model', 'DDM') if request.method == 'POST' else 'DDM'
+    num_years = int(form_data.get('num_years', 5)) if request.method == 'POST' else 5
+    error = None
+    valuation_comment = ""
+
+    if request.method == 'POST':
+        try:
+            for key in form_data:
+                if key not in ['model', 'num_years']:
+                    form_data[key] = float(form_data[key]) if form_data[key] else 0.0
+
+            if model == 'DDM':
+                dividends = [form_data.get(f'dividend_{i}', 0.0) for i in range(1, num_years + 1)]
+                if len(dividends) != num_years:
+                    raise ValueError(f"Exactly {num_years} dividend forecasts required")
+            elif model == 'RIM':
+                eps_list = [form_data.get(f'eps_{i}', 0.0) for i in range(1, num_years + 1)]
+                if len(eps_list) != num_years:
+                    raise ValueError(f"Exactly {num_years} EPS forecasts required")
+
+            risk_free_rate = form_data.get('risk_free_rate', 0.0) / 100
+            market_return = form_data.get('market_return', 0.0) / 100
+            beta = form_data.get('beta', 0.0)
+            discount_rate = risk_free_rate + beta * (market_return - risk_free_rate)
+            terminal_growth_rate = form_data.get('terminal_growth_rate', 0.0) / 100
+
+            if model == 'DDM':
+                pv_dividends = sum(dividends[i] / ((1 + discount_rate) ** (i + 1)) for i in range(num_years))
+                terminal_dividend = dividends[-1] * (1 + terminal_growth_rate)
+                terminal_value = terminal_dividend / (discount_rate - terminal_growth_rate)
+                pv_terminal_value = terminal_value / ((1 + discount_rate) ** num_years)
+                result = pv_dividends + pv_terminal_value
+            elif model == 'RIM':
+                book_value = form_data.get('book_value', 0.0)
+                pv_residual_income = 0.0
+                current_book_value = book_value
+                for i in range(num_years):
+                    residual_income = eps_list[i] - (discount_rate * current_book_value)
+                    pv_residual_income += residual_income / ((1 + discount_rate) ** (i + 1))
+                    current_book_value += eps_list[i]
+                terminal_eps = eps_list[-1] * (1 + terminal_growth_rate)
+                terminal_residual_income = terminal_eps - (discount_rate * current_book_value)
+                terminal_value = terminal_residual_income / (discount_rate - terminal_growth_rate)
+                pv_terminal_value = terminal_value / ((1 + discount_rate) ** num_years)
+                result = book_value + pv_residual_income + pv_terminal_value
+
+            result = max(float(result), 0.0)
+            if form_data.get('market_price'):
+                market_price = form_data['market_price']
+                valuation_comment = (
+                    "The stock may be <span class='font-bold text-green-600'>undervalued</span>."
+                    if market_price < result else
+                    "The stock may be <span class='font-bold text-red-600'>overvalued</span>."
+                    if market_price > result else
+                    "The stock is priced at its intrinsic value."
+                )
+            logger.info(f"Bank intrinsic value calculated using {model} model")
+        except (ValueError, ZeroDivisionError) as e:
+            error = str(e) if "forecasts required" in str(e) else "Invalid input or calculation error. Ensure all inputs are valid numbers and discount rate is greater than growth rate."
+            logger.error(f"Bank intrinsic value error: {e}")
+            result = None
+
+    return render_template(
+        'bank_intrinsic_value.html',
+        result=result,
+        model=model,
+        num_years=num_years,
+        form_data=form_data,
+        error=error,
+        valuation_comment=valuation_comment
+    )
 
 @app.route('/calculate-cost-of-equity', methods=['GET', 'POST'])
 def calculate_cost_of_equity():
+    """Handle cost of equity calculation."""
+    form_data = request.form.to_dict() if request.method == 'POST' else {}
     if request.method == 'POST':
         try:
-            # CAPM Inputs
-            risk_free_rate = float(request.form.get('risk_free_rate')) / 100
-            beta = float(request.form.get('beta'))
-            market_return = float(request.form.get('market_return')) / 100
-            # DDM Inputs
-            dividend_per_share = float(request.form.get('dividend_per_share'))
-            stock_price = float(request.form.get('stock_price'))
-            dividend_growth_rate = float(request.form.get('dividend_growth_rate')) / 100
-            # Weighting Inputs
-            capm_weight = float(request.form.get('capm_weight')) / 100
-            ddm_weight = float(request.form.get('ddm_weight')) / 100
-            # Validation
+            risk_free_rate = float(request.form.get('risk_free_rate', 0))
+            beta = float(request.form.get('beta', 0))
+            market_return = float(request.form.get('market_return', 0))
+            dividend_per_share = float(request.form.get('dividend_per_share', 0))
+            stock_price = float(request.form.get('stock_price', 0))
+            dividend_growth_rate = float(request.form.get('dividend_growth_rate', 0))
+            capm_weight = float(request.form.get('capm_weight', 0))
+            ddm_weight = float(request.form.get('ddm_weight', 0))
+
+            if any(x < 0 for x in [risk_free_rate, market_return, dividend_per_share, stock_price, dividend_growth_rate, capm_weight, ddm_weight]):
+                raise ValueError("All values must be positive")
             if beta <= 0:
-                return render_template('cost_of_equity.html', error="Beta must be greater than 0.")
-            if capm_weight + ddm_weight != 1.0:
-                return render_template('cost_of_equity.html', error="Weights must sum to 100%.")
-            if stock_price == 0 and dividend_per_share > 0:
-                return render_template('cost_of_equity.html', error="Stock price cannot be zero when dividend per share is provided.")
-            # Calculations
-            # CAPM: Cost = Rf + Beta * (Rm - Rf)
-            capm_cost = risk_free_rate + beta * (market_return - risk_free_rate)
-            # DDM: Cost = (D1 / P0) * 100 + g
-            ddm_cost = (dividend_per_share / stock_price) * 100 + dividend_growth_rate if stock_price != 0 else 0
-            # Weighted Average
-            weighted_average = capm_cost * capm_weight + ddm_cost * ddm_weight
-            results = {
-                'capm': capm_cost * 100,  # Convert to percentage
-                'ddm': ddm_cost * 100,
-                'capm_weight': capm_weight * 100,
-                'ddm_weight': ddm_weight * 100,
-                'weighted_average': weighted_average * 100
+                raise ValueError("Beta must be greater than zero")
+            if capm_weight + ddm_weight != 100:
+                raise ValueError("CAPM and DDM weights must sum to 100%")
+
+            capm_cost = risk_free_rate / 100 + beta * (market_return / 100 - risk_free_rate / 100)
+            ddm_cost = (dividend_per_share / stock_price) + (dividend_growth_rate / 100) if stock_price > 0 else 0
+            weighted_cost = (capm_cost * capm_weight / 100) + (ddm_cost * ddm_weight / 100)
+
+            result = {
+                'capm_cost': round(capm_cost * 100, 2),
+                'ddm_cost': round(ddm_cost * 100, 2),
+                'weighted_cost': round(weighted_cost * 100, 2)
             }
-            return render_template('cost_of_equity.html', results=results)
-        except ValueError:
-            return render_template('cost_of_equity.html', error="Please enter valid numbers.")
-    
-    return render_template('cost_of_equity.html')
+            logger.info("Cost of equity calculation successful")
+            return render_template('cost_of_equity.html', result=result, form_data=form_data)
+        except ValueError as e:
+            logger.error(f"Cost of Equity calculation error: {e}")
+            return render_template('cost_of_equity.html', error=str(e), form_data=form_data)
+    return render_template('cost_of_equity.html', form_data=form_data)
 
+@app.route('/target-price')
+def target_price():
+    return render_template('target_price.html')
 
+# --- DATABASE INITIALIZATION ---
+if __name__ == '__main__':
+    with app.app_context():
+        try:
+            db.create_all()
+            logger.info("Database tables created successfully")
+        except Exception as e:
+            logger.error(f"Failed to create database tables: {e}")
+            raise
 
-@app.route('/valuation-performance', methods=['GET', 'POST'])
-def valuation_performance():
-    if request.method == 'POST':
-        data = request.form
-        selected_formula = data.get('formula')
-        results = []
-        input_data = []
-        years_filled = 0
-
-        for i in range(1, 6):
-            try:
-                market_cap = float(data.get(f'market_cap_{i}', 0)) if data.get(f'market_cap_{i}') else None
-                total_debt = float(data.get(f'total_debt_{i}', 0)) if data.get(f'total_debt_{i}') else None
-                preferred_stock = float(data.get(f'preferred_stock_{i}', 0)) if data.get(f'preferred_stock_{i}') else None
-                minority_interest = float(data.get(f'minority_interest_{i}', 0)) if data.get(f'minority_interest_{i}') else None
-                cash = float(data.get(f'cash_{i}', 0)) if data.get(f'cash_{i}') else None
-                non_operating_assets = float(data.get(f'non_operating_assets_{i}', 0)) if data.get(f'non_operating_assets_{i}') else None
-                ebitda = float(data.get(f'ebitda_{i}', 0)) if data.get(f'ebitda_{i}') else None
-                ebit = float(data.get(f'ebit_{i}', 0)) if data.get(f'ebit_{i}') else None
-                revenue = float(data.get(f'revenue_{i}', 0)) if data.get(f'revenue_{i}') else None
-                net_income = float(data.get(f'net_income_{i}', 0)) if data.get(f'net_income_{i}') else None
-                equity = float(data.get(f'equity_{i}', 0)) if data.get(f'equity_{i}') else None
-                total_assets = float(data.get(f'total_assets_{i}', 0)) if data.get(f'total_assets_{i}') else None
-                avg_total_assets = float(data.get(f'avg_total_assets_{i}', 0)) if data.get(f'avg_total_assets_{i}') else None
-                avg_equity = float(data.get(f'avg_equity_{i}', 0)) if data.get(f'avg_equity_{i}') else None
-                share_price = float(data.get(f'share_price_{i}', 0)) if data.get(f'share_price_{i}') else None
-                eps = float(data.get(f'eps_{i}', 0)) if data.get(f'eps_{i}') else None
-                bvps = float(data.get(f'bvps_{i}', 0)) if data.get(f'bvps_{i}') else None
-                eps_growth = float(data.get(f'eps_growth_{i}', 0)) if data.get(f'eps_growth_{i}') else None
-                tax_rate = float(data.get(f'tax_rate_{i}', 0)) if data.get(f'tax_rate_{i}') else None
-
-                is_year_filled = all(v is not None for v in [market_cap, total_debt, preferred_stock, minority_interest, cash, non_operating_assets, ebitda, ebit, revenue, net_income, equity, total_assets, avg_total_assets, avg_equity, share_price, eps, bvps, eps_growth, tax_rate])
-                is_year_empty = all(v is None for v in [market_cap, total_debt, preferred_stock, minority_interest, cash, non_operating_assets, ebitda, ebit, revenue, net_income, equity, total_assets, avg_total_assets, avg_equity, share_price, eps, bvps, eps_growth, tax_rate])
-
-                if i == 1 and not is_year_filled:
-                    return jsonify({'error': 'Please provide all required inputs for Year 1.'}), 400
-                if not is_year_empty and not is_year_filled:
-                    return jsonify({'error': f'Please provide all required inputs for Year {i} or leave it empty.'}), 400
-                if is_year_filled:
-                    # Calculate Enterprise Value for EV-based metrics
-                    ev = market_cap + total_debt + preferred_stock + minority_interest - cash - non_operating_assets
-                    result = None
-                    if selected_formula == 'ev':
-                        result = ev
-                    elif selected_formula == 'ev_ebitda':
-                        if ebitda == 0:
-                            return jsonify({'error': f'EBITDA cannot be zero for Year {i} in EV/EBITDA calculation.'}), 400
-                        result = ev / ebitda
-                    elif selected_formula == 'ev_ebit':
-                        if ebit == 0:
-                            return jsonify({'error': f'EBIT cannot be zero for Year {i} in EV/EBIT calculation.'}), 400
-                        result = ev / ebit
-                    elif selected_formula == 'ev_sales':
-                        if revenue == 0:
-                            return jsonify({'error': f'Revenue cannot be zero for Year {i} in EV/Sales calculation.'}), 400
-                        result = ev / revenue
-                    elif selected_formula == 'pe':
-                        if eps == 0:
-                            return jsonify({'error': f'EPS cannot be zero for Year {i} in P/E calculation.'}), 400
-                        result = share_price / eps
-                    elif selected_formula == 'pb':
-                        if bvps == 0:
-                            return jsonify({'error': f'Book Value Per Share cannot be zero for Year {i} in P/B calculation.'}), 400
-                        result = share_price / bvps
-                    elif selected_formula == 'peg':
-                        if eps == 0 or eps_growth == 0:
-                            return jsonify({'error': f'EPS or EPS Growth Rate cannot be zero for Year {i} in PEG calculation.'}), 400
-                        result = (share_price / eps) / (eps_growth / 100)
-                    elif selected_formula == 'ebitda_margin':
-                        if revenue == 0:
-                            return jsonify({'error': f'Revenue cannot be zero for Year {i} in EBITDA Margin calculation.'}), 400
-                        result = (ebitda / revenue) * 100
-                    elif selected_formula == 'ebit_margin':
-                        if revenue == 0:
-                            return jsonify({'error': f'Revenue cannot be zero for Year {i} in EBIT Margin calculation.'}), 400
-                        result = (ebit / revenue) * 100
-                    elif selected_formula == 'net_margin':
-                        if revenue == 0:
-                            return jsonify({'error': f'Revenue cannot be zero for Year {i} in Net Margin calculation.'}), 400
-                        result = (net_income / revenue) * 100
-                    elif selected_formula == 'roe':
-                        if equity == 0:
-                            return jsonify({'error': f'Equity cannot be zero for Year {i} in ROE calculation.'}), 400
-                        result = (net_income / equity) * 100
-                    elif selected_formula == 'roa':
-                        if total_assets == 0:
-                            return jsonify({'error': f'Total Assets cannot be zero for Year {i} in ROA calculation.'}), 400
-                        result = (net_income / total_assets) * 100
-                    elif selected_formula == 'roic':
-                        nopat = ebit * (1 - tax_rate / 100)
-                        invested_capital = total_debt + equity - cash - non_operating_assets
-                        if invested_capital == 0:
-                            return jsonify({'error': f'Invested Capital cannot be zero for Year {i} in ROIC calculation.'}), 400
-                        result = (nopat / invested_capital) * 100
-                    elif selected_formula == 'roa_fin':
-                        if avg_total_assets == 0:
-                            return jsonify({'error': f'Average Total Assets cannot be zero for Year {i} in ROA (Financials) calculation.'}), 400
-                        result = (net_income / avg_total_assets) * 100
-                    elif selected_formula == 'roe_fin':
-                        if avg_equity == 0:
-                            return jsonify({'error': f'Average Equity cannot be zero for Year {i} in ROE (Financials) calculation.'}), 400
-                        result = (net_income / avg_equity) * 100
-
-                    input_data.append({
-                        'year': i,
-                        'market_cap': market_cap,
-                        'total_debt': total_debt,
-                        'preferred_stock': preferred_stock,
-                        'minority_interest': minority_interest,
-                        'cash': cash,
-                        'non_operating_assets': non_operating_assets,
-                        'ebitda': ebitda,
-                        'ebit': ebit,
-                        'revenue': revenue,
-                        'net_income': net_income,
-                        'equity': equity,
-                        'total_assets': total_assets,
-                        'avg_total_assets': avg_total_assets,
-                        'avg_equity': avg_equity,
-                        'share_price': share_price,
-                        'eps': eps,
-                        'bvps': bvps,
-                        'eps_growth': eps_growth,
-                        'tax_rate': tax_rate,
-                        'result': result
-                    })
-                    results.append(result)
-                    years_filled += 1
-            except ValueError:
-                return jsonify({'error': f'Invalid input for Year {i}. Please ensure all inputs are valid numbers.'}), 400
-
-        if years_filled == 0:
-            return jsonify({'error': 'Please provide at least one year of data.'}), 400
-
-        average_result = sum(results) / years_filled
-        unit = '%' if selected_formula in ['ebitda_margin', 'ebit_margin', 'net_margin', 'roe', 'roa', 'roic', 'roa_fin', 'roe_fin'] else 'x'
-        return jsonify({
-            'results': input_data,
-            'average_result': average_result,
-            'unit': unit
-        })
-
-    return render_template('Valuation_Performance_Multiples.html')
-
-@app.route('/specialized-industry', methods=['GET', 'POST'])
-def specialized_industry():
-    if request.method == 'POST':
-        data = request.form
-        selected_formula = data.get('formula')
-        results = []
-        input_data = []
-        periods_filled = 0
-
-        # Handle LTM (quarters) and NTM (projections) differently
-        if selected_formula in ['ltm_ebitda']:
-            for i in range(1, 5):  # 4 quarters for LTM
-                try:
-                    ebitda = float(data.get(f'ebitda_q{i}', 0)) if data.get(f'ebitda_q{i}') else None
-                    is_quarter_filled = ebitda is not None
-                    is_quarter_empty = ebitda is None
-
-                    if i == 1 and not is_quarter_filled:
-                        return jsonify({'error': f'Please provide all required inputs for Quarter {i}.'}), 400
-                    if not is_quarter_empty and not is_quarter_filled:
-                        return jsonify({'error': f'Please provide all required inputs for Quarter {i} or leave it empty.'}), 400
-                    if is_quarter_filled:
-                        results.append(ebitda)
-                        input_data.append({'quarter': i, 'ebitda': ebitda, 'result': ebitda})
-                        periods_filled += 1
-                except ValueError:
-                    return jsonify({'error': f'Invalid input for Quarter {i}. Please ensure all inputs are valid numbers.'}), 400
-
-            if periods_filled == 0:
-                return jsonify({'error': 'Please provide at least one quarter of data.'}), 400
-
-            average_result = sum(results)
-            unit = 'GHS'
-            return jsonify({
-                'results': input_data,
-                'average_result': average_result,
-                'unit': unit
-            })
-
-        elif selected_formula == 'ntm_ebitda':
-            try:
-                current_fy = float(data.get('current_fy_ebitda', 0)) if data.get('current_fy_ebitda') else None
-                next_fy = float(data.get('next_fy_ebitda', 0)) if data.get('next_fy_ebitda') else None
-                months_remaining = float(data.get('months_remaining', 0)) if data.get('months_remaining') else None
-                months_passed = float(data.get('months_passed', 0)) if data.get('months_passed') else None
-
-                if any(v is None for v in [current_fy, next_fy, months_remaining, months_passed]):
-                    return jsonify({'error': 'Please provide all required inputs for NTM EBITDA.'}), 400
-                if months_remaining + months_passed != 12:
-                    return jsonify({'error': 'Months Remaining and Months Passed must sum to 12.'}), 400
-
-                result = (current_fy * months_remaining / 12) + (next_fy * months_passed / 12)
-                input_data.append({
-                    'current_fy': current_fy,
-                    'next_fy': next_fy,
-                    'months_remaining': months_remaining,
-                    'months_passed': months_passed,
-                    'result': result
-                })
-                results.append(result)
-                periods_filled = 1
-                average_result = result
-                unit = 'GHS'
-                return jsonify({
-                    'results': input_data,
-                    'average_result': average_result,
-                    'unit': unit
-                })
-            except ValueError:
-                return jsonify({'error': 'Invalid input for NTM EBITDA. Please ensure all inputs are valid numbers.'}), 400
-
-        else:
-            for i in range(1, 6):
-                try:
-                    market_cap = float(data.get(f'market_cap_{i}', 0)) if data.get(f'market_cap_{i}') else None
-                    total_debt = float(data.get(f'total_debt_{i}', 0)) if data.get(f'total_debt_{i}') else None
-                    preferred_stock = float(data.get(f'preferred_stock_{i}', 0)) if data.get(f'preferred_stock_{i}') else None
-                    minority_interest = float(data.get(f'minority_interest_{i}', 0)) if data.get(f'minority_interest_{i}') else None
-                    cash = float(data.get(f'cash_{i}', 0)) if data.get(f'cash_{i}') else None
-                    non_operating_assets = float(data.get(f'non_operating_assets_{i}', 0)) if data.get(f'non_operating_assets_{i}') else None
-                    ebitda = float(data.get(f'ebitda_{i}', 0)) if data.get(f'ebitda_{i}') else None
-                    ebit = float(data.get(f'ebit_{i}', 0)) if data.get(f'ebit_{i}') else None
-                    revenue = float(data.get(f'revenue_{i}', 0)) if data.get(f'revenue_{i}') else None
-                    prior_revenue = float(data.get(f'prior_revenue_{i}', 0)) if data.get(f'prior_revenue_{i}') else None
-                    eps = float(data.get(f'eps_{i}', 0)) if data.get(f'eps_{i}') else None
-                    prior_eps = float(data.get(f'prior_eps_{i}', 0)) if data.get(f'prior_eps_{i}') else None
-                    tax_rate = float(data.get(f'tax_rate_{i}', 0)) if data.get(f'tax_rate_{i}') else None
-                    rent_expense = float(data.get(f'rent_expense_{i}', 0)) if data.get(f'rent_expense_{i}') else None
-                    subscribers = float(data.get(f'subscribers_{i}', 0)) if data.get(f'subscribers_{i}') else None
-                    boe = float(data.get(f'boe_{i}', 0)) if data.get(f'boe_{i}') else None
-                    square_footage = float(data.get(f'square_footage_{i}', 0)) if data.get(f'square_footage_{i}') else None
-                    mau = float(data.get(f'mau_{i}', 0)) if data.get(f'mau_{i}') else None
-                    ffo_per_share = float(data.get(f'ffo_per_share_{i}', 0)) if data.get(f'ffo_per_share_{i}') else None
-                    tangible_bvps = float(data.get(f'tangible_bvps_{i}', 0)) if data.get(f'tangible_bvps_{i}') else None
-                    share_price = float(data.get(f'share_price_{i}', 0)) if data.get(f'share_price_{i}') else None
-
-                    is_year_filled = all(v is not None for v in [market_cap, total_debt, preferred_stock, minority_interest, cash, non_operating_assets, ebitda, ebit, revenue, prior_revenue, eps, prior_eps, tax_rate, rent_expense, subscribers, boe, square_footage, mau, ffo_per_share, tangible_bvps, share_price])
-                    is_year_empty = all(v is None for v in [market_cap, total_debt, preferred_stock, minority_interest, cash, non_operating_assets, ebitda, ebit, revenue, prior_revenue, eps, prior_eps, tax_rate, rent_expense, subscribers, boe, square_footage, mau, ffo_per_share, tangible_bvps, share_price])
-
-                    if i == 1 and not is_year_filled:
-                        return jsonify({'error': f'Please provide all required inputs for Year {i}.'}), 400
-                    if not is_year_empty and not is_year_filled:
-                        return jsonify({'error': f'Please provide all required inputs for Year {i} or leave it empty.'}), 400
-                    if is_year_filled:
-                        ev = market_cap + total_debt + preferred_stock + minority_interest - cash - non_operating_assets
-                        result = None
-                        if selected_formula == 'net_debt':
-                            result = total_debt - cash
-                        elif selected_formula == 'net_debt_ebitda':
-                            if ebitda == 0:
-                                return jsonify({'error': f'EBITDA cannot be zero for Year {i} in Net Debt/EBITDA calculation.'}), 400
-                            result = (total_debt - cash) / ebitda
-                        elif selected_formula == 'revenue_growth':
-                            if prior_revenue == 0:
-                                return jsonify({'error': f'Prior Revenue cannot be zero for Year {i} in Revenue Growth calculation.'}), 400
-                            result = ((revenue - prior_revenue) / prior_revenue) * 100
-                        elif selected_formula == 'eps_growth':
-                            if prior_eps == 0:
-                                return jsonify({'error': f'Prior EPS cannot be zero for Year {i} in EPS Growth calculation.'}), 400
-                            result = ((eps - prior_eps) / prior_eps) * 100
-                        elif selected_formula == 'unlevered_pe':
-                            ebiat = ebit * (1 - tax_rate / 100)
-                            if ebiat == 0:
-                                return jsonify({'error': f'EBIAT cannot be zero for Year {i} in Unlevered P/E calculation.'}), 400
-                            result = ev / ebiat
-                        elif selected_formula == 'tev_ebitdar':
-                            ebitdar = ebitda + rent_expense
-                            tev = ev  # Simplified; assumes no additional rent-related adjustments
-                            if ebitdar == 0:
-                                return jsonify({'error': f'EBITDAR cannot be zero for Year {i} in TEV/EBITDAR calculation.'}), 400
-                            result = tev / ebitdar
-                        elif selected_formula == 'ev_subscribers':
-                            if subscribers == 0:
-                                return jsonify({'error': f'Subscribers cannot be zero for Year {i} in EV/Subscribers calculation.'}), 400
-                            result = ev / subscribers
-                        elif selected_formula == 'ev_boe':
-                            if boe == 0:
-                                return jsonify({'error': f'BOE cannot be zero for Year {i} in EV/BOE calculation.'}), 400
-                            result = ev / boe
-                        elif selected_formula == 'ev_square_foot':
-                            if square_footage == 0:
-                                return jsonify({'error': f'Square Footage cannot be zero for Year {i} in EV/Square Foot calculation.'}), 400
-                            result = ev / square_footage
-                        elif selected_formula == 'ev_mau':
-                            if mau == 0:
-                                return jsonify({'error': f'MAU cannot be zero for Year {i} in EV/MAU calculation.'}), 400
-                            result = ev / mau
-                        elif selected_formula == 'p_ffo':
-                            if ffo_per_share == 0:
-                                return jsonify({'error': f'FFO Per Share cannot be zero for Year {i} in P/FFO calculation.'}), 400
-                            result = share_price / ffo_per_share
-                        elif selected_formula == 'p_tbv':
-                            if tangible_bvps == 0:
-                                return jsonify({'error': f'Tangible Book Value Per Share cannot be zero for Year {i} in P/TBV calculation.'}), 400
-                            result = share_price / tangible_bvps
-
-                        input_data.append({
-                            'year': i,
-                            'market_cap': market_cap,
-                            'total_debt': total_debt,
-                            'preferred_stock': preferred_stock,
-                            'minority_interest': minority_interest,
-                            'cash': cash,
-                            'non_operating_assets': non_operating_assets,
-                            'ebitda': ebitda,
-                            'ebit': ebit,
-                            'revenue': revenue,
-                            'prior_revenue': prior_revenue,
-                            'eps': eps,
-                            'prior_eps': prior_eps,
-                            'tax_rate': tax_rate,
-                            'rent_expense': rent_expense,
-                            'subscribers': subscribers,
-                            'boe': boe,
-                            'square_footage': square_footage,
-                            'mau': mau,
-                            'ffo_per_share': ffo_per_share,
-                            'tangible_bvps': tangible_bvps,
-                            'share_price': share_price,
-                            'result': result
-                        })
-                        results.append(result)
-                        periods_filled += 1
-                except ValueError:
-                    return jsonify({'error': f'Invalid input for Year {i}. Please ensure all inputs are valid numbers.'}), 400
-
-            if periods_filled == 0:
-                return jsonify({'error': 'Please provide at least one year of data.'}), 400
-
-            average_result = sum(results) / periods_filled
-            unit = '%' if selected_formula in ['revenue_growth', 'eps_growth'] else 'GHS' if selected_formula == 'net_debt' else 'x'
-            return jsonify({
-                'results': input_data,
-                'average_result': average_result,
-                'unit': unit
-            })
-
-    return render_template('Specialized_Industry_Multiples.html')
-
-@app.route('/cookies')
-def cookies():
-    return render_template('cookies.html')
-
-@app.route('/disclaimer')
-def disclaimer():
-    return render_template('disclaimer.html')
-
-@app.route('/security')
-def security():
-    return render_template('security.html')
-
-@app.route('/team')
-def team():
-    return render_template('team.html')
-
-@app.route('/careers')
-def careers():
-    return render_template('careers.html')
-
-@app.route('/press')
-def press():
-    return render_template('press.html')
-
-
-
-#MULTIPLES MASTER
-# Configuration (assumes SECRET_KEY, MAX_CONTENT_LENGTH, and CSRFProtect are set in main app.py)
-app.config['SESSION_TYPE'] = 'filesystem'  # Required for session storage
-app.config['SESSION_FILE_DIR'] = os.path.join(app.instance_path, 'sessions')  # Explicit session directory
-app.config['SESSION_FILE_THRESHOLD'] = 500  # Limit number of session files
-app.config['SESSION_PERMANENT'] = True
-app.config['PERMANENT_SESSION_LIFETIME'] = 86400  # 24 hours
-app.config['WTF_CSRF_TIME_LIMIT'] = 7200  # Extend CSRF token timeout to 2 hours
-
-
-# Ensure session directory exists
-os.makedirs(app.config['SESSION_FILE_DIR'], exist_ok=True)
-
-
-
-# Define the form for each period
-# Define the form for each period
-class PeriodForm(FlaskForm):
-    period_name = StringField('Period Name', validators=[DataRequired(), Length(max=10)])
-    currency = SelectField('Currency', choices=[
-        ('USD', 'USD - US Dollar'),
-        ('GHS', 'GHS - Ghanaian Cedi'),
-        ('EUR', 'EUR - Euro'),
-        ('GBP', 'GBP - British Pound'),
-        ('JPY', 'JPY - Japanese Yen')
-    ], validators=[DataRequired()])
-    weight_scenario = SelectField('Weighting Scenario', choices=[
-        ('balanced', 'Balanced (25% each P/B, P/TBV, P/E, DDM)'),
-        ('conservative', 'Conservative (40% P/B, 30% P/TBV, 20% P/E, 10% DDM)'),
-        ('growth', 'Growth (40% P/E, 30% P/B, 20% P/TBV, 10% DDM)')
-    ], validators=[DataRequired()])
-    current_price = FloatField('Current Stock Price', validators=[DataRequired()])
-    required_return = FloatField('Required Return (%)', validators=[DataRequired()])
-    book_value_per_share = FloatField('Book Value per Share', validators=[DataRequired()])
-    pb_multiple = FloatField('P/B Multiple', validators=[DataRequired()])
-    tangible_book_value_per_share = FloatField('Tangible Book Value per Share', validators=[DataRequired()])
-    ptbv_multiple = FloatField('P/TBV Multiple', validators=[DataRequired()])
-    eps = FloatField('Current EPS', validators=[DataRequired()])
-    pe_multiple = FloatField('P/E Multiple', validators=[DataRequired()])
-    eps_growth = FloatField('EPS Growth Rate (%)', validators=[DataRequired()])
-    pe_years = IntegerField('Projection Years for P/E', validators=[DataRequired(), NumberRange(min=1, max=5)])
-    dividend_per_share = FloatField('Dividend per Share', validators=[DataRequired(), NumberRange(min=0)])
-    dividend_growth = FloatField('Dividend Growth Rate (%)', validators=[DataRequired()])
-    roe = FloatField('Return on Equity (%)', validators=[DataRequired()])
-
-# Custom filter for currency formatting
-@app.template_filter('currency')
-def currency_filter(value, currency):
-    try:
-        value = round(float(value), 2)
-        currency_symbols = {
-            'USD': '$',
-            'GHS': '₵',
-            'EUR': '€',
-            'GBP': '£',
-            'JPY': '¥'
-        }
-        symbol = currency_symbols.get(currency, '')
-        return f"{symbol}{value:,.2f}"
-    except (ValueError, TypeError) as e:
-        logger.error(f"Currency filter error: {e}")
-        return "N/A"
-
-# Route for Multiples Master Valuation
-@app.route('/multiples-master-valuation', methods=['GET', 'POST'])
-def multiples_master_valuation():
-    form = PeriodForm()
-    error = None
-    result = None
-    form_data = None
-    period_count = session.get('period_count', 1)  # Default to 1 period
-    
-    if request.method == 'GET':
-        session['period_results'] = []  # Clear session on GET to prevent stale data
-    period_results = session.get('period_results', [])
-
-    if request.method == 'POST':
-        if 'clear_periods' in request.form:
-            session['period_results'] = []
-            session['period_count'] = 1
-            logger.info("Cleared all periods from session")
-            return redirect(url_for('multiples_master_valuation'))
-
-        # Collect raw form data for repopulation
-        form_data = []
-        period_names = request.form.getlist('period_name')
-        currencies = request.form.getlist('currency')
-        weight_scenarios = request.form.getlist('weight_scenario')
-        current_prices = request.form.getlist('current_price')
-        required_returns = request.form.getlist('required_return')
-        book_values = request.form.getlist('book_value_per_share')
-        pb_multiples = request.form.getlist('pb_multiple')
-        tangible_book_values = request.form.getlist('tangible_book_value_per_share')
-        ptbv_multiples = request.form.getlist('ptbv_multiple')
-        eps_values = request.form.getlist('eps')
-        pe_multiples = request.form.getlist('pe_multiple')
-        eps_growths = request.form.getlist('eps_growth')
-        pe_years_list = request.form.getlist('pe_years')
-        dividends = request.form.getlist('dividend_per_share')
-        dividend_growths = request.form.getlist('dividend_growth')
-        roes = request.form.getlist('roe')
-
-        # Build form_data for repopulation
-        for i in range(len(period_names)):
-            form_data.append({
-                'period_name': period_names[i],
-                'currency': currencies[i],
-                'weight_scenario': weight_scenarios[i],
-                'current_price': current_prices[i],
-                'required_return': required_returns[i],
-                'book_value_per_share': book_values[i],
-                'pb_multiple': pb_multiples[i],
-                'tangible_book_value_per_share': tangible_book_values[i],
-                'ptbv_multiple': ptbv_multiples[i],
-                'eps': eps_values[i],
-                'pe_multiple': pe_multiples[i],
-                'eps_growth': eps_growths[i],
-                'pe_years': pe_years_list[i],
-                'dividend_per_share': dividends[i],
-                'dividend_growth': dividend_growths[i],
-                'roe': roes[i]
-            })
-        
-        # Validate the number of periods
-        if len(period_names) > 5:
-            error = "Cannot submit more than 5 periods."
-            logger.error(error)
-            return render_template('multiples_master.html', form=form, error=error, form_data=form_data, period_results=period_results, period_count=len(period_names))
-
-        # Validate unique period names and data
-        unique_names = set()
-        for i, name in enumerate(period_names):
-            if not name.strip():
-                error = f"Period {i+1} name is required."
-                logger.error(error)
-                return render_template('multiples_master.html', form=form, error=error, form_data=form_data, period_results=period_results, period_count=len(period_names))
-            if name in unique_names:
-                error = f"Period name '{name}' must be unique."
-                logger.error(error)
-                return render_template('multiples_master.html', form=form, error=error, form_data=form_data, period_results=period_results, period_count=len(period_names))
-            unique_names.add(name)
-
-        # Process each period
-        periods_data = []
-        for i in range(len(period_names)):
-            try:
-                period_data = {
-                    'period_name': period_names[i],
-                    'currency': currencies[i],
-                    'weight_scenario': weight_scenarios[i],
-                    'current_price': float(current_prices[i]),
-                    'required_return': float(required_returns[i]),
-                    'book_value_per_share': float(book_values[i]),
-                    'pb_multiple': float(pb_multiples[i]),
-                    'tangible_book_value_per_share': float(tangible_book_values[i]),
-                    'ptbv_multiple': float(ptbv_multiples[i]),
-                    'eps': float(eps_values[i]),
-                    'pe_multiple': float(pe_multiples[i]),
-                    'eps_growth': float(eps_growths[i]),
-                    'pe_years': int(pe_years_list[i]),
-                    'dividend_per_share': float(dividends[i]),
-                    'dividend_growth': float(dividend_growths[i]),
-                    'roe': float(roes[i])
-                }
-
-                # Validate tangible book value
-                if period_data['tangible_book_value_per_share'] > period_data['book_value_per_share']:
-                    error = f"Period {i+1}: Tangible book value cannot exceed book value."
-                    logger.error(error)
-                    return render_template('multiples_master.html', form=form, error=error, form_data=form_data, period_results=period_results, period_count=len(period_names))
-
-                # Validate DDM inputs
-                if period_data['dividend_growth'] >= period_data['required_return']:
-                    error = f"Period {i+1}: Dividend growth rate must be less than required return for DDM."
-                    logger.error(error)
-                    return render_template('multiples_master.html', form=form, error=error, form_data=form_data, period_results=period_results, period_count=len(period_names))
-
-                periods_data.append(period_data)
-            except (ValueError, TypeError) as e:
-                error = f"Invalid input for Period {i+1}. Please ensure all fields are valid numbers."
-                logger.error(f"{error}: {e}")
-                return render_template('multiples_master.html', form=form, error=error, form_data=form_data, period_results=period_results, period_count=len(period_names))
-
-        # Calculate valuations for each period
-        period_results = []
-        for period_data in periods_data:
-            try:
-                # Valuation calculations
-                pb_value = period_data['book_value_per_share'] * period_data['pb_multiple']
-                ptbv_value = period_data['tangible_book_value_per_share'] * period_data['ptbv_multiple']
-                future_eps = period_data['eps'] * (1 + period_data['eps_growth'] / 100) ** period_data['pe_years']
-                pe_value = (future_eps * period_data['pe_multiple']) / ((1 + period_data['required_return'] / 100) ** period_data['pe_years'])
-                ddm_value = (period_data['dividend_per_share'] * (1 + period_data['dividend_growth'] / 100)) / (period_data['required_return'] / 100 - period_data['dividend_growth'] / 100) if period_data['dividend_per_share'] > 0 else 0
-
-                # Weighting scenarios
-                weights = {
-                    'balanced': [25, 25, 25, 25],
-                    'conservative': [40, 30, 20, 10],
-                    'growth': [30, 20, 40, 10]
-                }[period_data['weight_scenario']]
-
-                weighted_average = (
-                    pb_value * weights[0] / 100 +
-                    ptbv_value * weights[1] / 100 +
-                    pe_value * weights[2] / 100 +
-                    ddm_value * weights[3] / 100
-                )
-
-                # Over/under valuation
-                # Corrected logic: positive = undervalued, negative = overvalued
-                over_under_valuation = ((weighted_average - period_data['current_price']) / period_data['current_price']) * 100
-
-                # Sensitivity analysis (±15% for multiples and growth rates)
-                sensitivity = {
-                    'pb_multiple_low': round(period_data['pb_multiple'] * 0.85, 2),
-                    'pb_multiple_high': round(period_data['pb_multiple'] * 1.15, 2),
-                    'ptbv_multiple_low': round(period_data['ptbv_multiple'] * 0.85, 2),
-                    'ptbv_multiple_high': round(period_data['ptbv_multiple'] * 1.15, 2),
-                    'pe_multiple_low': round(period_data['pe_multiple'] * 0.85, 2),
-                    'pe_multiple_high': round(period_data['pe_multiple'] * 1.15, 2),
-                    'eps_growth_low': round(period_data['eps_growth'] * 0.85, 2),
-                    'eps_growth_high': round(period_data['eps_growth'] * 1.15, 2),
-                    'dividend_growth_low': round(period_data['dividend_growth'] * 0.85, 2),
-                    'dividend_growth_high': round(period_data['dividend_growth'] * 1.15, 2),
-                    'value_low': round((
-                        (period_data['book_value_per_share'] * (period_data['pb_multiple'] * 0.85)) * weights[0] / 100 +
-                        (period_data['tangible_book_value_per_share'] * (period_data['ptbv_multiple'] * 0.85)) * weights[1] / 100 +
-                        (period_data['eps'] * (1 + (period_data['eps_growth'] * 0.85) / 100) ** period_data['pe_years'] * (period_data['pe_multiple'] * 0.85) / ((1 + period_data['required_return'] / 100) ** period_data['pe_years'])) * weights[2] / 100 +
-                        ((period_data['dividend_per_share'] * (1 + (period_data['dividend_growth'] * 0.85) / 100)) / (period_data['required_return'] / 100 - (period_data['dividend_growth'] * 0.85) / 100) if period_data['dividend_per_share'] > 0 and period_data['dividend_growth'] * 0.85 < period_data['required_return'] else 0) * weights[3] / 100
-                    ), 2),
-                    'value_high': round((
-                        (period_data['book_value_per_share'] * (period_data['pb_multiple'] * 1.15)) * weights[0] / 100 +
-                        (period_data['tangible_book_value_per_share'] * (period_data['ptbv_multiple'] * 1.15)) * weights[1] / 100 +
-                        (period_data['eps'] * (1 + (period_data['eps_growth'] * 1.15) / 100) ** period_data['pe_years'] * (period_data['pe_multiple'] * 1.15) / ((1 + period_data['required_return'] / 100) ** period_data['pe_years'])) * weights[2] / 100 +
-                        ((period_data['dividend_per_share'] * (1 + (period_data['dividend_growth'] * 1.15) / 100)) / (period_data['required_return'] / 100 - (period_data['dividend_growth'] * 1.15) / 100) if period_data['dividend_per_share'] > 0 and period_data['dividend_growth'] * 1.15 < period_data['required_return'] else 0) * weights[3] / 100
-                    ), 2)
-                }
-
-                # Determine weight priority and rationale
-                weight_max_index = weights.index(max(weights))
-                weight_priority = ['P/B', 'P/TBV', 'P/E', 'DDM'][weight_max_index]
-                weight_rationale = {
-                    'balanced': 'equal contribution across methods',
-                    'conservative': 'emphasis on book value stability',
-                    'growth': 'focus on earnings growth potential'
-                }[period_data['weight_scenario']]
-
-                period_result = {
-                    'period_name': period_data['period_name'],
-                    'currency': period_data['currency'],
-                    'pb_value': round(pb_value, 2),
-                    'ptbv_value': round(ptbv_value, 2),
-                    'pe_value': round(pe_value, 2),
-                    'ddm_value': round(ddm_value, 2),
-                    'weighted_average': round(weighted_average, 2),
-                    'current_price': round(period_data['current_price'], 2),
-                    'over_under_valuation': round(over_under_valuation, 2),
-                    'weights': weights,
-                    'weight_priority': weight_priority,
-                    'weight_rationale': weight_rationale,
-                    'weight_max_index': weight_max_index,
-                    'pb_multiple': round(period_data['pb_multiple'], 2),
-                    'ptbv_multiple': round(period_data['ptbv_multiple'], 2),
-                    'pe_multiple': round(period_data['pe_multiple'], 2),
-                    'eps_growth': round(period_data['eps_growth'], 2),
-                    'dividend_growth': round(period_data['dividend_growth'], 2),
-                    'pe_years': period_data['pe_years'],
-                    'sensitivity': sensitivity
-                }
-                period_results.append(period_result)
-            except Exception as e:
-                error = f"Calculation error for Period {period_data['period_name']}: {str(e)}"
-                logger.error(error)
-                return render_template('multiples_master.html', form=form, error=error, form_data=form_data, period_results=period_results, period_count=len(period_names))
-
-        # Store only the latest period as result
-        result = period_results[-1] if period_results else None
-        # Update session with all period results and period count
-        session['period_results'] = period_results
-        session['period_count'] = len(period_names)
-        logger.info(f"Processed {len(period_names)} periods successfully")
-        period_count = len(period_names)
-
-    return render_template('multiples_master.html', form=form, result=result, form_data=form_data, period_results=period_results, error=error, period_count=period_count)
-
-# APPLICATION RUNNER BLOCK
-# ------------------------
-# Runs the application with Waitress locally
-import os
-import platform
-
-# Create admin user on startup
-with app.app_context():
-    db.create_all()
-    if not User.query.filter_by(username='admin').first():
-        hashed_password = bcrypt.generate_password_hash('admin123').decode('utf-8')
-        admin_user = User(username='admin', password_hash=hashed_password)
-        db.session.add(admin_user)
-        db.session.commit()
-        print("Admin user created!")
-
+       
+# --- APPLICATION RUNNER ---
 if __name__ == '__main__':
     if os.getenv('FLASK_ENV') != 'production':
-        with app.app_context():
-            db.create_all()  # Only for local development
-            create_admin_user()
+        app.run(debug=True, host='0.0.0.0', port=5000)
+    else:
         from waitress import serve
         serve(app, host="0.0.0.0", port=5000)

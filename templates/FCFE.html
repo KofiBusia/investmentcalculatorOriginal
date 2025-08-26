@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Free Cash Flow to Equity Calculator - Young Investor Calculator</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script>
@@ -455,7 +455,7 @@ Cash Flows: Current Year [Year 1] — Next Year [Year 2] — Year After [Year 3]
                             <th>Net Income ({{ currency_symbol }})</th>
                             <th>Non-Cash Charges ({{ currency_symbol }})</th>
                             <th>Capex ({{ currency_symbol }})</th>
-                            <th>Change in WC ({{ currency_symbol }})</th>
+                            <th>Change in WC ([{{ currency_symbol }})</th>
                             <th>Net Borrowing ({{ currency_symbol }})</th>
                             <th>FCFE ({{ currency_symbol }})</th>
                         </tr>
@@ -667,6 +667,63 @@ Cash Flows: {{ start_year }} [Year 1] — {{ start_year + 1 }} [Year 2] — {{ s
         </div>
     </div>
 
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-12">
+        <div class="max-w-6xl mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+                <div>
+                    <h3 class="text-lg font-bold mb-4">InvestIQ</h3>
+                    <p class="text-gray-400 mb-4">
+                        Empowering investors with advanced tools, insights, and calculators to make smarter financial decisions.
+                    </p>
+                    <div class="flex gap-3">
+                        <a href="#" class="w-10 h-10 bg-gray-800 text-white rounded-full flex items-center justify-center hover:bg-primary transition-colors">
+                            <i class="fab fa-x-twitter"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 bg-gray-800 text-white rounded-full flex items-center justify-center hover:bg-primary transition-colors">
+                            <i class="fab fa-linkedin-in"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 bg-gray-800 text-white rounded-full flex items-center justify-center hover:bg-primary transition-colors">
+                            <i class="fab fa-facebook-f"></i>
+                        </a>
+                        <a href="#" class="w-10 h-10 bg-gray-800 text-white rounded-full flex items-center justify-center hover:bg-primary transition-colors">
+                            <i class="fab fa-youtube"></i>
+                        </a>
+                    </div>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold mb-4">Quick Links</h3>
+                    <ul class="space-y-2">
+                        <li><a href="/#calculators" class="text-gray-400 hover:text-white transition-colors flex items-center"><i class="fas fa-calculator mr-2"></i> Calculators</a></li>
+                        <li><a href="/help" class="text-gray-400 hover:text-white transition-colors flex items-center"><i class="fas fa-question-circle mr-2"></i> Help Center</a></li>
+                        <li><a href="/about" class="text-gray-400 hover:text-white transition-colors flex items-center"><i class="fas fa-info-circle mr-2"></i> About Us</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold mb-4">Resources</h3>
+                    <ul class="space-y-2">
+                        <li><a href="/non_portfolio_risk_help" class="text-gray-400 hover:text-white transition-colors flex items-center"><i class="fas fa-book mr-2"></i> Non-Portfolio Risk Guide</a></li>
+                        <li><a href="/portfolio_risk_help" class="text-gray-400 hover:text-white transition-colors flex items-center"><i class="fas fa-book mr-2"></i> Portfolio Risk Guide</a></li>
+                        <li><a href="/bond_risk_help" class="text-gray-400 hover:text-white transition-colors flex items-center"><i class="fas fa-book mr-2"></i> Bond Risk Guide</a></li>
+                        <li><a href="/contact" class="text-gray-400 hover:text-white transition-colors flex items-center"><i class="fas fa-envelope mr-2"></i> Contact Us</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold mb-4">Contact</h3>
+                    <ul class="space-y-2">
+                        <li><a href="mailto:info@cleanvisionhr.com" class="text-gray-400 hover:text-white transition-colors flex items-center"><i class="fas fa-envelope mr-2"></i> info@cleanvisionhr.com</a></li>
+                        <li><a href="tel:+233503566913" class="text-gray-400 hover:text-white transition-colors flex items-center"><i class="fas fa-phone mr-2"></i> +233 50 356 6913</a></li>
+                        <li><a href="/contact" class="text-gray-400 hover:text-white transition-colors flex items-center"><i class="fas fa-map-marker-alt mr-2"></i> Contact Form</a></li>
+                        <li><a href="/faq" class="text-gray-400 hover:text-white transition-colors flex items-center"><i class="fas fa-question-circle mr-2"></i> FAQ</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="border-t border-gray-800 pt-6 text-center">
+                <p class="text-gray-400">© 2025 InvestIQ. All rights reserved. | <a href="/privacy" class="text-gray-400 hover:text-white">Privacy Policy</a> | <a href="/terms" class="text-gray-400 hover:text-white">Terms of Service</a></p>
+            </div>
+        </div>
+    </footer>
+
     <!-- Back to Top Button -->
     <button id="backToTop" class="back-to-top w-12 h-12 bg-primary text-white rounded-full shadow-lg flex items-center justify-center">
         <i class="fas fa-arrow-up"></i>
@@ -682,7 +739,7 @@ Cash Flows: {{ start_year }} [Year 1] — {{ start_year + 1 }} [Year 2] — {{ s
         // Back to top button
         const backToTopBtn = document.getElementById('backToTop');
         window.addEventListener('scroll', function() {
-            if (window.pageYOffset > 300) {
+            if (window.scrollY > 300) {
                 backToTopBtn.classList.add('visible');
             } else {
                 backToTopBtn.classList.remove('visible');
@@ -722,14 +779,13 @@ Cash Flows: {{ start_year }} [Year 1] — {{ start_year + 1 }} [Year 2] — {{ s
                     section.classList.remove('hidden');
                 } else {
                     section.classList.add('hidden');
-                    // Clear inputs for hidden years
                     section.querySelectorAll('input[type="number"]').forEach(input => input.value = '');
                 }
             }
         }
         numYearsSelect.addEventListener('change', toggleYearSections);
 
-        // Form submission handler (client-side calculation)
+        // Form submission handler
         const form = document.getElementById('fcfe-form');
         const resultsSection = document.getElementById('results-section');
         const fcfeAverageResult = document.getElementById('fcfe-average-result');
@@ -1015,7 +1071,7 @@ Cash Flows: ${startYear} [Year 1] — ${startYear + 1} [Year 2] — ${startYear 
                 }
                 input.addEventListener('input', () => validateInput(input));
             });
-            toggleYearSections(); // Initialize year sections
+            toggleYearSections();
         });
     </script>
 </body>

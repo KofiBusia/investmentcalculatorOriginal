@@ -5,10 +5,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Multi-Method Stock Valuation - Young Investor Calculator</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -182,6 +182,15 @@
         tr:hover {
             background: #f8fafc;
         }
+        
+        .error-message {
+            background-color: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            color: #78350f;
+        }
     </style>
 </head>
 <body class="text-gray-800">
@@ -240,21 +249,17 @@
         <div class="card p-6 mb-8">
             <h2 class="text-2xl font-bold text-gray-800 mb-4">Calculate Stock Intrinsic Value</h2>
             <p class="text-gray-600 mb-6">Enter parameters to estimate the stock's intrinsic value using DDM, DCF, and P/E methods. Select your preferred currency for calculations.</p>
-            {% if error %}
-                <div class="bg-red-50 p-4 rounded-lg mb-6">
-                    <p class="text-red-700">{{ error }}</p>
-                </div>
-            {% endif %}
-            <form method="POST" action="{{ url_for('multi_method_valuation') }}" id="multi-method-form" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {{ form.hidden_tag() }}
+            <div id="error-message" class="error-message hidden">
+                <p id="error-text"></p>
+            </div>
+            <form id="multi-method-form" class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="md:col-span-2">
                     <label class="block text-gray-700 font-medium mb-2">Currency</label>
-                    <select name="currency" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
-                        <option value="USD" {{ 'selected' if request.form.get('currency', 'USD') == 'USD' else '' }}>USD - US Dollar</option>
-                        <option value="GHS" {{ 'selected' if request.form.get('currency', 'USD') == 'GHS' else '' }}>GHS - Ghanaian Cedi</option>
-                        <option value="EUR" {{ 'selected' if request.form.get('currency', 'USD') == 'EUR' else '' }}>EUR - Euro</option>
-                        <option value="GBP" {{ 'selected' if request.form.get('currency', 'USD') == 'GBP' else '' }}>GBP - British Pound</option>
-                        <option value="JPY" {{ 'selected' if request.form.get('currency', 'USD') == 'JPY' else '' }}>JPY - Japanese Yen</option>
+                    <select name="currency" id="currency" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
+                        <option value="USD">USD (US Dollar)</option>
+                        <option value="GHS">GHS (Ghanaian Cedi)</option>
+                        <option value="EUR">EUR (Euro)</option>
+                        <option value="GBP">GBP (Pound Sterling)</option>
                     </select>
                     <div class="tooltip mt-1">
                         <i class="fas fa-info-circle text-gray-500 ml-2"></i>
@@ -263,10 +268,10 @@
                 </div>
                 <div class="md:col-span-2">
                     <label class="block text-gray-700 font-medium mb-2">Weighting Scenario</label>
-                    <select name="weight_scenario" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
-                        <option value="balanced" {{ 'selected' if request.form.get('weight_scenario', 'balanced') == 'balanced' else '' }}>Balanced (40% DCF, 20% each DDM Base, DDM Sensitivity, P/E)</option>
-                        <option value="conservative" {{ 'selected' if request.form.get('weight_scenario') == 'conservative' else '' }}>Conservative (30% DDM Base, 30% DCF, 20% each DDM Sensitivity, P/E)</option>
-                        <option value="growth" {{ 'selected' if request.form.get('weight_scenario') == 'growth' else '' }}>Growth (30% P/E, 30% DCF, 20% each DDM Base, DDM Sensitivity)</option>
+                    <select name="weight_scenario" id="weight_scenario" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
+                        <option value="balanced">Balanced (DCF Priority)</option>
+                        <option value="conservative">Conservative (DDM & DCF)</option>
+                        <option value="growth">Growth (P/E Priority)</option>
                     </select>
                     <div class="tooltip mt-1">
                         <i class="fas fa-info-circle text-gray-500 ml-2"></i>
@@ -277,105 +282,117 @@
                 <h3 class="text-xl font-semibold text-gray-800 md:col-span-2">General Parameters</h3>
                 <div>
                     <label class="block text-gray-700 font-medium mb-2">Current Stock Price</label>
-                    <input type="number" step="0.01" name="current_price" placeholder="e.g., 2.83" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" value="{{ request.form.get('current_price', '') }}" required min="0">
+                    <input type="number" step="0.01" name="current_price" placeholder="e.g., 2.83" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" min="0">
                     <div class="tooltip mt-1">
                         <i class="fas fa-info-circle text-gray-500 ml-2"></i>
                         <span class="tooltiptext">Current market price of the stock. Find on financial websites like Yahoo Finance.</span>
                     </div>
+                    <div class="form-error text-danger text-sm mt-2 hidden" id="current_price-error">Please enter a valid positive number.</div>
                 </div>
                 <div>
                     <label class="block text-gray-700 font-medium mb-2">Number of Years for High Growth</label>
-                    <input type="number" step="1" name="years_high" placeholder="e.g., 5" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" value="{{ request.form.get('years_high', '') }}" required min="1" max="20">
+                    <input type="number" step="1" name="pe_years" placeholder="e.g., 5" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" min="1" max="20">
                     <div class="tooltip mt-1">
                         <i class="fas fa-info-circle text-gray-500 ml-2"></i>
                         <span class="tooltiptext">Number of years for high-growth period (1–20 years).</span>
                     </div>
+                    <div class="form-error text-danger text-sm mt-2 hidden" id="pe_years-error">Please enter a number between 1 and 20.</div>
                 </div>
                 <div>
                     <label class="block text-gray-700 font-medium mb-2">High-Growth Rate (%)</label>
-                    <input type="number" step="0.01" name="growth_high" placeholder="e.g., 15" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" value="{{ request.form.get('growth_high', '') }}" required min="0" max="100">
+                    <input type="number" step="0.1" name="eps_growth" placeholder="e.g., 15" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" min="0" max="100">
                     <div class="tooltip mt-1">
                         <i class="fas fa-info-circle text-gray-500 ml-2"></i>
                         <span class="tooltiptext">Expected growth rate during high-growth period (%). Estimate from analyst forecasts or historical data.</span>
                     </div>
+                    <div class="form-error text-danger text-sm mt-2 hidden" id="eps_growth-error">Please enter a number between 0 and 100.</div>
                 </div>
                 <div>
                     <label class="block text-gray-700 font-medium mb-2">Terminal Growth Rate (%)</label>
-                    <input type="number" step="0.01" name="growth_terminal" placeholder="e.g., 4" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" value="{{ request.form.get('growth_terminal', '') }}" required min="0" max="10">
+                    <input type="number" step="0.1" name="dividend_growth" placeholder="e.g., 4" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" min="0" max="10">
                     <div class="tooltip mt-1">
                         <i class="fas fa-info-circle text-gray-500 ml-2"></i>
                         <span class="tooltiptext">Long-term growth rate after high-growth period (%). Typically 2–4% for stable companies, max 10%.</span>
                     </div>
+                    <div class="form-error text-danger text-sm mt-2 hidden" id="dividend_growth-error">Please enter a number between 0 and 10.</div>
                 </div>
                 <div>
                     <label class="block text-gray-700 font-medium mb-2">Discount Rate (%)</label>
-                    <input type="number" step="0.01" name="discount_rate" placeholder="e.g., 10" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" value="{{ request.form.get('discount_rate', '') }}" required min="0.01" max="50">
+                    <input type="number" step="0.1" name="required_return" placeholder="e.g., 10" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" min="0" max="50">
                     <div class="tooltip mt-1">
                         <i class="fas fa-info-circle text-gray-500 ml-2"></i>
                         <span class="tooltiptext">Discount rate for present value calculations (%). Use CAPM or WACC (e.g., 8–15% for stable markets).</span>
                     </div>
+                    <div class="form-error text-danger text-sm mt-2 hidden" id="required_return-error">Please enter a number between 0 and 50.</div>
                 </div>
                 
                 <h3 class="text-xl font-semibold text-gray-800 md:col-span-2">DDM Parameters</h3>
                 <div>
                     <label class="block text-gray-700 font-medium mb-2">Base Dividend per Share</label>
-                    <input type="number" step="0.01" name="ddm_base_dividend" placeholder="e.g., 0.12" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" value="{{ request.form.get('ddm_base_dividend', '') }}" required min="0">
+                    <input type="number" step="0.01" name="dividend_per_share" placeholder="e.g., 0.12" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" min="0">
                     <div class="tooltip mt-1">
                         <i class="fas fa-info-circle text-gray-500 ml-2"></i>
                         <span class="tooltiptext">Current dividend per share for DDM base case. Find on financial websites or company reports.</span>
                     </div>
+                    <div class="form-error text-danger text-sm mt-2 hidden" id="dividend_per_share-error">Please enter a valid positive number.</div>
                 </div>
                 <div>
                     <label class="block text-gray-700 font-medium mb-2">Sensitivity Dividend per Share</label>
-                    <input type="number" step="0.01" name="ddm_sensitivity_dividend" placeholder="e.g., 0.22" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" value="{{ request.form.get('ddm_sensitivity_dividend', '') }}" required min="0">
+                    <input type="number" step="0.01" name="ddm_sensitivity_dividend" placeholder="e.g., 0.22" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" min="0">
                     <div class="tooltip mt-1">
                         <i class="fas fa-info-circle text-gray-500 ml-2"></i>
                         <span class="tooltiptext">Dividend per share for DDM sensitivity analysis. Use a higher or lower estimate to test scenarios.</span>
                     </div>
+                    <div class="form-error text-danger text-sm mt-2 hidden" id="ddm_sensitivity_dividend-error">Please enter a valid positive number.</div>
                 </div>
                 
                 <h3 class="text-xl font-semibold text-gray-800 md:col-span-2">DCF Parameters</h3>
                 <div class="md:col-span-2">
                     <label class="block text-gray-700 font-medium mb-2">Current FCFE per Share</label>
-                    <input type="number" step="0.01" name="dcf_fcfe" placeholder="e.g., 0.04" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" value="{{ request.form.get('dcf_fcfe', '') }}" required min="0">
+                    <input type="number" step="0.01" name="fcfe_per_share" placeholder="e.g., 0.04" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" min="0">
                     <div class="tooltip mt-1">
                         <i class="fas fa-info-circle text-gray-500 ml-2"></i>
                         <span class="tooltiptext">Current Free Cash Flow to Equity per share. Estimate from financial statements or analyst reports.</span>
                     </div>
+                    <div class="form-error text-danger text-sm mt-2 hidden" id="fcfe_per_share-error">Please enter a valid positive number.</div>
                 </div>
                 
                 <h3 class="text-xl font-semibold text-gray-800 md:col-span-2">P/E Parameters</h3>
                 <div>
                     <label class="block text-gray-700 font-medium mb-2">Current EPS</label>
-                    <input type="number" step="0.01" name="pe_eps" placeholder="e.g., 0.15" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" value="{{ request.form.get('pe_eps', '') }}" required min="0">
+                    <input type="number" step="0.01" name="eps" placeholder="e.g., 0.15" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
                     <div class="tooltip mt-1">
                         <i class="fas fa-info-circle text-gray-500 ml-2"></i>
                         <span class="tooltiptext">Current Earnings Per Share. Find on financial websites or company reports.</span>
                     </div>
+                    <div class="form-error text-danger text-sm mt-2 hidden" id="eps-error">Please enter a valid number.</div>
                 </div>
                 <div>
                     <label class="block text-gray-700 font-medium mb-2">EPS Growth Rate (%)</label>
-                    <input type="number" step="0.01" name="pe_growth" placeholder="e.g., 15" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" value="{{ request.form.get('pe_growth', '') }}" required min="0" max="100">
+                    <input type="number" step="0.1" name="eps_growth_pe" placeholder="e.g., 15" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" min="0" max="100">
                     <div class="tooltip mt-1">
                         <i class="fas fa-info-circle text-gray-500 ml-2"></i>
                         <span class="tooltiptext">Expected EPS growth rate for P/E method (%). Estimate from historical data or analyst forecasts.</span>
                     </div>
+                    <div class="form-error text-danger text-sm mt-2 hidden" id="eps_growth_pe-error">Please enter a number between 0 and 100.</div>
                 </div>
                 <div>
                     <label class="block text-gray-700 font-medium mb-2">P/E Multiple</label>
-                    <input type="number" step="0.01" name="pe_multiple" placeholder="e.g., 20" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" value="{{ request.form.get('pe_multiple', '') }}" required min="0">
+                    <input type="number" step="0.1" name="pe_multiple" placeholder="e.g., 20" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" min="0">
                     <div class="tooltip mt-1">
                         <i class="fas fa-info-circle text-gray-500 ml-2"></i>
                         <span class="tooltiptext">Price-to-Earnings multiple for projection. Use industry average or historical P/E from financial websites.</span>
                     </div>
+                    <div class="form-error text-danger text-sm mt-2 hidden" id="pe_multiple-error">Please enter a valid positive number.</div>
                 </div>
                 <div>
                     <label class="block text-gray-700 font-medium mb-2">Projection Years for P/E</label>
-                    <input type="number" step="1" name="pe_years" placeholder="e.g., 1" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" value="{{ request.form.get('pe_years', '') }}" required min="1" max="5">
+                    <input type="number" step="1" name="pe_years_pe" placeholder="e.g., 1" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" min="1" max="5">
                     <div class="tooltip mt-1">
                         <i class="fas fa-info-circle text-gray-500 ml-2"></i>
                         <span class="tooltiptext">Number of years for P/E projection (1–5 years).</span>
                     </div>
+                    <div class="form-error text-danger text-sm mt-2 hidden" id="pe_years_pe-error">Please enter a number between 1 and 5.</div>
                 </div>
 
                 <div class="md:col-span-2 flex gap-4">
@@ -390,107 +407,56 @@
                     </a>
                 </div>
             </form>
-        </div>
 
-        <!-- Results Section -->
-        {% if result %}
-        <div class="card p-6 mb-8">
-            <h2 class="text-2xl font-bold text-gray-800 mb-4">Synthesis of Valuations</h2>
-            <h3 class="text-lg font-semibold text-gray-800 mb-4">Intrinsic Value Summary ({{ result.currency }})</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Valuation Method</th>
-                        <th>Intrinsic Value ({{ result.currency }})</th>
-                        <th>Weight</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>DDM (Base Div)</td>
-                        <td>{{ result.ddm_base | currency(result.currency) }}</td>
-                        <td>{{ result.weights[0] }}%</td>
-                    </tr>
-                    <tr>
-                        <td>DDM (Sensitivity)</td>
-                        <td>{{ result.ddm_sensitivity | currency(result.currency) }}</td>
-                        <td>{{ result.weights[1] }}%</td>
-                    </tr>
-                    <tr>
-                        <td>DCF</td>
-                        <td>{{ result.dcf | currency(result.currency) }}</td>
-                        <td>{{ result.weights[2] }}%</td>
-                    </tr>
-                    <tr>
-                        <td>P/E ({{ result.pe_years }}-year)</td>
-                        <td>{{ result.pe_target | currency(result.currency) }}</td>
-                        <td>{{ result.weights[3] }}%</td>
-                    </tr>
-                    <tr class="font-bold">
-                        <td>Weighted Average</td>
-                        <td>{{ result.weighted_average | currency(result.currency) }}</td>
-                        <td>100%</td>
-                    </tr>
-                </tbody>
-            </table>
-            <p class="text-gray-700 mt-4">
-                The weighted average intrinsic value is {{ result.weighted_average | currency(result.currency) }} ({{ result.currency }}), with {{ result.weight_priority }} weighted highest ({{ result.weights[result.weight_max_index] }}%) due to its {{ result.weight_rationale }}. Compared to the current price ({{ result.current_price | currency(result.currency) }}), the stock appears 
-                <span class="font-bold {{ 'text-success' if result.over_under_valuation < 0 else 'text-danger' }}">
-                    {{ 'undervalued' if result.over_under_valuation < 0 else 'overvalued' }}
-                </span> 
-                by {{ result.over_under_valuation | abs }}%.
-            </p>
-            <div class="mt-6">
-                <canvas id="valuationChart" height="100"></canvas>
-            </div>
-            <h3 class="text-lg font-semibold text-gray-800 mt-6 mb-4">Sensitivity Analysis</h3>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Parameter</th>
-                        <th>Low (-10%)</th>
-                        <th>Base</th>
-                        <th>High (+10%)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>Discount Rate (%)</td>
-                        <td>{{ result.sensitivity.discount_rate_low }}</td>
-                        <td>{{ result.discount_rate }}</td>
-                        <td>{{ result.sensitivity.discount_rate_high }}</td>
-                    </tr>
-                    <tr>
-                        <td>High-Growth Rate (%)</td>
-                        <td>{{ result.sensitivity.growth_high_low }}</td>
-                        <td>{{ result.growth_high }}</td>
-                        <td>{{ result.sensitivity.growth_high_high }}</td>
-                    </tr>
-                    <tr>
-                        <td>Weighted Average Value ({{ result.currency }})</td>
-                        <td>{{ result.sensitivity.value_low | currency(result.currency) }}</td>
-                        <td>{{ result.weighted_average | currency(result.currency) }}</td>
-                        <td>{{ result.sensitivity.value_high | currency(result.currency) }}</td>
-                    </tr>
-                </tbody>
-            </table>
-            <h3 class="text-lg font-semibold text-gray-800 mt-6 mb-4">Methodology</h3>
-            <p class="text-gray-600 mb-4">
-                <strong>DDM (Dividend Discount Model):</strong> Uses a two-stage model with a high-growth period followed by a terminal value calculated via the Gordon Growth Model: Dividend / (Discount Rate - Terminal Growth Rate).
-            </p>
-            <p class="text-gray-600 mb-4">
-                <strong>DCF (Discounted Cash Flow):</strong> Projects Free Cash Flow to Equity (FCFE) over a high-growth period, discounted to present value, plus a terminal value discounted using the same rate.
-            </p>
-            <p class="text-gray-600 mb-4">
-                <strong>P/E (Price-to-Earnings):</strong> Projects future EPS based on growth rate and applies a P/E multiple to estimate future stock price, discounted to present value.
-            </p>
-            <div class="mt-6">
-                <a href="/multi_method_valuation" class="px-4 py-2 bg-primary text-white rounded-lg font-medium flex items-center inline-block">
-                    <i class="fas fa-redo mr-2"></i> Calculate Another
-                </a>
+            <!-- Results Section -->
+            <div id="results-section" class="hidden mt-8">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Synthesis of Valuations</h2>
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Intrinsic Value Summary (<span id="result-currency"></span>)</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Valuation Method</th>
+                            <th>Intrinsic Value</th>
+                            <th>Weight</th>
+                        </tr>
+                    </thead>
+                    <tbody id="valuation-table">
+                    </tbody>
+                </table>
+                <p class="text-gray-700 mt-4" id="valuation-interpretation"></p>
+                <div class="mt-6">
+                    <canvas id="valuationChart" height="100"></canvas>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-800 mt-6 mb-4">Sensitivity Analysis</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Parameter</th>
+                            <th>Low (-10%)</th>
+                            <th>Base</th>
+                            <th>High (+10%)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="sensitivity-table">
+                    </tbody>
+                </table>
+                <h3 class="text-lg font-semibold text-gray-800 mt-6 mb-4">Methodology</h3>
+                <p class="text-gray-600 mb-4">
+                    <strong>DDM (Dividend Discount Model):</strong> Uses a two-stage model with a high-growth period followed by a terminal value calculated via the Gordon Growth Model: Dividend / (Discount Rate - Terminal Growth Rate).
+                </p>
+                <p class="text-gray-600 mb-4">
+                    <strong>DCF (Discounted Cash Flow):</strong> Projects Free Cash Flow to Equity (FCFE) over a high-growth period, discounted to present value, plus a terminal value discounted using the same rate.
+                </p>
+                <p class="text-gray-600 mb-4">
+                    <strong>P/E (Price-to-Earnings):</strong> Projects future EPS based on growth rate and applies a P/E multiple to estimate future stock price, discounted to present value.
+                </p>
+                <div class="mt-6">
+                    <button id="calculate-another" class="px-4 py-2 bg-primary text-white rounded-lg font-medium flex items-center inline-block">
+                        <i class="fas fa-redo mr-2"></i> Calculate Another
+                    </button>
+                </div>
             </div>
         </div>
-        {% endif %}
 
         <!-- Guide Section -->
         <div class="card p-6">
@@ -561,7 +527,7 @@
                     </p>
                     <div class="flex gap-3">
                         <a href="#" class="w-10 h-10 bg-gray-800 text-white rounded-full flex items-center justify-center hover:bg-primary transition-colors">
-                            <i class="fab fa-twitter"></i>
+                            <i class="fab fa-x-twitter"></i>
                         </a>
                         <a href="#" class="w-10 h-10 bg-gray-800 text-white rounded-full flex items-center justify-center hover:bg-primary transition-colors">
                             <i class="fab fa-linkedin-in"></i>
@@ -614,10 +580,15 @@
 
     <!-- JavaScript -->
     <script>
+        // Number formatting
+        function formatNumber(value) {
+            return parseFloat(value).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+        }
+
         // Back to top button
         const backToTopBtn = document.getElementById('backToTop');
         window.addEventListener('scroll', function() {
-            if (window.pageYOffset > 300) {
+            if (window.scrollY > 300) {
                 backToTopBtn.classList.add('visible');
             } else {
                 backToTopBtn.classList.remove('visible');
@@ -627,90 +598,301 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
 
-        // Enhanced form validation
-        document.getElementById('multi-method-form').addEventListener('submit', function(e) {
+        // Form validation
+        function validateInput(input, min, max, fieldName) {
+            const value = parseFloat(input.value);
+            const errorElement = document.getElementById(`${input.name}-error`);
+            if (isNaN(value)) {
+                errorElement.textContent = `Please enter a valid number for ${fieldName}.`;
+                errorElement.classList.remove('hidden');
+                return false;
+            }
+            if (value < min || value > max) {
+                errorElement.textContent = `Please enter a number between ${min} and ${max} for ${fieldName}.`;
+                errorElement.classList.remove('hidden');
+                return false;
+            }
+            errorElement.classList.add('hidden');
+            return true;
+        }
+
+        // Form submission handler
+        const form = document.getElementById('multi-method-form');
+        const resultsSection = document.getElementById('results-section');
+        const valuationTable = document.getElementById('valuation-table');
+        const sensitivityTable = document.getElementById('sensitivity-table');
+        const valuationInterpretation = document.getElementById('valuation-interpretation');
+        const resultCurrency = document.getElementById('result-currency');
+        const errorMessage = document.getElementById('error-message');
+        const errorText = document.getElementById('error-text');
+        let valuationChart = null;
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            document.querySelectorAll('.form-error').forEach(el => el.classList.add('hidden'));
+            errorMessage.classList.add('hidden');
+
+            // Get form inputs
+            const currency = document.getElementById('currency').value;
+            const weightScenario = document.getElementById('weight_scenario').value;
+            const currentPrice = parseFloat(document.querySelector('[name="current_price"]').value);
+            const peYears = parseInt(document.querySelector('[name="pe_years"]').value);
+            const epsGrowth = parseFloat(document.querySelector('[name="eps_growth"]').value) / 100;
+            const dividendGrowth = parseFloat(document.querySelector('[name="dividend_growth"]').value) / 100;
+            const requiredReturn = parseFloat(document.querySelector('[name="required_return"]').value) / 100;
+            const dividendPerShare = parseFloat(document.querySelector('[name="dividend_per_share"]').value);
+            const ddmSensitivityDividend = parseFloat(document.querySelector('[name="ddm_sensitivity_dividend"]').value);
+            const fcfePerShare = parseFloat(document.querySelector('[name="fcfe_per_share"]').value);
+            const eps = parseFloat(document.querySelector('[name="eps"]').value);
+            const epsGrowthPe = parseFloat(document.querySelector('[name="eps_growth_pe"]').value) / 100;
+            const peMultiple = parseFloat(document.querySelector('[name="pe_multiple"]').value);
+            const peYearsPe = parseInt(document.querySelector('[name="pe_years_pe"]').value);
+
+            // Validate inputs
             let valid = true;
-            const numberInputs = this.querySelectorAll('input[type="number"]');
-            const errorMessages = [];
+            const validations = [
+                { input: document.querySelector('[name="current_price"]'), min: 0, max: Infinity, name: 'Current Stock Price' },
+                { input: document.querySelector('[name="pe_years"]'), min: 1, max: 20, name: 'High-Growth Years' },
+                { input: document.querySelector('[name="eps_growth"]'), min: 0, max: 100, name: 'High-Growth Rate' },
+                { input: document.querySelector('[name="dividend_growth"]'), min: 0, max: 10, name: 'Terminal Growth Rate' },
+                { input: document.querySelector('[name="required_return"]'), min: 0.1, max: 50, name: 'Discount Rate' },
+                { input: document.querySelector('[name="dividend_per_share"]'), min: 0, max: Infinity, name: 'Base Dividend per Share' },
+                { input: document.querySelector('[name="ddm_sensitivity_dividend"]'), min: 0, max: Infinity, name: 'Sensitivity Dividend per Share' },
+                { input: document.querySelector('[name="fcfe_per_share"]'), min: 0, max: Infinity, name: 'FCFE per Share' },
+                { input: document.querySelector('[name="eps"]'), min: -Infinity, max: Infinity, name: 'Current EPS' },
+                { input: document.querySelector('[name="eps_growth_pe"]'), min: 0, max: 100, name: 'EPS Growth Rate (P/E)' },
+                { input: document.querySelector('[name="pe_multiple"]'), min: 0, max: Infinity, name: 'P/E Multiple' },
+                { input: document.querySelector('[name="pe_years_pe"]'), min: 1, max: 5, name: 'P/E Projection Years' }
+            ];
 
-            numberInputs.forEach(input => {
-                const value = parseFloat(input.value);
-                const min = parseFloat(input.getAttribute('min')) || 0;
-                const max = parseFloat(input.getAttribute('max')) || Infinity;
-                const name = input.name;
-
-                if (isNaN(value)) {
-                    errorMessages.push(`${name.replace('_', ' ').toUpperCase()} is required.`);
-                    input.style.borderColor = '#ef4444';
-                    valid = false;
-                } else if (value < min || value > max) {
-                    errorMessages.push(`${name.replace('_', ' ').toUpperCase()} must be between ${min} and ${max}.`);
-                    input.style.borderColor = '#ef4444';
-                    valid = false;
-                } else if (name === 'discount_rate' && value === 0) {
-                    errorMessages.push('Discount rate cannot be zero.');
-                    input.style.borderColor = '#ef4444';
-                    valid = false;
-                } else {
-                    input.style.borderColor = '';
-                }
+            validations.forEach(v => {
+                if (!validateInput(v.input, v.min, v.max, v.name)) valid = false;
             });
 
-            const growthHigh = parseFloat(this.querySelector('[name="growth_high"]').value);
-            const growthTerminal = parseFloat(this.querySelector('[name="growth_terminal"]').value);
-            const discountRate = parseFloat(this.querySelector('[name="discount_rate"]').value);
-
-            if (!isNaN(growthHigh) && !isNaN(growthTerminal) && growthTerminal >= growthHigh) {
-                errorMessages.push('Terminal growth rate must be less than high-growth rate.');
-                this.querySelector('[name="growth_terminal"]').style.borderColor = '#ef4444';
+            if (dividendGrowth >= epsGrowth) {
+                document.getElementById('dividend_growth-error').textContent = 'Terminal growth rate must be less than high-growth rate.';
+                document.getElementById('dividend_growth-error').classList.remove('hidden');
                 valid = false;
             }
 
-            if (!isNaN(discountRate) && !isNaN(growthTerminal) && discountRate <= growthTerminal) {
-                errorMessages.push('Discount rate must be greater than terminal growth rate.');
-                this.querySelector('[name="discount_rate"]').style.borderColor = '#ef4444';
+            if (requiredReturn <= dividendGrowth) {
+                document.getElementById('required_return-error').textContent = 'Discount rate must be greater than terminal growth rate.';
+                document.getElementById('required_return-error').classList.remove('hidden');
                 valid = false;
             }
 
             if (!valid) {
-                e.preventDefault();
-                alert('Validation errors:\n' + errorMessages.join('\n'));
+                errorText.textContent = 'Please correct the errors in the form.';
+                errorMessage.classList.remove('hidden');
+                return;
+            }
+
+            // Calculate valuations
+            // DDM (Base)
+            const ddmBase = dividendPerShare * (1 + dividendGrowth) / (requiredReturn - dividendGrowth);
+
+            // DDM (Sensitivity)
+            const ddmSensitivity = ddmSensitivityDividend * (1 + dividendGrowth) / (requiredReturn - dividendGrowth);
+
+            // DCF
+            let dcfValue = 0;
+            let fcfe = fcfePerShare;
+            for (let i = 1; i <= peYears; i++) {
+                fcfe *= (1 + epsGrowth);
+                dcfValue += fcfe / Math.pow(1 + requiredReturn, i);
+            }
+            const terminalValue = fcfe * (1 + dividendGrowth) / (requiredReturn - dividendGrowth);
+            dcfValue += terminalValue / Math.pow(1 + requiredReturn, peYears);
+
+            // P/E
+            let futureEps = eps;
+            for (let i = 1; i <= peYearsPe; i++) {
+                futureEps *= (1 + epsGrowthPe);
+            }
+            const peTarget = futureEps * peMultiple / Math.pow(1 + requiredReturn, peYearsPe);
+
+            // Weighting scenarios
+            let weights, weightPriority, weightRationale, weightMaxIndex;
+            if (weightScenario === 'balanced') {
+                weights = [25, 15, 35, 25];
+                weightPriority = 'DCF';
+                weightRationale = 'reliability for stable cash flows';
+                weightMaxIndex = 2;
+            } else if (weightScenario === 'conservative') {
+                weights = [35, 25, 30, 10];
+                weightPriority = 'DDM and DCF';
+                weightRationale = 'reliability for dividend-paying firms';
+                weightMaxIndex = 0;
+            } else {
+                weights = [15, 10, 25, 50];
+                weightPriority = 'P/E';
+                weightRationale = 'suitability for growth-oriented firms';
+                weightMaxIndex = 3;
+            }
+
+            // Weighted average
+            const weightedAverage = (ddmBase * weights[0] + ddmSensitivity * weights[1] + dcfValue * weights[2] + peTarget * weights[3]) / 100;
+
+            // Over/under valuation
+            const overUnderValuation = ((weightedAverage - currentPrice) / currentPrice) * 100;
+
+            // Sensitivity analysis
+            const discountRateLow = requiredReturn * 0.9;
+            const discountRateHigh = requiredReturn * 1.1;
+            const growthHighLow = epsGrowth * 0.9;
+            const growthHighHigh = epsGrowth * 1.1;
+
+            let valueLow = 0;
+            let fcfeLow = fcfePerShare;
+            for (let i = 1; i <= peYears; i++) {
+                fcfeLow *= (1 + growthHighLow);
+                valueLow += fcfeLow / Math.pow(1 + discountRateHigh, i);
+            }
+            const terminalValueLow = fcfeLow * (1 + dividendGrowth) / (discountRateHigh - dividendGrowth);
+            valueLow += terminalValueLow / Math.pow(1 + discountRateHigh, peYears);
+
+            let valueHigh = 0;
+            let fcfeHigh = fcfePerShare;
+            for (let i = 1; i <= peYears; i++) {
+                fcfeHigh *= (1 + growthHighHigh);
+                valueHigh += fcfeHigh / Math.pow(1 + discountRateLow, i);
+            }
+            const terminalValueHigh = fcfeHigh * (1 + dividendGrowth) / (discountRateLow - dividendGrowth);
+            valueHigh += terminalValueHigh / Math.pow(1 + discountRateLow, peYears);
+
+            // Populate results
+            resultCurrency.textContent = currency;
+            valuationTable.innerHTML = `
+                <tr>
+                    <td>DDM (Base Div)</td>
+                    <td>${currency} ${formatNumber(ddmBase)}</td>
+                    <td>${weights[0]}%</td>
+                </tr>
+                <tr>
+                    <td>DDM (Sensitivity)</td>
+                    <td>${currency} ${formatNumber(ddmSensitivity)}</td>
+                    <td>${weights[1]}%</td>
+                </tr>
+                <tr>
+                    <td>DCF</td>
+                    <td>${currency} ${formatNumber(dcfValue)}</td>
+                    <td>${weights[2]}%</td>
+                </tr>
+                <tr>
+                    <td>P/E (${peYearsPe}-year)</td>
+                    <td>${currency} ${formatNumber(peTarget)}</td>
+                    <td>${weights[3]}%</td>
+                </tr>
+                <tr class="font-bold">
+                    <td>Weighted Average</td>
+                    <td>${currency} ${formatNumber(weightedAverage)}</td>
+                    <td>100%</td>
+                </tr>
+            `;
+            valuationInterpretation.innerHTML = `
+                The weighted average intrinsic value is ${currency} ${formatNumber(weightedAverage)} (${currency}), with ${weightPriority} weighted highest (${weights[weightMaxIndex]}%) due to its ${weightRationale}. Compared to the current price (${currency} ${formatNumber(currentPrice)}), the stock appears 
+                <span class="font-bold ${overUnderValuation < 0 ? 'text-success' : 'text-danger'}">
+                    ${overUnderValuation < 0 ? 'undervalued' : 'overvalued'}
+                </span> 
+                by ${formatNumber(Math.abs(overUnderValuation))}%.
+            `;
+            sensitivityTable.innerHTML = `
+                <tr>
+                    <td>Discount Rate (%)</td>
+                    <td>${formatNumber(discountRateLow * 100)}</td>
+                    <td>${formatNumber(requiredReturn * 100)}</td>
+                    <td>${formatNumber(discountRateHigh * 100)}</td>
+                </tr>
+                <tr>
+                    <td>High-Growth Rate (%)</td>
+                    <td>${formatNumber(growthHighLow * 100)}</td>
+                    <td>${formatNumber(epsGrowth * 100)}</td>
+                    <td>${formatNumber(growthHighHigh * 100)}</td>
+                </tr>
+                <tr>
+                    <td>Weighted Average Value (${currency})</td>
+                    <td>${currency} ${formatNumber(valueLow)}</td>
+                    <td>${currency} ${formatNumber(weightedAverage)}</td>
+                    <td>${currency} ${formatNumber(valueHigh)}</td>
+                </tr>
+            `;
+
+            // Generate chart
+            if (valuationChart) {
+                valuationChart.destroy();
+            }
+            const ctx = document.getElementById('valuationChart').getContext('2d');
+            valuationChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['DDM Base', 'DDM Sensitivity', 'DCF', 'P/E', 'Weighted Avg'],
+                    datasets: [{
+                        label: `Intrinsic Value (${currency})`,
+                        data: [ddmBase, ddmSensitivity, dcfValue, peTarget, weightedAverage],
+                        backgroundColor: ['#4f46e5', '#818cf8', '#10b981', '#f59e0b', '#ef4444'],
+                        borderColor: ['#3b37b3', '#6366f1', '#059669', '#d97706', '#dc2626'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: {
+                                display: true,
+                                text: `Value (${currency})`
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+
+            // Show results
+            resultsSection.classList.remove('hidden');
+            resultsSection.scrollIntoView({ behavior: 'smooth' });
+        });
+
+        // Reset form
+        document.querySelector('button[type="reset"]').addEventListener('click', function() {
+            form.reset();
+            resultsSection.classList.add('hidden');
+            document.querySelectorAll('.form-error').forEach(el => el.classList.add('hidden'));
+            errorMessage.classList.add('hidden');
+            if (valuationChart) {
+                valuationChart.destroy();
+                valuationChart = null;
             }
         });
 
-        // Chart rendering
-        {% if result %}
-        const ctx = document.getElementById('valuationChart').getContext('2d');
-        new Chart(ctx, {
-            type: 'bar',
-            data: {
-                labels: ['DDM Base', 'DDM Sensitivity', 'DCF', 'P/E', 'Weighted Avg'],
-                datasets: [{
-                    label: 'Intrinsic Value ({{ result.currency }})',
-                    data: [{{ result.ddm_base }}, {{ result.ddm_sensitivity }}, {{ result.dcf }}, {{ result.pe_target }}, {{ result.weighted_average }}],
-                    backgroundColor: ['#4f46e5', '#818cf8', '#10b981', '#f59e0b', '#ef4444'],
-                    borderColor: ['#3b37b3', '#6366f1', '#059669', '#d97706', '#dc2626'],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        title: {
-                            display: true,
-                            text: 'Value ({{ result.currency }})'
-                        }
-                    }
-                },
-                plugins: {
-                    legend: {
-                        display: false
-                    }
-                }
+        // Calculate another
+        document.getElementById('calculate-another').addEventListener('click', function() {
+            form.reset();
+            resultsSection.classList.add('hidden');
+            document.querySelectorAll('.form-error').forEach(el => el.classList.add('hidden'));
+            errorMessage.classList.add('hidden');
+            if (valuationChart) {
+                valuationChart.destroy();
+                valuationChart = null;
             }
         });
-        {% endif %}
+
+        // Initialize form
+        document.addEventListener('DOMContentLoaded', () => {
+            document.querySelectorAll('input[type="number"]').forEach(input => {
+                input.value = '';
+                input.addEventListener('input', () => {
+                    const min = parseFloat(input.getAttribute('min')) || -Infinity;
+                    const max = parseFloat(input.getAttribute('max')) || Infinity;
+                    validateInput(input, min, max, input.name.replace('_', ' '));
+                });
+            });
+        });
     </script>
 </body>
 </html>

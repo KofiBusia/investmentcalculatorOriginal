@@ -13,8 +13,8 @@
         <p><strong>Error:</strong> {{ error }}</p>
     </div>
     {% endif %}
-
-    <form method="POST" action="/portfolio_return">
+    <form method="POST" action="{{ url_for('portfolio_return') }}">
+    
         <!-- Return Method Selection -->
         <h3>Step 1: Select Return Method</h3>
         <div class="group">

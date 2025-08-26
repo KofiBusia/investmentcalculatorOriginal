@@ -1,58 +1,61 @@
 Exception on /calculate-fcfe [GET]
 Traceback (most recent call last):
-  File "C:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\flask\app.py", line 1511, in wsgi_app
+  File "c:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\flask\app.py", line 1511, in wsgi_app
     response = self.full_dispatch_request()
-  File "C:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\flask\app.py", line 919, in full_dispatch_request
+  File "c:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\flask\app.py", line 919, in full_dispatch_request
     rv = self.handle_user_exception(e)
-  File "C:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+  File "c:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\flask\app.py", line 917, in full_dispatch_request
     rv = self.dispatch_request()
-  File "C:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\flask\app.py", line 902, in dispatch_request
+  File "c:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\flask\app.py", line 902, in dispatch_request
     return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
-  File "C:\Users\kkyei\Desktop\Investment_Calculator3\app.py", line 2920, in calculate_fcfe
-    return render_template('FCFE.html', currency_symbol=currency_symbol, num_years=5, start_year=current_year, valuation_year=current_year)
-  File "C:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\flask\templating.py", line 149, in render_template
+  File "C:\Users\kkyei\Desktop\Investment_Calculator3\app.py", line 1024, in calculate_fcfe_route
+    return render_template('calculate_fcfe.html', form_data=form_data)
+  File "c:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\flask\templating.py", line 149, in render_template
     template = app.jinja_env.get_or_select_template(template_name_or_list)
-  File "C:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\jinja2\environment.py", line 1087, in get_or_select_template
+  File "c:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\jinja2\environment.py", line 1087, in get_or_select_template
     return self.get_template(template_name_or_list, parent, globals)
-  File "C:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\jinja2\environment.py", line 1016, in get_template
+  File "c:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\jinja2\environment.py", line 1016, in get_template
     return self._load_template(name, globals)
-  File "C:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\jinja2\environment.py", line 975, in _load_template
+  File "c:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\jinja2\environment.py", line 975, in _load_template
     template = self.loader.load(self, name, self.make_globals(globals))
-  File "C:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\jinja2\loaders.py", line 138, in load
-    code = environment.compile(source, name, filename)
-  File "C:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\jinja2\environment.py", line 771, in compile
-    self.handle_exception(source=source_hint)
-  File "C:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\jinja2\environment.py", line 942, in handle_exception
-    raise rewrite_traceback_stack(source=source)
-  File "C:\Users\kkyei\Desktop\Investment_Calculator3\templates\FCFE.html", line 467, in template
-    <td>{{ currency_symbol }}{{ net_incomes[i] | float | format_number }}</td>
-jinja2.exceptions.TemplateAssertionError: No filter named 'format_number'.
-Exception on /calculate-fcfe [GET]
+  File "c:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\jinja2\loaders.py", line 126, in load
+    source, filename, uptodate = self.get_source(environment, name)
+  File "c:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\flask\templating.py", line 65, in get_source
+    return self._get_source_fast(environment, template)
+  File "c:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\flask\templating.py", line 99, in _get_source_fast
+    raise TemplateNotFound(template)
+jinja2.exceptions.TemplateNotFound: calculate_fcfe.html
+Exception on /calculate-cost-of-equity [GET]
 Traceback (most recent call last):
-  File "C:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\flask\app.py", line 1511, in wsgi_app
+  File "c:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\flask\app.py", line 1511, in wsgi_app
     response = self.full_dispatch_request()
-  File "C:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\flask\app.py", line 919, in full_dispatch_request
+  File "c:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\flask\app.py", line 919, in full_dispatch_request
     rv = self.handle_user_exception(e)
-  File "C:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\flask\app.py", line 917, in full_dispatch_request
+  File "c:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\flask\app.py", line 917, in full_dispatch_request
     rv = self.dispatch_request()
-  File "C:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\flask\app.py", line 902, in dispatch_request
+  File "c:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\flask\app.py", line 902, in dispatch_request
     return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
-  File "C:\Users\kkyei\Desktop\Investment_Calculator3\app.py", line 2920, in calculate_fcfe
-    return render_template('FCFE.html', currency_symbol=currency_symbol, num_years=5, start_year=current_year, valuation_year=current_year)
-  File "C:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\flask\templating.py", line 149, in render_template
+  File "C:\Users\kkyei\Desktop\Investment_Calculator3\app.py", line 1256, in calculate_cost_of_equity
+    return render_template('calculate_cost_of_equity.html', form_data=form_data)
+  File "c:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\flask\templating.py", line 149, in render_template
     template = app.jinja_env.get_or_select_template(template_name_or_list)
-  File "C:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\jinja2\environment.py", line 1087, in get_or_select_template
+  File "c:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\jinja2\environment.py", line 1087, in get_or_select_template
     return self.get_template(template_name_or_list, parent, globals)
-  File "C:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\jinja2\environment.py", line 1016, in get_template
+  File "c:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\jinja2\environment.py", line 1016, in get_template
     return self._load_template(name, globals)
-  File "C:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\jinja2\environment.py", line 975, in _load_template
+  File "c:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\jinja2\environment.py", line 975, in _load_template
     template = self.loader.load(self, name, self.make_globals(globals))
-  File "C:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\jinja2\loaders.py", line 138, in load
-    code = environment.compile(source, name, filename)
-  File "C:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\jinja2\environment.py", line 771, in compile
-    self.handle_exception(source=source_hint)
-  File "C:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\jinja2\environment.py", line 942, in handle_exception
-    raise rewrite_traceback_stack(source=source)
-  File "C:\Users\kkyei\Desktop\Investment_Calculator3\templates\FCFE.html", line 467, in template
-    <td>{{ currency_symbol }}{{ net_incomes[i] | float | format_number }}</td>
-jinja2.exceptions.TemplateAssertionError: No filter named 'format_number'.
+  File "c:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\jinja2\loaders.py", line 126, in load
+    source, filename, uptodate = self.get_source(environment, name)
+  File "c:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\flask\templating.py", line 65, in get_source
+    return self._get_source_fast(environment, template)
+  File "c:\Users\kkyei\Desktop\Investment_Calculator3\.venv\lib\site-packages\flask\templating.py", line 99, in _get_source_fast
+    raise TemplateNotFound(template)
+jinja2.exceptions.TemplateNotFound: calculate_cost_of_equity.html
+Calculation error for period Q1: (sqlite3.OperationalError) table valuation_result has no column named created_at
+[SQL: INSERT INTO valuation_result (period_name, currency, weighted_average, created_at) VALUES (?, ?, ?, ?)]
+[parameters: ('Q1', 'USD', 45.89259259259259, '2025-08-26 09:09:23.878594')]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+Application initialized
+Application initialized
+Application initialized

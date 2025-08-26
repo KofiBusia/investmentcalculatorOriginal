@@ -1,10 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1910810542133525" crossorigin="anonymous"></script>
+    <script defer src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1910810542133525" crossorigin="anonymous"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="InvestIQ offers advanced financial calculators and tools to empower your investment decisions.">
+    <meta name="keywords" content="investment calculators, financial tools, stock valuation, portfolio management">
+    <meta property="og:title" content="InvestIQ | Empower Your Investments">
+    <meta property="og:description" content="Discover tools to optimize your financial future with InvestIQ.">
+    <meta property="og:image" content="https://younginvestorcalculator.com/og-image.jpg">
     <title>InvestIQ | Empower Your Investments</title>
+    <link rel="icon" href="/favicon.ico">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Montserrat:wght@700;800&display=swap" rel="stylesheet">
     <style>
@@ -205,8 +211,8 @@
             position: absolute;
             top: -50px;
             right: -50px;
-            width: 500px;
-            height: 500px;
+            width: clamp(300px, 40vw, 500px);
+            height: clamp(300px, 40vw, 500px);
             border-radius: 50%;
             background: radial-gradient(circle, rgba(37, 99, 235, 0.1) 0%, rgba(37, 99, 235, 0) 70%);
             z-index: -1;
@@ -277,82 +283,6 @@
             color: var(--gray);
         }
 
-        /* Features Section */
-        .features {
-            padding: 40px 0;
-        }
-
-        .section-header {
-            text-align: center;
-            margin-bottom: 50px;
-        }
-
-        .section-subtitle {
-            color: var(--primary);
-            font-weight: 600;
-            margin-bottom: 10px;
-        }
-
-        .section-title {
-            font-family: 'Montserrat', sans-serif;
-            font-size: 36px;
-            font-weight: 800;
-            margin-bottom: 20px;
-        }
-
-        .section-desc {
-            color: var(--gray);
-            max-width: 700px;
-            margin: 0 auto;
-        }
-
-        .feature-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 30px;
-            margin-top: 30px;
-        }
-
-        .feature-card {
-            background-color: var(--card-bg);
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: var(--card-shadow);
-            transition: var(--transition);
-        }
-
-        .feature-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-        }
-
-        .feature-icon {
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 20px;
-        }
-
-        .feature-icon i {
-            font-size: 24px;
-            color: white;
-        }
-
-        .feature-title {
-            font-size: 20px;
-            font-weight: 700;
-            margin-bottom: 15px;
-        }
-
-        .feature-desc {
-            color: var(--gray);
-            margin-bottom: 20px;
-        }
-
         /* Calculators Section */
         .calculators {
             padding: 80px 0;
@@ -365,6 +295,13 @@
             margin-bottom: 30px;
             flex-wrap: wrap;
             gap: 20px;
+        }
+
+        .section-subtitle {
+            color: var(--primary);
+            font-weight: 600;
+            font-size: 16px;
+            margin-bottom: 10px;
         }
 
         .category-filters {
@@ -625,9 +562,9 @@
         }
 
         .popup-container {
-            display: none; /* Hidden by default */
+            display: none;
             position: fixed;
-            z-index: 90; /* Below header (z-index: 100) */
+            z-index: 90;
             left: 0;
             top: 0;
             width: 100%;
@@ -668,12 +605,12 @@
         }
 
         .popup-content h2 {
-            color: #2c3e50; /* Dark Slate Blue */
+            color: #2c3e50;
             margin-top: 0;
         }
 
         .popup-button {
-            background-color: #2ecc71; /* Vibrant Green */
+            background-color: #2ecc71;
             color: white;
             padding: 12px 25px;
             border: none;
@@ -689,8 +626,20 @@
         }
 
         .popup-button:hover {
-            background-color: #27ae60; /* Darker Green */
+            background-color: #27ae60;
             transform: scale(1.05);
+        }
+
+        /* Visually Hidden for Accessibility */
+        .visually-hidden {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            border: 0;
         }
 
         /* Responsive Styles */
@@ -756,10 +705,10 @@
 </head>
 <body>
     <!-- Pop-up -->
-    <div id="promo-popup" class="popup-container">
+    <div id="promo-popup" class="popup-container" role="dialog" aria-labelledby="popup-title">
         <div class="popup-content">
-            <span class="close-btn">&times;</span>
-            <h2>Master Python from Scratch!</h2>
+            <span class="close-btn" role="button" aria-label="Close popup">&times;</span>
+            <h2 id="popup-title">Master Python from Scratch!</h2>
             <p>Our new Python course makes learning to code simple and fun. Go from beginner to pro with hands-on projects.</p>
             <a href="https://www.tezcode.tech/" target="_blank" class="popup-button">Start Your Python Journey!</a>
         </div>
@@ -782,13 +731,13 @@
                 <a href="https://younginvestorcalculator.com/portfolio_risk_help" class="nav-link"><i class="fas fa-book"></i> Portfolio Risk Guide</a>
                 <a href="https://younginvestorcalculator.com/bond_risk_help" class="nav-link"><i class="fas fa-book"></i> Bond Risk Guide</a>
                 <a href="https://younginvestorcalculator.com/help" class="nav-link">Help Center</a>
-                <a href="https://younginvestorcalculator.com/articles" class="nav-link">Resources</a>
             </nav>
             
             <div class="header-actions">
                 <div class="search-container">
+                    <label for="search-input" class="visually-hidden">Search calculators</label>
                     <i class="fas fa-search search-icon"></i>
-                    <input type="text" class="search-input" placeholder="Search calculators...">
+                    <input type="text" id="search-input" class="search-input" placeholder="Search calculators...">
                 </div>
                 <a href="https://younginvestorcalculator.com/help" class="btn">Get Started</a>
             </div>
@@ -809,13 +758,12 @@
                     insights, and calculators. Make smarter financial decisions today.
                 </p>
                 <div class="hero-buttons">
-                    <a href="https://younginvestorcalculator.com/articles" class="btn">Explore Insights</a>
                     <a href="https://younginvestorcalculator.com/#calculators" class="btn btn-outline">View All Calculators</a>
                 </div>
                 
                 <div class="hero-stats">
                     <div class="stat-item">
-                        <div class="stat-value">50+</div>
+                        <div class="stat-value">20+</div>
                         <div class="stat-label">Investment Calculators</div>
                     </div>
                     <div class="stat-item">
@@ -826,60 +774,6 @@
                         <div class="stat-value">97%</div>
                         <div class="stat-label">Satisfaction Rate</div>
                     </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Features Section -->
-    <section class="features">
-        <div class="container">
-            <div class="section-header">
-                <div class="section-subtitle">WHY CHOOSE US</div>
-                <h2 class="section-title">Powerful Tools For Investors</h2>
-                <p class="section-desc">
-                    Our platform provides everything you need to analyze, calculate, and optimize your investment portfolio
-                </p>
-            </div>
-            
-            <div class="feature-cards">
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-calculator"></i>
-                    </div>
-                    <h3 class="feature-title">Advanced Calculators</h3>
-                    <p class="feature-desc">
-                        Comprehensive suite of calculators for every investment scenario with real-time results.
-                    </p>
-                    <a href="https://younginvestorcalculator.com/#calculators" class="calculator-link">
-                        Explore Tools <i class="fas fa-arrow-right"></i>
-                    </a>
-                </div>
-                
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-lightbulb"></i>
-                    </div>
-                    <h3 class="feature-title">Expert Insights</h3>
-                    <p class="feature-desc">
-                        Access to market analysis, investment strategies, and expert recommendations.
-                    </p>
-                    <a href="https://younginvestorcalculator.com/articles" class="calculator-link">
-                        Read Insights <i class="fas fa-arrow-right"></i>
-                    </a>
-                </div>
-                
-                <div class="feature-card">
-                    <div class="feature-icon">
-                        <i class="fas fa-chart-pie"></i>
-                    </div>
-                    <h3 class="feature-title">Portfolio Analysis</h3>
-                    <p class="feature-desc">
-                        Visualize your portfolio performance, diversification, and risk exposure.
-                    </p>
-                    <a href="https://younginvestorcalculator.com/portfolio-analysis" class="calculator-link">
-                        Analyze Portfolio <i class="fas fa-arrow-right"></i>
-                    </a>
                 </div>
             </div>
         </div>
@@ -908,30 +802,15 @@
                 <!-- Stocks Calculators -->
                 <div class="calculator-card" data-category="Stocks">
                     <div class="calculator-icon">
-                        <i class="fas fa-chart-line"></i>
+                        <i class="fas fa-layer-group"></i>
                     </div>
                     <div class="calculator-content">
                         <span class="calculator-category">Stocks</span>
-                        <h3 class="calculator-title">Stocks Calculator</h3>
+                        <h3 class="calculator-title">Multi-Method Stock Valuation</h3>
                         <p class="calculator-desc">
-                            Calculate returns, dividends, and growth potential for stock investments.
+                            Comprehensive valuation using multiple methodologies.
                         </p>
-                        <a href="https://younginvestorcalculator.com/stocks" class="calculator-link">
-                            Calculate <i class="fas fa-arrow-right"></i>
-                        </a>
-                    </div>
-                </div>
-                <div class="calculator-card" data-category="Stocks">
-                    <div class="calculator-icon">
-                        <i class="fas fa-balance-scale"></i>
-                    </div>
-                    <div class="calculator-content">
-                        <span class="calculator-category">Stocks</span>
-                        <h3 class="calculator-title">Intrinsic Value (Stocks)</h3>
-                        <p class="calculator-desc">
-                            Determine the true value of stocks based on fundamental analysis.
-                        </p>
-                        <a href="https://younginvestorcalculator.com/intrinsic-value" class="calculator-link">
+                        <a href="https://younginvestorcalculator.com/multi-method-valuation" class="calculator-link">
                             Calculate <i class="fas fa-arrow-right"></i>
                         </a>
                     </div>
@@ -966,68 +845,8 @@
                         </a>
                     </div>
                 </div>
-                <div class="calculator-card" data-category="Stocks">
-                    <div class="calculator-icon">
-                        <i class="fas fa-layer-group"></i>
-                    </div>
-                    <div class="calculator-content">
-                        <span class="calculator-category">Stocks</span>
-                        <h3 class="calculator-title">Multi-Method Stock Valuation</h3>
-                        <p class="calculator-desc">
-                            Comprehensive valuation using multiple methodologies.
-                        </p>
-                        <a href="https://younginvestorcalculator.com/multi-method-valuation" class="calculator-link">
-                            Calculate <i class="fas fa-arrow-right"></i>
-                        </a>
-                    </div>
-                </div>
 
                 <!-- Bonds Calculators -->
-                <div class="calculator-card" data-category="Bonds">
-                    <div class="calculator-icon">
-                        <i class="fas fa-file-invoice-dollar"></i>
-                    </div>
-                    <div class="calculator-content">
-                        <span class="calculator-category">Bonds</span>
-                        <h3 class="calculator-title">Bonds Calculator</h3>
-                        <p class="calculator-desc">
-                            Calculate yield, maturity, and returns for bonds.
-                        </p>
-                        <a href="https://younginvestorcalculator.com/bonds" class="calculator-link">
-                            Calculate <i class="fas fa-arrow-right"></i>
-                        </a>
-                    </div>
-                </div>
-                <div class="calculator-card" data-category="Bonds">
-                    <div class="calculator-icon">
-                        <i class="fas fa-clock"></i>
-                    </div>
-                    <div class="calculator-content">
-                        <span class="calculator-category">Bonds</span>
-                        <h3 class="calculator-title">Duration Calculator</h3>
-                        <p class="calculator-desc">
-                            Measure bond price sensitivity to interest rate changes.
-                        </p>
-                        <a href="https://younginvestorcalculator.com/duration" class="calculator-link">
-                            Calculate <i class="fas fa-arrow-right"></i>
-                        </a>
-                    </div>
-                </div>
-                <div class="calculator-card" data-category="Bonds">
-                    <div class="calculator-icon">
-                        <i class="fas fa-landmark"></i>
-                    </div>
-                    <div class="calculator-content">
-                        <span class="calculator-category">Bonds</span>
-                        <h3 class="calculator-title">Treasury Bills (T-Bills)</h3>
-                        <p class="calculator-desc">
-                            Calculate returns on short-term government securities.
-                        </p>
-                        <a href="https://younginvestorcalculator.com/tbills" class="calculator-link">
-                            Calculate <i class="fas fa-arrow-right"></i>
-                        </a>
-                    </div>
-                </div>
                 <div class="calculator-card" data-category="Bonds">
                     <div class="calculator-icon">
                         <i class="fas fa-redo"></i>
@@ -1043,98 +862,8 @@
                         </a>
                     </div>
                 </div>
-                <div class="calculator-card" data-category="Bonds">
-                    <div class="calculator-icon">
-                        <i class="fas fa-shield-alt"></i>
-                    </div>
-                    <div class="calculator-content">
-                        <span class="calculator-category">Bonds</span>
-                        <h3 class="calculator-title">Corporate Bond Credit Risk</h3>
-                        <p class="calculator-desc">
-                            Assess a corporate bond's credit risk by calculating Expected Loss.
-                        </p>
-                        <a href="https://younginvestorcalculator.com/bond_risk" class="calculator-link">
-                            Calculate <i class="fas fa-arrow-right"></i>
-                        </a>
-                    </div>
-                </div>
 
                 <!-- Portfolio Tools Calculators -->
-                <div class="calculator-card" data-category="Portfolio Tools">
-                    <div class="calculator-icon">
-                        <i class="fas fa-project-diagram"></i>
-                    </div>
-                    <div class="calculator-content">
-                        <span class="calculator-category">Portfolio Tools</span>
-                        <h3 class="calculator-title">Portfolio Diversification</h3>
-                        <p class="calculator-desc">
-                            Analyze and optimize your investment diversification strategy.
-                        </p>
-                        <a href="https://younginvestorcalculator.com/portfolio-diversification" class="calculator-link">
-                            Calculate <i class="fas fa-arrow-right"></i>
-                        </a>
-                    </div>
-                </div>
-                <div class="calculator-card" data-category="Portfolio Tools">
-                    <div class="calculator-icon">
-                        <i class="fas fa-shield-alt"></i>
-                    </div>
-                    <div class="calculator-content">
-                        <span class="calculator-category">Portfolio Tools</span>
-                        <h3 class="calculator-title">Risk Assessment</h3>
-                        <p class="calculator-desc">
-                            Evaluate portfolio resilience with scenario analysis and stress testing.
-                        </p>
-                        <a href="https://younginvestorcalculator.com/risk-assessment" class="calculator-link">
-                            Calculate <i class="fas fa-arrow-right"></i>
-                        </a>
-                    </div>
-                </div>
-                <div class="calculator-card" data-category="Portfolio Tools">
-                    <div class="calculator-icon">
-                        <i class="fas fa-chart-bar"></i>
-                    </div>
-                    <div class="calculator-content">
-                        <span class="calculator-category">Portfolio Tools</span>
-                        <h3 class="calculator-title">Expected Return</h3>
-                        <p class="calculator-desc">
-                            Estimate potential returns based on your portfolio composition.
-                        </p>
-                        <a href="https://younginvestorcalculator.com/expected-return" class="calculator-link">
-                            Calculate <i class="fas fa-arrow-right"></i>
-                        </a>
-                    </div>
-                </div>
-                <div class="calculator-card" data-category="Portfolio Tools">
-                    <div class="calculator-icon">
-                        <i class="fas fa-wave-square"></i>
-                    </div>
-                    <div class="calculator-content">
-                        <span class="calculator-category">Portfolio Tools</span>
-                        <h3 class="calculator-title">Portfolio Volatility</h3>
-                        <p class="calculator-desc">
-                            Measure the risk and volatility of your investment portfolio.
-                        </p>
-                        <a href="https://younginvestorcalculator.com/volatility" class="calculator-link">
-                            Calculate <i class="fas fa-arrow-right"></i>
-                        </a>
-                    </div>
-                </div>
-                <div class="calculator-card" data-category="Portfolio Tools">
-                    <div class="calculator-icon">
-                        <i class="fas fa-percentage"></i>
-                    </div>
-                    <div class="calculator-content">
-                        <span class="calculator-category">Portfolio Tools</span>
-                        <h3 class="calculator-title">Portfolio Return Calculator</h3>
-                        <p class="calculator-desc">
-                            Calculate overall returns for your investment portfolio.
-                        </p>
-                        <a href="https://younginvestorcalculator.com/portfolio_return" class="calculator-link">
-                            Calculate <i class="fas fa-arrow-right"></i>
-                        </a>
-                    </div>
-                </div>
                 <div class="calculator-card" data-category="Portfolio Tools">
                     <div class="calculator-icon">
                         <i class="fas fa-chart-pie"></i>
@@ -1152,38 +881,6 @@
                 </div>
                 <div class="calculator-card" data-category="Portfolio Tools">
                     <div class="calculator-icon">
-                        <i class="fas fa-exclamation-triangle"></i>
-                    </div>
-                    <div class="calculator-content">
-                        <span class="calculator-category">Portfolio Tools</span>
-                        <h3 class="calculator-title">Portfolio Risk Assessment</h3>
-                        <p class="calculator-desc">
-                            Calculate NPRA-compliant portfolio risk metrics for Ghanaian markets.
-                        </p>
-                        <a href="/portfolio-risk" class="calculator-link">
-                            Calculate <i class="fas fa-arrow-right"></i>
-                        </a>
-                    </div>
-                </div>
-                <div class="calculator-card" data-category="Portfolio Tools">
-                    <div class="calculator-icon">
-                        <i class="fas fa-calculator"></i>
-                    </div>
-                    <div class="calculator-content">
-                        <span class="calculator-category">Portfolio Tools</span>
-                        <h3 class="calculator-title">Non-Portfolio Risk Calculator</h3>
-                        <p class="calculator-desc">
-                            Assess risk metrics for individual assets in the Ghanaian market.
-                        </p>
-                        <a href="/non-portfolio-risk" class="calculator-link">
-                            Calculate <i class="fas fa-arrow-right"></i>
-                        </a>
-                    </div>
-                </div>
-                
-                <!-- NEW: Leverage Ratios Calculator -->
-                <div class="calculator-card" data-category="Portfolio Tools">
-                    <div class="calculator-icon">
                         <i class="fas fa-percent"></i>
                     </div>
                     <div class="calculator-content">
@@ -1197,8 +894,6 @@
                         </a>
                     </div>
                 </div>
-                
-                <!-- NEW: Cost Sustainability Calculator -->
                 <div class="calculator-card" data-category="Portfolio Tools">
                     <div class="calculator-icon">
                         <i class="fas fa-leaf"></i>
@@ -1218,31 +913,15 @@
                 <!-- Advanced Valuation Calculators -->
                 <div class="calculator-card" data-category="Advanced Valuation">
                     <div class="calculator-icon">
-                        <i class="fas fa-money-bill-wave"></i>
+                        <i class="fas fa-cogs"></i>
                     </div>
                     <div class="calculator-content">
                         <span class="calculator-category">Advanced Valuation</span>
-                        <h3 class="calculator-title">Free Cash Flow Calculator</h3>
+                        <h3 class="calculator-title">DCF Valuation</h3>
                         <p class="calculator-desc">
-                            Calculate a company's free cash flow for valuation purposes.
+                            Discounted cash flow valuation for comprehensive analysis.
                         </p>
-                        <a href="https://younginvestorcalculator.com/calculate-fcf" class="calculator-link">
-                            Calculate <i class="fas fa-arrow-right"></i>
-                        </a>
-                    </div>
-                </div>
-                <!-- NEW: FCF Forecasting Calculator -->
-                <div class="calculator-card" data-category="Advanced Valuation">
-                    <div class="calculator-icon">
-                        <i class="fas fa-money-bill-alt"></i>
-                    </div>
-                    <div class="calculator-content">
-                        <span class="calculator-category">Advanced Valuation</span>
-                        <h3 class="calculator-title">FCF Forecasting Calculator</h3>
-                        <p class="calculator-desc">
-                            Forecast future free cash flows for valuation and investment analysis.
-                        </p>
-                        <a href="https://younginvestorcalculator.com/fcf_forecasting" class="calculator-link">
+                        <a href="https://younginvestorcalculator.com/dcf" class="calculator-link">
                             Calculate <i class="fas fa-arrow-right"></i>
                         </a>
                     </div>
@@ -1279,36 +958,6 @@
                 </div>
                 <div class="calculator-card" data-category="Advanced Valuation">
                     <div class="calculator-icon">
-                        <i class="fas fa-handshake"></i>
-                    </div>
-                    <div class="calculator-content">
-                        <span class="calculator-category">Advanced Valuation</span>
-                        <h3 class="calculator-title">M&A Valuation</h3>
-                        <p class="calculator-desc">
-                            Analyze mergers and acquisitions with specialized tools.
-                        </p>
-                        <a href="https://younginvestorcalculator.com/mna" class="calculator-link">
-                            Calculate <i class="fas fa-arrow-right"></i>
-                        </a>
-                    </div>
-                </div>
-                <div class="calculator-card" data-category="Advanced Valuation">
-                    <div class="calculator-icon">
-                        <i class="fas fa-building"></i>
-                    </div>
-                    <div class="calculator-content">
-                        <span class="calculator-category">Advanced Valuation</span>
-                        <h3 class="calculator-title">Private Equity & VC Valuation</h3>
-                        <p class="calculator-desc">
-                            Valuation tools for private investments.
-                        </p>
-                        <a href="https://younginvestorcalculator.com/pe-vc" class="calculator-link">
-                            Calculate <i class="fas fa-arrow-right"></i>
-                        </a>
-                    </div>
-                </div>
-                <div class="calculator-card" data-category="Advanced Valuation">
-                    <div class="calculator-icon">
                         <i class="fas fa-gavel"></i>
                     </div>
                     <div class="calculator-content">
@@ -1324,21 +973,6 @@
                 </div>
                 <div class="calculator-card" data-category="Advanced Valuation">
                     <div class="calculator-icon">
-                        <i class="fas fa-cogs"></i>
-                    </div>
-                    <div class="calculator-content">
-                        <span class="calculator-category">Advanced Valuation</span>
-                        <h3 class="calculator-title">DCF Valuation</h3>
-                        <p class="calculator-desc">
-                            Discounted cash flow valuation for comprehensive analysis.
-                        </p>
-                        <a href="https://younginvestorcalculator.com/dcf" class="calculator-link">
-                            Calculate <i class="fas fa-arrow-right"></i>
-                        </a>
-                    </div>
-                </div>
-                <div class="calculator-card" data-category="Advanced Valuation">
-                    <div class="calculator-icon">
                         <i class="fas fa-percentage"></i>
                     </div>
                     <div class="calculator-content">
@@ -1348,21 +982,6 @@
                             Calculate the cost of equity for valuation models.
                         </p>
                         <a href="https://younginvestorcalculator.com/calculate-cost-of-equity" class="calculator-link">
-                            Calculate <i class="fas fa-arrow-right"></i>
-                        </a>
-                    </div>
-                </div>
-                <div class="calculator-card" data-category="Advanced Valuation">
-                    <div class="calculator-icon">
-                        <i class="fas fa-shield-alt"></i>
-                    </div>
-                    <div class="calculator-content">
-                        <span class="calculator-category">Advanced Valuation</span>
-                        <h3 class="calculator-title">Credit Risk Calculator</h3>
-                        <p class="calculator-desc">
-                            Assess a bank's credit risk by calculating Expected Loss for loans.
-                        </p>
-                        <a href="https://younginvestorcalculator.com/credit_risk" class="calculator-link">
                             Calculate <i class="fas fa-arrow-right"></i>
                         </a>
                     </div>
@@ -1412,7 +1031,6 @@
                         </a>
                     </div>
                 </div>
-                <!-- NEW: Equity Valuation Multiples Calculator -->
                 <div class="calculator-card" data-category="Advanced Valuation">
                     <div class="calculator-icon">
                         <i class="fas fa-university"></i>
@@ -1424,188 +1042,6 @@
                             Perform advanced bank stock valuation using multiple methods.
                         </p>
                         <a href="/multiples-master-valuation" class="calculator-link">
-                            Calculate <i class="fas fa-arrow-right"></i>
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Alternative Investments Calculators -->
-                <div class="calculator-card" data-category="Alternative Investments">
-                    <div class="calculator-icon">
-                        <i class="fas fa-piggy-bank"></i>
-                    </div>
-                    <div class="calculator-content">
-                        <span class="calculator-category">Alternative Investments</span>
-                        <h3 class="calculator-title">Money Market Accounts</h3>
-                        <p class="calculator-desc">
-                            Calculate returns on money market investments.
-                        </p>
-                        <a href="https://younginvestorcalculator.com/money-market" class="calculator-link">
-                            Calculate <i class="fas fa-arrow-right"></i>
-                        </a>
-                    </div>
-                </div>
-                <div class="calculator-card" data-category="Alternative Investments">
-                    <div class="calculator-icon">
-                        <i class="fas fa-hand-holding-usd"></i>
-                    </div>
-                    <div class="calculator-content">
-                        <span class="calculator-category">Alternative Investments</span>
-                        <h3 class="calculator-title">Mutual Funds</h3>
-                        <p class="calculator-desc">
-                            Analyze and calculate returns for mutual fund investments.
-                        </p>
-                        <a href="https://younginvestorcalculator.com/mutual-funds" class="calculator-link">
-                            Calculate <i class="fas fa-arrow-right"></i>
-                        </a>
-                    </div>
-                </div>
-                <div class="calculator-card" data-category="Alternative Investments">
-                    <div class="calculator-icon">
-                        <i class="fas fa-chart-pie"></i>
-                    </div>
-                    <div class="calculator-content">
-                        <span class="calculator-category">Alternative Investments</span>
-                        <h3 class="calculator-title">ETFs</h3>
-                        <p class="calculator-desc">
-                            Calculate returns and analyze ETF investments.
-                        </p>
-                        <a href="https://younginvestorcalculator.com/etfs" class="calculator-link">
-                            Calculate <i class="fas fa-arrow-right"></i>
-                        </a>
-                    </div>
-                </div>
-                <div class="calculator-card" data-category="Alternative Investments">
-                    <div class="calculator-icon">
-                        <i class="fas fa-certificate"></i>
-                    </div>
-                    <div class="calculator-content">
-                        <span class="calculator-category">Alternative Investments</span>
-                        <h3 class="calculator-title">CDs</h3>
-                        <p class="calculator-desc">
-                            Calculate interest and returns on Certificates of Deposit.
-                        </p>
-                        <a href="https://younginvestorcalculator.com/cds" class="calculator-link">
-                            Calculate <i class="fas fa-arrow-right"></i>
-                        </a>
-                    </div>
-                </div>
-                <div class="calculator-card" data-category="Alternative Investments">
-                    <div class="calculator-icon">
-                        <i class="fas fa-chess-knight"></i>
-                    </div>
-                    <div class="calculator-content">
-                        <span class="calculator-category">Alternative Investments</span>
-                        <h3 class="calculator-title">Options (Call & Put)</h3>
-                        <p class="calculator-desc">
-                            Calculate options pricing and potential returns.
-                        </p>
-                        <a href="https://younginvestorcalculator.com/options" class="calculator-link">
-                            Calculate <i class="fas fa-arrow-right"></i>
-                        </a>
-                    </div>
-                </div>
-                <div class="calculator-card" data-category="Alternative Investments">
-                    <div class="calculator-icon">
-                        <i class="fas fa-forward"></i>
-                    </div>
-                    <div class="calculator-content">
-                        <span class="calculator-category">Alternative Investments</span>
-                        <h3 class="calculator-title">Futures</h3>
-                        <p class="calculator-desc">
-                            Analyze and calculate futures contracts.
-                        </p>
-                        <a href="https://younginvestorcalculator.com/futures" class="calculator-link">
-                            Calculate <i class="fas fa-arrow-right"></i>
-                        </a>
-                    </div>
-                </div>
-                <div class="calculator-card" data-category="Alternative Investments">
-                    <div class="calculator-icon">
-                        <i class="fab fa-bitcoin"></i>
-                    </div>
-                    <div class="calculator-content">
-                        <span class="calculator-category">Alternative Investments</span>
-                        <h3 class="calculator-title">Cryptocurrency</h3>
-                        <p class="calculator-desc">
-                            Calculate returns and analyze cryptocurrency investments.
-                        </p>
-                        <a href="https://younginvestorcalculator.com/cryptocurrency" class="calculator-link">
-                            Calculate <i class="fas fa-arrow-right"></i>
-                        </a>
-                    </div>
-                </div>
-                <div class="calculator-card" data-category="Alternative Investments">
-                    <div class="calculator-icon">
-                        <i class="fas fa-globe"></i>
-                    </div>
-                    <div class="calculator-content">
-                        <span class="calculator-category">Alternative Investments</span>
-                        <h3 class="calculator-title">Forex Calculator</h3>
-                        <p class="calculator-desc">
-                            Calculate foreign exchange rates and potential returns.
-                        </p>
-                        <a href="https://younginvestorcalculator.com/forex" class="calculator-link">
-                            Calculate <i class="fas fa-arrow-right"></i>
-                        </a>
-                    </div>
-                </div>
-                <div class="calculator-card" data-category="Alternative Investments">
-                    <div class="calculator-icon">
-                        <i class="fas fa-leaf"></i>
-                    </div>
-                    <div class="calculator-content">
-                        <span class="calculator-category">Alternative Investments</span>
-                        <h3 class="calculator-title">ESG Investment Tool</h3>
-                        <p class="calculator-desc">
-                            Analyze environmental, social, and governance investments.
-                        </p>
-                        <a href="https://younginvestorcalculator.com/esg-investments" class="calculator-link">
-                            Calculate <i class="fas fa-arrow-right"></i>
-                        </a>
-                    </div>
-                </div>
-                <div class="calculator-card" data-category="Alternative Investments">
-                    <div class="calculator-icon">
-                        <i class="fas fa-shield-alt"></i>
-                    </div>
-                    <div class="calculator-content">
-                        <span class="calculator-category">Alternative Investments</span>
-                        <h3 class="calculator-title">Hedge Fund Calculator</h3>
-                        <p class="calculator-desc">
-                            Calculate returns and analyze hedge fund strategies.
-                        </p>
-                        <a href="https://younginvestorcalculator.com/hedge-funds" class="calculator-link">
-                            Calculate <i class="fas fa-arrow-right"></i>
-                        </a>
-                    </div>
-                </div>
-                <div class="calculator-card" data-category="Alternative Investments">
-                    <div class="calculator-icon">
-                        <i class="fas fa-money-check-alt"></i>
-                    </div>
-                    <div class="calculator-content">
-                        <span class="calculator-category">Alternative Investments</span>
-                        <h3 class="calculator-title">End Balance</h3>
-                        <p class="calculator-desc">
-                            Calculate the final balance of your investment over time.
-                        </p>
-                        <a href="https://younginvestorcalculator.com/end-balance" class="calculator-link">
-                            Calculate <i class="fas fa-arrow-right"></i>
-                        </a>
-                    </div>
-                </div>
-                <div class="calculator-card" data-category="Alternative Investments">
-                    <div class="calculator-icon">
-                        <i class="fas fa-hand-holding-usd"></i>
-                    </div>
-                    <div class="calculator-content">
-                        <span class="calculator-category">Alternative Investments</span>
-                        <h3 class="calculator-title">Monthly Contribution</h3>
-                        <p class="calculator-desc">
-                            Determine growth with regular monthly investments.
-                        </p>
-                        <a href="https://younginvestorcalculator.com/monthly-contribution" class="calculator-link">
                             Calculate <i class="fas fa-arrow-right"></i>
                         </a>
                     </div>
@@ -1689,7 +1125,6 @@
                     <h3>Quick Links</h3>
                     <ul class="footer-links">
                         <li><a href="https://younginvestorcalculator.com/#calculators"><i class="fas fa-calculator"></i> Calculators</a></li>
-                        <li><a href="https://younginvestorcalculator.com/articles"><i class="fas fa-book"></i> Insights</a></li>
                         <li><a href="https://younginvestorcalculator.com/help"><i class="fas fa-question-circle"></i> Help Center</a></li>
                         <li><a href="https://younginvestorcalculator.com/about"><i class="fas fa-info-circle"></i> About Us</a></li>
                     </ul>
@@ -1729,20 +1164,31 @@
             const filters = document.querySelectorAll('.category-filter');
             const calculatorCards = document.querySelectorAll('.calculator-card');
             const searchInput = document.querySelector('.search-input');
+            const popup = document.getElementById('promo-popup');
+            const closeBtn = document.querySelector('.close-btn');
 
+            // Debounce function for search
+            function debounce(func, wait) {
+                let timeout;
+                return function executedFunction(...args) {
+                    const later = () => {
+                        clearTimeout(timeout);
+                        func(...args);
+                    };
+                    clearTimeout(timeout);
+                    timeout = setTimeout(later, wait);
+                };
+            }
+
+            // Category Filtering
             filters.forEach(filter => {
                 filter.addEventListener('click', function() {
-                    // Remove active class from all filters
                     filters.forEach(f => f.classList.remove('active'));
-                    // Add active class to clicked filter
                     this.classList.add('active');
 
                     const selectedCategory = this.getAttribute('data-filter');
-
-                    // Reset search input
                     searchInput.value = '';
 
-                    // Show or hide calculator cards based on category
                     calculatorCards.forEach(card => {
                         const cardCategory = card.getAttribute('data-category');
                         if (selectedCategory === 'all' || cardCategory === selectedCategory) {
@@ -1754,9 +1200,9 @@
                 });
             });
 
-            // Search Functionality
-            searchInput.addEventListener('input', function() {
-                const searchTerm = this.value.trim().toLowerCase();
+            // Search Functionality with Debounce
+            const performSearch = debounce(function() {
+                const searchTerm = searchInput.value.trim().toLowerCase();
                 const activeFilter = document.querySelector('.category-filter.active');
                 const selectedCategory = activeFilter ? activeFilter.getAttribute('data-filter') : 'all';
 
@@ -1765,43 +1211,45 @@
                     const title = card.querySelector('.calculator-title').textContent.toLowerCase();
                     const description = card.querySelector('.calculator-desc').textContent.toLowerCase();
 
-                    // Check if card matches the active category filter (or 'all')
                     const matchesCategory = selectedCategory === 'all' || cardCategory === selectedCategory;
-
-                    // Check if card matches the search term
                     const matchesSearch = searchTerm === '' || 
                                          title.includes(searchTerm) || 
                                          description.includes(searchTerm);
 
-                    // Show card only if it matches both category and search criteria
                     if (matchesCategory && matchesSearch) {
                         card.classList.remove('hidden');
                     } else {
                         card.classList.add('hidden');
                     }
                 });
-            });
+            }, 300);
 
-            // Pop-up Functionality
-            const popup = document.getElementById('promo-popup');
-            const closeBtn = document.querySelector('.close-btn');
+            searchInput.addEventListener('input', performSearch);
 
-            // Show popup after a delay
-            setTimeout(() => {
-                popup.style.display = 'flex';
-            }, 2500); // 2.5 seconds delay
-
-            // Close popup when 'x' is clicked
-            closeBtn.onclick = function() {
-                popup.style.display = 'none';
+            // Pop-up Functionality with localStorage
+            if (!localStorage.getItem('popupShown')) {
+                setTimeout(() => {
+                    popup.style.display = 'flex';
+                    localStorage.setItem('popupShown', 'true');
+                }, 2500);
             }
 
-            // Close popup when clicking outside of the content
+            closeBtn.onclick = function() {
+                popup.style.display = 'none';
+            };
+
             window.onclick = function(event) {
                 if (event.target == popup) {
                     popup.style.display = 'none';
                 }
-            }
+            };
+
+            // Focus management for popup
+            popup.addEventListener('keydown', function(event) {
+                if (event.key === 'Escape') {
+                    popup.style.display = 'none';
+                }
+            });
         });
     </script>
 </body>
