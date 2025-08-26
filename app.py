@@ -74,7 +74,7 @@ class ValuationResult(db.Model):
     ptbv_value = db.Column(db.Float, nullable=False)
     pe_value = db.Column(db.Float, nullable=False)
     ddm_value = db.Column(db.Float, nullable=False)
-    
+
 # --- DATACLASSES ---
 from dataclasses import dataclass
 
@@ -115,6 +115,14 @@ class PeriodForm(FlaskForm):
     dividend_per_share = FloatField('Dividend per Share', validators=[DataRequired(), NumberRange(min=0)])
     dividend_growth = FloatField('Dividend Growth Rate (%)', validators=[DataRequired()])
     roe = FloatField('Return on Equity (%)', validators=[DataRequired()])
+
+class FCFEForm(FlaskForm):
+    net_income = FloatField('Net Income', validators=[DataRequired(), NumberRange(min=-1000000, max=1000000)])
+    capex = FloatField('Capital Expenditures', validators=[DataRequired(), NumberRange(min=0, max=1000000)])
+    depreciation = FloatField('Depreciation', validators=[DataRequired(), NumberRange(min=0, max=1000000)])
+    change_in_working_capital = FloatField('Change in Working Capital', validators=[DataRequired(), NumberRange(min=-1000000, max=1000000)])
+    debt_issued = FloatField('Debt Issued', validators=[DataRequired(), NumberRange(min=0, max=1000000)])
+    debt_repaid = FloatField('Debt Repaid', validators=[DataRequired(), NumberRange(min=0, max=1000000)])
 
 # --- JINJA FILTERS ---
 def format_number(value, decimal_places=2, is_percentage=False, is_currency=False):
@@ -907,17 +915,6 @@ def tbills_rediscount():
             return render_template('tbills_rediscount.html', error=str(e), form_data=form_data)
     return render_template('tbills_rediscount.html', form_data=form_data)
 
-from wtforms import FloatField, validators
-
-# Add a form for FCFE calculation
-class FCFEForm(FlaskForm):
-    net_income = FloatField('Net Income', validators=[DataRequired(), NumberRange(min=-1000000, max=1000000)])
-    capex = FloatField('Capital Expenditures', validators=[DataRequired(), NumberRange(min=0, max=1000000)])
-    depreciation = FloatField('Depreciation', validators=[DataRequired(), NumberRange(min=0, max=1000000)])
-    change_in_working_capital = FloatField('Change in Working Capital', validators=[DataRequired(), NumberRange(min=-1000000, max=1000000)])
-    debt_issued = FloatField('Debt Issued', validators=[DataRequired(), NumberRange(min=0, max=1000000)])
-    debt_repaid = FloatField('Debt Repaid', validators=[DataRequired(), NumberRange(min=0, max=1000000)])
-
 @app.route('/calculate-fcfe', methods=['GET', 'POST'])
 def calculate_fcfe_route():
     """Handle FCFE calculation form and results."""
@@ -1192,7 +1189,6 @@ if __name__ == '__main__':
             logger.error(f"Failed to create database tables: {e}")
             raise
 
-       
 # --- APPLICATION RUNNER ---
 if __name__ == '__main__':
     if os.getenv('FLASK_ENV') != 'production':

@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Free Cash Flow to Equity Calculator - Young Investor Calculator</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <title>Free Cash Flow to Equity Calculator - Young Investor</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script>
@@ -30,21 +30,14 @@
         }
     </script>
     <style>
-        :root {
-            --header-height: 70px;
-            --sidebar-width: 300px;
-        }
-
         body {
             background: linear-gradient(135deg, #f0f4f8 0%, #e6e9ff 100%);
             min-height: 100vh;
             font-family: 'Inter', sans-serif;
         }
-
         .gradient-bg {
             background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
         }
-
         .card {
             background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(10px);
@@ -52,23 +45,19 @@
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
             transition: all 0.3s ease;
         }
-
         .card:hover {
             transform: translateY(-5px);
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
         }
-
         .input-field {
             background: rgba(255, 255, 255, 0.9);
             border: 1px solid #e2e8f0;
             transition: all 0.3s ease;
         }
-
         .input-field:focus {
             border-color: #a5b4fc;
             box-shadow: 0 0 0 4px rgba(165, 180, 252, 0.25);
         }
-
         .back-to-top {
             position: fixed;
             bottom: 30px;
@@ -77,17 +66,14 @@
             transform: translateY(20px);
             transition: all 0.3s ease;
         }
-
         .back-to-top.visible {
             opacity: 1;
             transform: translateY(0);
         }
-
         .tooltip {
             position: relative;
             display: inline-block;
         }
-
         .tooltip .tooltiptext {
             visibility: hidden;
             width: 200px;
@@ -104,19 +90,10 @@
             opacity: 0;
             transition: opacity 0.3s;
         }
-
         .tooltip:hover .tooltiptext {
             visibility: visible;
             opacity: 1;
         }
-
-        .nav-buttons {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-
         .nav-button {
             display: flex;
             align-items: center;
@@ -127,33 +104,27 @@
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
             transition: all 0.2s ease;
         }
-
         .nav-button:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
         }
-
         .nav-button.home {
             background: #4f46e5;
             color: white;
         }
-
         .nav-button.calculators {
             background: #10b981;
             color: white;
         }
-
         .nav-button i {
             margin-right: 8px;
         }
-
         .target-price {
             font-size: 2.5rem;
             font-weight: 700;
             color: #4f46e5;
             margin: 10px 0;
         }
-
         .target-interpretation {
             margin-top: 15px;
             padding: 15px;
@@ -161,7 +132,6 @@
             background-color: #f0f9ff;
             border-left: 4px solid #0ea5e9;
         }
-
         .formula {
             font-family: 'Courier New', monospace;
             background-color: #f8fafc;
@@ -171,29 +141,24 @@
             text-align: center;
             border: 1px solid #e2e8f0;
         }
-
         table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
         }
-
         th, td {
             padding: 12px;
             text-align: left;
             border-bottom: 1px solid #e2e8f0;
         }
-
         th {
             background-color: #f8fafc;
             font-weight: 600;
             color: #1e293b;
         }
-
         td {
             color: #374151;
         }
-
         .warning-message {
             background-color: #fef3c7;
             border-left: 4px solid #f59e0b;
@@ -202,7 +167,6 @@
             margin-bottom: 20px;
             color: #78350f;
         }
-
         .timeline-diagram {
             font-family: 'Courier New', monospace;
             background-color: #f8fafc;
@@ -215,7 +179,6 @@
     </style>
 </head>
 <body class="text-gray-800">
-    <!-- Header -->
     <header class="gradient-bg text-white py-8 px-4 md:px-8">
         <div class="max-w-6xl mx-auto">
             <nav class="hidden md:flex justify-between items-center mb-6">
@@ -225,15 +188,11 @@
                     <a href="/help" class="text-white hover:text-indigo-200 transition-colors">Help Center</a>
                     <a href="/articles" class="text-white hover:text-indigo-200 transition-colors">Resources</a>
                 </div>
-                <a href="/help" class="bg-white text-primary px-4 py-2 rounded-lg font-medium hover:bg-indigo-50 transition-colors">
-                    Get Started
-                </a>
+                <a href="/help" class="bg-white text-primary px-4 py-2 rounded-lg font-medium hover:bg-indigo-50 transition-colors">Get Started</a>
             </nav>
             <div class="max-w-3xl">
                 <h1 class="text-4xl md:text-5xl font-bold mb-4">Free Cash Flow to Equity Calculator</h1>
-                <p class="text-xl md:text-2xl text-indigo-100 mb-6">
-                    Calculate Free Cash Flow to Equity (FCFE) for 3 to 5 years to assess cash available to shareholders
-                </p>
+                <p class="text-xl md:text-2xl text-indigo-100 mb-6">Calculate Free Cash Flow to Equity (FCFE) for 3 to 5 years to assess cash available to shareholders.</p>
                 <div class="flex flex-wrap gap-3">
                     <div class="bg-white/20 px-4 py-2 rounded-full flex items-center">
                         <i class="fas fa-lightbulb mr-2"></i>
@@ -248,37 +207,30 @@
         </div>
     </header>
 
-    <!-- Main Content -->
     <div class="max-w-6xl mx-auto px-4 py-8">
-        <!-- Navigation Buttons -->
-        <div class="nav-buttons">
-            <a href="/" class="nav-button home">
-                <i class="fas fa-home"></i> Return to Home
-            </a>
-            <a href="/#calculators" class="nav-button calculators">
-                <i class="fas fa-calculator"></i> Other Calculators
-            </a>
+        <div class="nav-buttons mb-6">
+            <a href="/" class="nav-button home"><i class="fas fa-home"></i> Return to Home</a>
+            <a href="/#calculators" class="nav-button calculators"><i class="fas fa-calculator"></i> Other Calculators</a>
         </div>
 
-        <!-- Calculator Form -->
         <div class="card p-6 mb-8">
             <h2 class="text-2xl font-bold text-gray-800 mb-4">Calculate Free Cash Flow to Equity</h2>
-            <p class="text-gray-600 mb-6">Enter financial data for 3 to 5 years to calculate Free Cash Flow to Equity (FCFE) and intrinsic value per share. All monetary values should be in Ghanaian Cedi (GHS). Example: Use data for Access Bank Ghana (174 million shares).</p>
+            <p class="text-gray-600 mb-6">Enter financial data for 3 to 5 years to calculate Free Cash Flow to Equity (FCFE) and intrinsic value per share. All monetary values in Ghanaian Cedi (GHS). Example: Use data for Access Bank Ghana (174 million shares).</p>
             <div class="formula">
                 <p class="text-lg font-semibold">FCFE Formula</p>
                 <p class="text-xl mt-2">FCFE = Net Income + Non-Cash Charges - Capex - Change in Working Capital + Net Borrowing</p>
                 <p class="text-sm mt-2 text-gray-600">Where Net Income is profit after taxes, Non-Cash Charges are depreciation and amortization, Capex is capital expenditures, Change in Working Capital is the year-over-year change in current assets minus liabilities, and Net Borrowing is new debt minus repayments.</p>
             </div>
-            <form id="fcfe-form" class="space-y-6" method="POST">
+            <form id="fcfe-form" class="space-y-6" action="/fcfe" method="POST">
                 <div class="bg-indigo-50 p-4 rounded-lg">
                     <h3 class="text-lg font-semibold text-gray-800 mb-3">Select Number of Years</h3>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div>
                             <label class="block text-gray-700 font-medium mb-2">Number of Years</label>
                             <select name="num_years" id="num-years" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
-                                <option value="3">3 Years</option>
-                                <option value="4">4 Years</option>
-                                <option value="5" selected>5 Years</option>
+                                <option value="3" {{ 'selected' if form_data.get('num_years') == '3' else '' }}>3 Years</option>
+                                <option value="4" {{ 'selected' if form_data.get('num_years') == '4' else '' }}>4 Years</option>
+                                <option value="5" {{ 'selected' if form_data.get('num_years') == '5' else '' }}>5 Years</option>
                             </select>
                             <div class="tooltip mt-2">
                                 <i class="fas fa-info-circle text-gray-500"></i>
@@ -288,64 +240,71 @@
                         </div>
                     </div>
                 </div>
-                {% for i in range(1, 6) %}
-                <div class="bg-indigo-50 p-4 rounded-lg year-section" id="year-{{ i }}-section">
-                    <h3 class="text-lg font-semibold text-gray-800 mb-3">Year {{ i }}</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div>
-                            <label class="block text-gray-700 font-medium mb-2">Net Income (GHS)</label>
-                            <input type="number" step="any" name="net_income_{{ i }}" placeholder="e.g., 150000000" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
-                            <div class="tooltip mt-2">
-                                <i class="fas fa-info-circle text-gray-500"></i>
-                                <span class="tooltiptext">Profit after taxes from the income statement (e.g., 217.5M GHS for Access Bank 2024). Find on Yahoo Finance or gse.com.gh.</span>
-                            </div>
-                            <div class="form-error text-danger text-sm mt-2 hidden" id="net_income_{{ i }}-error">Please enter a valid number.</div>
+                <div id="annual-inputs" class="space-y-6">
+                    {% for i in range(1, 6) %}
+                    <div class="bg-indigo-50 p-4 rounded-lg year-section {{ '' if i <= (form_data.get('num_years', 5) | int) else 'hidden' }}" id="year-{{ i }}-section" data-year="{{ i }}">
+                        <div class="flex justify-between items-center">
+                            <h3 class="text-lg font-semibold text-gray-800 mb-3">Year {{ i }}</h3>
+                            {% if i > 1 %}
+                            <button type="button" class="remove-year text-red-500 hover:text-red-700" data-year="{{ i }}"><i class="fas fa-trash"></i></button>
+                            {% endif %}
                         </div>
-                        <div>
-                            <label class="block text-gray-700 font-medium mb-2">Non-Cash Charges (GHS)</label>
-                            <input type="number" step="any" name="non_cash_{{ i }}" placeholder="e.g., 100000" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
-                            <div class="tooltip mt-2">
-                                <i class="fas fa-info-circle text-gray-500"></i>
-                                <span class="tooltiptext">Non-cash expenses like depreciation and amortization from the cash flow statement (e.g., 100K GHS).</span>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 dynamic-inputs">
+                            <div>
+                                <label class="block text-gray-700 font-medium mb-2">Net Income (GHS)</label>
+                                <input type="number" step="any" name="net_income_{{ i }}" placeholder="e.g., 150000000" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" value="{{ form_data.get('net_income_' + i|string, '') }}">
+                                <div class="tooltip mt-2">
+                                    <i class="fas fa-info-circle text-gray-500"></i>
+                                    <span class="tooltiptext">Profit after taxes from the income statement (e.g., 217.5M GHS for Access Bank 2024). Find on Yahoo Finance or gse.com.gh.</span>
+                                </div>
+                                <div class="form-error text-danger text-sm mt-2 hidden" id="net_income_{{ i }}-error">Please enter a valid number.</div>
                             </div>
-                            <div class="form-error text-danger text-sm mt-2 hidden" id="non_cash_{{ i }}-error">Please enter a valid number.</div>
-                        </div>
-                        <div>
-                            <label class="block text-gray-700 font-medium mb-2">Capex (GHS)</label>
-                            <input type="number" step="any" name="capex_{{ i }}" placeholder="e.g., 400000" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
-                            <div class="tooltip mt-2">
-                                <i class="fas fa-info-circle text-gray-500"></i>
-                                <span class="tooltiptext">Capital expenditures from cash flow statement (e.g., 500K GHS).</span>
+                            <div>
+                                <label class="block text-gray-700 font-medium mb-2">Non-Cash Charges (GHS)</label>
+                                <input type="number" step="any" name="non_cash_{{ i }}" placeholder="e.g., 100000" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" value="{{ form_data.get('non_cash_' + i|string, '') }}">
+                                <div class="tooltip mt-2">
+                                    <i class="fas fa-info-circle text-gray-500"></i>
+                                    <span class="tooltiptext">Non-cash expenses like depreciation and amortization from the cash flow statement (e.g., 100K GHS).</span>
+                                </div>
+                                <div class="form-error text-danger text-sm mt-2 hidden" id="non_cash_{{ i }}-error">Please enter a valid number.</div>
                             </div>
-                            <div class="form-error text-danger text-sm mt-2 hidden" id="capex_{{ i }}-error">Please enter a valid number.</div>
-                        </div>
-                        <div>
-                            <label class="block text-gray-700 font-medium mb-2">Change in Working Capital (GHS)</label>
-                            <input type="number" step="any" name="change_wc_{{ i }}" placeholder="e.g., 150000" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
-                            <div class="tooltip mt-2">
-                                <i class="fas fa-info-circle text-gray-500"></i>
-                                <span class="tooltiptext">Year-over-year change in current assets minus liabilities (e.g., 200K GHS increase).</span>
+                            <div>
+                                <label class="block text-gray-700 font-medium mb-2">Capex (GHS)</label>
+                                <input type="number" step="any" name="capex_{{ i }}" placeholder="e.g., 400000" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" value="{{ form_data.get('capex_' + i|string, '') }}">
+                                <div class="tooltip mt-2">
+                                    <i class="fas fa-info-circle text-gray-500"></i>
+                                    <span class="tooltiptext">Capital expenditures from cash flow statement (e.g., 500K GHS).</span>
+                                </div>
+                                <div class="form-error text-danger text-sm mt-2 hidden" id="capex_{{ i }}-error">Please enter a valid number.</div>
                             </div>
-                            <div class="form-error text-danger text-sm mt-2 hidden" id="change_wc_{{ i }}-error">Please enter a valid number.</div>
-                        </div>
-                        <div>
-                            <label class="block text-gray-700 font-medium mb-2">Net Borrowing (GHS)</label>
-                            <input type="number" step="any" name="net_borrowing_{{ i }}" placeholder="e.g., 250000" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
-                            <div class="tooltip mt-2">
-                                <i class="fas fa-info-circle text-gray-500"></i>
-                                <span class="tooltiptext">New debt minus repayments from cash flow statement (e.g., 300K GHS).</span>
+                            <div>
+                                <label class="block text-gray-700 font-medium mb-2">Change in Working Capital (GHS)</label>
+                                <input type="number" step="any" name="change_wc_{{ i }}" placeholder="e.g., 150000" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" value="{{ form_data.get('change_wc_' + i|string, '') }}">
+                                <div class="tooltip mt-2">
+                                    <i class="fas fa-info-circle text-gray-500"></i>
+                                    <span class="tooltiptext">Year-over-year change in current assets minus liabilities (e.g., 200K GHS increase).</span>
+                                </div>
+                                <div class="form-error text-danger text-sm mt-2 hidden" id="change_wc_{{ i }}-error">Please enter a valid number.</div>
                             </div>
-                            <div class="form-error text-danger text-sm mt-2 hidden" id="net_borrowing_{{ i }}-error">Please enter a valid number.</div>
+                            <div>
+                                <label class="block text-gray-700 font-medium mb-2">Net Borrowing (GHS)</label>
+                                <input type="number" step="any" name="net_borrowing_{{ i }}" placeholder="e.g., 250000" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" value="{{ form_data.get('net_borrowing_' + i|string, '') }}">
+                                <div class="tooltip mt-2">
+                                    <i class="fas fa-info-circle text-gray-500"></i>
+                                    <span class="tooltiptext">New debt minus repayments from cash flow statement (e.g., 300K GHS).</span>
+                                </div>
+                                <div class="form-error text-danger text-sm mt-2 hidden" id="net_borrowing_{{ i }}-error">Please enter a valid number.</div>
+                            </div>
                         </div>
                     </div>
+                    {% endfor %}
                 </div>
-                {% endfor %}
                 <div class="bg-indigo-50 p-4 rounded-lg">
                     <h3 class="text-lg font-semibold text-gray-800 mb-3">Parameters for Intrinsic Value Per Share</h3>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div>
                             <label class="block text-gray-700 font-medium mb-2">Cost of Equity (%)</label>
-                            <input type="number" step="any" name="cost_equity" placeholder="e.g., 15" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
+                            <input type="number" step="any" name="cost_equity" placeholder="e.g., 15" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" value="{{ form_data.get('cost_equity', '') }}">
                             <div class="tooltip mt-2">
                                 <i class="fas fa-info-circle text-gray-500"></i>
                                 <span class="tooltiptext">Required return for equity (e.g., CAPM: risk-free rate + beta × equity risk premium). Typical for Ghana: 12-20%.</span>
@@ -354,7 +313,7 @@
                         </div>
                         <div>
                             <label class="block text-gray-700 font-medium mb-2">Perpetual Growth Rate (%)</label>
-                            <input type="number" step="any" name="growth_rate" placeholder="e.g., 3" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
+                            <input type="number" step="any" name="growth_rate" placeholder="e.g., 3" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" value="{{ form_data.get('growth_rate', '') }}">
                             <div class="tooltip mt-2">
                                 <i class="fas fa-info-circle text-gray-500"></i>
                                 <span class="tooltiptext">Long-term growth rate for FCFE after forecast (e.g., Ghana GDP growth ~3-5%).</span>
@@ -363,7 +322,7 @@
                         </div>
                         <div>
                             <label class="block text-gray-700 font-medium mb-2">Start Year</label>
-                            <input type="number" step="1" name="start_year" value="{{ start_year }}" placeholder="e.g., 2025" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
+                            <input type="number" step="1" name="start_year" value="{{ form_data.get('start_year', start_year) }}" placeholder="e.g., 2025" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
                             <div class="tooltip mt-2">
                                 <i class="fas fa-info-circle text-gray-500"></i>
                                 <span class="tooltiptext">The year for the first FCFE input (Year 1). For standard DCF, set to current year. Use with Valuation Year for backtesting.</span>
@@ -372,7 +331,7 @@
                         </div>
                         <div>
                             <label class="block text-gray-700 font-medium mb-2">Valuation Year</label>
-                            <input type="number" step="1" name="valuation_year" value="{{ valuation_year }}" placeholder="e.g., 2025" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
+                            <input type="number" step="1" name="valuation_year" value="{{ form_data.get('valuation_year', valuation_year) }}" placeholder="e.g., 2025" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
                             <div class="tooltip mt-2">
                                 <i class="fas fa-info-circle text-gray-500"></i>
                                 <span class="tooltiptext">The present valuation year for discounting cash flows (CFA standard). For standard DCF, set to current year. Use with Start Year for backtesting.</span>
@@ -381,7 +340,7 @@
                         </div>
                         <div>
                             <label class="block text-gray-700 font-medium mb-2">Shares Outstanding</label>
-                            <input type="number" step="any" name="shares_outstanding" placeholder="e.g., 174000000" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
+                            <input type="number" step="any" name="shares_outstanding" placeholder="e.g., 174000000" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" value="{{ form_data.get('shares_outstanding', '') }}">
                             <div class="tooltip mt-2">
                                 <i class="fas fa-info-circle text-gray-500"></i>
                                 <span class="tooltiptext">Total shares outstanding (e.g., 174M for Access Bank Ghana). Find on gse.com.gh or Yahoo Finance.</span>
@@ -391,16 +350,19 @@
                     </div>
                 </div>
                 <div class="flex gap-4">
-                    <button type="submit" class="px-6 py-3 bg-primary text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors">
-                        <i class="fas fa-calculator mr-2"></i> Calculate
-                    </button>
-                    <button type="reset" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors">
-                        <i class="fas fa-eraser mr-2"></i> Clear
-                    </button>
+                    <button type="submit" class="px-6 py-3 bg-primary text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors"><i class="fas fa-calculator mr-2"></i> Calculate</button>
+                    <button type="reset" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors"><i class="fas fa-eraser mr-2"></i> Clear</button>
                 </div>
             </form>
-            <!-- Results Section -->
-            <div id="results-section" class="mt-8 {% if not fcfe_results %}hidden{% endif %}">
+            {% if error %}
+            <div id="error-message" class="mt-6">
+                <div class="bg-red-50 p-4 rounded-lg">
+                    <p class="text-red-700 font-medium" id="error-text">{{ error }}</p>
+                </div>
+            </div>
+            {% endif %}
+            {% if fcfe_results %}
+            <div id="results-section" class="mt-8">
                 {% if warning_message %}
                 <div class="warning-message">
                     <p class="font-medium"><i class="fas fa-exclamation-triangle mr-2"></i>{{ warning_message }}</p>
@@ -426,24 +388,16 @@ Cash Flows: Current Year [Year 1] — Next Year [Year 2] — Year After [Year 3]
                 </div>
                 <div class="text-center mb-6">
                     <p class="text-gray-600" id="fcfe-years-text">FCFE for {{ num_years }} Years</p>
-                    <div class="target-price" id="fcfe-average-result">
-                        {{ currency_symbol }}{{ (fcfe_results | sum / fcfe_results | length) | float | format_number if fcfe_results else '0.00' }} (Average FCFE)
-                    </div>
-                    <div class="target-price" id="intrinsic-value-result">
-                        {% if intrinsic_per_share %}
-                        {{ currency_symbol }}{{ intrinsic_per_share | float | format_number }} (Intrinsic Value Per Share)
-                        {% endif %}
-                    </div>
+                    <div class="target-price" id="fcfe-average-result">{{ currency_symbol }}{{ (fcfe_results | sum / fcfe_results | length) | float | format_number }} (Average FCFE)</div>
+                    {% if intrinsic_per_share %}
+                    <div class="target-price" id="intrinsic-value-result">{{ currency_symbol }}{{ intrinsic_per_share | float | format_number }} (Intrinsic Value Per Share)</div>
+                    {% endif %}
                     <div class="target-interpretation">
                         <p class="font-medium">Interpretation:</p>
                         <p id="target-interpretation-text">
-                            {% if fcfe_results %}
                             The company’s Free Cash Flow to Equity averages {{ currency_symbol }}{{ (fcfe_results | sum / fcfe_results | length) | float | format_number }} over {{ fcfe_results | length }} year(s), indicating cash available to shareholders after accounting for operations, investments, and financing.
                             {% if intrinsic_per_share %}
                             The estimated intrinsic value per share is {{ currency_symbol }}{{ intrinsic_per_share | float | format_number }}, based on discounting the FCFEs and terminal value at the cost of equity. Compare to current stock price for valuation insights.
-                            {% endif %}
-                            {% else %}
-                            No results to display. Please provide valid inputs.
                             {% endif %}
                         </p>
                     </div>
@@ -455,7 +409,7 @@ Cash Flows: Current Year [Year 1] — Next Year [Year 2] — Year After [Year 3]
                             <th>Net Income ({{ currency_symbol }})</th>
                             <th>Non-Cash Charges ({{ currency_symbol }})</th>
                             <th>Capex ({{ currency_symbol }})</th>
-                            <th>Change in WC ([{{ currency_symbol }})</th>
+                            <th>Change in WC ({{ currency_symbol }})</th>
                             <th>Net Borrowing ({{ currency_symbol }})</th>
                             <th>FCFE ({{ currency_symbol }})</th>
                         </tr>
@@ -475,21 +429,11 @@ Cash Flows: Current Year [Year 1] — Next Year [Year 2] — Year After [Year 3]
                     </tbody>
                 </table>
                 <p class="text-gray-600 mt-4">Use these FCFE values in DCF models or divide by shares outstanding (e.g., 174 million for Access Bank Ghana) to get FCFE per share.</p>
-                <div class="mt-6">
-                    <button id="reset-calculator" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium flex items-center inline-block">
-                        <i class="fas fa-redo mr-2"></i> Calculate Another
-                    </button>
-                </div>
+                <button id="reset-calculator" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium flex items-center inline-block mt-6"><i class="fas fa-redo mr-2"></i> Calculate Another</button>
             </div>
-            <!-- Error Message -->
-            <div id="error-message" class="mt-6 {% if not error %}hidden{% endif %}">
-                <div class="bg-red-50 p-4 rounded-lg">
-                    <p class="text-red-700 font-medium" id="error-text">{{ error }}</p>
-                </div>
-            </div>
+            {% endif %}
         </div>
 
-        <!-- Guide Section -->
         <div class="card p-6">
             <h2 class="text-2xl font-bold text-gray-800 mb-4">Understanding Free Cash Flow to Equity</h2>
             <p class="text-gray-600 mb-6">Free Cash Flow to Equity (FCFE) measures the cash available to shareholders after all expenses, reinvestments, and debt obligations are met. It’s a key metric for valuing stocks using Discounted Cash Flow (DCF) models or assessing dividend potential.</p>
@@ -507,38 +451,14 @@ Cash Flows: Current Year [Year 1] — Next Year [Year 2] — Year After [Year 3]
             </div>
             <h3 class="text-xl font-bold text-gray-800 mt-8 mb-4">How to Use the FCFE Calculator</h3>
             <ol class="list-decimal pl-6 space-y-4">
-                <li>
-                    <strong>Select Number of Years</strong>
-                    <p>Choose 3, 4, or 5 years for your FCFE forecast.</p>
-                </li>
-                <li>
-                    <strong>Enter Net Income</strong>
-                    <p>Input the profit after taxes from the income statement for each year (e.g., from Yahoo Finance or gse.com.gh).</p>
-                </li>
-                <li>
-                    <strong>Enter Non-Cash Charges</strong>
-                    <p>Provide depreciation and amortization from the cash flow statement.</p>
-                </li>
-                <li>
-                    <strong>Enter Capex</strong>
-                    <p>Provide capital expenditures from the cash flow statement.</p>
-                </li>
-                <li>
-                    <strong>Enter Change in Working Capital</strong>
-                    <p>Input the year-over-year change in current assets minus liabilities.</p>
-                </li>
-                <li>
-                    <strong>Enter Net Borrowing</strong>
-                    <p>Provide new debt minus repayments from the cash flow statement.</p>
-                </li>
-                <li>
-                    <strong>Enter Cost of Equity, Perpetual Growth Rate, Start Year, Valuation Year, and Shares Outstanding</strong>
-                    <p>Input these for DCF-based intrinsic value per share calculation. For standard DCF, set Start Year and Valuation Year to the current year (e.g., {{ start_year }}). Use different years for backtesting past cash flows, which will be compounded forward.</p>
-                </li>
-                <li>
-                    <strong>Calculate and Review</strong>
-                    <p>Click “Calculate” to compute FCFE for each year and intrinsic value per share. Compare intrinsic value to current stock price for valuation insights.</p>
-                </li>
+                <li><strong>Select Number of Years</strong><p>Choose 3, 4, or 5 years for your FCFE forecast.</p></li>
+                <li><strong>Enter Net Income</strong><p>Input the profit after taxes from the income statement for each year (e.g., from Yahoo Finance or gse.com.gh).</p></li>
+                <li><strong>Enter Non-Cash Charges</strong><p>Provide depreciation and amortization from the cash flow statement.</p></li>
+                <li><strong>Enter Capex</strong><p>Provide capital expenditures from the cash flow statement.</p></li>
+                <li><strong>Enter Change in Working Capital</strong><p>Input the year-over-year change in current assets minus liabilities.</p></li>
+                <li><strong>Enter Net Borrowing</strong><p>Provide new debt minus repayments from the cash flow statement.</p></li>
+                <li><strong>Enter Cost of Equity, Perpetual Growth Rate, Start Year, Valuation Year, and Shares Outstanding</strong><p>Input these for DCF-based intrinsic value per share calculation. For standard DCF, set Start Year and Valuation Year to the current year (e.g., {{ start_year }}). Use different years for backtesting past cash flows, which will be compounded forward.</p></li>
+                <li><strong>Calculate and Review</strong><p>Click “Calculate” to compute FCFE for each year and intrinsic value per share. Compare intrinsic value to current stock price for valuation insights.</p></li>
             </ol>
             <div class="timeline-diagram">
 Scenario: Future Cash Flows (Standard DCF)
@@ -559,16 +479,11 @@ Cash Flows: {{ start_year }} [Year 1] — {{ start_year + 1 }} [Year 2] — {{ s
                 </ul>
             </div>
             <div class="flex flex-wrap gap-3 mt-6">
-                <a href="/download_guide" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium flex items-center">
-                    <i class="fas fa-download mr-2"></i> Download Guide
-                </a>
-                <a href="/tutorial" class="px-4 py-2 bg-primary text-white rounded-lg font-medium flex items-center">
-                    <i class="fas fa-play-circle mr-2"></i> Watch Tutorial
-                </a>
+                <a href="/download_guide" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium flex items-center"><i class="fas fa-download mr-2"></i> Download Guide</a>
+                <a href="/tutorial" class="px-4 py-2 bg-primary text-white rounded-lg font-medium flex items-center"><i class="fas fa-play-circle mr-2"></i> Watch Tutorial</a>
             </div>
         </div>
 
-        <!-- Collapsible Help Section -->
         <div class="card p-6 mb-8">
             <button type="button" onclick="toggleHelpSection()" class="w-full text-left text-2xl font-bold text-gray-800 flex justify-between items-center focus:outline-none">
                 <span>How to Find FCFE Data</span>
@@ -577,76 +492,15 @@ Cash Flows: {{ start_year }} [Year 1] — {{ start_year + 1 }} [Year 2] — {{ s
             <div id="help-section" class="hidden mt-4 text-gray-600">
                 <p class="mb-2">To calculate <strong>Free Cash Flow to Equity (FCFE)</strong>, you need accurate financial data. Here’s how to find the required information for global and Ghanaian companies:</p>
                 <ol class="list-decimal pl-6 space-y-4">
-                    <li>
-                        <strong>Net Income</strong>
-                        <p>Find in the income statement:</p>
-                        <ul class="list-disc list-inside ml-6 space-y-2">
-                            <li><strong>Yahoo Finance</strong>: Search the stock ticker (e.g., ABG for Access Bank Ghana), go to “Financials” > “Income Statement.”</li>
-                            <li><strong>gse.com.gh</strong>: Check financial statements for GSE-listed companies.</li>
-                            <li><strong>Annual Reports</strong>: Access via company websites or annualreportsghana.com.</li>
-                        </ul>
-                    </li>
-                    <li>
-                        <strong>Non-Cash Charges</strong>
-                        <p>Find depreciation and amortization in the cash flow statement under “Operating Activities” (added back to net income).</p>
-                        <ul class="list-disc list-inside ml-6 space-y-2">
-                            <li><strong>Yahoo Finance</strong>: Look under “Cash Flow” > “Operating Activities.”</li>
-                            <li><strong>afx.kwayisi.org/gse/</strong>: View data for GSE companies.</li>
-                        </ul>
-                    </li>
-                    <li>
-                        <strong>Capex</strong>
-                        <p>Found in the cash flow statement under “Investing Activities.”</p>
-                        <ul class="list-disc list-inside ml-6 space-y-2">
-                            <li><strong>Yahoo Finance</strong>: Look under “Cash Flow” > “Investing Activities.”</li>
-                            <li><strong>afx.kwayisi.org/gse/</strong>: View data for GSE companies.</li>
-                        </ul>
-                    </li>
-                    <li>
-                        <strong>Change in Working Capital</strong>
-                        <p>Calculate as the year-over-year change in current assets minus current liabilities, found in the balance sheet or cash flow statement.</p>
-                        <ul class="list-disc list-inside ml-6 space-y-2">
-                            <li><strong>Yahoo Finance</strong>: Check “Cash Flow” or “Balance Sheet.”</li>
-                            <li><strong>Company Reports</strong>: Look for working capital details.</li>
-                        </ul>
-                    </li>
-                    <li>
-                        <strong>Net Borrowing</strong>
-                        <p>Calculate as new debt issuances minus debt repayments, found in the cash flow statement under “Financing Activities.”</p>
-                        <ul class="list-disc list-inside ml-6 space-y-2">
-                            <li><strong>Yahoo Finance</strong>: Look under “Cash Flow” > “Financing Activities.”</li>
-                            <li><strong>gse.com.gh</strong>: Check financial statements.</li>
-                        </ul>
-                    </li>
-                    <li>
-                        <strong>Cost of Equity</strong>
-                        <p>Estimate using CAPM: Risk-free rate + Beta × Equity Risk Premium.</p>
-                        <ul class="list-disc list-inside ml-6 space-y-2">
-                            <li><strong>Risk-free rate</strong>: Ghana Treasury Bill rates from bog.gov.gh (e.g., 91-day ~10%, 364-day ~13% as of August 2025).</li>
-                            <li><strong>Beta</strong>: From Yahoo Finance or Bloomberg (for Access Bank Ghana, often around 1 for banks if not available).</li>
-                            <li><strong>Equity Risk Premium</strong>: From Damodaran (nyu.edu) ~16.35% for Ghana in 2025.</li>
-                        </ul>
-                    </li>
-                    <li>
-                        <strong>Perpetual Growth Rate</strong>
-                        <p>Use long-term GDP growth or inflation rate for Ghana (~3-5%, from World Bank or IMF projections).</p>
-                    </li>
-                    <li>
-                        <strong>Shares Outstanding</strong>
-                        <p>Find in financial statements or key statistics.</p>
-                        <ul class="list-disc list-inside ml-6 space-y-2">
-                            <li><strong>Yahoo Finance</strong>: Under “Statistics.”</li>
-                            <li><strong>gse.com.gh</strong>: In company profiles (e.g., 174M for Access Bank Ghana).</li>
-                        </ul>
-                    </li>
-                    <li>
-                        <strong>Tips</strong>
-                        <ul class="list-disc list-inside ml-6 space-y-2">
-                            <li>Verify data from multiple sources for accuracy.</li>
-                            <li>For Ghanaian companies, check gse.com.gh for announcements affecting financials.</li>
-                            <li>Use historical data for past years and analyst estimates for future projections (Yahoo Finance “Analysis” tab).</li>
-                        </ul>
-                    </li>
+                    <li><strong>Net Income</strong><p>Find in the income statement:</p><ul class="list-disc list-inside ml-6 space-y-2"><li><strong>Yahoo Finance</strong>: Search the stock ticker (e.g., ABG for Access Bank Ghana), go to “Financials” > “Income Statement.”</li><li><strong>gse.com.gh</strong>: Check financial statements for GSE-listed companies.</li><li><strong>Annual Reports</strong>: Access via company websites or annualreportsghana.com.</li></ul></li>
+                    <li><strong>Non-Cash Charges</strong><p>Find depreciation and amortization in the cash flow statement under “Operating Activities” (added back to net income).</p><ul class="list-disc list-inside ml-6 space-y-2"><li><strong>Yahoo Finance</strong>: Look under “Cash Flow” > “Operating Activities.”</li><li><strong>afx.kwayisi.org/gse/</strong>: View data for GSE companies.</li></ul></li>
+                    <li><strong>Capex</strong><p>Found in the cash flow statement under “Investing Activities.”</p><ul class="list-disc list-inside ml-6 space-y-2"><li><strong>Yahoo Finance</strong>: Look under “Cash Flow” > “Investing Activities.”</li><li><strong>afx.kwayisi.org/gse/</strong>: View data for GSE companies.</li></ul></li>
+                    <li><strong>Change in Working Capital</strong><p>Calculate as the year-over-year change in current assets minus current liabilities, found in the balance sheet or cash flow statement.</p><ul class="list-disc list-inside ml-6 space-y-2"><li><strong>Yahoo Finance</strong>: Check “Cash Flow” or “Balance Sheet.”</li><li><strong>Company Reports</strong>: Look for working capital details.</li></ul></li>
+                    <li><strong>Net Borrowing</strong><p>Calculate as new debt issuances minus debt repayments, found in the cash flow statement under “Financing Activities.”</p><ul class="list-disc list-inside ml-6 space-y-2"><li><strong>Yahoo Finance</strong>: Look under “Cash Flow” > “Financing Activities.”</li><li><strong>gse.com.gh</strong>: Check financial statements.</li></ul></li>
+                    <li><strong>Cost of Equity</strong><p>Estimate using CAPM: Risk-free rate + Beta × Equity Risk Premium.</p><ul class="list-disc list-inside ml-6 space-y-2"><li><strong>Risk-free rate</strong>: Ghana Treasury Bill rates from bog.gov.gh (e.g., 91-day ~10%, 364-day ~13% as of August 2025).</li><li><strong>Beta</strong>: From Yahoo Finance or Bloomberg (for Access Bank Ghana, often around 1 for banks if not available).</li><li><strong>Equity Risk Premium</strong>: From Damodaran (nyu.edu) ~16.35% for Ghana in 2025.</li></ul></li>
+                    <li><strong>Perpetual Growth Rate</strong><p>Use long-term GDP growth or inflation rate for Ghana (~3-5%, from World Bank or IMF projections).</p></li>
+                    <li><strong>Shares Outstanding</strong><p>Find in financial statements or key statistics.</p><ul class="list-disc list-inside ml-6 space-y-2"><li><strong>Yahoo Finance</strong>: Under “Statistics.”</li><li><strong>gse.com.gh</strong>: In company profiles (e.g., 174M for Access Bank Ghana).</li></ul></li>
+                    <li><strong>Tips</strong><ul class="list-disc list-inside ml-6 space-y-2"><li>Verify data from multiple sources for accuracy.</li><li>For Ghanaian companies, check gse.com.gh for announcements affecting financials.</li><li>Use historical data for past years and analyst estimates for future projections (Yahoo Finance “Analysis” tab).</li></ul></li>
                 </ol>
                 <p class="mt-4"><strong>Examples</strong>:</p>
                 <ul class="list-disc list-inside ml-6 space-y-2">
@@ -656,39 +510,23 @@ Cash Flows: {{ start_year }} [Year 1] — {{ start_year + 1 }} [Year 2] — {{ s
             </div>
         </div>
 
-        <!-- Navigation Buttons at Bottom -->
         <div class="nav-buttons mt-6">
-            <a href="/" class="nav-button home">
-                <i class="fas fa-home"></i> Return to Home
-            </a>
-            <a href="/#calculators" class="nav-button calculators">
-                <i class="fas fa-calculator"></i> Other Calculators
-            </a>
+            <a href="/" class="nav-button home"><i class="fas fa-home"></i> Return to Home</a>
+            <a href="/#calculators" class="nav-button calculators"><i class="fas fa-calculator"></i> Other Calculators</a>
         </div>
     </div>
 
-    <!-- Footer -->
     <footer class="bg-dark text-white py-12">
         <div class="max-w-6xl mx-auto px-4">
             <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
                 <div>
                     <h3 class="text-lg font-bold mb-4">InvestIQ</h3>
-                    <p class="text-gray-400 mb-4">
-                        Empowering investors with advanced tools, insights, and calculators to make smarter financial decisions.
-                    </p>
+                    <p class="text-gray-400 mb-4">Empowering investors with advanced tools, insights, and calculators to make smarter financial decisions.</p>
                     <div class="flex gap-3">
-                        <a href="#" class="w-10 h-10 bg-gray-800 text-white rounded-full flex items-center justify-center hover:bg-primary transition-colors">
-                            <i class="fab fa-x-twitter"></i>
-                        </a>
-                        <a href="#" class="w-10 h-10 bg-gray-800 text-white rounded-full flex items-center justify-center hover:bg-primary transition-colors">
-                            <i class="fab fa-linkedin-in"></i>
-                        </a>
-                        <a href="#" class="w-10 h-10 bg-gray-800 text-white rounded-full flex items-center justify-center hover:bg-primary transition-colors">
-                            <i class="fab fa-facebook-f"></i>
-                        </a>
-                        <a href="#" class="w-10 h-10 bg-gray-800 text-white rounded-full flex items-center justify-center hover:bg-primary transition-colors">
-                            <i class="fab fa-youtube"></i>
-                        </a>
+                        <a href="#" class="w-10 h-10 bg-gray-800 text-white rounded-full flex items-center justify-center hover:bg-primary transition-colors"><i class="fab fa-x-twitter"></i></a>
+                        <a href="#" class="w-10 h-10 bg-gray-800 text-white rounded-full flex items-center justify-center hover:bg-primary transition-colors"><i class="fab fa-linkedin-in"></i></a>
+                        <a href="#" class="w-10 h-10 bg-gray-800 text-white rounded-full flex items-center justify-center hover:bg-primary transition-colors"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="w-10 h-10 bg-gray-800 text-white rounded-full flex items-center justify-center hover:bg-primary transition-colors"><i class="fab fa-youtube"></i></a>
                     </div>
                 </div>
                 <div>
@@ -724,68 +562,25 @@ Cash Flows: {{ start_year }} [Year 1] — {{ start_year + 1 }} [Year 2] — {{ s
         </div>
     </footer>
 
-    <!-- Back to Top Button -->
     <button id="backToTop" class="back-to-top w-12 h-12 bg-primary text-white rounded-full shadow-lg flex items-center justify-center">
         <i class="fas fa-arrow-up"></i>
     </button>
 
-    <!-- JavaScript -->
     <script>
-        // Custom Jinja2 filter for number formatting
         function formatNumber(value) {
             return parseFloat(value).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
         }
 
-        // Back to top button
         const backToTopBtn = document.getElementById('backToTop');
-        window.addEventListener('scroll', function() {
-            if (window.scrollY > 300) {
-                backToTopBtn.classList.add('visible');
-            } else {
-                backToTopBtn.classList.remove('visible');
-            }
+        window.addEventListener('scroll', () => {
+            backToTopBtn.classList.toggle('visible', window.scrollY > 300);
         });
-        backToTopBtn.addEventListener('click', function() {
+        backToTopBtn.addEventListener('click', () => {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
 
-        // Validate inputs
-        function validateInput(inputElement) {
-            if (inputElement.value === '' || isNaN(parseFloat(inputElement.value))) {
-                inputElement.setCustomValidity('Please enter a valid number.');
-                inputElement.reportValidity();
-                return false;
-            } else {
-                inputElement.setCustomValidity('');
-                return true;
-            }
-        }
-
-        // Toggle help section visibility
-        function toggleHelpSection() {
-            const helpSection = document.getElementById('help-section');
-            const toggleIcon = document.getElementById('help-toggle-icon');
-            helpSection.classList.toggle('hidden');
-            toggleIcon.textContent = helpSection.classList.contains('hidden') ? '➕' : '➖';
-        }
-
-        // Toggle year sections based on selected number of years
         const numYearsSelect = document.getElementById('num-years');
-        function toggleYearSections() {
-            const numYears = parseInt(numYearsSelect.value);
-            for (let i = 1; i <= 5; i++) {
-                const section = document.getElementById(`year-${i}-section`);
-                if (i <= numYears) {
-                    section.classList.remove('hidden');
-                } else {
-                    section.classList.add('hidden');
-                    section.querySelectorAll('input[type="number"]').forEach(input => input.value = '');
-                }
-            }
-        }
-        numYearsSelect.addEventListener('change', toggleYearSections);
-
-        // Form submission handler
+        const annualInputs = document.getElementById('annual-inputs');
         const form = document.getElementById('fcfe-form');
         const resultsSection = document.getElementById('results-section');
         const fcfeAverageResult = document.getElementById('fcfe-average-result');
@@ -797,14 +592,85 @@ Cash Flows: {{ start_year }} [Year 1] — {{ start_year + 1 }} [Year 2] — {{ s
         const errorText = document.getElementById('error-text');
         const resetBtn = document.getElementById('reset-calculator');
 
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
+        let yearCount = parseInt(numYearsSelect.value) || 5;
+        const maxYears = 5;
 
-            // Reset error state
+        const inputFields = [
+            { name: 'net_income', label: 'Net Income (GHS)', placeholder: 'e.g., 150000000', tooltip: 'Profit after taxes from the income statement (e.g., 217.5M GHS for Access Bank 2024). Find on Yahoo Finance or gse.com.gh.' },
+            { name: 'non_cash', label: 'Non-Cash Charges (GHS)', placeholder: 'e.g., 100000', tooltip: 'Non-cash expenses like depreciation and amortization from the cash flow statement (e.g., 100K GHS).' },
+            { name: 'capex', label: 'Capex (GHS)', placeholder: 'e.g., 400000', tooltip: 'Capital expenditures from cash flow statement (e.g., 500K GHS).' },
+            { name: 'change_wc', label: 'Change in Working Capital (GHS)', placeholder: 'e.g., 150000', tooltip: 'Year-over-year change in current assets minus liabilities (e.g., 200K GHS increase).' },
+            { name: 'net_borrowing', label: 'Net Borrowing (GHS)', placeholder: 'e.g., 250000', tooltip: 'New debt minus repayments from cash flow statement (e.g., 300K GHS).' }
+        ];
+
+        function renderYearInputs() {
+            annualInputs.innerHTML = '';
+            for (let i = 1; i <= yearCount; i++) {
+                const yearSection = document.createElement('div');
+                yearSection.className = `bg-indigo-50 p-4 rounded-lg year-section ${i > yearCount ? 'hidden' : ''}`;
+                yearSection.id = `year-${i}-section`;
+                yearSection.setAttribute('data-year', i);
+                yearSection.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-3">Year ${i}</h3>
+                        ${i > 1 ? `<button type="button" class="remove-year text-red-500 hover:text-red-700" data-year="${i}"><i class="fas fa-trash"></i></button>` : ''}
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 dynamic-inputs"></div>
+                `;
+                const dynamicInputs = yearSection.querySelector('.dynamic-inputs');
+                inputFields.forEach(field => {
+                    const { name, label, placeholder, tooltip } = field;
+                    dynamicInputs.insertAdjacentHTML('beforeend', `
+                        <div>
+                            <label class="block text-gray-700 font-medium mb-2">${label}</label>
+                            <input type="number" step="any" name="${name}_${i}" placeholder="${placeholder}" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" value="{{ form_data.get('${name}_${i}', '') }}">
+                            <div class="tooltip mt-2"><i class="fas fa-info-circle text-gray-500"></i><span class="tooltiptext">${tooltip}</span></div>
+                            <div class="form-error text-danger text-sm mt-2 hidden" id="${name}_${i}-error">Please enter a valid number.</div>
+                        </div>
+                    `);
+                });
+                annualInputs.appendChild(yearSection);
+            }
+            document.querySelectorAll('.remove-year').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const year = parseInt(btn.getAttribute('data-year'));
+                    document.getElementById(`year-${year}-section`).remove();
+                    yearCount--;
+                    numYearsSelect.value = yearCount;
+                    toggleYearSections();
+                });
+            });
+        }
+
+        function toggleYearSections() {
+            yearCount = parseInt(numYearsSelect.value);
+            const yearSections = document.querySelectorAll('.year-section');
+            yearSections.forEach((section, index) => {
+                const year = index + 1;
+                section.classList.toggle('hidden', year > yearCount);
+                if (year > yearCount) {
+                    section.querySelectorAll('input[type="number"]').forEach(input => input.value = '');
+                }
+            });
+        }
+
+        numYearsSelect.addEventListener('change', () => {
+            yearCount = parseInt(numYearsSelect.value);
+            renderYearInputs();
+        });
+
+        function toggleHelpSection() {
+            const helpSection = document.getElementById('help-section');
+            const toggleIcon = document.getElementById('help-toggle-icon');
+            helpSection.classList.toggle('hidden');
+            toggleIcon.textContent = helpSection.classList.contains('hidden') ? '➕' : '➖';
+        }
+
+        form.addEventListener('submit', e => {
+            e.preventDefault();
             errorMessage.classList.add('hidden');
             document.querySelectorAll('.form-error').forEach(el => el.classList.add('hidden'));
 
-            // Get number of years
             const numYears = parseInt(numYearsSelect.value);
             if (isNaN(numYears) || numYears < 3 || numYears > 5) {
                 document.getElementById('num_years-error').classList.remove('hidden');
@@ -813,7 +679,6 @@ Cash Flows: {{ start_year }} [Year 1] — {{ start_year + 1 }} [Year 2] — {{ s
                 return;
             }
 
-            // Get input values
             const netIncomes = [];
             const nonCashes = [];
             const capexes = [];
@@ -824,70 +689,44 @@ Cash Flows: {{ start_year }} [Year 1] — {{ start_year + 1 }} [Year 2] — {{ s
             let yearsFilled = 0;
 
             for (let i = 1; i <= numYears; i++) {
-                const netIncomeInput = document.querySelector(`input[name="net_income_${i}"]`);
-                const nonCashInput = document.querySelector(`input[name="non_cash_${i}"]`);
-                const capexInput = document.querySelector(`input[name="capex_${i}"]`);
-                const changeWcInput = document.querySelector(`input[name="change_wc_${i}"]`);
-                const netBorrowingInput = document.querySelector(`input[name="net_borrowing_${i}"]`);
-                const netIncome = netIncomeInput.value ? parseFloat(netIncomeInput.value) : null;
-                const nonCash = nonCashInput.value ? parseFloat(nonCashInput.value) : null;
-                const capex = capexInput.value ? parseFloat(capexInput.value) : null;
-                const changeWc = changeWcInput.value ? parseFloat(changeWcInput.value) : null;
-                const netBorrowing = netBorrowingInput.value ? parseFloat(netBorrowingInput.value) : null;
-
-                // Check if all fields for a year are filled or all are empty
-                const isYearFilled = netIncomeInput.value !== '' && nonCashInput.value !== '' && capexInput.value !== '' && changeWcInput.value !== '' && netBorrowingInput.value !== '';
-                const isYearEmpty = netIncomeInput.value === '' && nonCashInput.value === '' && capexInput.value === '' && changeWcInput.value === '' && netBorrowingInput.value === '';
+                const data = {};
+                inputFields.forEach(field => {
+                    const input = document.querySelector(`input[name="${field.name}_${i}"]`);
+                    data[field.name] = input ? parseFloat(input.value) : null;
+                    if (input.value === '' || isNaN(data[field.name])) {
+                        document.getElementById(`${field.name}_${i}-error`).classList.remove('hidden');
+                        valid = false;
+                    }
+                });
+                const isYearFilled = Object.values(data).every(val => val !== null && !isNaN(val));
+                const isYearEmpty = Object.values(data).every(val => val === null || isNaN(val));
 
                 if (i === 1 && !isYearFilled) {
-                    if (netIncomeInput.value === '' || isNaN(netIncome)) document.getElementById(`net_income_${i}-error`).classList.remove('hidden');
-                    if (nonCashInput.value === '' || isNaN(nonCash)) document.getElementById(`non_cash_${i}-error`).classList.remove('hidden');
-                    if (capexInput.value === '' || isNaN(capex)) document.getElementById(`capex_${i}-error`).classList.remove('hidden');
-                    if (changeWcInput.value === '' || isNaN(changeWc)) document.getElementById(`change_wc_${i}-error`).classList.remove('hidden');
-                    if (netBorrowingInput.value === '' || isNaN(netBorrowing)) document.getElementById(`net_borrowing_${i}-error`).classList.remove('hidden');
+                    inputFields.forEach(field => {
+                        if (data[field.name] === null || isNaN(data[field.name])) {
+                            document.getElementById(`${field.name}_${i}-error`).classList.remove('hidden');
+                        }
+                    });
                     valid = false;
                 } else if (isYearFilled) {
-                    if (isNaN(netIncome)) {
-                        document.getElementById(`net_income_${i}-error`).classList.remove('hidden');
-                        valid = false;
-                    }
-                    if (isNaN(nonCash)) {
-                        document.getElementById(`non_cash_${i}-error`).classList.remove('hidden');
-                        valid = false;
-                    }
-                    if (isNaN(capex)) {
-                        document.getElementById(`capex_${i}-error`).classList.remove('hidden');
-                        valid = false;
-                    }
-                    if (isNaN(changeWc)) {
-                        document.getElementById(`change_wc_${i}-error`).classList.remove('hidden');
-                        valid = false;
-                    }
-                    if (isNaN(netBorrowing)) {
-                        document.getElementById(`net_borrowing_${i}-error`).classList.remove('hidden');
-                        valid = false;
-                    }
-                    if (valid) {
-                        netIncomes.push(netIncome);
-                        nonCashes.push(nonCash);
-                        capexes.push(capex);
-                        changesWc.push(changeWc);
-                        netBorrowings.push(netBorrowing);
-                        fcfes.push(netIncome + nonCash - capex - changeWc + netBorrowing);
-                        yearsFilled++;
-                    }
+                    const fcfe = data.net_income + data.non_cash - data.capex - data.change_wc + data.net_borrowing;
+                    netIncomes.push(data.net_income);
+                    nonCashes.push(data.non_cash);
+                    capexes.push(data.capex);
+                    changesWc.push(data.change_wc);
+                    netBorrowings.push(data.net_borrowing);
+                    fcfes.push(fcfe);
+                    yearsFilled++;
                 } else if (!isYearEmpty && !isYearFilled) {
-                    // Partial input for any year
-                    if (netIncomeInput.value === '' || isNaN(netIncome)) document.getElementById(`net_income_${i}-error`).classList.remove('hidden');
-                    if (nonCashInput.value === '' || isNaN(nonCash)) document.getElementById(`non_cash_${i}-error`).classList.remove('hidden');
-                    if (capexInput.value === '' || isNaN(capex)) document.getElementById(`capex_${i}-error`).classList.remove('hidden');
-                    if (changeWcInput.value === '' || isNaN(changeWc)) document.getElementById(`change_wc_${i}-error`).classList.remove('hidden');
-                    if (netBorrowingInput.value === '' || isNaN(netBorrowing)) document.getElementById(`net_borrowing_${i}-error`).classList.remove('hidden');
+                    inputFields.forEach(field => {
+                        if (data[field.name] === null || isNaN(data[field.name])) {
+                            document.getElementById(`${field.name}_${i}-error`).classList.remove('hidden');
+                        }
+                    });
                     valid = false;
                 }
             }
 
-            // Get intrinsic parameters
             const costEquityInput = document.querySelector('input[name="cost_equity"]');
             const growthRateInput = document.querySelector('input[name="growth_rate"]');
             const sharesInput = document.querySelector('input[name="shares_outstanding"]');
@@ -899,26 +738,11 @@ Cash Flows: {{ start_year }} [Year 1] — {{ start_year + 1 }} [Year 2] — {{ s
             let startYear = startYearInput.value ? parseInt(startYearInput.value) : 0;
             let valuationYear = valuationYearInput.value ? parseInt(valuationYearInput.value) : 0;
 
-            // Fallback to standard DCF if start_year or valuation_year not provided
             if (startYear <= 0 || valuationYear <= 0) {
                 valuationYear = new Date().getFullYear();
                 startYear = valuationYear;
                 startYearInput.value = startYear;
                 valuationYearInput.value = valuationYear;
-            }
-
-            // Additional validation for compliance
-            if (valuationYear < startYear) {
-                document.getElementById('valuation_year-error').classList.remove('hidden');
-                errorText.textContent = "Error: Valuation year must be >= start year for forward projections.";
-                errorMessage.classList.remove('hidden');
-                return;
-            }
-            if ((valuationYear - startYear) > 10) {
-                document.getElementById('valuation_year-error').classList.remove('hidden');
-                errorText.textContent = "Error: Projection period exceeds 10 years.";
-                errorMessage.classList.remove('hidden');
-                return;
             }
 
             let intrinsicValid = true;
@@ -942,23 +766,26 @@ Cash Flows: {{ start_year }} [Year 1] — {{ start_year + 1 }} [Year 2] — {{ s
                 document.getElementById('valuation_year-error').classList.remove('hidden');
                 intrinsicValid = false;
             }
+            if (valuationYear < startYear) {
+                document.getElementById('valuation_year-error').classList.remove('hidden');
+                errorText.textContent = 'Error: Valuation year must be >= start year for forward projections.';
+                errorMessage.classList.remove('hidden');
+                return;
+            }
+            if ((valuationYear - startYear) > 10) {
+                document.getElementById('valuation_year-error').classList.remove('hidden');
+                errorText.textContent = 'Error: Projection period exceeds 10 years.';
+                errorMessage.classList.remove('hidden');
+                return;
+            }
 
-            if (!valid) {
+            if (!valid || yearsFilled === 0) {
                 errorText.textContent = `Please provide valid inputs for all required fields in each of the ${numYears} years selected.`;
                 errorMessage.classList.remove('hidden');
                 return;
             }
 
-            if (yearsFilled === 0) {
-                errorText.textContent = 'Please provide at least one year of data.';
-                errorMessage.classList.remove('hidden');
-                return;
-            }
-
-            // Calculate average FCFE
             const averageFcfe = fcfes.reduce((sum, fcfe) => sum + fcfe, 0) / yearsFilled;
-
-            // Calculate intrinsic value if valid
             let intrinsicPerShare = 0;
             let intrinsicText = '';
             let warningText = '';
@@ -997,81 +824,76 @@ Cash Flows: {{ start_year }} [Year 1] — {{ start_year + 1 }} [Year 2] — {{ s
                 if (startYear < valuationYear) {
                     warningText = `Warning: You are valuing PAST cash flows from ${startYear}. These have been compounded forward to ${valuationYear}. `;
                 }
-            } else {
-                intrinsicValueResult.textContent = '';
             }
 
-            // Populate results table
-            fcfeResultsTable.innerHTML = '';
-            for (let i = 0; i < fcfes.length; i++) {
-                const row = `
-                    <tr>
-                        <td>Year ${i + 1}</td>
-                        <td>GHS ${formatNumber(netIncomes[i])}</td>
-                        <td>GHS ${formatNumber(nonCashes[i])}</td>
-                        <td>GHS ${formatNumber(capexes[i])}</td>
-                        <td>GHS ${formatNumber(changesWc[i])}</td>
-                        <td>GHS ${formatNumber(netBorrowings[i])}</td>
-                        <td><strong>GHS ${formatNumber(fcfes[i])}</strong></td>
-                    </tr>
-                `;
-                fcfeResultsTable.innerHTML += row;
-            }
-
-            // Display results
-            fcfeYearsText.textContent = `FCFE for ${numYears} Years`;
+            fcfeYearsText.textContent = `FCFE for ${yearsFilled} Years`;
             fcfeAverageResult.textContent = `GHS ${formatNumber(averageFcfe)} (Average FCFE)`;
+            intrinsicValueResult.textContent = intrinsicPerShare ? `GHS ${formatNumber(intrinsicPerShare)} (Intrinsic Value Per Share)` : '';
             targetInterpretationText.textContent = `The company’s Free Cash Flow to Equity averages GHS ${formatNumber(averageFcfe)} over ${yearsFilled} year(s), indicating cash available to shareholders after accounting for operations, investments, and financing.${warningText}${intrinsicText}`;
-            if (intrinsicPerShare) {
-                intrinsicValueResult.textContent = `GHS ${formatNumber(intrinsicPerShare)} (Intrinsic Value Per Share)`;
-            }
 
-            // Update timeline diagram dynamically
+            fcfeResultsTable.innerHTML = fcfes.map((fcfe, i) => `
+                <tr>
+                    <td>Year ${i + 1}</td>
+                    <td>GHS ${formatNumber(netIncomes[i])}</td>
+                    <td>GHS ${formatNumber(nonCashes[i])}</td>
+                    <td>GHS ${formatNumber(capexes[i])}</td>
+                    <td>GHS ${formatNumber(changesWc[i])}</td>
+                    <td>GHS ${formatNumber(netBorrowings[i])}</td>
+                    <td><strong>GHS ${formatNumber(fcfe)}</strong></td>
+                </tr>
+            `).join('');
+
             const timelineDiagram = document.querySelector('.timeline-diagram');
             if (startYear && valuationYear) {
-                if (startYear < valuationYear) {
-                    timelineDiagram.textContent = `
-Scenario: Past Cash Flows
-Valuation Year: ${valuationYear}
-Cash Flows: ${startYear} [Year 1] — ${startYear + 1} [Year 2] — ${startYear + 2} [Year 3] — Terminal [${startYear + 3}+]
-                    `;
-                } else {
-                    timelineDiagram.textContent = `
-Scenario: Future Cash Flows
-Valuation Year: ${valuationYear}
-Cash Flows: ${startYear} [Year 1] — ${startYear + 1} [Year 2] — ${startYear + 2} [Year 3] — Terminal [${startYear + 3}+]
-                    `;
-                }
+                timelineDiagram.textContent = startYear < valuationYear ?
+                    `Scenario: Past Cash Flows\nValuation Year: ${valuationYear}\nCash Flows: ${startYear} [Year 1] — ${startYear + 1} [Year 2] — ${startYear + 2} [Year 3] — Terminal [${startYear + 3}+]` :
+                    `Scenario: Future Cash Flows\nValuation Year: ${valuationYear}\nCash Flows: ${startYear} [Year 1] — ${startYear + 1} [Year 2] — ${startYear + 2} [Year 3] — Terminal [${startYear + 3}+]`;
             }
 
             resultsSection.classList.remove('hidden');
             resultsSection.scrollIntoView({ behavior: 'smooth' });
         });
 
-        // Reset button handler
-        resetBtn.addEventListener('click', function() {
+        resetBtn.addEventListener('click', () => {
             form.reset();
+            yearCount = 5;
+            numYearsSelect.value = '5';
             resultsSection.classList.add('hidden');
             errorMessage.classList.add('hidden');
             document.querySelectorAll('.form-error').forEach(el => el.classList.add('hidden'));
-            numYearsSelect.value = '5';
             const currentYear = new Date().getFullYear();
             document.querySelector('input[name="start_year"]').value = currentYear;
             document.querySelector('input[name="valuation_year"]').value = currentYear;
-            toggleYearSections();
+            renderYearInputs();
         });
 
-        // Initialize form on page load
+        form.addEventListener('reset', () => {
+            yearCount = 5;
+            numYearsSelect.value = '5';
+            resultsSection.classList.add('hidden');
+            errorMessage.classList.add('hidden');
+            document.querySelectorAll('.form-error').forEach(el => el.classList.add('hidden'));
+            const currentYear = new Date().getFullYear();
+            document.querySelector('input[name="start_year"]').value = currentYear;
+            document.querySelector('input[name="valuation_year"]').value = currentYear;
+            renderYearInputs();
+        });
+
         document.addEventListener('DOMContentLoaded', () => {
             document.querySelectorAll('input[type="number"]').forEach(input => {
                 if (input.name === 'start_year' || input.name === 'valuation_year') {
                     input.value = input.value || new Date().getFullYear();
-                } else {
-                    input.value = '';
                 }
-                input.addEventListener('input', () => validateInput(input));
+                input.addEventListener('input', () => {
+                    if (input.value === '' || isNaN(parseFloat(input.value))) {
+                        input.setCustomValidity('Please enter a valid number.');
+                        input.reportValidity();
+                    } else {
+                        input.setCustomValidity('');
+                    }
+                });
             });
-            toggleYearSections();
+            renderYearInputs();
         });
     </script>
 </body>

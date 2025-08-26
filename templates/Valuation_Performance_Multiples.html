@@ -212,7 +212,7 @@
             <p class="text-gray-600 mb-6">Select a metric and enter data for a single year. All monetary values in Ghanaian Cedi (GHS). Add more years for advanced analysis.</p>
             <div class="formula">
                 <p class="text-lg font-semibold">Select Metric</p>
-                <select id="formula-select" class="mt-2 w-full md:w-1/2 mx-auto">
+                <select id="formula-select" name="formula" class="mt-2 w-full md:w-1/2 mx-auto">
                     <option value="ev">EV = Market Cap + Debt + Preferred Stock + Minority Interest - Cash - Non-Operating Assets</option>
                     <option value="ev_ebitda">EV/EBITDA = Enterprise Value / EBITDA</option>
                     <option value="ev_ebit">EV/EBIT = Enterprise Value / EBIT</option>
@@ -231,7 +231,7 @@
                 </select>
                 <p id="formula-description" class="text-sm mt-2 text-gray-600">EV measures a company’s total value, including equity and debt minus cash and non-operating assets.</p>
             </div>
-            <form id="valuation-performance-form" class="space-y-6">
+            <form id="valuation-performance-form" class="space-y-6" action="/valuation-performance" method="POST">
                 <div id="annual-inputs" class="space-y-6"></div>
                 <div class="flex gap-4">
                     <button type="button" id="add-year" class="px-6 py-3 bg-secondary text-white rounded-lg font-medium hover:bg-indigo-500">Add Another Year</button>
@@ -239,28 +239,50 @@
                     <button type="reset" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300"><i class="fas fa-eraser mr-2"></i> Clear</button>
                 </div>
             </form>
-            <div id="results-section" class="mt-8 hidden">
+            {% if error %}
+            <div id="error-message" class="mt-6">
+                <div class="bg-red-50 p-4 rounded-lg">
+                    <p class="text-red-700 font-medium" id="error-text">{{ error }}</p>
+                </div>
+            </div>
+            {% endif %}
+            {% if results %}
+            <div id="results-section" class="mt-8">
                 <h3 class="text-xl font-bold text-gray-800 mb-4">Calculation Results</h3>
                 <div class="text-center mb-6">
-                    <p class="text-gray-600" id="results-title">Results for Selected Years</p>
-                    <div class="target-price" id="metrics-average-result">0.00</div>
+                    <p class="text-gray-600" id="results-title">Results for {{ results|length }} Year(s)</p>
+                    <div class="target-price" id="metrics-average-result">{{ average_result|format_number(decimal_places=2) }} {{ unit }}</div>
                     <div class="target-interpretation">
                         <p class="font-medium">Interpretation:</p>
-                        <p id="target-interpretation-text"></p>
+                        <p id="target-interpretation-text">The {{ formulaTitles[selected_formula] }} reflects {{ 'profitability' if selected_formula in ['ebitda_margin', 'ebit_margin', 'net_margin', 'roe', 'roa', 'roic', 'roa_fin', 'roe_fin'] else 'valuation' }} for the period(s).</p>
                     </div>
                 </div>
                 <table id="results-table">
-                    <thead id="results-table-head"></thead>
-                    <tbody id="metrics-results-table"></tbody>
+                    <thead id="results-table-head">
+                        <tr>
+                            <th>Year</th>
+                            {% for field in inputFields[selected_formula] %}
+                            <th>{{ fieldLabels[field].label }}</th>
+                            {% endfor %}
+                            <th>{{ formulaTitles[selected_formula] }} ({{ unit }})</th>
+                        </tr>
+                    </thead>
+                    <tbody id="metrics-results-table">
+                        {% for row in results %}
+                        <tr>
+                            <td>Year {{ row.year }}</td>
+                            {% for field in inputFields[selected_formula] %}
+                            <td>{{ row[field]|format_number(decimal_places=2, is_currency=True) if field in ['market_cap', 'total_debt', 'preferred_stock', 'minority_interest', 'cash', 'non_operating_assets', 'ebitda', 'ebit', 'revenue', 'net_income', 'equity', 'total_assets', 'avg_total_assets', 'avg_equity', 'share_price', 'eps', 'bvps'] else row[field]|format_number(decimal_places=2, is_percentage=True) if field in ['tax_rate', 'eps_growth'] else row[field]|format_number(decimal_places=2) }}</td>
+                            {% endfor %}
+                            <td>{{ row.result|format_number(decimal_places=2, is_percentage=True) if unit == '%' else row.result|format_number(decimal_places=2, is_currency=True) if unit == 'GHS' else row.result|format_number(decimal_places=2) }} {{ unit }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
                 </table>
                 <p class="text-gray-600 mt-4">Compare these metrics with industry peers for valuation insights.</p>
                 <button id="reset-calculator" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium flex items-center inline-block mt-6"><i class="fas fa-redo mr-2"></i> Calculate Another</button>
             </div>
-            <div id="error-message" class="mt-6 hidden">
-                <div class="bg-red-50 p-4 rounded-lg">
-                    <p class="text-red-700 font-medium" id="error-text"></p>
-                </div>
-            </div>
+            {% endif %}
         </div>
 
         <div class="card p-6">
@@ -419,7 +441,7 @@
                 dynamicInputs.insertAdjacentHTML('beforeend', `
                     <div>
                         <label class="block text-gray-700 font-medium mb-2">${label}</label>
-                        <input type="number" step="any" name="${field}_1" placeholder="${placeholder}" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
+                        <input type="number" step="any" name="${field}_1" placeholder="${placeholder}" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" value="{{ form_data.get('${field}_1', '') }}">
                         <div class="tooltip mt-2"><i class="fas fa-info-circle text-gray-500"></i><span class="tooltiptext">${tooltip}</span></div>
                         <div class="form-error text-danger text-sm mt-2 hidden" id="${field}_1-error">Please enter a valid number.</div>
                     </div>
@@ -434,7 +456,10 @@
             newYearSection.className = 'bg-indigo-50 p-4 rounded-lg year-section';
             newYearSection.setAttribute('data-year', yearCount);
             newYearSection.innerHTML = `
-                <h3 class="text-lg font-semibold text-gray-800 mb-3">Year ${yearCount}</h3>
+                <div class="flex justify-between items-center">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-3">Year ${yearCount}</h3>
+                    <button type="button" class="remove-year text-red-500 hover:text-red-700" data-year="${yearCount}"><i class="fas fa-trash"></i></button>
+                </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
             `;
             const newInputs = newYearSection.querySelector('div');
@@ -443,13 +468,17 @@
                 newInputs.insertAdjacentHTML('beforeend', `
                     <div>
                         <label class="block text-gray-700 font-medium mb-2">${label}</label>
-                        <input type="number" step="any" name="${field}_${yearCount}" placeholder="${placeholder}" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
+                        <input type="number" step="any" name="${field}_${yearCount}" placeholder="${placeholder}" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" value="{{ form_data.get('${field}_${yearCount}', '') }}">
                         <div class="tooltip mt-2"><i class="fas fa-info-circle text-gray-500"></i><span class="tooltiptext">${tooltip}</span></div>
                         <div class="form-error text-danger text-sm mt-2 hidden" id="${field}_${yearCount}-error">Please enter a valid number.</div>
                     </div>
                 `);
             });
             annualInputs.appendChild(newYearSection);
+            newYearSection.querySelector('.remove-year').addEventListener('click', () => {
+                newYearSection.remove();
+                yearCount--;
+            });
         });
 
         formulaSelect.addEventListener('change', () => {
