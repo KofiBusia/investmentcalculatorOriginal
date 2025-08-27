@@ -253,7 +253,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div>
                             <label class="block text-gray-700 font-medium mb-2">Cost of Equity (%)</label>
-                            <input type="number" step="any" name="cost_equity" id="cost_equity" placeholder="e.g., 15" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
+                            <input type="number" step="any" name="cost_equity" id="cost_equity" placeholder="e.g., 15" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" value="">
                             <div class="tooltip mt-2">
                                 <i class="fas fa-info-circle text-gray-500"></i>
                                 <span class="tooltiptext">Required return for equity (e.g., CAPM: risk-free rate + beta × equity risk premium). Typical for Ghana: 12-20%.</span>
@@ -262,7 +262,7 @@
                         </div>
                         <div>
                             <label class="block text-gray-700 font-medium mb-2">Perpetual Growth Rate (%)</label>
-                            <input type="number" step="any" name="growth_rate" id="growth_rate" placeholder="e.g., 3" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
+                            <input type="number" step="any" name="growth_rate" id="growth_rate" placeholder="e.g., 3" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" value="">
                             <div class="tooltip mt-2">
                                 <i class="fas fa-info-circle text-gray-500"></i>
                                 <span class="tooltiptext">Long-term growth rate for FCFE after forecast (e.g., Ghana GDP growth ~3-5%).</span>
@@ -271,7 +271,7 @@
                         </div>
                         <div>
                             <label class="block text-gray-700 font-medium mb-2">Start Year</label>
-                            <input type="number" step="1" name="start_year" id="start_year" placeholder="e.g., 2025" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
+                            <input type="number" step="1" name="start_year" id="start_year" placeholder="e.g., 2025" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" value="">
                             <div class="tooltip mt-2">
                                 <i class="fas fa-info-circle text-gray-500"></i>
                                 <span class="tooltiptext">The year for the first FCFE input (Year 1). For standard DCF, set to current year. Use with Valuation Year for backtesting.</span>
@@ -280,7 +280,7 @@
                         </div>
                         <div>
                             <label class="block text-gray-700 font-medium mb-2">Valuation Year</label>
-                            <input type="number" step="1" name="valuation_year" id="valuation_year" placeholder="e.g., 2025" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
+                            <input type="number" step="1" name="valuation_year" id="valuation_year" placeholder="e.g., 2025" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" value="">
                             <div class="tooltip mt-2">
                                 <i class="fas fa-info-circle text-gray-500"></i>
                                 <span class="tooltiptext">The present valuation year for discounting cash flows (CFA standard). For standard DCF, set to current year. Use with Start Year for backtesting.</span>
@@ -289,7 +289,7 @@
                         </div>
                         <div>
                             <label class="block text-gray-700 font-medium mb-2">Shares Outstanding</label>
-                            <input type="number" step="any" name="shares_outstanding" id="shares_outstanding" placeholder="e.g., 174000000" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
+                            <input type="number" step="any" name="shares_outstanding" id="shares_outstanding" placeholder="e.g., 174000000" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" value="">
                             <div class="tooltip mt-2">
                                 <i class="fas fa-info-circle text-gray-500"></i>
                                 <span class="tooltiptext">Total shares outstanding (e.g., 174M for Access Bank Ghana). Find on gse.com.gh or Yahoo Finance.</span>
@@ -298,7 +298,7 @@
                         </div>
                         <div>
                             <label class="block text-gray-700 font-medium mb-2">Current Stock Price (GHS)</label>
-                            <input type="number" step="any" name="current_price" id="current_price" placeholder="e.g., 5.50" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
+                            <input type="number" step="any" name="current_price" id="current_price" placeholder="e.g., 5.50" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" value="">
                             <div class="tooltip mt-2">
                                 <i class="fas fa-info-circle text-gray-500"></i>
                                 <span class="tooltiptext">Current market price per share (e.g., GHS 5.50 for Access Bank Ghana). Find on gse.com.gh or Yahoo Finance.</span>
@@ -317,56 +317,7 @@
                     <p class="text-red-700 font-medium" id="error-text"></p>
                 </div>
             </div>
-            <div id="results-section" class="mt-8 hidden">
-                <div id="warning-message" class="warning-message hidden">
-                    <p class="font-medium" id="warning-text"><i class="fas fa-exclamation-triangle mr-2"></i></p>
-                </div>
-                <h3 class="text-xl font-bold text-gray-800 mb-4">Free Cash Flow to Equity Results</h3>
-                <div class="timeline-diagram" id="timeline-diagram"></div>
-                <div class="text-center mb-6">
-                    <p class="text-gray-600" id="fcfe-years-text"></p>
-                    <div class="target-price" id="fcfe-average-result"></div>
-                    <div class="target-price" id="terminal-value-result"></div>
-                    <div class="target-price" id="total-value-result"></div>
-                    <div class="target-price" id="intrinsic-value-result"></div>
-                    <div class="target-interpretation">
-                        <p class="font-medium">Interpretation:</p>
-                        <p id="target-interpretation-text"></p>
-                        <p class="font-medium mt-4">Valuation Comparison:</p>
-                        <p id="valuation-comparison-text"></p>
-                    </div>
-                </div>
-                <h4 class="text-lg font-bold text-gray-800 mb-3">FCFE Calculation Details</h4>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Year</th>
-                            <th>Net Income (GHS)</th>
-                            <th>Non-Cash Charges (GHS)</th>
-                            <th>Capex (GHS)</th>
-                            <th>Change in WC (GHS)</th>
-                            <th>Net Borrowing (GHS)</th>
-                            <th>FCFE (GHS)</th>
-                        </tr>
-                    </thead>
-                    <tbody id="fcfe-results-table"></tbody>
-                </table>
-                <h3 class="text-xl font-bold text-gray-800 mt-8 mb-4">Discounted Cash Flow (DCF) Table</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Forecast Year</th>
-                            <th>Actual Year</th>
-                            <th>Time Period</th>
-                            <th>FV FCFE (GHS)</th>
-                            <th>PV FCFE (GHS)</th>
-                        </tr>
-                    </thead>
-                    <tbody id="dcf-results-table"></tbody>
-                </table>
-                <p class="text-gray-600 mt-4">Use these FCFE values in DCF models or divide by shares outstanding to get FCFE per share.</p>
-                <button id="reset-calculator" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium flex items-center inline-block mt-6"><i class="fas fa-redo mr-2"></i> Calculate Another</button>
-            </div>
+            <div id="results-section" class="mt-8 hidden"></div>
         </div>
 
         <div class="card p-6">
@@ -386,14 +337,44 @@
             </div>
             <h3 class="text-xl font-bold text-gray-800 mt-8 mb-4">How to Use the FCFE Calculator</h3>
             <ol class="list-decimal pl-6 space-y-4">
-                <li><strong>Select Number of Years</strong><p>Choose 3, 4, or 5 years for your FCFE forecast.</p></li>
-                <li><strong>Enter Net Income</strong><p>Input the profit after taxes from the income statement for each year (e.g., from Yahoo Finance or gse.com.gh).</p></li>
-                <li><strong>Enter Non-Cash Charges</strong><p>Provide depreciation and amortization from the cash flow statement.</p></li>
-                <li><strong>Enter Capex</strong><p>Provide capital expenditures from the cash flow statement.</p></li>
-                <li><strong>Enter Change in Working Capital</strong><p>Input the year-over-year change in current assets minus liabilities.</p></li>
-                <li><strong>Enter Net Borrowing</strong><p>Provide new debt minus repayments from the cash flow statement.</p></li>
-                <li><strong>Enter Cost of Equity, Perpetual Growth Rate, Start Year, Valuation Year, Shares Outstanding, and Current Stock Price</strong><p>Input these for DCF-based intrinsic value per share calculation and comparison with the current price. For standard DCF, set Start Year and Valuation Year to the current year (e.g., 2025). Use different years for backtesting past cash flows, which will be compounded forward.</p></li>
-                <li><strong>Calculate and Review</strong><p>Click "Calculate" to compute FCFE for each year, intrinsic value per share, and compare with the current price. Compare intrinsic value to current stock price for valuation insights.</p></li>
+                <li><strong>Select Number of Years</strong><p>Choose 3, 4, or 5 years for your FCFE forecast in the "Select Number of Years" section.</p></li>
+                <li><strong>Input Annual Financial Data</strong><p>For each selected year, enter the following in the respective "Year" sections (all in Ghanaian Cedi, GHS):</p>
+                    <ul class="list-disc list-inside ml-6 space-y-2">
+                        <li><strong>Net Income</strong>: Profit after taxes from the income statement (e.g., from Yahoo Finance or gse.com.gh).</li>
+                        <li><strong>Non-Cash Charges</strong>: Depreciation and amortization from the cash flow statement.</li>
+                        <li><strong>Capex</strong>: Capital expenditures from the cash flow statement.</li>
+                        <li><strong>Change in Working Capital</strong>: Year-over-year change in current assets minus liabilities from the balance sheet or cash flow statement.</li>
+                        <li><strong>Net Borrowing</strong>: New debt minus repayments from the cash flow statement.</li>
+                    </ul>
+                </li>
+                <li><strong>Enter Valuation Parameters</strong><p>In the "Parameters for Intrinsic Value Per Share" section, provide:</p>
+                    <ul class="list-disc list-inside ml-6 space-y-2">
+                        <li><strong>Cost of Equity (%)</strong>: The required return for equity investors (e.g., 12-20% for Ghana, calculated using CAPM).</li>
+                        <li><strong>Perpetual Growth Rate (%)</strong>: Expected long-term FCFE growth rate (e.g., 3-5% based on Ghana GDP growth).</li>
+                        <li><strong>Start Year</strong>: The year for the first FCFE input (Year 1). Set to the current year (e.g., 2025) for standard DCF or a past year for backtesting.</li>
+                        <li><strong>Valuation Year</strong>: The year for discounting cash flows to present value (typically the current year for standard DCF).</li>
+                        <li><strong>Shares Outstanding</strong>: Total shares outstanding (e.g., 174M for Access Bank Ghana, from gse.com.gh).</li>
+                        <li><strong>Current Stock Price (GHS)</strong>: Current market price per share (from gse.com.gh or Yahoo Finance).</li>
+                    </ul>
+                </li>
+                <li><strong>Calculate FCFE and Intrinsic Value</strong><p>Click the "Calculate" button to:</p>
+                    <ul class="list-disc list-inside ml-6 space-y-2">
+                        <li>Compute FCFE for each year using the formula: FCFE = Net Income + Non-Cash Charges - Capex - Change in Working Capital + Net Borrowing.</li>
+                        <li>Calculate future value (FV) of FCFE starting from the last year's FCFE, using the perpetual growth rate.</li>
+                        <li>Discount FCFE and terminal value to present value (PV) using the cost of equity, with Year 1 discounted at time period 0.</li>
+                        <li>Determine intrinsic value per share by dividing total PV by shares outstanding.</li>
+                    </ul>
+                </li>
+                <li><strong>Review Results</strong><p>The results section displays:</p>
+                    <ul class="list-disc list-inside ml-6 space-y-2">
+                        <li><strong>FCFE Calculation Details</strong>: A table showing inputs and calculated FCFE for each year.</li>
+                        <li><strong>Discounted Cash Flow (DCF) Table</strong>: Forecasted FCFE, actual years, time periods (starting at 0), FV FCFE, and PV FCFE, including terminal value.</li>
+                        <li><strong>Key Metrics</strong>: Average FCFE, average growth rate, total FV and PV of FCFE, terminal value, total PV, and intrinsic value per share.</li>
+                        <li><strong>Valuation Comparison</strong>: Compares intrinsic value per share to the current stock price to assess if the stock is undervalued, overvalued, or fairly valued.</li>
+                        <li><strong>Warning</strong>: Alerts if negative FCFE values are detected, indicating potential reinvestment or financial challenges.</li>
+                    </ul>
+                </li>
+                <li><strong>Reset and Recalculate</strong><p>Use the "Clear" button to reset inputs or the "Calculate Another" button in the results section to start a new calculation.</p></li>
             </ol>
             <div class="timeline-diagram">
 Scenario: Future Cash Flows (Standard DCF)
@@ -522,21 +503,8 @@ Cash Flows: 2025 [Year 1] — 2026 [Year 2] — 2027 [Year 3] — Terminal [2028
         const annualInputs = document.getElementById('annual-inputs');
         const form = document.getElementById('fcfe-form');
         const resultsSection = document.getElementById('results-section');
-        const resetBtn = document.getElementById('reset-calculator');
         const errorMessage = document.getElementById('error-message');
         const errorText = document.getElementById('error-text');
-        const warningMessage = document.getElementById('warning-message');
-        const warningText = document.getElementById('warning-text');
-        const timelineDiagram = document.getElementById('timeline-diagram');
-        const fcfeYearsText = document.getElementById('fcfe-years-text');
-        const fcfeAverageResult = document.getElementById('fcfe-average-result');
-        const terminalValueResult = document.getElementById('terminal-value-result');
-        const totalValueResult = document.getElementById('total-value-result');
-        const intrinsicValueResult = document.getElementById('intrinsic-value-result');
-        const targetInterpretationText = document.getElementById('target-interpretation-text');
-        const valuationComparisonText = document.getElementById('valuation-comparison-text');
-        const fcfeResultsTable = document.getElementById('fcfe-results-table');
-        const dcfResultsTable = document.getElementById('dcf-results-table');
 
         let yearCount = parseInt(numYearsSelect.value) || 5;
         const maxYears = 5;
@@ -618,13 +586,14 @@ Cash Flows: 2025 [Year 1] — 2026 [Year 2] — 2027 [Year 3] — Terminal [2028
             errorMessage.classList.add('hidden');
 
             // Collect form data
-            const numYears = parseInt(numYearsSelect.value);
-            const costEquity = parseFloat(form.cost_equity.value) / 100;
-            const growthRate = parseFloat(form.growth_rate.value) / 100;
-            const startYear = parseInt(form.start_year.value);
-            const valuationYear = parseInt(form.valuation_year.value);
-            const sharesOutstanding = parseFloat(form.shares_outstanding.value);
-            const currentPrice = parseFloat(form.current_price.value);
+            const formData = new FormData(e.target);
+            const numYears = parseInt(formData.get('num_years'));
+            const costEquity = parseFloat(formData.get('cost_equity')) / 100;
+            const growthRate = parseFloat(formData.get('growth_rate')) / 100;
+            const startYear = parseInt(formData.get('start_year'));
+            const valuationYear = parseInt(formData.get('valuation_year'));
+            const sharesOutstanding = parseFloat(formData.get('shares_outstanding'));
+            const currentPrice = parseFloat(formData.get('current_price'));
 
             // Validate inputs
             let errors = [];
@@ -659,11 +628,11 @@ Cash Flows: 2025 [Year 1] — 2026 [Year 2] — 2027 [Year 3] — Terminal [2028
 
             const fcfeData = [];
             for (let i = 1; i <= numYears; i++) {
-                const netIncome = parseFloat(form[`net_income_${i}`]?.value);
-                const nonCash = parseFloat(form[`non_cash_${i}`]?.value);
-                const capex = parseFloat(form[`capex_${i}`]?.value);
-                const changeWc = parseFloat(form[`change_wc_${i}`]?.value);
-                const netBorrowing = parseFloat(form[`net_borrowing_${i}`]?.value);
+                const netIncome = parseFloat(formData.get(`net_income_${i}`));
+                const nonCash = parseFloat(formData.get(`non_cash_${i}`));
+                const capex = parseFloat(formData.get(`capex_${i}`));
+                const changeWc = parseFloat(formData.get(`change_wc_${i}`));
+                const netBorrowing = parseFloat(formData.get(`net_borrowing_${i}`));
 
                 if ([netIncome, nonCash, capex, changeWc, netBorrowing].some(val => isNaN(val))) {
                     errors.push(`Please enter valid numbers for Year ${i}.`);
@@ -693,92 +662,207 @@ Cash Flows: 2025 [Year 1] — 2026 [Year 2] — 2027 [Year 3] — Terminal [2028
                 return;
             }
 
-            // Calculate DCF and other values
-            const timePeriod = valuationYear - startYear;
-            const dcfTable = [];
-            let sumPvFcfe = 0;
-            fcfeData.forEach((item, index) => {
-                const forecastYear = index + 1;
-                const actualYear = startYear + index;
-                const t = timePeriod + forecastYear;
-                const pvFcfe = item.fcfe / Math.pow(1 + costEquity, t);
-                sumPvFcfe += pvFcfe;
-                dcfTable.push({
-                    forecast_year: forecastYear,
-                    actual_year: actualYear,
-                    time_period: t,
-                    fv_fcfe: item.fcfe,
-                    pv_fcfe: pvFcfe
-                });
-            });
-
-            // Terminal value
-            const lastFcfe = fcfeData[fcfeData.length - 1].fcfe;
-            const terminalValue = (lastFcfe * (1 + growthRate)) / (costEquity - growthRate);
-            const pvTerminalValue = terminalValue / Math.pow(1 + costEquity, numYears + timePeriod);
-            const totalValue = sumPvFcfe + pvTerminalValue;
-            const intrinsicValuePerShare = totalValue / sharesOutstanding;
+            // Calculate average FCFE
             const avgFcfe = fcfeData.reduce((sum, item) => sum + item.fcfe, 0) / numYears;
+
+            // Calculate geometric mean growth rate of FCFE
+            const growthRates = [];
+            let growthRateWarning = '';
+            for (let i = 1; i < numYears; i++) {
+                const prevFcfe = fcfeData[i - 1].fcfe;
+                const currFcfe = fcfeData[i].fcfe;
+                if (prevFcfe !== 0 && !isNaN(prevFcfe) && !isNaN(currFcfe)) { // Ensure valid FCFE values
+                    const growthRate = (currFcfe - prevFcfe) / Math.abs(prevFcfe);
+                    if (!isNaN(growthRate) && isFinite(growthRate)) {
+                        growthRates.push(1 + growthRate);
+                    }
+                }
+            }
+            const avgGrowthRate = growthRates.length > 0
+                ? Math.pow(growthRates.reduce((product, rate) => product * rate, 1), 1 / growthRates.length) - 1
+                : 0; // Default to 0 if no valid growth rates
+            if (growthRates.length === 0) {
+                growthRateWarning = 'Warning: Unable to calculate average growth rate due to insufficient valid FCFE data (e.g., zero or negative FCFE values). Defaulting to 0%.';
+            }
+
+            // Forecast FV FCFE starting from Year 5 FCFE
+            const lastFcfe = fcfeData[fcfeData.length - 1].fcfe;
+            const fvFcfe = [lastFcfe]; // Year 1 uses Year 5 FCFE
+            for (let t = 1; t < numYears; t++) {
+                fvFcfe.push(lastFcfe * Math.pow(1 + growthRate, t));
+            }
+
+            // Total FV FCFE
+            const totalFvFcfe = fvFcfe.reduce((sum, value) => sum + value, 0);
+
+            // Calculate PV of FCFE
+            const pvFcfe = [];
+            for (let i = 0; i < numYears; i++) {
+                pvFcfe.push(fvFcfe[i] / Math.pow(1 + costEquity, i));
+            }
+
+            // Total PV FCFE
+            const totalPvFcfe = pvFcfe.reduce((sum, value) => sum + value, 0);
+
+            // Calculate Terminal Value at the end of the forecast period
+            const terminalValue = fvFcfe[fvFcfe.length - 1] * (1 + growthRate) / (costEquity - growthRate);
+
+            // PV of Terminal Value
+            const pvTerminalValue = terminalValue / Math.pow(1 + costEquity, numYears);
+
+            // Total Present Value
+            const totalPv = totalPvFcfe + pvTerminalValue;
+
+            // Intrinsic Value Per Share
+            const intrinsicValuePerShare = totalPv / sharesOutstanding;
 
             // Warning for negative values
             let warning = '';
             if (fcfeData.some(item => item.fcfe < 0)) {
                 warning = 'Warning: Negative FCFE values detected. This may indicate reinvestment needs or financial challenges.';
-                warningMessage.classList.remove('hidden');
-                warningText.innerHTML = `<i class="fas fa-exclamation-triangle mr-2"></i>${warning}`;
-            } else {
-                warningMessage.classList.add('hidden');
+            }
+            if (growthRateWarning) {
+                warning = warning ? `${warning}<br>${growthRateWarning}` : growthRateWarning;
             }
 
-            // Update timeline diagram
+            // Update results section
             const scenario = startYear < valuationYear ? 'Past Cash Flows' : 'Future Cash Flows';
-            timelineDiagram.textContent = `
+            resultsSection.innerHTML = `
+                ${warning ? `
+                <div id="warning-message" class="warning-message">
+                    <p class="font-medium" id="warning-text"><i class="fas fa-exclamation-triangle mr-2"></i>${warning}</p>
+                </div>
+                ` : ''}
+                <h3 class="text-xl font-bold text-gray-800 mb-4">Free Cash Flow to Equity Results</h3>
+                <div class="timeline-diagram" id="timeline-diagram">
 Scenario: ${scenario}
 Valuation Year: ${valuationYear}
 Cash Flows: ${startYear} [Year 1] — ${startYear + 1} [Year 2] — ${startYear + 2} [Year 3]${numYears > 3 ? ` — ${startYear + 3} [Year 4]` : ''}${numYears > 4 ? ` — ${startYear + 4} [Year 5]` : ''} — Terminal [${startYear + numYears}+]
+                </div>
+                <div class="text-center mb-6">
+                    <p class="text-gray-600" id="fcfe-years-text">FCFE for ${numYears} Years</p>
+                    <div class="result-box">
+                        <p class="font-medium">Average FCFE</p>
+                        <p class="target-price" id="fcfe-average-result">GHS ${formatNumber(avgFcfe)}</p>
+                    </div>
+                    <div class="result-box">
+                        <p class="font-medium">Average Growth Rate</p>
+                        <p class="target-price" id="avg-growth-rate-result">${(avgGrowthRate * 100).toFixed(2)}%</p>
+                    </div>
+                    <div class="result-box">
+                        <p class="font-medium">Total FV of FCFE</p>
+                        <p class="target-price" id="total-fv-fcfe-result">GHS ${formatNumber(totalFvFcfe)}</p>
+                    </div>
+                    <div class="result-box">
+                        <p class="font-medium">Total PV of FCFE</p>
+                        <p class="target-price" id="total-pv-fcfe-result">GHS ${formatNumber(totalPvFcfe)}</p>
+                    </div>
+                    <div class="result-box">
+                        <p class="font-medium">Total Terminal Value</p>
+                        <p class="target-price" id="terminal-value-result">GHS ${formatNumber(terminalValue)}</p>
+                    </div>
+                    <div class="result-box">
+                        <p class="font-medium">Total PV of Terminal Value</p>
+                        <p class="target-price" id="pv-terminal-value-result">GHS ${formatNumber(pvTerminalValue)}</p>
+                    </div>
+                    <div class="result-box">
+                        <p class="font-medium">Total Value</p>
+                        <p class="target-price" id="total-value-result">GHS ${formatNumber(totalPv)}</p>
+                    </div>
+                    <div class="result-box">
+                        <p class="font-medium">Intrinsic Value Per Share</p>
+                        <p class="target-price" id="intrinsic-value-result">GHS ${formatNumber(intrinsicValuePerShare)}</p>
+                    </div>
+                    <div class="target-interpretation">
+                        <p class="font-medium">Interpretation:</p>
+                        <p id="target-interpretation-text">The intrinsic value per share of GHS ${formatNumber(intrinsicValuePerShare)} suggests the stock's fair value based on the provided cash flows and assumptions.</p>
+                        <p class="font-medium mt-4">Valuation Comparison:</p>
+                        <p id="valuation-comparison-text">
+                            Current Price: GHS ${formatNumber(currentPrice)}<br>
+                            ${intrinsicValuePerShare > currentPrice ?
+                                `The stock is potentially <strong>undervalued</strong> (Intrinsic Value GHS ${formatNumber(intrinsicValuePerShare)} > Current Price GHS ${formatNumber(currentPrice)}).` :
+                            intrinsicValuePerShare < currentPrice ?
+                                `The stock is potentially <strong>overvalued</strong> (Intrinsic Value GHS ${formatNumber(intrinsicValuePerShare)} < Current Price GHS ${formatNumber(currentPrice)}).` :
+                                `The stock is <strong>fairly valued</strong> (Intrinsic Value GHS ${formatNumber(intrinsicValuePerShare)} = Current Price GHS ${formatNumber(currentPrice)}).`
+                            }
+                        </p>
+                    </div>
+                </div>
+                <h4 class="text-lg font-bold text-gray-800 mb-3">FCFE Calculation Details</h4>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Year</th>
+                            <th>Net Income (GHS)</th>
+                            <th>Non-Cash Charges (GHS)</th>
+                            <th>Capex (GHS)</th>
+                            <th>Change in WC (GHS)</th>
+                            <th>Net Borrowing (GHS)</th>
+                            <th>FCFE (GHS)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="fcfe-results-table">
+                        ${fcfeData.map(item => `
+                        <tr>
+                            <td>Year ${item.year}</td>
+                            <td>GHS ${formatNumber(item.net_income)}</td>
+                            <td>GHS ${formatNumber(item.non_cash_charges)}</td>
+                            <td>GHS ${formatNumber(item.capex)}</td>
+                            <td>GHS ${formatNumber(item.change_wc)}</td>
+                            <td>GHS ${formatNumber(item.net_borrowing)}</td>
+                            <td><strong>GHS ${formatNumber(item.fcfe)}</strong></td>
+                        </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+                <h3 class="text-xl font-bold text-gray-800 mt-8 mb-4">Discounted Cash Flow (DCF) Table</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Forecast Year</th>
+                            <th>Actual Year</th>
+                            <th>Time Period</th>
+                            <th>FV FCFE (GHS)</th>
+                            <th>PV FCFE (GHS)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dcf-results-table">
+                        ${(() => {
+                            const dcfTable = [];
+                            for (let i = 0; i < numYears; i++) {
+                                const forecastYear = i + 1;
+                                const actualYear = startYear + i;
+                                const t = i; // Time period starts at 0 for Year 1
+                                dcfTable.push({
+                                    forecast_year: forecastYear,
+                                    actual_year: actualYear,
+                                    time_period: t.toFixed(2),
+                                    fv_fcfe: fvFcfe[i],
+                                    pv_fcfe: pvFcfe[i]
+                                });
+                            }
+                            dcfTable.push({
+                                forecast_year: 'Terminal Value',
+                                actual_year: startYear + numYears,
+                                time_period: numYears.toFixed(2),
+                                fv_fcfe: terminalValue,
+                                pv_fcfe: pvTerminalValue
+                            });
+                            return dcfTable.map(item => `
+                                <tr>
+                                    <td>${item.forecast_year}</td>
+                                    <td>${item.actual_year}</td>
+                                    <td>${item.time_period}</td>
+                                    <td>GHS ${formatNumber(item.fv_fcfe)}</td>
+                                    <td>GHS ${formatNumber(item.pv_fcfe)}</td>
+                                </tr>
+                            `).join('');
+                        })()}
+                    </tbody>
+                </table>
+                <p class="text-gray-600 mt-4">Use these FCFE values in DCF models or divide by shares outstanding to get FCFE per share.</p>
+                <button id="reset-calculator" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium flex items-center inline-block mt-6"><i class="fas fa-redo mr-2"></i> Calculate Another</button>
             `;
-
-            // Update results
-            fcfeYearsText.textContent = `FCFE for ${numYears} Years`;
-            fcfeAverageResult.textContent = `GHS ${formatNumber(avgFcfe)} (Average FCFE)`;
-            terminalValueResult.textContent = `GHS ${formatNumber(terminalValue)} (Terminal Value)`;
-            totalValueResult.textContent = `GHS ${formatNumber(totalValue)} (Total Value)`;
-            intrinsicValueResult.textContent = `GHS ${formatNumber(intrinsicValuePerShare)} (Intrinsic Value Per Share)`;
-            targetInterpretationText.innerHTML = `The intrinsic value per share of GHS ${formatNumber(intrinsicValuePerShare)} suggests the stock's fair value based on the provided cash flows and assumptions.`;
-            valuationComparisonText.innerHTML = `
-                Current Price: GHS ${formatNumber(currentPrice)}<br>
-                ${intrinsicValuePerShare > currentPrice ? 
-                    `The stock is potentially <strong>undervalued</strong> (Intrinsic Value GHS ${formatNumber(intrinsicValuePerShare)} > Current Price GHS ${formatNumber(currentPrice)}).` :
-                intrinsicValuePerShare < currentPrice ?
-                    `The stock is potentially <strong>overvalued</strong> (Intrinsic Value GHS ${formatNumber(intrinsicValuePerShare)} < Current Price GHS ${formatNumber(currentPrice)}).` :
-                    `The stock is <strong>fairly valued</strong> (Intrinsic Value GHS ${formatNumber(intrinsicValuePerShare)} = Current Price GHS ${formatNumber(currentPrice)}).`
-                }
-            `;
-
-            // Update FCFE table
-            fcfeResultsTable.innerHTML = fcfeData.map(item => `
-                <tr>
-                    <td>Year ${item.year}</td>
-                    <td>GHS ${formatNumber(item.net_income)}</td>
-                    <td>GHS ${formatNumber(item.non_cash_charges)}</td>
-                    <td>GHS ${formatNumber(item.capex)}</td>
-                    <td>GHS ${formatNumber(item.change_wc)}</td>
-                    <td>GHS ${formatNumber(item.net_borrowing)}</td>
-                    <td><strong>GHS ${formatNumber(item.fcfe)}</strong></td>
-                </tr>
-            `).join('');
-
-            // Update DCF table
-            dcfResultsTable.innerHTML = dcfTable.map(item => `
-                <tr>
-                    <td>${item.forecast_year}</td>
-                    <td>${item.actual_year}</td>
-                    <td>${item.time_period}</td>
-                    <td>GHS ${formatNumber(item.fv_fcfe)}</td>
-                    <td>GHS ${formatNumber(item.pv_fcfe)}</td>
-                </tr>
-            `).join('');
-
             resultsSection.classList.remove('hidden');
         });
 
@@ -789,34 +873,33 @@ Cash Flows: ${startYear} [Year 1] — ${startYear + 1} [Year 2] — ${startYear 
             resultsSection.classList.add('hidden');
             document.querySelectorAll('.form-error').forEach(el => el.classList.add('hidden'));
             errorMessage.classList.add('hidden');
-            warningMessage.classList.add('hidden');
-            form.start_year.value = '';
-            form.valuation_year.value = '';
-            form.cost_equity.value = '';
-            form.growth_rate.value = '';
-            form.shares_outstanding.value = '';
-            form.current_price.value = '';
+            form.querySelector('#start_year').value = '';
+            form.querySelector('#valuation_year').value = '';
+            form.querySelector('#cost_equity').value = '';
+            form.querySelector('#growth_rate').value = '';
+            form.querySelector('#shares_outstanding').value = '';
+            form.querySelector('#current_price').value = '';
             renderYearInputs();
         });
 
-        if (resetBtn) {
-            resetBtn.addEventListener('click', () => {
+        // Initialize reset button
+        document.getElementById('results-section').addEventListener('click', (e) => {
+            if (e.target.id === 'reset-calculator') {
                 form.reset();
                 yearCount = 5;
                 numYearsSelect.value = '5';
                 resultsSection.classList.add('hidden');
                 document.querySelectorAll('.form-error').forEach(el => el.classList.add('hidden'));
                 errorMessage.classList.add('hidden');
-                warningMessage.classList.add('hidden');
-                form.start_year.value = '';
-                form.valuation_year.value = '';
-                form.cost_equity.value = '';
-                form.growth_rate.value = '';
-                form.shares_outstanding.value = '';
-                form.current_price.value = '';
+                form.querySelector('#start_year').value = '';
+                form.querySelector('#valuation_year').value = '';
+                form.querySelector('#cost_equity').value = '';
+                form.querySelector('#growth_rate').value = '';
+                form.querySelector('#shares_outstanding').value = '';
+                form.querySelector('#current_price').value = '';
                 renderYearInputs();
-            });
-        }
+            }
+        });
 
         // Initialize inputs on load
         document.addEventListener('DOMContentLoaded', () => {

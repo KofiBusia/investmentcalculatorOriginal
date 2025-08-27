@@ -304,7 +304,7 @@ def dcf_calculator():
 @app.route('/fcfe', methods=['GET', 'POST'])
 def fcfe_calculator():
     """Handle FCFE calculator form and calculations."""
-    current_year = 2025  # Based on current date August 26, 2025
+    current_year = 2025  # Based on current date August 27, 2025
     form_data = {}
     error = None
     results = None
@@ -319,6 +319,7 @@ def fcfe_calculator():
             cost_of_equity = float(form_data.get('cost_equity', 23.08)) / 100
             perpetual_growth_rate = float(form_data.get('growth_rate', 4.0)) / 100
             shares_outstanding = float(form_data.get('shares_outstanding', 265000))
+            current_price = float(form_data.get('current_price', 0))
             start_year = int(form_data.get('start_year', current_year))
             valuation_year = int(form_data.get('valuation_year', current_year))
 
@@ -369,20 +370,36 @@ def fcfe_calculator():
             # Calculate average FCFE
             avg_fcfe = sum(fcfe_results) / num_years if fcfe_results else 0
 
-            # Forecast FV FCFE using perpetual growth rate
-            fv_fcfe = [avg_fcfe * (1 + perpetual_growth_rate) ** t for t in range(0, num_years + 1)]
+            # Calculate average growth rate of past FCFE
+            growth_rates = []
+            for i in range(1, num_years):
+                if fcfe_results[i-1] != 0:
+                    growth_rates.append((fcfe_results[i] - fcfe_results[i-1]) / abs(fcfe_results[i-1]))
+            avg_growth_rate = sum(growth_rates) / len(growth_rates) if growth_rates else 0
+
+            # Forecast FV FCFE using the last FCFE as base and user-input perpetual growth rate
+            last_fcfe = fcfe_results[-1] if fcfe_results else 0
+            fv_fcfe = [last_fcfe * (1 + perpetual_growth_rate) ** t for t in range(1, num_years + 2)]  # FV for years start_year + num_years to start_year + 2*num_years (e.g., 2026 to 2030 for 5 years starting 2025)
+
+            # Total FV FCFE
+            total_fv_fcfe = sum(fv_fcfe)
 
             # Calculate PV of FCFE
             pv_fcfe = [
-                fv_fcfe[i] / (1 + cost_of_equity) ** (i if i == 0 else i) for i in range(num_years)
+                fv_fcfe[i] / (1 + cost_of_equity) ** (i + 1) for i in range(num_years)
             ]
 
-            # Calculate Terminal Value at year 5
+            # Total PV FCFE
+            total_pv_fcfe = sum(pv_fcfe)
+
+            # Calculate Terminal Value at the end of the forecast period
             terminal_value = fv_fcfe[-1] * (1 + perpetual_growth_rate) / (cost_of_equity - perpetual_growth_rate)
-            terminal_value_pv = terminal_value / (1 + cost_of_equity) ** num_years
+
+            # PV of Terminal Value
+            pv_terminal_value = terminal_value / (1 + cost_of_equity) ** (num_years + 1)
 
             # Total Present Value
-            total_pv = sum(pv_fcfe) + terminal_value_pv
+            total_pv = total_pv_fcfe + pv_terminal_value
 
             # Intrinsic Value Per Share
             intrinsic_value_per_share = round(total_pv / shares_outstanding, 2)
@@ -390,8 +407,8 @@ def fcfe_calculator():
             # Prepare DCF table
             dcf_table = []
             for i in range(num_years):
-                actual_year = start_year + i
-                time_period = i
+                actual_year = start_year + num_years + i
+                time_period = i + 1
                 dcf_table.append({
                     'forecast_year': i + 1,
                     'actual_year': actual_year,
@@ -403,16 +420,23 @@ def fcfe_calculator():
             # Add Terminal Value to DCF table
             dcf_table.append({
                 'forecast_year': 'Terminal Value',
-                'actual_year': start_year + num_years,
-                'time_period': num_years,
+                'actual_year': start_year + num_years * 2,
+                'time_period': num_years + 1,
                 'fv_fcfe': round(terminal_value, 2),
-                'pv_fcfe': round(terminal_value_pv, 2)
+                'pv_fcfe': round(pv_terminal_value, 2)
             })
 
             # Prepare results for template
             results = {
                 'avg_fcfe': round(avg_fcfe, 2),
+                'avg_growth_rate': round(avg_growth_rate * 100, 2),
                 'intrinsic_value_per_share': intrinsic_value_per_share,
+                'terminal_value': round(terminal_value, 2),
+                'pv_terminal_value': round(pv_terminal_value, 2),
+                'total_fv_fcfe': round(total_fv_fcfe, 2),
+                'total_pv_fcfe': round(total_pv_fcfe, 2),
+                'total_value': round(total_pv, 2),
+                'current_price': current_price,
                 'interpretation': (
                     f"The company’s Free Cash Flow to Equity averages GHS {avg_fcfe:,.2f} over {num_years} year(s). "
                     f"The estimated intrinsic value per share is GHS {intrinsic_value_per_share:,.2f}. Compare to current stock price."
@@ -457,7 +481,7 @@ def fcfe_calculator():
         valuation_year=current_year,
         currency_symbol='GHS '
     )
-
+    
 @app.route('/valuation_methods', methods=['GET', 'POST'])
 def valuation_methods():
     """Handle valuation methods form and calculations."""
