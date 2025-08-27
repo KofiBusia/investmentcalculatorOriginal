@@ -228,16 +228,16 @@
                 <p class="text-xl mt-2">FCFE = Net Income + Non-Cash Charges - Capex - Change in Working Capital + Net Borrowing</p>
                 <p class="text-sm mt-2 text-gray-600">Where Net Income is profit after taxes, Non-Cash Charges are depreciation and amortization, Capex is capital expenditures, Change in Working Capital is the year-over-year change in current assets minus liabilities, and Net Borrowing is new debt minus repayments.</p>
             </div>
-            <form id="fcfe-form" class="space-y-6" action="/fcfe" method="POST">
+            <form id="fcfe-form" class="space-y-6">
                 <div class="bg-indigo-50 p-4 rounded-lg">
                     <h3 class="text-lg font-semibold text-gray-800 mb-3">Select Number of Years</h3>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div>
                             <label class="block text-gray-700 font-medium mb-2">Number of Years</label>
                             <select name="num_years" id="num-years" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
-                                <option value="3" {{ 'selected' if form_data.get('num_years') == '3' else '' }}>3 Years</option>
-                                <option value="4" {{ 'selected' if form_data.get('num_years') == '4' else '' }}>4 Years</option>
-                                <option value="5" {{ 'selected' if form_data.get('num_years') == '5' else '' }}>5 Years</option>
+                                <option value="3">3 Years</option>
+                                <option value="4">4 Years</option>
+                                <option value="5">5 Years</option>
                             </select>
                             <div class="tooltip mt-2">
                                 <i class="fas fa-info-circle text-gray-500"></i>
@@ -247,71 +247,13 @@
                         </div>
                     </div>
                 </div>
-                <div id="annual-inputs" class="space-y-6">
-                    {% for i in range(1, 6) %}
-                    <div class="bg-indigo-50 p-4 rounded-lg year-section {{ '' if i <= (form_data.get('num_years', 5) | int) else 'hidden' }}" id="year-{{ i }}-section" data-year="{{ i }}">
-                        <div class="flex justify-between items-center">
-                            <h3 class="text-lg font-semibold text-gray-800 mb-3">Year {{ i }}</h3>
-                            {% if i > 1 %}
-                            <button type="button" class="remove-year text-red-500 hover:text-red-700" data-year="{{ i }}"><i class="fas fa-trash"></i></button>
-                            {% endif %}
-                        </div>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 dynamic-inputs">
-                            <div>
-                                <label class="block text-gray-700 font-medium mb-2">Net Income (GHS)</label>
-                                <input type="number" step="any" name="net_income_{{ i }}" placeholder="e.g., 150000000" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" value="{{ form_data.get('net_income_' + i|string, '') }}">
-                                <div class="tooltip mt-2">
-                                    <i class="fas fa-info-circle text-gray-500"></i>
-                                    <span class="tooltiptext">Profit after taxes from the income statement (e.g., 217.5M GHS for Access Bank 2024). Find on Yahoo Finance or gse.com.gh.</span>
-                                </div>
-                                <div class="form-error text-danger text-sm mt-2 hidden" id="net_income_{{ i }}-error">Please enter a valid number.</div>
-                            </div>
-                            <div>
-                                <label class="block text-gray-700 font-medium mb-2">Non-Cash Charges (GHS)</label>
-                                <input type="number" step="any" name="non_cash_{{ i }}" placeholder="e.g., 100000" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" value="{{ form_data.get('non_cash_' + i|string, '') }}">
-                                <div class="tooltip mt-2">
-                                    <i class="fas fa-info-circle text-gray-500"></i>
-                                    <span class="tooltiptext">Non-cash expenses like depreciation and amortization from the cash flow statement (e.g., 100K GHS).</span>
-                                </div>
-                                <div class="form-error text-danger text-sm mt-2 hidden" id="non_cash_{{ i }}-error">Please enter a valid number.</div>
-                            </div>
-                            <div>
-                                <label class="block text-gray-700 font-medium mb-2">Capex (GHS)</label>
-                                <input type="number" step="any" name="capex_{{ i }}" placeholder="e.g., 400000" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" value="{{ form_data.get('capex_' + i|string, '') }}">
-                                <div class="tooltip mt-2">
-                                    <i class="fas fa-info-circle text-gray-500"></i>
-                                    <span class="tooltiptext">Capital expenditures from cash flow statement (e.g., 500K GHS).</span>
-                                </div>
-                                <div class="form-error text-danger text-sm mt-2 hidden" id="capex_{{ i }}-error">Please enter a valid number.</div>
-                            </div>
-                            <div>
-                                <label class="block text-gray-700 font-medium mb-2">Change in Working Capital (GHS)</label>
-                                <input type="number" step="any" name="change_wc_{{ i }}" placeholder="e.g., 150000" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" value="{{ form_data.get('change_wc_' + i|string, '') }}">
-                                <div class="tooltip mt-2">
-                                    <i class="fas fa-info-circle text-gray-500"></i>
-                                    <span class="tooltiptext">Year-over-year change in current assets minus liabilities (e.g., 200K GHS increase).</span>
-                                </div>
-                                <div class="form-error text-danger text-sm mt-2 hidden" id="change_wc_{{ i }}-error">Please enter a valid number.</div>
-                            </div>
-                            <div>
-                                <label class="block text-gray-700 font-medium mb-2">Net Borrowing (GHS)</label>
-                                <input type="number" step="any" name="net_borrowing_{{ i }}" placeholder="e.g., 250000" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" value="{{ form_data.get('net_borrowing_' + i|string, '') }}">
-                                <div class="tooltip mt-2">
-                                    <i class="fas fa-info-circle text-gray-500"></i>
-                                    <span class="tooltiptext">New debt minus repayments from cash flow statement (e.g., 300K GHS).</span>
-                                </div>
-                                <div class="form-error text-danger text-sm mt-2 hidden" id="net_borrowing_{{ i }}-error">Please enter a valid number.</div>
-                            </div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
+                <div id="annual-inputs" class="space-y-6"></div>
                 <div class="bg-indigo-50 p-4 rounded-lg">
                     <h3 class="text-lg font-semibold text-gray-800 mb-3">Parameters for Intrinsic Value Per Share</h3>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div>
                             <label class="block text-gray-700 font-medium mb-2">Cost of Equity (%)</label>
-                            <input type="number" step="any" name="cost_equity" id="cost_equity" placeholder="e.g., 15" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" value="{{ form_data.get('cost_equity', '23.08') }}">
+                            <input type="number" step="any" name="cost_equity" id="cost_equity" placeholder="e.g., 15" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
                             <div class="tooltip mt-2">
                                 <i class="fas fa-info-circle text-gray-500"></i>
                                 <span class="tooltiptext">Required return for equity (e.g., CAPM: risk-free rate + beta × equity risk premium). Typical for Ghana: 12-20%.</span>
@@ -320,7 +262,7 @@
                         </div>
                         <div>
                             <label class="block text-gray-700 font-medium mb-2">Perpetual Growth Rate (%)</label>
-                            <input type="number" step="any" name="growth_rate" id="growth_rate" placeholder="e.g., 3" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" value="{{ form_data.get('growth_rate', '4') }}">
+                            <input type="number" step="any" name="growth_rate" id="growth_rate" placeholder="e.g., 3" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
                             <div class="tooltip mt-2">
                                 <i class="fas fa-info-circle text-gray-500"></i>
                                 <span class="tooltiptext">Long-term growth rate for FCFE after forecast (e.g., Ghana GDP growth ~3-5%).</span>
@@ -329,7 +271,7 @@
                         </div>
                         <div>
                             <label class="block text-gray-700 font-medium mb-2">Start Year</label>
-                            <input type="number" step="1" name="start_year" id="start_year" value="{{ form_data.get('start_year', '2025') }}" placeholder="e.g., 2025" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
+                            <input type="number" step="1" name="start_year" id="start_year" placeholder="e.g., 2025" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
                             <div class="tooltip mt-2">
                                 <i class="fas fa-info-circle text-gray-500"></i>
                                 <span class="tooltiptext">The year for the first FCFE input (Year 1). For standard DCF, set to current year. Use with Valuation Year for backtesting.</span>
@@ -338,7 +280,7 @@
                         </div>
                         <div>
                             <label class="block text-gray-700 font-medium mb-2">Valuation Year</label>
-                            <input type="number" step="1" name="valuation_year" id="valuation_year" value="{{ form_data.get('valuation_year', '2025') }}" placeholder="e.g., 2025" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
+                            <input type="number" step="1" name="valuation_year" id="valuation_year" placeholder="e.g., 2025" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
                             <div class="tooltip mt-2">
                                 <i class="fas fa-info-circle text-gray-500"></i>
                                 <span class="tooltiptext">The present valuation year for discounting cash flows (CFA standard). For standard DCF, set to current year. Use with Start Year for backtesting.</span>
@@ -347,7 +289,7 @@
                         </div>
                         <div>
                             <label class="block text-gray-700 font-medium mb-2">Shares Outstanding</label>
-                            <input type="number" step="any" name="shares_outstanding" id="shares_outstanding" placeholder="e.g., 174000000" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" value="{{ form_data.get('shares_outstanding', '265000') }}">
+                            <input type="number" step="any" name="shares_outstanding" id="shares_outstanding" placeholder="e.g., 174000000" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
                             <div class="tooltip mt-2">
                                 <i class="fas fa-info-circle text-gray-500"></i>
                                 <span class="tooltiptext">Total shares outstanding (e.g., 174M for Access Bank Ghana). Find on gse.com.gh or Yahoo Finance.</span>
@@ -356,7 +298,7 @@
                         </div>
                         <div>
                             <label class="block text-gray-700 font-medium mb-2">Current Stock Price (GHS)</label>
-                            <input type="number" step="any" name="current_price" id="current_price" placeholder="e.g., 5.50" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" value="{{ form_data.get('current_price', '60') }}">
+                            <input type="number" step="any" name="current_price" id="current_price" placeholder="e.g., 5.50" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
                             <div class="tooltip mt-2">
                                 <i class="fas fa-info-circle text-gray-500"></i>
                                 <span class="tooltiptext">Current market price per share (e.g., GHS 5.50 for Access Bank Ghana). Find on gse.com.gh or Yahoo Finance.</span>
@@ -370,66 +312,28 @@
                     <button type="reset" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors"><i class="fas fa-eraser mr-2"></i> Clear</button>
                 </div>
             </form>
-            {% if error %}
-            <div id="error-message" class="mt-6">
+            <div id="error-message" class="mt-6 hidden">
                 <div class="bg-red-50 p-4 rounded-lg">
-                    <p class="text-red-700 font-medium" id="error-text">{{ error }}</p>
+                    <p class="text-red-700 font-medium" id="error-text"></p>
                 </div>
             </div>
-            {% endif %}
-            {% if results %}
-            <div id="results-section" class="mt-8">
-                {% if results.warning %}
-                <div id="warning-message" class="warning-message">
-                    <p class="font-medium"><i class="fas fa-exclamation-triangle mr-2"></i>{{ results.warning }}</p>
+            <div id="results-section" class="mt-8 hidden">
+                <div id="warning-message" class="warning-message hidden">
+                    <p class="font-medium" id="warning-text"><i class="fas fa-exclamation-triangle mr-2"></i></p>
                 </div>
-                {% endif %}
                 <h3 class="text-xl font-bold text-gray-800 mb-4">Free Cash Flow to Equity Results</h3>
-                <div class="timeline-diagram" id="timeline-diagram">
-                    {% if start_year and valuation_year %}
-                    {% if start_year < valuation_year %}
-Scenario: Past Cash Flows
-Valuation Year: {{ valuation_year }}
-Cash Flows: {{ start_year }} [Year 1] — {{ start_year + 1 }} [Year 2] — {{ start_year + 2 }} [Year 3] — Terminal [{{ start_year + num_years }}+]
-                    {% else %}
-Scenario: Future Cash Flows
-Valuation Year: {{ valuation_year }}
-Cash Flows: {{ start_year }} [Year 1] — {{ start_year + 1 }} [Year 2] — {{ start_year + 2 }} [Year 3] — Terminal [{{ start_year + num_years }}+]
-                    {% endif %}
-                    {% else %}
-Scenario: Future Cash Flows
-Valuation Year: {{ start_year or 'Current Year' }}
-Cash Flows: Current Year [Year 1] — Next Year [Year 2] — Year After [Year 3] — Terminal [Year {{ num_years }}+]
-                    {% endif %}
-                </div>
+                <div class="timeline-diagram" id="timeline-diagram"></div>
                 <div class="text-center mb-6">
-                    <p class="text-gray-600" id="fcfe-years-text">FCFE for {{ num_years }} Years</p>
-                    <div class="target-price" id="fcfe-average-result">{{ currency_symbol }}{{ results.avg_fcfe | float | format_number }} (Average FCFE)</div>
-                    {% if results.terminal_value %}
-                    <div class="target-price" id="terminal-value-result">{{ currency_symbol }}{{ results.terminal_value | float | format_number }} (Terminal Value)</div>
-                    {% endif %}
-                    {% if results.total_value %}
-                    <div class="target-price" id="total-value-result">{{ currency_symbol }}{{ results.total_value | float | format_number }} (Total Value)</div>
-                    {% endif %}
-                    {% if results.intrinsic_value_per_share %}
-                    <div class="target-price" id="intrinsic-value-result">{{ currency_symbol }}{{ results.intrinsic_value_per_share | float | format_number }} (Intrinsic Value Per Share)</div>
-                    {% endif %}
+                    <p class="text-gray-600" id="fcfe-years-text"></p>
+                    <div class="target-price" id="fcfe-average-result"></div>
+                    <div class="target-price" id="terminal-value-result"></div>
+                    <div class="target-price" id="total-value-result"></div>
+                    <div class="target-price" id="intrinsic-value-result"></div>
                     <div class="target-interpretation">
                         <p class="font-medium">Interpretation:</p>
-                        <p id="target-interpretation-text">{{ results.interpretation | safe }}</p>
-                        {% if results.current_price and results.intrinsic_value_per_share %}
+                        <p id="target-interpretation-text"></p>
                         <p class="font-medium mt-4">Valuation Comparison:</p>
-                        <p id="valuation-comparison-text">
-                            Current Price: {{ currency_symbol }}{{ results.current_price | float | format_number }}<br>
-                            {% if results.intrinsic_value_per_share > results.current_price %}
-                            The stock is potentially <strong>undervalued</strong> (Intrinsic Value {{ currency_symbol }}{{ results.intrinsic_value_per_share | float | format_number }} > Current Price {{ currency_symbol }}{{ results.current_price | float | format_number }}).
-                            {% elif results.intrinsic_value_per_share < results.current_price %}
-                            The stock is potentially <strong>overvalued</strong> (Intrinsic Value {{ currency_symbol }}{{ results.intrinsic_value_per_share | float | format_number }} < Current Price {{ currency_symbol }}{{ results.current_price | float | format_number }}).
-                            {% else %}
-                            The stock is <strong>fairly valued</strong> (Intrinsic Value {{ currency_symbol }}{{ results.intrinsic_value_per_share | float | format_number }} = Current Price {{ currency_symbol }}{{ results.current_price | float | format_number }}).
-                            {% endif %}
-                        </p>
-                        {% endif %}
+                        <p id="valuation-comparison-text"></p>
                     </div>
                 </div>
                 <h4 class="text-lg font-bold text-gray-800 mb-3">FCFE Calculation Details</h4>
@@ -437,27 +341,15 @@ Cash Flows: Current Year [Year 1] — Next Year [Year 2] — Year After [Year 3]
                     <thead>
                         <tr>
                             <th>Year</th>
-                            <th>Net Income ({{ currency_symbol }})</th>
-                            <th>Non-Cash Charges ({{ currency_symbol }})</th>
-                            <th>Capex ({{ currency_symbol }})</th>
-                            <th>Change in WC ({{ currency_symbol }})</th>
-                            <th>Net Borrowing ({{ currency_symbol }})</th>
-                            <th>FCFE ({{ currency_symbol }})</th>
+                            <th>Net Income (GHS)</th>
+                            <th>Non-Cash Charges (GHS)</th>
+                            <th>Capex (GHS)</th>
+                            <th>Change in WC (GHS)</th>
+                            <th>Net Borrowing (GHS)</th>
+                            <th>FCFE (GHS)</th>
                         </tr>
                     </thead>
-                    <tbody id="fcfe-results-table">
-                        {% for item in results.fcfe_data %}
-                        <tr>
-                            <td>Year {{ item.year }}</td>
-                            <td>{{ currency_symbol }}{{ item.net_income | float | format_number }}</td>
-                            <td>{{ currency_symbol }}{{ item.non_cash_charges | float | format_number }}</td>
-                            <td>{{ currency_symbol }}{{ item.capex | float | format_number }}</td>
-                            <td>{{ currency_symbol }}{{ item.change_wc | float | format_number }}</td>
-                            <td>{{ currency_symbol }}{{ item.net_borrowing | float | format_number }}</td>
-                            <td><strong>{{ currency_symbol }}{{ item.fcfe | float | format_number }}</strong></td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
+                    <tbody id="fcfe-results-table"></tbody>
                 </table>
                 <h3 class="text-xl font-bold text-gray-800 mt-8 mb-4">Discounted Cash Flow (DCF) Table</h3>
                 <table>
@@ -466,26 +358,15 @@ Cash Flows: Current Year [Year 1] — Next Year [Year 2] — Year After [Year 3]
                             <th>Forecast Year</th>
                             <th>Actual Year</th>
                             <th>Time Period</th>
-                            <th>FV FCFE ({{ currency_symbol }})</th>
-                            <th>PV FCFE ({{ currency_symbol }})</th>
+                            <th>FV FCFE (GHS)</th>
+                            <th>PV FCFE (GHS)</th>
                         </tr>
                     </thead>
-                    <tbody id="dcf-results-table">
-                        {% for item in results.dcf_table %}
-                        <tr>
-                            <td>{{ item.forecast_year }}</td>
-                            <td>{{ item.actual_year }}</td>
-                            <td>{{ item.time_period }}</td>
-                            <td>{{ currency_symbol }}{{ item.fv_fcfe | float | format_number }}</td>
-                            <td>{{ currency_symbol }}{{ item.pv_fcfe | float | format_number }}</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
+                    <tbody id="dcf-results-table"></tbody>
                 </table>
                 <p class="text-gray-600 mt-4">Use these FCFE values in DCF models or divide by shares outstanding to get FCFE per share.</p>
                 <button id="reset-calculator" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium flex items-center inline-block mt-6"><i class="fas fa-redo mr-2"></i> Calculate Another</button>
             </div>
-            {% endif %}
         </div>
 
         <div class="card p-6">
@@ -687,11 +568,10 @@ Cash Flows: 2025 [Year 1] — 2026 [Year 2] — 2027 [Year 3] — Terminal [2028
                 const dynamicInputs = yearSection.querySelector('.dynamic-inputs');
                 inputFields.forEach(field => {
                     const { name, label, placeholder, tooltip } = field;
-                    const inputValue = form.elements[`${name}_${i}`]?.value || '';
                     dynamicInputs.insertAdjacentHTML('beforeend', `
                         <div>
                             <label class="block text-gray-700 font-medium mb-2">${label}</label>
-                            <input type="number" step="any" name="${name}_${i}" placeholder="${placeholder}" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" value="${inputValue}">
+                            <input type="number" step="any" name="${name}_${i}" placeholder="${placeholder}" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
                             <div class="tooltip mt-2"><i class="fas fa-info-circle text-gray-500"></i><span class="tooltiptext">${tooltip}</span></div>
                             <div class="form-error text-danger text-sm mt-2 hidden" id="${name}_${i}-error">Please enter a valid number.</div>
                         </div>
@@ -835,7 +715,7 @@ Cash Flows: 2025 [Year 1] — 2026 [Year 2] — 2027 [Year 3] — Terminal [2028
             // Terminal value
             const lastFcfe = fcfeData[fcfeData.length - 1].fcfe;
             const terminalValue = (lastFcfe * (1 + growthRate)) / (costEquity - growthRate);
-            const pvTerminalValue = terminalValue / Math.pow(1 + costEquity, numYears + timePeriod + 1);
+            const pvTerminalValue = terminalValue / Math.pow(1 + costEquity, numYears + timePeriod);
             const totalValue = sumPvFcfe + pvTerminalValue;
             const intrinsicValuePerShare = totalValue / sharesOutstanding;
             const avgFcfe = fcfeData.reduce((sum, item) => sum + item.fcfe, 0) / numYears;
@@ -845,7 +725,7 @@ Cash Flows: 2025 [Year 1] — 2026 [Year 2] — 2027 [Year 3] — Terminal [2028
             if (fcfeData.some(item => item.fcfe < 0)) {
                 warning = 'Warning: Negative FCFE values detected. This may indicate reinvestment needs or financial challenges.';
                 warningMessage.classList.remove('hidden');
-                warningText.textContent = warning;
+                warningText.innerHTML = `<i class="fas fa-exclamation-triangle mr-2"></i>${warning}`;
             } else {
                 warningMessage.classList.add('hidden');
             }
@@ -855,7 +735,7 @@ Cash Flows: 2025 [Year 1] — 2026 [Year 2] — 2027 [Year 3] — Terminal [2028
             timelineDiagram.textContent = `
 Scenario: ${scenario}
 Valuation Year: ${valuationYear}
-Cash Flows: ${startYear} [Year 1] — ${startYear + 1} [Year 2] — ${startYear + 2} [Year 3] — Terminal [${startYear + numYears}+]
+Cash Flows: ${startYear} [Year 1] — ${startYear + 1} [Year 2] — ${startYear + 2} [Year 3]${numYears > 3 ? ` — ${startYear + 3} [Year 4]` : ''}${numYears > 4 ? ` — ${startYear + 4} [Year 5]` : ''} — Terminal [${startYear + numYears}+]
             `;
 
             // Update results
@@ -910,13 +790,12 @@ Cash Flows: ${startYear} [Year 1] — ${startYear + 1} [Year 2] — ${startYear 
             document.querySelectorAll('.form-error').forEach(el => el.classList.add('hidden'));
             errorMessage.classList.add('hidden');
             warningMessage.classList.add('hidden');
-            const currentYear = new Date().getFullYear();
-            form.start_year.value = currentYear;
-            form.valuation_year.value = currentYear;
-            form.cost_equity.value = '23.08';
-            form.growth_rate.value = '4';
-            form.shares_outstanding.value = '265000';
-            form.current_price.value = '60';
+            form.start_year.value = '';
+            form.valuation_year.value = '';
+            form.cost_equity.value = '';
+            form.growth_rate.value = '';
+            form.shares_outstanding.value = '';
+            form.current_price.value = '';
             renderYearInputs();
         });
 
@@ -929,13 +808,12 @@ Cash Flows: ${startYear} [Year 1] — ${startYear + 1} [Year 2] — ${startYear 
                 document.querySelectorAll('.form-error').forEach(el => el.classList.add('hidden'));
                 errorMessage.classList.add('hidden');
                 warningMessage.classList.add('hidden');
-                const currentYear = new Date().getFullYear();
-                form.start_year.value = currentYear;
-                form.valuation_year.value = currentYear;
-                form.cost_equity.value = '23.08';
-                form.growth_rate.value = '4';
-                form.shares_outstanding.value = '265000';
-                form.current_price.value = '60';
+                form.start_year.value = '';
+                form.valuation_year.value = '';
+                form.cost_equity.value = '';
+                form.growth_rate.value = '';
+                form.shares_outstanding.value = '';
+                form.current_price.value = '';
                 renderYearInputs();
             });
         }
