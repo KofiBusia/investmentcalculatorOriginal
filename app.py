@@ -1,6 +1,6 @@
 # Investment Calculator Flask Application
 # File: app.py
-# Description: A Flask web application for financial calculations including DCF, valuation methods,
+# Description: A Flask web application for financial calculations including DCF, FCFE, FCFF, credit risk,
 #              leverage ratios, and more, with SQLAlchemy for database integration and WTForms for input validation.
 
 # --- STANDARD LIBRARY IMPORTS ---
@@ -64,17 +64,6 @@ logger.info("Application initialized")
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 
-# --- DATABASE MODELS ---
-class ValuationResult(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    period_name = db.Column(db.String(10), nullable=False)
-    currency = db.Column(db.String(3), nullable=False)
-    weighted_average = db.Column(db.Float, nullable=False)
-    pb_value = db.Column(db.Float, nullable=False)
-    ptbv_value = db.Column(db.Float, nullable=False)
-    pe_value = db.Column(db.Float, nullable=False)
-    ddm_value = db.Column(db.Float, nullable=False)
-
 # --- DATACLASSES ---
 from dataclasses import dataclass
 
@@ -115,6 +104,24 @@ class PeriodForm(FlaskForm):
     dividend_per_share = FloatField('Dividend per Share', validators=[DataRequired(), NumberRange(min=0)])
     dividend_growth = FloatField('Dividend Growth Rate (%)', validators=[DataRequired()])
     roe = FloatField('Return on Equity (%)', validators=[DataRequired()])
+
+class FCFFForm(FlaskForm):
+    currency = SelectField('Currency', choices=[
+        ('USD', 'USD - US Dollar'),
+        ('GHS', 'GHS - Ghanaian Cedi'),
+        ('EUR', 'EUR - Euro'),
+        ('GBP', 'GBP - British Pound'),
+        ('JPY', 'JPY - Japanese Yen')
+    ], validators=[DataRequired()])
+    ebit = FloatField('EBIT', validators=[DataRequired(), NumberRange(min=0)])
+    tax_rate = FloatField('Tax Rate (%)', validators=[DataRequired(), NumberRange(min=0, max=100)])
+    depreciation = FloatField('Depreciation', validators=[DataRequired(), NumberRange(min=0)])
+    capex = FloatField('Capital Expenditures (CapEx)', validators=[DataRequired(), NumberRange(min=0)])
+    delta_nwc = FloatField('Change in Net Working Capital (ΔNWC)', validators=[DataRequired()])
+    net_income = FloatField('Net Income', validators=[DataRequired(), NumberRange(min=0)])
+    interest = FloatField('Interest Expense', validators=[DataRequired(), NumberRange(min=0)])
+    ebitda = FloatField('EBITDA', validators=[DataRequired(), NumberRange(min=0)])
+    taxes = FloatField('Taxes', validators=[DataRequired(), NumberRange(min=0)])
 
 # --- JINJA FILTERS ---
 def format_number(value, decimal_places=2, is_percentage=False, is_currency=False):
@@ -301,10 +308,68 @@ def dcf_calculator():
             logger.error(f"DCF calculation error: {e}")
     return render_template('dcf.html', error=error, results=results, form_data=form_data)
 
+@app.route('/fcff', methods=['GET', 'POST'])
+def fcff_calculator():
+    """Handle FCFF calculator form and calculations."""
+    form = FCFFForm()
+    form_data = request.form.to_dict() if request.method == 'POST' else {}
+    error = None
+    result = None
+    currency = 'GHS'  # Default currency
+
+    if request.method == 'POST' and form.validate_on_submit():
+        try:
+            # Extract and convert form data
+            currency = form.currency.data
+            ebit = form.ebit.data
+            tax_rate = form.tax_rate.data / 100
+            depreciation = form.depreciation.data
+            capex = form.capex.data
+            delta_nwc = form.delta_nwc.data
+            net_income = form.net_income.data
+            interest = form.interest.data
+            ebitda = form.ebitda.data
+            taxes = form.taxes.data
+
+            # Calculate FCFF using all three approaches
+            fcff_ebit = ebit * (1 - tax_rate) + depreciation - capex - delta_nwc
+            fcff_net_income = net_income + (interest * (1 - tax_rate)) + depreciation - capex - delta_nwc
+            fcff_ebitda = ebitda - taxes - capex - delta_nwc
+
+            # Prepare results
+            result = {
+                'ebit_approach': round(fcff_ebit, 2),
+                'net_income_approach': round(fcff_net_income, 2),
+                'ebitda_approach': round(fcff_ebitda, 2),
+                'currency': currency,
+                'interpretation': (
+                    f"FCFF calculated using EBIT: {format_currency(fcff_ebit, currency)}, "
+                    f"Net Income: {format_currency(fcff_net_income, currency)}, "
+                    f"EBITDA: {format_currency(fcff_ebitda, currency)}. "
+                    "All methods should yield consistent results if inputs are accurate."
+                )
+            }
+            logger.info("FCFF calculation successful")
+        except ValueError as e:
+            error = f"Calculation error: {str(e)}"
+            logger.error(f"FCFF calculation error: {e}")
+        except Exception as e:
+            error = f"Unexpected error: {str(e)}"
+            logger.error(f"Unexpected FCFF calculation error: {e}")
+
+    return render_template(
+        'fcff.html',
+        form=form,
+        form_data=form_data,
+        error=error,
+        result=result,
+        currency_symbol=format_currency(0, currency).replace('0.00', '')
+    )
+
 @app.route('/fcfe', methods=['GET', 'POST'])
 def fcfe_calculator():
     """Handle FCFE calculator form and calculations."""
-    current_year = 2025  # Based on current date August 27, 2025
+    current_year = 2025  # Based on current date August 28, 2025
     form_data = {}
     error = None
     results = None
@@ -379,7 +444,7 @@ def fcfe_calculator():
 
             # Forecast FV FCFE using the last FCFE as base and user-input perpetual growth rate
             last_fcfe = fcfe_results[-1] if fcfe_results else 0
-            fv_fcfe = [last_fcfe * (1 + perpetual_growth_rate) ** t for t in range(1, num_years + 2)]  # FV for years start_year + num_years to start_year + 2*num_years (e.g., 2026 to 2030 for 5 years starting 2025)
+            fv_fcfe = [last_fcFE * (1 + perpetual_growth_rate) ** t for t in range(1, num_years + 2)]  # FV for years start_year + num_years to start_year + 2*num_years (e.g., 2026 to 2030 for 5 years starting 2025)
 
             # Total FV FCFE
             total_fv_fcfe = sum(fv_fcfe)
@@ -481,35 +546,6 @@ def fcfe_calculator():
         valuation_year=current_year,
         currency_symbol='GHS '
     )
-    
-@app.route('/valuation_methods', methods=['GET', 'POST'])
-def valuation_methods():
-    """Handle valuation methods form and calculations."""
-    selected_method = request.form.get('method', 'CCA') if request.method == 'POST' else 'CCA'
-    form_data = request.form.to_dict() if request.method == 'POST' else {}
-    error = None
-    result = None
-    if request.method == 'POST':
-        try:
-            method = request.form['method']
-            result = {'method': method.replace('_', ' ').title()}
-            if method == 'CCA':
-                result['value'] = f"GHS {calculate_cca(float(request.form['pe_ratio']), float(request.form['earnings'])):,.2f}"
-            elif method == 'NAV':
-                result['value'] = f"GHS {calculate_nav(float(request.form['assets']), float(request.form['liabilities'])):,.2f}"
-            elif method == 'Market Capitalization':
-                result['value'] = f"GHS {calculate_market_cap(float(request.form['share_price']), float(request.form['shares_outstanding'])):,.2f}"
-            elif method == 'EV':
-                result['value'] = f"GHS {calculate_ev(float(request.form['market_cap']), float(request.form['debt']), float(request.form['cash'])):,.2f}"
-            elif method == 'Replacement Cost':
-                result['value'] = f"GHS {calculate_replacement_cost(float(request.form['tangible_assets']), float(request.form['intangible_assets']), float(request.form['adjustment_factor'])):,.2f}"
-            elif method == 'Risk-Adjusted Return':
-                result['value'] = f"{calculate_risk_adjusted_return(float(request.form['returns']), float(request.form['risk_free_rate']), float(request.form['beta']), float(request.form['market_return'])):.2%}"
-            logger.info(f"Valuation method {method} calculated successfully")
-        except ValueError as e:
-            error = str(e)
-            logger.error(f"Valuation methods error: {e}")
-    return render_template('valuation_methods.html', result=result, selected_method=selected_method, error=error, form_data=form_data)
 
 @app.route('/ads.txt')
 def ads_txt():
@@ -627,150 +663,169 @@ def capital_structure():
             return render_template('capital_structure.html', error=f"An error occurred: {str(e)}", form_data=form_data)
     return render_template('capital_structure.html', form_data=form_data)
 
-@app.route('/valuation-performance', methods=['GET', 'POST'])
-def valuation_performance():
-    """Handle valuation performance multiples calculations."""
+@app.route('/credit_risk', methods=['GET', 'POST'])
+def credit_risk():
+    """Handle credit risk calculator form and calculations."""
+    current_year = 2025  # Based on current date August 28, 2025
     form_data = request.form.to_dict() if request.method == 'POST' else {}
+    error = None
+    results = None
+
     if request.method == 'POST':
         try:
-            data = request.form
-            selected_formula = data.get('formula')
-            results = []
-            input_data = []
-            years_filled = 0
+            # Input data from form
+            num_years = int(form_data.get('num_years', 5))
+            if num_years < 3 or num_years > 5:
+                raise ValueError("Number of years must be between 3 and 5.")
+            start_year = int(form_data.get('start_year', current_year))
+            valuation_year = int(form_data.get('valuation_year', current_year))
 
-            for i in range(1, 6):
-                try:
-                    market_cap = float(data.get(f'market_cap_{i}', 0)) if data.get(f'market_cap_{i}') else None
-                    total_debt = float(data.get(f'total_debt_{i}', 0)) if data.get(f'total_debt_{i}') else None
-                    preferred_stock = float(data.get(f'preferred_stock_{i}', 0)) if data.get(f'preferred_stock_{i}') else None
-                    minority_interest = float(data.get(f'minority_interest_{i}', 0)) if data.get(f'minority_interest_{i}') else None
-                    cash = float(data.get(f'cash_{i}', 0)) if data.get(f'cash_{i}') else None
-                    non_operating_assets = float(data.get(f'non_operating_assets_{i}', 0)) if data.get(f'non_operating_assets_{i}') else None
-                    ebitda = float(data.get(f'ebitda_{i}', 0)) if data.get(f'ebitda_{i}') else None
-                    ebit = float(data.get(f'ebit_{i}', 0)) if data.get(f'ebit_{i}') else None
-                    revenue = float(data.get(f'revenue_{i}', 0)) if data.get(f'revenue_{i}') else None
-                    net_income = float(data.get(f'net_income_{i}', 0)) if data.get(f'net_income_{i}') else None
-                    equity = float(data.get(f'equity_{i}', 0)) if data.get(f'equity_{i}') else None
-                    total_assets = float(data.get(f'total_assets_{i}', 0)) if data.get(f'total_assets_{i}') else None
-                    avg_total_assets = float(data.get(f'avg_total_assets_{i}', 0)) if data.get(f'avg_total_assets_{i}') else None
-                    avg_equity = float(data.get(f'avg_equity_{i}', 0)) if data.get(f'avg_equity_{i}') else None
-                    share_price = float(data.get(f'share_price_{i}', 0)) if data.get(f'share_price_{i}') else None
-                    eps = float(data.get(f'eps_{i}', 0)) if data.get(f'eps_{i}') else None
-                    bvps = float(data.get(f'bvps_{i}', 0)) if data.get(f'bvps_{i}') else None
-                    eps_growth = float(data.get(f'eps_growth_{i}', 0)) if data.get(f'eps_growth_{i}') else None
-                    tax_rate = float(data.get(f'tax_rate_{i}', 0)) if data.get(f'tax_rate_{i}') else None
+            if valuation_year < start_year:
+                raise ValueError("Valuation year must be greater than or equal to start year.")
+            if (valuation_year - start_year) > 10:
+                raise ValueError("Projection period cannot exceed 10 years.")
 
-                    is_year_filled = all(v is not None for v in [market_cap, total_debt, preferred_stock, minority_interest, cash, non_operating_assets, ebitda, ebit, revenue, net_income, equity, total_assets, avg_total_assets, avg_equity, share_price, eps, bvps, eps_growth, tax_rate])
-                    is_year_empty = all(v is None for v in [market_cap, total_debt, preferred_stock, minority_interest, cash, non_operating_assets, ebitda, ebit, revenue, net_income, equity, total_assets, avg_total_assets, avg_equity, share_price, eps, bvps, eps_growth, tax_rate])
+            # Collect data for available years
+            credit_risk_data = []
+            for i in range(1, num_years + 1):
+                data = {}
+                # Validate all required fields
+                required_fields = [
+                    'cash_equivalents', 'trading_assets', 'loans_customers', 'advances_banks',
+                    'other_assets', 'deposits_banks', 'deposits_customers', 'tax_liabilities',
+                    'other_liabilities', 'retained_earnings', 'ebit', 'operating_income',
+                    'total_assets', 'total_liabilities', 'market_value_equity', 'impairment_loss',
+                    'interest_income', 'interest_expense', 'investment_securities',
+                    'personnel_expenses', 'depreciation', 'other_expenses', 'shareholders_equity'
+                ]
+                for field in required_fields:
+                    key = f'{field}_{i}'
+                    if key not in form_data or form_data[key] == '':
+                        raise ValueError(f"Missing or invalid data for {field} in Year {i}.")
+                    try:
+                        data[field] = float(form_data[key])
+                        if data[field] < 0:
+                            raise ValueError(f"{field.replace('_', ' ').title()} must be non-negative for Year {i}.")
+                    except ValueError:
+                        raise ValueError(f"Invalid number for {field.replace('_', ' ').title()} in Year {i}.")
 
-                    if i == 1 and not is_year_filled:
-                        return render_template('valuation_performance_multiples.html', error='Please provide all required inputs for Year 1.', form_data=form_data)
-                    if not is_year_empty and not is_year_filled:
-                        return render_template('valuation_performance_multiples.html', error=f'Please provide all required inputs for Year {i} or leave it empty.', form_data=form_data)
-                    if is_year_filled:
-                        ev = market_cap + total_debt + preferred_stock + minority_interest - cash - non_operating_assets
-                        result = None
-                        if selected_formula == 'ev':
-                            result = ev
-                        elif selected_formula == 'ev_ebitda':
-                            if ebitda == 0:
-                                return render_template('valuation_performance_multiples.html', error=f'EBITDA cannot be zero for Year {i} in EV/EBITDA calculation.', form_data=form_data)
-                            result = ev / ebitda
-                        elif selected_formula == 'ev_ebit':
-                            if ebit == 0:
-                                return render_template('valuation_performance_multiples.html', error=f'EBIT cannot be zero for Year {i} in EV/EBIT calculation.', form_data=form_data)
-                            result = ev / ebit
-                        elif selected_formula == 'ev_sales':
-                            if revenue == 0:
-                                return render_template('valuation_performance_multiples.html', error=f'Revenue cannot be zero for Year {i} in EV/Sales calculation.', form_data=form_data)
-                            result = ev / revenue
-                        elif selected_formula == 'pe':
-                            if eps == 0:
-                                return render_template('valuation_performance_multiples.html', error=f'EPS cannot be zero for Year {i} in P/E calculation.', form_data=form_data)
-                            result = share_price / eps
-                        elif selected_formula == 'pb':
-                            if bvps == 0:
-                                return render_template('valuation_performance_multiples.html', error=f'Book Value Per Share cannot be zero for Year {i} in P/B calculation.', form_data=form_data)
-                            result = share_price / bvps
-                        elif selected_formula == 'peg':
-                            if eps == 0 or eps_growth == 0:
-                                return render_template('valuation_performance_multiples.html', error=f'EPS or EPS Growth Rate cannot be zero for Year {i} in PEG calculation.', form_data=form_data)
-                            result = (share_price / eps) / (eps_growth / 100)
-                        elif selected_formula == 'ebitda_margin':
-                            if revenue == 0:
-                                return render_template('valuation_performance_multiples.html', error=f'Revenue cannot be zero for Year {i} in EBITDA Margin calculation.', form_data=form_data)
-                            result = (ebitda / revenue) * 100
-                        elif selected_formula == 'ebit_margin':
-                            if revenue == 0:
-                                return render_template('valuation_performance_multiples.html', error=f'Revenue cannot be zero for Year {i} in EBIT Margin calculation.', form_data=form_data)
-                            result = (ebit / revenue) * 100
-                        elif selected_formula == 'net_margin':
-                            if revenue == 0:
-                                return render_template('valuation_performance_multiples.html', error=f'Revenue cannot be zero for Year {i} in Net Margin calculation.', form_data=form_data)
-                            result = (net_income / revenue) * 100
-                        elif selected_formula == 'roe':
-                            if equity == 0:
-                                return render_template('valuation_performance_multiples.html', error=f'Equity cannot be zero for Year {i} in ROE calculation.', form_data=form_data)
-                            result = (net_income / equity) * 100
-                        elif selected_formula == 'roa':
-                            if total_assets == 0:
-                                return render_template('valuation_performance_multiples.html', error=f'Total Assets cannot be zero for Year {i} in ROA calculation.', form_data=form_data)
-                            result = (net_income / total_assets) * 100
-                        elif selected_formula == 'roic':
-                            nopat = ebit * (1 - tax_rate / 100)
-                            invested_capital = total_debt + equity - cash - non_operating_assets
-                            if invested_capital == 0:
-                                return render_template('valuation_performance_multiples.html', error=f'Invested Capital cannot be zero for Year {i} in ROIC calculation.', form_data=form_data)
-                            result = (nopat / invested_capital) * 100
-                        elif selected_formula == 'roa_fin':
-                            if avg_total_assets == 0:
-                                return render_template('valuation_performance_multiples.html', error=f'Average Total Assets cannot be zero for Year {i} in ROA (Financials) calculation.', form_data=form_data)
-                            result = (net_income / avg_total_assets) * 100
-                        elif selected_formula == 'roe_fin':
-                            if avg_equity == 0:
-                                return render_template('valuation_performance_multiples.html', error=f'Average Equity cannot be zero for Year {i} in ROE (Financials) calculation.', form_data=form_data)
-                            result = (net_income / avg_equity) * 100
+                # Calculate Working Capital
+                working_capital = (data['cash_equivalents'] + data['trading_assets'] + 
+                                 data['loans_customers'] + data['advances_banks'] + 
+                                 data['other_assets']) - (data['deposits_banks'] + 
+                                 data['deposits_customers'] + data['tax_liabilities'] + 
+                                 data['other_liabilities'])
+                
+                # Calculate Earning Assets
+                earning_assets = (data['loans_customers'] + data['advances_banks'] + 
+                                data['investment_securities'] + data['cash_equivalents'])
+                
+                # Calculate Non-Interest Expenses
+                non_interest_expenses = (data['personnel_expenses'] + data['depreciation'] + 
+                                      data['other_expenses'])
 
-                        input_data.append({
-                            'year': i,
-                            'market_cap': market_cap,
-                            'total_debt': total_debt,
-                            'preferred_stock': preferred_stock,
-                            'minority_interest': minority_interest,
-                            'cash': cash,
-                            'non_operating_assets': non_operating_assets,
-                            'ebitda': ebitda,
-                            'ebit': ebit,
-                            'revenue': revenue,
-                            'net_income': net_income,
-                            'equity': equity,
-                            'total_assets': total_assets,
-                            'avg_total_assets': avg_total_assets,
-                            'avg_equity': avg_equity,
-                            'share_price': share_price,
-                            'eps': eps,
-                            'bvps': bvps,
-                            'eps_growth': eps_growth,
-                            'tax_rate': tax_rate,
-                            'result': result
-                        })
-                        results.append(result)
-                        years_filled += 1
-                except ValueError:
-                    return render_template('valuation_performance_multiples.html', error=f'Invalid input for Year {i}. Please ensure all inputs are valid numbers.', form_data=form_data)
+                # Calculate Ratios
+                z_score = (1.2 * (working_capital / data['total_assets']) +
+                          1.4 * (data['retained_earnings'] / data['total_assets']) +
+                          3.3 * (data['ebit'] / data['total_assets']) +
+                          0.6 * (data['market_value_equity'] / data['total_liabilities']) +
+                          1.0 * (data['operating_income'] / data['total_assets']))
+                
+                pcl_ratio = abs(data['impairment_loss']) / data['loans_customers'] if data['loans_customers'] != 0 else 0
+                nim = ((data['interest_income'] - data['interest_expense']) / earning_assets 
+                      if earning_assets != 0 else 0)
+                efficiency_ratio = (non_interest_expenses / data['operating_income'] 
+                                  if data['operating_income'] != 0 else 0)
+                leverage_ratio = (data['shareholders_equity'] / data['total_assets'] 
+                                if data['total_assets'] != 0 else 0)
+                debt_to_assets = (data['total_liabilities'] / data['total_assets'] 
+                                if data['total_assets'] != 0 else 0)
 
-            if years_filled == 0:
-                return render_template('valuation_performance_multiples.html', error='Please provide at least one year of data.', form_data=form_data)
+                credit_risk_data.append({
+                    'year': i,
+                    'working_capital': working_capital,
+                    'earning_assets': earning_assets,
+                    'non_interest_expenses': non_interest_expenses,
+                    'z_score': z_score,
+                    'pcl_ratio': pcl_ratio,
+                    'nim': nim,
+                    'efficiency_ratio': efficiency_ratio,
+                    'leverage_ratio': leverage_ratio,
+                    'debt_to_assets': debt_to_assets,
+                    **data
+                })
 
-            average_result = sum(results) / years_filled
-            unit = '%' if selected_formula in ['ebitda_margin', 'ebit_margin', 'net_margin', 'roe', 'roa', 'roic', 'roa_fin', 'roe_fin'] else 'x'
-            logger.info(f"Valuation performance calculated for {years_filled} years with formula {selected_formula}")
-            return render_template('valuation_performance_multiples.html', results=input_data, average_result=average_result, unit=unit, form_data=form_data, selected_formula=selected_formula)
-        except Exception as e:
-            logger.error(f"Valuation performance error: {e}")
-            return render_template('valuation_performance_multiples.html', error=f"An error occurred: {str(e)}", form_data=form_data)
-    return render_template('valuation_performance_multiples.html', form_data=form_data)
+            # Calculate averages
+            avg_z_score = sum(item['z_score'] for item in credit_risk_data) / num_years
+            avg_pcl_ratio = sum(item['pcl_ratio'] for item in credit_risk_data) / num_years
+            avg_nim = sum(item['nim'] for item in credit_risk_data) / num_years
+            avg_efficiency_ratio = sum(item['efficiency_ratio'] for item in credit_risk_data) / num_years
+            avg_leverage_ratio = sum(item['leverage_ratio'] for item in credit_risk_data) / num_years
+            avg_debt_to_assets = sum(item['debt_to_assets'] for item in credit_risk_data) / num_years
+
+            # Interpretation
+            interpretation = []
+            if avg_z_score > 2.99:
+                interpretation.append('The bank exhibits <strong>low credit risk</strong> (Z-Score > 2.99), indicating strong financial stability.')
+            elif avg_z_score >= 1.81:
+                interpretation.append('The bank is in the <strong>grey zone</strong> (Z-Score 1.81–2.99), suggesting moderate credit risk and potential financial uncertainty.')
+            else:
+                interpretation.append('The bank shows <strong>high credit risk</strong> (Z-Score < 1.81), indicating a high likelihood of financial distress.')
+            interpretation.append(f'Average PCL Ratio ({(avg_pcl_ratio * 100):.2f}%) reflects loan quality; higher values indicate riskier loans.')
+            interpretation.append(f'Average NIM ({(avg_nim * 100):.2f}%) shows profitability from lending; declining NIM may signal credit risk issues.')
+            interpretation.append(f'Average Efficiency Ratio ({(avg_efficiency_ratio * 100):.2f}%) indicates operational efficiency; higher ratios suggest lower loss absorption capacity.')
+            interpretation.append(f'Average Leverage Ratio ({(avg_leverage_ratio * 100):.2f}%) shows capital adequacy; higher ratios indicate stronger buffers against losses.')
+            interpretation.append(f'Average Debt to Assets Ratio ({(avg_debt_to_assets * 100):.2f}%) reflects leverage; higher ratios increase risk if assets underperform.')
+
+            # Warning for high risk
+            warning = None
+            if (avg_z_score < 1.81 or avg_pcl_ratio > 0.05 or avg_nim < 0.03 or 
+                avg_efficiency_ratio > 0.7 or avg_debt_to_assets > 0.9):
+                warning = ('Warning: High credit risk detected. Low Z-Score (<1.81), high PCL Ratio (>5%), '
+                          'low NIM (<3%), high Efficiency Ratio (>70%), or high Debt to Assets Ratio (>90%) '
+                          'suggest potential financial distress.')
+
+            # Prepare results for template
+            results = {
+                'avg_z_score': round(avg_z_score, 2),
+                'avg_pcl_ratio': round(avg_pcl_ratio * 100, 2),
+                'avg_nim': round(avg_nim * 100, 2),
+                'avg_efficiency_ratio': round(avg_efficiency_ratio * 100, 2),
+                'avg_leverage_ratio': round(avg_leverage_ratio * 100, 2),
+                'avg_debt_to_assets': round(avg_debt_to_assets * 100, 2),
+                'interpretation': '<br>'.join(interpretation),
+                'warning': warning,
+                'credit_risk_data': credit_risk_data,
+                'scenario': 'Past Data Analysis' if start_year < valuation_year else 'Current/Future Analysis',
+                'valuation_year': valuation_year,
+                'start_year': start_year,
+                'num_years': num_years
+            }
+
+            logger.info("Credit risk calculation successful")
+            return render_template(
+                'credit_risk.html',
+                form_data=form_data,
+                error=error,
+                results=results,
+                num_years=num_years,
+                start_year=start_year,
+                valuation_year=valuation_year
+            )
+
+        except (KeyError, ValueError) as e:
+            error = str(e)
+            logger.error(f"Credit risk calculation error: {e}")
+
+    return render_template(
+        'credit_risk.html',
+        form_data=form_data,
+        error=error,
+        results=results,
+        num_years=5,
+        start_year=current_year,
+        valuation_year=current_year
+    )
 
 @app.route('/multiples-master-valuation', methods=['GET', 'POST'])
 def multiples_master_valuation():
@@ -833,22 +888,11 @@ def multiples_master_valuation():
                     }
                     periods.append(period_data)
 
-                    valuation = ValuationResult(
-                        period_name=period,
-                        currency=currency,
-                        weighted_average=weighted_average,
-                        pb_value=pb_value,
-                        ptbv_value=ptbv_value,
-                        pe_value=pe_value,
-                        ddm_value=ddm_value
-                    )
-                    db.session.add(valuation)
                 except ValueError as e:
                     logger.error(f"Calculation error for period {period}: {e}")
                     periods.append({'period_name': period, 'error': str(e)})
                     continue
-            db.session.commit()
-            logger.info("Multiples master valuation calculation and storage successful")
+            logger.info("Multiples master valuation calculation successful")
             return render_template('multiples_master.html', periods=periods, form=form, form_data=request.form.to_dict())
         except Exception as e:
             logger.error(f"Unexpected error in multiples master valuation: {e}")
