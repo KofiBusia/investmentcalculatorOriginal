@@ -3,36 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bank Stock Intrinsic Value Calculator - Young Investor Calculator</title>
+    <title>Bank Stock Intrinsic Value Calculator</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#4f46e5',
-                        secondary: '#818cf8',
-                        accent: '#a5b4fc',
-                        dark: '#1e293b',
-                        light: '#f8fafc',
-                        success: '#10b981',
-                        info: '#0ea5e9',
-                        warning: '#f59e0b',
-                        danger: '#ef4444'
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif']
-                    }
-                }
-            }
-        }
-    </script>
     <style>
         :root {
-            --header-height: 70px;
-            --sidebar-width: 300px;
+            --primary: #4f46e5;
+            --secondary: #818cf8;
+            --accent: #a5b4fc;
+            --dark: #1e293b;
+            --light: #f8fafc;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
         }
         body {
             background: linear-gradient(135deg, #f0f4f8 0%, #e6e9ff 100%);
@@ -43,7 +27,7 @@
             background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
         }
         .card {
-            background: rgba(255, 255, 255, 0.85);
+            background: rgba(255, 255, 255, 0.92);
             backdrop-filter: blur(10px);
             border-radius: 16px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
@@ -54,7 +38,7 @@
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12);
         }
         .input-field {
-            background: rgba(255, 255, 255, 0.9);
+            background: rgba(255, 255, 255, 0.95);
             border: 1px solid #e2e8f0;
             transition: all 0.3s ease;
         }
@@ -62,85 +46,11 @@
             border-color: #a5b4fc;
             box-shadow: 0 0 0 4px rgba(165, 180, 252, 0.25);
         }
-        .back-to-top {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            opacity: 0;
-            transform: translateY(20px);
-            transition: all 0.3s ease;
-        }
-        .back-to-top.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-        .tooltip {
-            position: relative;
-            display: inline-block;
-        }
-        .tooltip .tooltiptext {
-            visibility: hidden;
-            width: 200px;
-            background-color: #1e293b;
-            color: #fff;
-            text-align: center;
-            border-radius: 6px;
-            padding: 8px;
-            position: absolute;
-            z-index: 1;
-            bottom: 125%;
-            left: 50%;
-            margin-left: -100px;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-        .tooltip:hover .tooltiptext {
-            visibility: visible;
-            opacity: 1;
-        }
-        .nav-buttons {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-        .nav-button {
-            display: flex;
-            align-items: center;
-            padding: 10px 20px;
-            background: white;
-            border-radius: 8px;
-            font-weight: 500;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-            transition: all 0.2s ease;
-        }
-        .nav-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
-        }
-        .nav-button.home {
-            background: #4f46e5;
-            color: white;
-        }
-        .nav-button.calculators {
-            background: #10b981;
-            color: white;
-        }
-        .nav-button i {
-            margin-right: 8px;
-        }
         .intrinsic-value {
             font-size: 2.5rem;
             font-weight: 700;
             color: #4f46e5;
             margin: 10px 0;
-        }
-        .intrinsic-interpretation {
-            margin-top: 15px;
-            padding: 15px;
-            border-radius: 10px;
-            background-color: #f0f9ff;
-            border-left: 4px solid #0ea5e9;
         }
         .formula {
             font-family: 'Courier New', monospace;
@@ -151,27 +61,112 @@
             text-align: center;
             border: 1px solid #e2e8f0;
         }
-        .return-input-group {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 15px;
+        .sensitivity-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
         }
-        .return-input-group > div {
-            flex: 1;
+        .sensitivity-table th, .sensitivity-table td {
+            border: 1px solid #e2e8f0;
+            padding: 8px;
+            text-align: center;
         }
-        .results-card {
-            animation: fadeIn 0.5s ease-out;
-        }
-        .warning-message {
-            margin-top: 15px;
-            padding: 10px;
-            border-radius: 8px;
-            background-color: #fef3c7;
-            border-left: 4px solid #f59e0b;
+        .sensitivity-table th {
+            background-color: #f1f5f9;
         }
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-out;
+        }
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 220px;
+            background-color: #1e293b;
+            color: #fff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 8px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -110px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 0.875rem;
+        }
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+        .step-number {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            background-color: #4f46e5;
+            color: white;
+            border-radius: 50%;
+            font-weight: bold;
+            margin-right: 12px;
+            flex-shrink: 0;
+        }
+        .instruction-card {
+            transition: all 0.3s ease;
+        }
+        .instruction-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+        }
+        .warning-box {
+            background-color: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            padding: 16px;
+            border-radius: 8px;
+            margin: 16px 0;
+        }
+        .currency-selector {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding: 12px 16px;
+            background-color: #f8fafc;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+        }
+        .currency-flag {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+        .currency-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .currency-option:hover {
+            background-color: #f1f5f9;
+        }
+        .currency-option.active {
+            background-color: #e0e7ff;
+            font-weight: 600;
         }
     </style>
 </head>
@@ -179,624 +174,561 @@
     <!-- Header -->
     <header class="gradient-bg text-white py-8 px-4 md:px-8">
         <div class="max-w-6xl mx-auto">
-            <nav class="hidden md:flex justify-between items-center mb-6">
-                <div class="flex items-center space-x-4">
-                    <a href="/" class="text-white hover:text-indigo-200 transition-colors">Home</a>
-                    <a href="/#calculators" class="text-white font-medium border-b-2 border-white">Calculators</a>
-                    <a href="/help" class="text-white hover:text-indigo-200 transition-colors">Help Center</a>
-                    <a href="/articles" class="text-white hover:text-indigo-200 transition-colors">Resources</a>
-                </div>
-                <a href="/help" class="bg-white text-primary px-4 py-2 rounded-lg font-medium hover:bg-indigo-50 transition-colors">
-                    Get Started
-                </a>
-            </nav>
             <div class="max-w-3xl">
                 <h1 class="text-4xl md:text-5xl font-bold mb-4">Bank Stock Intrinsic Value Calculator</h1>
                 <p class="text-xl md:text-2xl text-indigo-100 mb-6">
-                    Calculate the intrinsic value of a bank stock using the Residual Income Model (RIM)
+                    Advanced Residual Income Model for Banks with Irregular Dividends
                 </p>
                 <div class="flex flex-wrap gap-3">
                     <div class="bg-white/20 px-4 py-2 rounded-full flex items-center">
-                        <i class="fas fa-lightbulb mr-2"></i>
-                        <span>Beginner Friendly</span>
+                        <i class="fas fa-university mr-2"></i>
+                        <span>Dividend-Irregularity Adjusted</span>
                     </div>
                     <div class="bg-white/20 px-4 py-2 rounded-full flex items-center">
-                        <i class="fas fa-download mr-2"></i>
-                        <span>Downloadable Guide</span>
+                        <i class="fas fa-chart-line mr-2"></i>
+                        <span>Sensitivity Analysis</span>
                     </div>
                 </div>
             </div>
         </div>
     </header>
+
     <!-- Main Content -->
     <div class="max-w-6xl mx-auto px-4 py-8">
-        <!-- Navigation Buttons -->
-        <div class="nav-buttons">
-            <a href="https://younginvestorcalculator.com/" class="nav-button home">
-                <i class="fas fa-home"></i> Return to Home
-            </a>
-            <a href="https://younginvestorcalculator.com/#calculators" class="nav-button calculators">
-                <i class="fas fa-calculator"></i> Other Calculators
-            </a>
+        <!-- How to Use Section -->
+        <div class="card p-6 mb-8">
+            <h2 class="text-2xl font-bold text-gray-800 mb-6">How to Use This Calculator</h2>
+            
+            <div class="space-y-6">
+                <div class="instruction-card flex items-start p-5 bg-blue-50 rounded-lg">
+                    <div class="step-number">1</div>
+                    <div>
+                        <h3 class="font-bold text-gray-800 mb-2">Select Currency</h3>
+                        <p class="text-gray-600">Choose your preferred currency (GHS or USD) for all calculations and results.</p>
+                    </div>
+                </div>
+                
+                <div class="instruction-card flex items-start p-5 bg-blue-50 rounded-lg">
+                    <div class="step-number">2</div>
+                    <div>
+                        <h3 class="font-bold text-gray-800 mb-2">Select Forecast Period</h3>
+                        <p class="text-gray-600">Choose a forecast period of 3-5 years based on the reliability of your forecasts. Longer periods are more speculative but can capture more growth.</p>
+                    </div>
+                </div>
+                
+                <div class="instruction-card flex items-start p-5 bg-purple-50 rounded-lg">
+                    <div class="step-number">3</div>
+                    <div>
+                        <h3 class="font-bold text-gray-800 mb-2">Enter CAPM Inputs</h3>
+                        <p class="text-gray-600">Provide the risk-free rate (government bond yield), expected market return, and the stock's beta. These determine your required rate of return.</p>
+                        <ul class="text-sm text-gray-600 mt-2 list-disc list-inside">
+                            <li><strong>Risk-Free Rate:</strong> Yield on long-term government bonds (e.g., 5-10 year)</li>
+                            <li><strong>Market Return:</strong> Expected annual return of the stock market</li>
+                            <li><strong>Beta:</strong> Stock's volatility relative to the market (find on financial websites)</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="instruction-card flex items-start p-5 bg-green-50 rounded-lg">
+                    <div class="step-number">4</div>
+                    <div>
+                        <h3 class="font-bold text-gray-800 mb-2">Enter RIM Inputs</h3>
+                        <p class="text-gray-600">Input the current book value per share and forecasted ROE for each year. Select the appropriate dividend policy for the bank.</p>
+                        <ul class="text-sm text-gray-600 mt-2 list-disc list-inside">
+                            <li><strong>Book Value:</strong> From the latest balance sheet (Total Equity / Shares Outstanding)</li>
+                            <li><strong>ROE Forecast:</strong> Based on historical performance and future expectations</li>
+                            <li><strong>Dividend Policy:</strong> Select the appropriate option for the bank</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="instruction-card flex items-start p-5 bg-yellow-50 rounded-lg">
+                    <div class="step-number">5</div>
+                    <div>
+                        <h3 class="font-bold text-gray-800 mb-2">Terminal Value Assumptions</h3>
+                        <p class="text-gray-600">Provide the long-term growth rate and sustainable ROE for the terminal value calculation. These should be conservative estimates.</p>
+                        <div class="warning-box mt-3">
+                            <i class="fas fa-exclamation-triangle text-yellow-600 mr-2"></i>
+                            <strong>Critical Rule:</strong> Long-Term ROE must be higher than your calculated Cost of Equity to create value in perpetuity.
+                        </div>
+                        <ul class="text-sm text-gray-600 mt-2 list-disc list-inside">
+                            <li><strong>Terminal Growth Rate:</strong> Should be less than the overall economic growth rate</li>
+                            <li><strong>Long-Term ROE:</strong> The sustainable return on equity in perpetuity</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <div class="instruction-card flex items-start p-5 bg-indigo-50 rounded-lg">
+                    <div class="step-number">6</div>
+                    <div>
+                        <h3 class="font-bold text-gray-800 mb-2">Optional: Market Price</h3>
+                        <p class="text-gray-600">Enter the current market price to compare with the calculated intrinsic value and determine the margin of safety.</p>
+                    </div>
+                </div>
+                
+                <div class="instruction-card flex items-start p-5 bg-pink-50 rounded-lg">
+                    <div class="step-number">7</div>
+                    <div>
+                        <h3 class="font-bold text-gray-800 mb-2">Calculate & Interpret</h3>
+                        <p class="text-gray-600">Click "Calculate" to see the intrinsic value and sensitivity analysis. Use the results to make informed investment decisions.</p>
+                        <ul class="text-sm text-gray-600 mt-2 list-disc list-inside">
+                            <li><strong>Intrinsic Value:</strong> The estimated true value of the stock</li>
+                            <li><strong>Margin of Safety:</strong> Difference between intrinsic value and market price</li>
+                            <li><strong>Sensitivity Analysis:</strong> How changes in assumptions affect the valuation</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
         </div>
-        <!-- Calculator Form -->
+
+        <!-- Calculator Card -->
         <div class="card p-6 mb-8">
             <h2 class="text-2xl font-bold text-gray-800 mb-4">Calculate Bank Stock Intrinsic Value</h2>
-            <p class="text-gray-600 mb-6">Enter details to calculate the intrinsic value using the Residual Income Model (RIM), suitable for banks with irregular dividends. All monetary values should be in the stock’s reporting currency (e.g., GHS for Ghanaian stocks).</p>
-            <div class="formula">
-                <p class="text-lg font-semibold">Valuation Formula</p>
-                <p class="text-xl mt-2">RIM: IV = BV + Σ(RI<sub>t</sub> / (1+r)<sup>t</sup>) + TV / (1+r)<sup>n</sup></p>
-                <p class="text-sm mt-2 text-gray-600">Where RI<sub>t</sub> is Residual Income, BV is Book Value, r is cost of equity, TV is terminal value, n is number of periods</p>
+            <p class="text-gray-600 mb-6">This calculator uses an enhanced Residual Income Model specifically designed for banks with irregular dividend patterns.</p>
+            
+            <!-- Currency Selector -->
+            <div class="currency-selector">
+                <span class="font-medium text-gray-700">Currency:</span>
+                <div class="flex gap-2">
+                    <div class="currency-option active" data-currency="GHS">
+                        <div class="currency-flag bg-green-600 text-white">₵</div>
+                        <span>GHS</span>
+                    </div>
+                    <div class="currency-option" data-currency="USD">
+                        <div class="currency-flag bg-blue-600 text-white">$</div>
+                        <span>USD</span>
+                    </div>
+                </div>
             </div>
+            
+            <div class="formula">
+                <p class="text-lg font-semibold">Enhanced RIM Formula for Irregular Dividends</p>
+                <p class="text-xl mt-2">IV = BV₀ + Σ[ (ROE - r) × BV<sub>t-1</sub> / (1+r)<sup>t</sup> ] + TV / (1+r)<sup>n</sup></p>
+                <p class="text-sm mt-2 text-gray-600">Where ROE is return on equity, r is cost of equity, BV is book value, TV is terminal value</p>
+            </div>
+            
             <form id="valuation-form" class="space-y-6">
-                <!-- Valuation Model Selection (Hidden, set to RIM) -->
-                <input type="hidden" name="model" id="model" value="RIM">
                 <!-- Forecast Period -->
-                <div class="group">
+                <div>
                     <label for="num_years" class="block text-gray-700 font-medium mb-2">Number of Forecast Years</label>
-                    <select name="num_years" id="num_years" onchange="toggleYearInputs()" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
+                    <select name="num_years" id="num_years" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
                         <option value="3">3 Years</option>
                         <option value="4">4 Years</option>
-                        <option value="5">5 Years</option>
+                        <option value="5" selected>5 Years</option>
                     </select>
-                    <div class="tooltip mt-2">
-                        <i class="fas fa-info-circle text-gray-500"></i>
-                        <span class="tooltiptext">Select 3-5 years based on the reliability of your forecasts.</span>
-                    </div>
-                    <div class="form-error text-danger text-sm mt-2 hidden" id="num_years-error">Please select a valid number of years.</div>
                 </div>
+                
                 <!-- CAPM Inputs -->
                 <div>
                     <h3 class="text-xl font-bold text-gray-800 mb-4">Cost of Equity (CAPM)</h3>
-                    <p class="text-gray-600 mb-6">Discount rate (r) = Risk-Free Rate + Beta × (Market Return - Risk-Free Rate).</p>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div>
                             <label class="block text-gray-700 font-medium mb-2">Risk-Free Rate (%)</label>
-                            <input type="number" step="0.01" name="risk_free_rate" placeholder="e.g., 24" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required min="0">
-                            <div class="tooltip mt-2">
-                                <i class="fas fa-info-circle text-gray-500"></i>
-                                <span class="tooltiptext">Yield on 10-year government bonds (e.g., Ghana T-Bill ~24% from Bank of Ghana, U.S. Treasury ~4%).</span>
+                            <input type="number" step="0.01" name="risk_free_rate" placeholder="e.g., 18.0" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
+                            <div class="tooltip mt-1">
+                                <i class="fas fa-info-circle text-gray-500 text-sm"></i>
+                                <span class="tooltiptext">Yield on long-term government bonds (e.g., 5-10 year bond yield)</span>
                             </div>
-                            <div class="form-error text-danger text-sm mt-2 hidden" id="risk_free_rate-error">Please enter a valid percentage (non-negative).</div>
                         </div>
                         <div>
                             <label class="block text-gray-700 font-medium mb-2">Market Return (%)</label>
-                            <input type="number" step="0.01" name="market_return" placeholder="e.g., 15" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required min="0">
-                            <div class="tooltip mt-2">
-                                <i class="fas fa-info-circle text-gray-500"></i>
-                                <span class="tooltiptext">Expected return of the market (e.g., GSE ~10–15%, S&P 500 ~8–10%).</span>
+                            <input type="number" step="0.01" name="market_return" placeholder="e.g., 12.0" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
+                            <div class="tooltip mt-1">
+                                <i class="fas fa-info-circle text-gray-500 text-sm"></i>
+                                <span class="tooltiptext">Expected annual return of the stock market</span>
                             </div>
-                            <div class="form-error text-danger text-sm mt-2 hidden" id="market_return-error">Please enter a valid percentage (non-negative).</div>
                         </div>
                         <div>
                             <label class="block text-gray-700 font-medium mb-2">Beta</label>
-                            <input type="number" step="0.01" name="beta" placeholder="e.g., 1.1" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required min="0">
-                            <div class="tooltip mt-2">
-                                <i class="fas fa-info-circle text-gray-500"></i>
-                                <span class="tooltiptext">Stock volatility relative to the market (e.g., from Yahoo Finance or afx.kwayisi.org/gse/, ~1.1 for GCB Bank).</span>
+                            <input type="number" step="0.01" name="beta" placeholder="e.g., 1.1" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
+                            <div class="tooltip mt-1">
+                                <i class="fas fa-info-circle text-gray-500 text-sm"></i>
+                                <span class="tooltiptext">Stock volatility relative to the market</span>
                             </div>
-                            <div class="form-error text-danger text-sm mt-2 hidden" id="beta-error">Please enter a valid number (non-negative).</div>
                         </div>
                     </div>
                 </div>
+                
                 <!-- RIM Inputs -->
-                <div id="rim-inputs">
-                    <h3 class="text-xl font-bold text-gray-800 mb-4">Residual Income Inputs (RIM)</h3>
+                <div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">Residual Income Inputs</h3>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label class="block text-gray-700 font-medium mb-2">Current Book Value per Share</label>
-                            <input type="number" step="0.01" name="book_value" placeholder="e.g., 10" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required min="0.01">
-                            <div class="tooltip mt-2">
-                                <i class="fas fa-info-circle text-gray-500"></i>
-                                <span class="tooltiptext">From the bank’s latest balance sheet (e.g., annualreportsghana.com, gse.com.gh, Yahoo Finance). Calculate as Total Equity ÷ Shares Outstanding. Ensure it’s positive and realistic.</span>
-                            </div>
-                            <div class="form-error text-danger text-sm mt-2 hidden" id="book_value-error">Please enter a valid positive number.</div>
+                            <input type="number" step="0.01" name="book_value" placeholder="e.g., 25.00" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
                         </div>
-                        <div class="year-input" id="rim_year_1_group">
-                            <label class="block text-gray-700 font-medium mb-2">EPS Year 1</label>
-                            <input type="number" step="0.01" name="eps_1" placeholder="e.g., 0.84" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required min="0">
-                            <div class="tooltip mt-2">
-                                <i class="fas fa-info-circle text-gray-500"></i>
-                                <span class="tooltiptext">Historical EPS from annualreportsghana.com, gse.com.gh, or afx.kwayisi.org/gse/. E.g., if EPS was GHS 0.80 in 2024, use GHS 0.80 × 1.05 = GHS 0.84 with 5% growth. Ensure EPS is sufficient (e.g., EPS > Cost of Equity × Book Value).</span>
-                            </div>
-                            <div class="form-error text-danger text-sm mt-2 hidden" id="eps_1-error">Please enter a valid number (non-negative).</div>
+                        <div>
+                            <label class="block text-gray-700 font-medium mb-2">Dividend Policy</label>
+                            <select name="dividend_policy" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
+                                <option value="none">No Dividends</option>
+                                <option value="irregular">Irregular Dividends</option>
+                                <option value="regular" selected>Regular Dividends</option>
+                            </select>
                         </div>
-                        <div class="year-input" id="rim_year_2_group">
-                            <label class="block text-gray-700 font-medium mb-2">EPS Year 2</label>
-                            <input type="number" step="0.01" name="eps_2" placeholder="e.g., 0.882" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required min="0">
-                            <div class="tooltip mt-2">
-                                <i class="fas fa-info-circle text-gray-500"></i>
-                                <span class="tooltiptext">Estimate year 2 EPS, e.g., GHS 0.84 × 1.05 = GHS 0.882 with 5% growth. Ensure EPS is sufficient (e.g., EPS > Cost of Equity × Book Value).</span>
-                            </div>
-                            <div class="form-error text-danger text-sm mt-2 hidden" id="eps_2-error">Please enter a valid number (non-negative).</div>
+                    </div>
+                    
+                    <div id="payout-ratio-container" class="mt-4">
+                        <label class="block text-gray-700 font-medium mb-2">Dividend Payout Ratio (%)</label>
+                        <input type="number" step="0.01" name="payout_ratio" placeholder="e.g., 40.0" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
+                        <div class="tooltip mt-1">
+                            <i class="fas fa-info-circle text-gray-500 text-sm"></i>
+                            <span class="tooltiptext">For irregular dividends, use historical average or expected future payout ratio</span>
                         </div>
-                        <div class="year-input" id="rim_year_3_group">
-                            <label class="block text-gray-700 font-medium mb-2">EPS Year 3</label>
-                            <input type="number" step="0.01" name="eps_3" placeholder="e.g., 0.926" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required min="0">
-                            <div class="tooltip mt-2">
-                                <i class="fas fa-info-circle text-gray-500"></i>
-                                <span class="tooltiptext">Estimate year 3 EPS, e.g., GHS 0.882 × 1.05 = GHS 0.926 with 5% growth. Ensure EPS is sufficient (e.g., EPS > Cost of Equity × Book Value).</span>
+                    </div>
+                    
+                    <div class="mt-6">
+                        <h4 class="text-lg font-bold text-gray-800 mb-4">Forecasted Return on Equity (ROE) by Year</h4>
+                        <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                            <div>
+                                <label class="block text-gray-700 font-medium mb-2">ROE Year 1 (%)</label>
+                                <input type="number" step="0.01" name="roe_1" placeholder="e.g., 15.0" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
                             </div>
-                            <div class="form-error text-danger text-sm mt-2 hidden" id="eps_3-error">Please enter a valid number (non-negative).</div>
-                        </div>
-                        <div class="year-input" id="rim_year_4_group" style="display: none;">
-                            <label class="block text-gray-700 font-medium mb-2">EPS Year 4</label>
-                            <input type="number" step="0.01" name="eps_4" placeholder="e.g., 0.972" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" min="0">
-                            <div class="tooltip mt-2">
-                                <i class="fas fa-info-circle text-gray-500"></i>
-                                <span class="tooltiptext">Estimate year 4 EPS, e.g., GHS 0.926 × 1.05 = GHS 0.972 with 5% growth. Ensure EPS is sufficient (e.g., EPS > Cost of Equity × Book Value).</span>
+                            <div>
+                                <label class="block text-gray-700 font-medium mb-2">ROE Year 2 (%)</label>
+                                <input type="number" step="0.01" name="roe_2" placeholder="e.g., 15.5" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
                             </div>
-                            <div class="form-error text-danger text-sm mt-2 hidden" id="eps_4-error">Please enter a valid number (non-negative).</div>
-                        </div>
-                        <div class="year-input" id="rim_year_5_group" style="display: none;">
-                            <label class="block text-gray-700 font-medium mb-2">EPS Year 5</label>
-                            <input type="number" step="0.01" name="eps_5" placeholder="e.g., 1.021" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" min="0">
-                            <div class="tooltip mt-2">
-                                <i class="fas fa-info-circle text-gray-500"></i>
-                                <span class="tooltiptext">Estimate year 5 EPS, e.g., GHS 0.972 × 1.05 = GHS 1.021 with 5% growth. Ensure EPS is sufficient (e.g., EPS > Cost of Equity × Book Value).</span>
+                            <div>
+                                <label class="block text-gray-700 font-medium mb-2">ROE Year 3 (%)</label>
+                                <input type="number" step="0.01" name="roe_3" placeholder="e.g., 16.0" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
                             </div>
-                            <div class="form-error text-danger text-sm mt-2 hidden" id="eps_5-error">Please enter a valid number (non-negative).</div>
+                            <div>
+                                <label class="block text-gray-700 font-medium mb-2">ROE Year 4 (%)</label>
+                                <input type="number" step="0.01" name="roe_4" placeholder="e.g., 16.0" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 font-medium mb-2">ROE Year 5 (%)</label>
+                                <input type="number" step="0.01" name="roe_5" placeholder="e.g., 16.0" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
+                            </div>
                         </div>
                     </div>
                 </div>
-                <!-- Terminal Growth Rate -->
+                
+                <!-- Terminal Value Inputs -->
                 <div>
-                    <label class="block text-gray-700 font-medium mb-2">Terminal Growth Rate (%)</label>
-                    <input type="number" step="0.01" name="terminal_growth_rate" placeholder="e.g., 8" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required min="0">
-                    <div class="tooltip mt-2">
-                        <i class="fas fa-info-circle text-gray-500"></i>
-                        <span class="tooltiptext">Long-term growth rate, e.g., GDP growth of the stock's country (~8% for Ghana, 2–3% for U.S., check World Bank or Bank of Ghana). Must be less than cost of equity.</span>
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">Terminal Value Assumptions</h3>
+                    <div class="warning-box">
+                        <i class="fas fa-exclamation-triangle text-yellow-600 mr-2"></i>
+                        <strong>Important:</strong> Long-Term ROE must be higher than your calculated Cost of Equity to create value in perpetuity.
                     </div>
-                    <div class="form-error text-danger text-sm mt-2 hidden" id="terminal_growth_rate-error">Please enter a valid percentage (non-negative).</div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                        <div>
+                            <label class="block text-gray-700 font-medium mb-2">Terminal Growth Rate (%)</label>
+                            <input type="number" step="0.01" name="terminal_growth_rate" placeholder="e.g., 3.0" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 font-medium mb-2">Long-Term ROE (%)</label>
+                            <input type="number" step="0.01" name="long_term_roe" placeholder="e.g., 15.0" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
+                            <div class="tooltip mt-1">
+                                <i class="fas fa-info-circle text-gray-500 text-sm"></i>
+                                <span class="tooltiptext">Must be higher than Cost of Equity to create value</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
+                
                 <!-- Optional Market Price -->
                 <div>
                     <label class="block text-gray-700 font-medium mb-2">Current Market Price per Share (Optional)</label>
-                    <input type="number" step="0.01" name="market_price" placeholder="e.g., 50" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" min="0">
-                    <div class="tooltip mt-2">
-                        <i class="fas fa-info-circle text-gray-500"></i>
-                        <span class="tooltiptext">Enter the stock's current price (e.g., from Yahoo Finance or afx.kwayisi.org/gse/ for GSE stocks).</span>
-                    </div>
-                    <div class="form-error text-danger text-sm mt-2 hidden" id="market_price-error">Please enter a valid number (non-negative).</div>
+                    <input type="number" step="0.01" name="market_price" placeholder="e.g., 50.00" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
                 </div>
+                
                 <!-- Buttons -->
                 <div class="flex gap-4">
-                    <button type="submit" class="px-6 py-3 bg-primary text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors">
-                        <i class="fas fa-calculator mr-2"></i> Calculate
+                    <button type="submit" class="px-6 py-3 bg-indigo-600 text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors">
+                        <i class="fas fa-calculator mr-2"></i> Calculate Intrinsic Value
                     </button>
                     <button type="reset" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors">
-                        <i class="fas fa-eraser mr-2"></i> Clear
+                        <i class="fas fa-eraser mr-2"></i> Reset
                     </button>
                 </div>
             </form>
+            
             <!-- Results Section -->
-            <div id="results-section" class="mt-8 hidden results-card">
+            <div id="results-section" class="mt-8 hidden fade-in">
                 <h3 class="text-xl font-bold text-gray-800 mb-4">Valuation Results</h3>
                 <div class="text-center mb-6">
                     <p class="text-gray-600">Calculated Intrinsic Value per Share</p>
-                    <div class="intrinsic-value" id="intrinsic-result">GHS 0.00</div>
-                    <div class="intrinsic-interpretation">
+                    <div class="intrinsic-value" id="intrinsic-result"><span id="currency-symbol">₵</span> 0.00</div>
+                    <div class="bg-indigo-50 p-4 rounded-lg mt-4">
                         <p class="font-medium">Interpretation:</p>
                         <p id="intrinsic-interpretation-text">The calculated intrinsic value of the bank stock.</p>
                     </div>
-                    <div id="warning-message" class="warning-message hidden">
-                        <p class="font-medium">Warning:</p>
-                        <p id="warning-text">Residual income for the last year was negative or zero. A minimal positive value was used for terminal value calculation, which may affect accuracy.</ņem
-                    </div>
                 </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-                    <div class="bg-indigo-50 p-4 rounded-lg">
-                        <h4 class="font-bold text-gray-800 mb-2">Valuation Model</h4>
-                        <p class="text-gray-700" id="model-result">RIM</p>
-                        <p class="text-sm text-gray-600 mt-2">The model used for the calculation.</p>
-                    </div>
+                
+                <!-- Detailed Results -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
                     <div class="bg-indigo-50 p-4 rounded-lg">
                         <h4 class="font-bold text-gray-800 mb-2">Cost of Equity</h4>
                         <p class="text-gray-700" id="cost-of-equity-result">0.00%</p>
-                        <p class="text-sm text-gray-600 mt-2">The rate used to discount future cash flows.</p>
                     </div>
-                    <div class="bg-indigo-50 p-4 rounded-lg" id="market-price-result-container">
+                    <div class="bg-indigo-50 p-4 rounded-lg">
                         <h4 class="font-bold text-gray-800 mb-2">Current Market Price</h4>
-                        <p class="text-gray-700" id="market-price-result">GHS 0.00</p>
-                        <p class="text-sm text-gray-600 mt-2" id="valuation-comment">Compare with intrinsic value to assess if the stock is overvalued or undervalued.</p>
+                        <p class="text-gray-700" id="market-price-result"><span id="market-price-currency">₵</span> 0.00</p>
+                    </div>
+                    <div class="bg-indigo-50 p-4 rounded-lg">
+                        <h4 class="font-bold text-gray-800 mb-2">Margin of Safety</h4>
+                        <p class="text-gray-700" id="margin-of-safety-result">0.00%</p>
                     </div>
                 </div>
+                
+                <!-- Sensitivity Analysis -->
+                <div class="mt-8">
+                    <h4 class="text-lg font-bold text-gray-800 mb-4">Sensitivity Analysis</h4>
+                    <p class="text-gray-600 mb-4">How intrinsic value changes with cost of equity and terminal growth rate:</p>
+                    <div class="overflow-x-auto">
+                        <table class="sensitivity-table">
+                            <thead>
+                                <tr>
+                                    <th></th>
+                                    <th colspan="3">Terminal Growth Rate</th>
+                                </tr>
+                                <tr>
+                                    <th>Cost of Equity</th>
+                                    <th>2.0%</th>
+                                    <th>3.0%</th>
+                                    <th>4.0%</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sensitivity-body">
+                                <!-- Will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Reset Button -->
                 <div class="mt-6">
                     <button id="reset-calculator" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium flex items-center inline-block">
-                        <i class="fas fa-redo mr-2"></i> Calculate Another
+                        <i class="fas fa-redo mr-2"></i> Calculate Another Valuation
                     </button>
                 </div>
             </div>
-            <!-- Error Message -->
-            <div id="error-message" class="mt-6 hidden">
-                <div class="bg-red-50 p-4 rounded-lg">
-                    <p class="text-red-700 font-medium" id="error-text"></p>
-                </div>
-            </div>
-        </div>
-        <!-- Guide Section -->
-        <div class="card p-6">
-            <h2 class="text-2xl font-bold text-gray-800 mb-4">Understanding Bank Stock Valuation</h2>
-            <p class="text-gray-600 mb-6">Intrinsic value represents a bank stock's true worth based on its residual income (RIM). Here's how to interpret and use it in your investment decisions.</p>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                <div class="bg-blue-50 p-5 rounded-lg">
-                    <div class="text-3xl font-bold text-blue-700 mb-2">Undervalued</div>
-                    <h3 class="font-bold text-gray-800 mb-2">Market Price < Intrinsic Value</h3>
-                    <p class="text-gray-600">The stock may be a buying opportunity as it trades below its estimated true worth.</p>
-                </div>
-                <div class="bg-purple-50 p-5 rounded-lg">
-                    <div class="text-3xl font-bold text-purple-700 mb-2">Fairly Valued</div>
-                    <h3 class="font-bold text-gray-800 mb-2">Market Price ≈ Intrinsic Value</h3>
-                    <p class="text-gray-600">The stock is priced close to its estimated true worth, indicating fair valuation.</p>
-                </div>
-                <div class="bg-orange-50 p-5 rounded-lg">
-                    <div class="text-3xl font-bold text-orange-700 mb-2">Overvalued</div>
-                    <h3 class="font-bold text-gray-800 mb-2">Market Price > Intrinsic Value</h3>
-                    <p class="text-gray-600">The stock may be overpriced, suggesting caution or potential selling.</p>
-                </div>
-            </div>
-            <h3 class="text-xl font-bold text-gray-800 mt-8 mb-4">How to Use the Bank Stock Intrinsic Value Calculator</h3>
-            <ol class="list-decimal pl-6 space-y-4">
-                <li>
-                    <strong>Select Forecast Period</strong>
-                    <p>Choose 3–5 years based on the reliability of your forecasts.</p>
-                </li>
-                <li>
-                    <strong>Enter CAPM Inputs</strong>
-                    <p>Provide the risk-free rate (e.g., Ghana T-Bill yield ~24%), market return (e.g., GSE ~10–15%), and beta (e.g., ~1.1 for GCB Bank from Yahoo Finance or afx.kwayisi.org/gse/).</p>
-                </li>
-                <li>
-                    <strong>Enter RIM Inputs</strong>
-                    <p>Input current book value per share and forecasted EPS for each year (e.g., GHS 0.84 for year 1). Find data on Yahoo Finance, annualreportsghana.com, gse.com.gh, or afx.kwayisi.org/gse/. Ensure EPS is sufficient (e.g., EPS > Cost of Equity × Book Value).</p>
-                </li>
-                <li>
-                    <strong>Enter Terminal Growth Rate</strong>
-                    <p>Provide the long-term growth rate (e.g., ~8% for Ghana GDP growth from World Bank or Bank of Ghana).</p>
-                </li>
-                <li>
-                    <strong>Enter Current Market Price (Optional)</strong>
-                    <p>Provide the stock’s current price (e.g., from Yahoo Finance or afx.kwayisi.org/gse/) to compare with the intrinsic value.</p>
-                </li>
-                <li>
-                    <strong>Calculate and Review</strong>
-                    <p>Click “Calculate” to compute the intrinsic value. Review the results to assess if the stock is overvalued or undervalued.</p>
-                </li>
-            </ol>
-            <div class="mt-8">
-                <h3 class="text-xl font-bold text-gray-800 mb-4">Key Applications of Intrinsic Value</h3>
-                <ul class="list-disc pl-6 space-y-2">
-                    <li>Identifying undervalued or overvalued bank stocks</li>
-                    <li>Making informed buy or sell decisions</li>
-                    <li>Assessing long-term investment potential</li>
-                    <li>Comparing banks within the same market</li>
-                </ul>
-            </div>
-            <div class="flex flex-wrap gap-3 mt-6">
-                <a href="/download_guide" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium flex items-center">
-                    <i class="fas fa-download mr-2"></i> Download Guide
-                </a>
-                <a href="/tutorial" class="px-4 py-2 bg-primary text-white rounded-lg font-medium flex items-center">
-                    <i class="fas fa-play-circle mr-2"></i> Watch Tutorial
-                </a>
-            </div>
-        </div>
-        <!-- Collapsible Help Section -->
-        <div class="card p-6 mb-8">
-            <button type="button" onclick="toggleHelpSection()" class="w-full text-left text-2xl font-bold text-gray-800 flex justify-between items-center focus:outline-none">
-                <span>How to Find EPS Inputs</span>
-                <span id="help-toggle-icon" class="text-gray-500 text-xl">➕</span>
-            </button>
-            <div id="help-section" class="hidden mt-4 text-gray-600">
-                <p class="mb-2">To estimate <strong>Earnings Per Share (EPS)</strong>, you need historical data and future forecasts. Here’s how to get them for global and Ghanaian stocks:</p>
-                <ol class="list-decimal pl-6 space-y-4">
-                    <li>
-                        <strong>Historical Data</strong>
-                        <p>Check the bank’s past EPS:</p>
-                        <ul class="list-disc list-inside ml-6 space-y-2">
-                            <li><strong>Yahoo Finance</strong>: Search the stock ticker (e.g., JPM for JPMorgan Chase), go to “Financials” for EPS.</li>
-                            <li><strong>Company Reports</strong>: Visit the bank’s investor relations website for annual/quarterly reports (e.g., 10-K, 10-Q for U.S. banks).</li>
-                            <li><strong>Brokerage Platforms</strong>: Use apps like Fidelity or Robinhood for historical financials.</li>
-                            <li><strong>For Ghanaian Stocks</strong>:
-                                <ul class="list-square list-inside ml-6 space-y-2">
-                                    <li><strong>annualreportsghana.com</strong>: Access annual reports for GSE-listed companies like GCB Bank or Ecobank Ghana.</li>
-                                    <li><strong>gse.com.gh</strong>: Find financial statements and company profiles under “Financial Statements” or “Listed Companies.”</li>
-                                    <li><strong>afx.kwayisi.org/gse/</strong>: View historical share prices and earnings for GSE stocks (e.g., Societe Generale Ghana).</li>
-                                </ul>
-                            </li>
-                        </ul>
-                    </li>
-                    <li>
-                        <strong>Analyst Forecasts</strong>
-                        <p>Get EPS predictions for 1–2 years:</p>
-                        <ul class="list-disc list-inside ml-6 space-y-2">
-                            <li><strong>Yahoo Finance</strong>: Check the “Analysis” tab for EPS estimates.</li>
-                            <li><strong>Nasdaq.com</strong>: Search the ticker for “Earnings” forecasts.</li>
-                            <li><strong>Seeking Alpha</strong>: Read articles for analyst EPS predictions.</li>
-                            <li><strong>For Ghanaian Stocks</strong>: Analyst forecasts may be limited, but check <strong>afx.kwayisi.org/gse/</strong> for earnings data or <strong>gse.com.gh</strong> for company announcements.</li>
-                        </ul>
-                    </li>
-                    <li>
-                        <strong>Estimate Future Years</strong>
-                        <p>For years 3–5, use historical growth:</p>
-                        <ul class="list-disc list-inside ml-6 space-y-2">
-                            <li>Example: If EPS was $16 in 2024 and grew 5% annually, estimate 2025: $16 × 1.05 = $16.80, 2026: $16.80 × 1.05 = $17.64.</li>
-                            <li>Consider economic trends (e.g., high interest rates boost bank profits; check Bank of Ghana reports for Ghana).</li>
-                        </ul>
-                    </li>
-                    <li>
-                        <strong>Tips</strong>
-                        <ul class="list-disc list-inside ml-6 space-y-2">
-                            <li>Use modest growth rates (3–5% for EPS) unless specific news suggests otherwise.</li>
-                            <li>Check earnings calls or news on <strong>gse.com.gh</strong> for growth plans (e.g., loan expansion for Ghanaian banks).</li>
-                            <li>Ensure EPS is sufficient relative to book value and cost of equity (e.g., EPS > Cost of Equity × Book Value).</li>
-                        </ul>
-                    </li>
-                </ol>
-                <p class="mt-4"><strong>Examples</strong>:</p>
-                <ul class="list-disc list-inside ml-6 space-y-2">
-                    <li><strong>JPMorgan Chase (JPM)</strong>: 2024 EPS = $16.23. Forecast 3 years at 5% EPS growth: EPS ($16.80, $17.64, $18.52).</li>
-                    <li><strong>GCB Bank (GSE:GCB)</strong>: 2024 EPS = GHS 0.80 (from <strong>annualreportsghana.com</strong>). Forecast 3 years at 5% growth: EPS (GHS 0.84, GHS 0.88, GHS 0.93).</li>
-                </ul>
-            </div>
-        </div>
-        <!-- Navigation Buttons at Bottom -->
-        <div class="nav-buttons mt-6">
-            <a href="https://younginvestorcalculator.com/" class="nav-button home">
-                <i class="fas fa-home"></i> Return to Home
-            </a>
-            <a href="https://younginvestorcalculator.com/#calculators" class="nav-button calculators">
-                <i class="fas fa-calculator"></i> Other Calculators
-            </a>
         </div>
     </div>
-    <!-- Back to Top Button -->
-    <button id="backToTop" class="back-to-top w-12 h-12 bg-primary text-white rounded-full shadow-lg flex items-center justify-center">
-        <i class="fas fa-arrow-up"></i>
-    </button>
+    
     <!-- JavaScript -->
     <script>
-        // Back to top button
-        const backToTopBtn = document.getElementById('backToTop');
-        window.addEventListener('scroll', function() {
-            if (window.scrollY > 300) {
-                backToTopBtn.classList.add('visible');
-            } else {
-                backToTopBtn.classList.remove('visible');
-            }
-        });
-        backToTopBtn.addEventListener('click', function() {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+        // Set initial currency to GHS
+        let currentCurrency = 'GHS';
+        let currencySymbol = '₵';
+        
+        // Handle currency selection
+        document.querySelectorAll('.currency-option').forEach(option => {
+            option.addEventListener('click', function() {
+                document.querySelectorAll('.currency-option').forEach(opt => opt.classList.remove('active'));
+                this.classList.add('active');
+                
+                currentCurrency = this.getAttribute('data-currency');
+                currencySymbol = currentCurrency === 'GHS' ? '₵' : '$';
+                
+                // Update currency symbols in the UI
+                document.getElementById('currency-symbol').textContent = currencySymbol;
+                document.getElementById('market-price-currency').textContent = currencySymbol;
+                
+                // Update placeholders for currency inputs
+                document.querySelector('input[name="book_value"]').placeholder = `e.g., ${currentCurrency === 'GHS' ? '25.00' : '5.00'}`;
+                document.querySelector('input[name="market_price"]').placeholder = `e.g., ${currentCurrency === 'GHS' ? '50.00' : '10.00'}`;
+            });
         });
 
-        // Show/hide forecast year inputs based on selected number of years
-        function toggleYearInputs() {
-            const numYears = parseInt(document.getElementById('num_years').value);
-            for (let i = 1; i <= 5; i++) {
-                const group = document.getElementById('rim_year_' + i + '_group');
-                const input = group.querySelector('input');
-                if (i <= numYears) {
-                    group.style.display = 'block';
-                    input.required = true;
-                } else {
-                    group.style.display = 'none';
-                    input.required = false;
-                    input.value = '';
+        // Handle dividend policy selection
+        document.querySelector('select[name="dividend_policy"]').addEventListener('change', function() {
+            const payoutContainer = document.getElementById('payout-ratio-container');
+            if (this.value === 'none') {
+                payoutContainer.style.opacity = '0.5';
+                document.querySelector('input[name="payout_ratio"]').value = '0';
+                document.querySelector('input[name="payout_ratio"]').setAttribute('disabled', 'disabled');
+            } else {
+                payoutContainer.style.opacity = '1';
+                document.querySelector('input[name="payout_ratio"]').removeAttribute('disabled');
+                if (this.value === 'irregular') {
+                    document.querySelector('input[name="payout_ratio"]').value = '30';
+                } else if (this.value === 'regular') {
+                    document.querySelector('input[name="payout_ratio"]').value = '40';
                 }
             }
-        }
+        });
 
-        // Validate non-negative inputs
-        function validatePositive(inputElement) {
-            if (inputElement.hasAttribute('min') && (inputElement.value === '' || parseFloat(inputElement.value) < parseFloat(inputElement.min))) {
-                inputElement.setCustomValidity(`Value must be greater than or equal to ${inputElement.min}`);
-                inputElement.reportValidity();
-                return false;
-            } else {
-                inputElement.setCustomValidity('');
-                return true;
-            }
-        }
+        // Initialize dividend policy on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelector('select[name="dividend_policy"]').dispatchEvent(new Event('change'));
+        });
 
-        // Toggle help section visibility
-        function toggleHelpSection() {
-            const helpSection = document.getElementById('help-section');
-            const toggleIcon = document.getElementById('help-toggle-icon');
-            helpSection.classList.toggle('hidden');
-            toggleIcon.textContent = helpSection.classList.contains('hidden') ? '➕' : '➖';
-        }
-
-        // Form submission handler (client-side calculation)
+        // Form submission handler
         const form = document.getElementById('valuation-form');
         const resultsSection = document.getElementById('results-section');
         const intrinsicResult = document.getElementById('intrinsic-result');
-        const modelResult = document.getElementById('model-result');
         const costOfEquityResult = document.getElementById('cost-of-equity-result');
-        const marketPriceResultContainer = document.getElementById('market-price-result-container');
         const marketPriceResult = document.getElementById('market-price-result');
-        const valuationComment = document.getElementById('valuation-comment');
+        const marginOfSafetyResult = document.getElementById('margin-of-safety-result');
         const intrinsicInterpretation = document.getElementById('intrinsic-interpretation-text');
-        const errorMessage = document.getElementById('error-message');
-        const errorText = document.getElementById('error-text');
-        const warningMessage = document.getElementById('warning-message');
-        const warningText = document.getElementById('warning-text');
+        const sensitivityBody = document.getElementById('sensitivity-body');
         const resetBtn = document.getElementById('reset-calculator');
 
         form.addEventListener('submit', function(e) {
             e.preventDefault();
-
-            // Reset error and warning states
-            errorMessage.classList.add('hidden');
-            warningMessage.classList.add('hidden');
-            document.querySelectorAll('.form-error').forEach(el => el.classList.add('hidden'));
-
+            
             // Get input values
             const numYears = parseInt(document.getElementById('num_years').value);
             const riskFreeRate = parseFloat(document.querySelector('input[name="risk_free_rate"]').value) / 100;
             const marketReturn = parseFloat(document.querySelector('input[name="market_return"]').value) / 100;
             const beta = parseFloat(document.querySelector('input[name="beta"]').value);
+            const bookValue = parseFloat(document.querySelector('input[name="book_value"]').value);
+            const payoutRatio = parseFloat(document.querySelector('input[name="payout_ratio"]').value) / 100;
             const terminalGrowthRate = parseFloat(document.querySelector('input[name="terminal_growth_rate"]').value) / 100;
-            const marketPrice = document.querySelector('input[name="market_price"]').value ? parseFloat(document.querySelector('input[name="market_price"]').value) : null;
-
-            // Validate inputs
-            if (isNaN(riskFreeRate) || !validatePositive(document.querySelector('input[name="risk_free_rate"]'))) {
-                document.getElementById('risk_free_rate-error').classList.remove('hidden');
-                errorText.textContent = 'Please enter a valid risk-free rate.';
-                errorMessage.classList.remove('hidden');
-                return;
+            const longTermROE = parseFloat(document.querySelector('input[name="long_term_roe"]').value) / 100;
+            const marketPrice = document.querySelector('input[name="market_price"]').value ? 
+                parseFloat(document.querySelector('input[name="market_price"]').value) : null;
+            
+            // Get ROE values
+            const roeValues = [];
+            for (let i = 1; i <= 5; i++) {
+                const roeInput = document.querySelector(`input[name="roe_${i}"]`);
+                if (roeInput && roeInput.value) {
+                    roeValues.push(parseFloat(roeInput.value) / 100);
+                }
             }
-            if (isNaN(marketReturn) || !validatePositive(document.querySelector('input[name="market_return"]'))) {
-                document.getElementById('market_return-error').classList.remove('hidden');
-                errorText.textContent = 'Please enter a valid market return.';
-                errorMessage.classList.remove('hidden');
-                return;
-            }
-            if (isNaN(beta) || !validatePositive(document.querySelector('input[name="beta"]'))) {
-                document.getElementById('beta-error').classList.remove('hidden');
-                errorText.textContent = 'Please enter a valid beta.';
-                errorMessage.classList.remove('hidden');
-                return;
-            }
-            if (isNaN(terminalGrowthRate) || !validatePositive(document.querySelector('input[name="terminal_growth_rate"]'))) {
-                document.getElementById('terminal_growth_rate-error').classList.remove('hidden');
-                errorText.textContent = 'Please enter a valid terminal growth rate.';
-                errorMessage.classList.remove('hidden');
-                return;
-            }
-            if (marketPrice !== null && !validatePositive(document.querySelector('input[name="market_price"]'))) {
-                document.getElementById('market_price-error').classList.remove('hidden');
-                errorText.textContent = 'Please enter a valid market price.';
-                errorMessage.classList.remove('hidden');
-                return;
-            }
-
+            
             // Calculate cost of equity (CAPM)
             const costOfEquity = riskFreeRate + beta * (marketReturn - riskFreeRate);
-            if (costOfEquity <= terminalGrowthRate + 0.005) {
-                errorText.textContent = 'Cost of equity must be at least 0.5% greater than terminal growth rate.';
-                errorMessage.classList.remove('hidden');
+            
+            // Validate inputs
+            if (costOfEquity <= terminalGrowthRate) {
+                alert('Cost of equity must be greater than terminal growth rate.');
                 return;
             }
-
-            // RIM calculation
-            const bookValue = parseFloat(document.querySelector('input[name="book_value"]').value);
-            if (isNaN(bookValue) || !validatePositive(document.querySelector('input[name="book_value"]')) || bookValue < 0.01) {
-                document.getElementById('book_value-error').classList.remove('hidden');
-                errorText.textContent = 'Please enter a valid positive book value.';
-                errorMessage.classList.remove('hidden');
+            
+            // Validate Long-Term ROE > Cost of Equity
+            if (longTermROE <= costOfEquity) {
+                alert('Long-Term ROE must be higher than Cost of Equity to create value in perpetuity. Please adjust your inputs.');
                 return;
             }
-            const eps = [];
-            for (let i = 1; i <= numYears; i++) {
-                const input = document.querySelector(`input[name="eps_${i}"]`);
-                if (!input || !input.value) {
-                    document.getElementById(`eps_${i}-error`).classList.remove('hidden');
-                    errorText.textContent = `Please enter a valid EPS for year ${i}.`;
-                    errorMessage.classList.remove('hidden');
-                    return;
-                }
-                const value = parseFloat(input.value);
-                if (isNaN(value) || !validatePositive(input)) {
-                    document.getElementById(`eps_${i}-error`).classList.remove('hidden');
-                    errorText.textContent = `Please enter a valid EPS for year ${i}.`;
-                    errorMessage.classList.remove('hidden');
-                    return;
-                }
-                // Warn if EPS is too low relative to book value and cost of equity
-                const estimatedBookValue = bookValue + eps.slice(0, i - 1).reduce((sum, e) => sum + e, 0);
-                if (i === numYears && value <= costOfEquity * estimatedBookValue * 1.1) {
-                    warningMessage.classList.remove('hidden');
-                    warningText.textContent = `Warning: EPS for year ${i} may be too low relative to book value and cost of equity, which could lead to negative residual income. Consider increasing EPS or reducing book value.`;
-                }
-                eps.push(value);
-            }
-
+            
+            // Calculate intrinsic value using enhanced RIM
             let intrinsicValue = bookValue;
-            let currentBookValue = bookValue;
-            for (let t = 1; t <= numYears; t++) {
-                const residualIncome = eps[t - 1] - (costOfEquity * currentBookValue);
-                intrinsicValue += residualIncome / Math.pow(1 + costOfEquity, t);
-                currentBookValue += eps[t - 1]; // Update book value: BV_t = BV_(t-1) + EPS_t (no dividends)
+            let currentBV = bookValue;
+            const residualIncomes = [];
+            
+            // Forecast period calculation
+            for (let t = 0; t < numYears; t++) {
+                const roe = roeValues[t];
+                const eps = roe * currentBV;
+                const dividends = eps * payoutRatio;
+                const retainedEarnings = eps - dividends;
+                const residualIncome = eps - (costOfEquity * currentBV);
+                
+                intrinsicValue += residualIncome / Math.pow(1 + costOfEquity, t+1);
+                residualIncomes.push(residualIncome);
+                
+                // Update book value for next period
+                currentBV += retainedEarnings;
             }
-
-            // Terminal value calculation
-            const lastEps = eps[eps.length - 1];
-            let lastResidualIncome = lastEps - (costOfEquity * currentBookValue);
-            let isResidualIncomeAdjusted = false;
-            if (lastResidualIncome <= 0) {
-                // Fallback: use a minimal positive residual income
-                lastResidualIncome = lastEps * 0.0001; // 0.01% of last EPS
-                isResidualIncomeAdjusted = true;
-                warningMessage.classList.remove('hidden');
-                warningText.textContent = 'Residual income for the last year was negative or zero. A minimal positive value (0.01% of last EPS) was used for terminal value calculation, which may affect accuracy. Please increase EPS or reduce book value.';
-            }
-            const terminalValue = (lastResidualIncome * (1 + terminalGrowthRate)) / (costOfEquity - terminalGrowthRate);
-            if (isNaN(terminalValue) || terminalValue <= 0) {
-                errorText.textContent = 'Invalid terminal value calculated. Ensure EPS is sufficient relative to book value and cost of equity.';
-                errorMessage.classList.remove('hidden');
-                return;
-            }
+            
+            // Terminal value calculation using long-term ROE
+            const terminalResidualIncome = (longTermROE - costOfEquity) * currentBV;
+            const terminalValue = (terminalResidualIncome * (1 + terminalGrowthRate)) / (costOfEquity - terminalGrowthRate);
             intrinsicValue += terminalValue / Math.pow(1 + costOfEquity, numYears);
-
-            if (isNaN(intrinsicValue) || intrinsicValue < 0) {
-                errorText.textContent = 'Invalid intrinsic value calculated. Please verify input data.';
-                errorMessage.classList.remove('hidden');
-                return;
-            }
-
-            // Update results
-            intrinsicResult.textContent = `GHS ${intrinsicValue.toFixed(2)}`;
-            modelResult.textContent = 'RIM';
+            
+            // Update results with correct currency
+            document.getElementById('currency-symbol').textContent = currencySymbol;
+            document.getElementById('market-price-currency').textContent = currencySymbol;
+            
+            intrinsicResult.innerHTML = `<span id="currency-symbol">${currencySymbol}</span> ${intrinsicValue.toFixed(2)}`;
             costOfEquityResult.textContent = `${(costOfEquity * 100).toFixed(2)}%`;
+            
             if (marketPrice !== null) {
-                marketPriceResultContainer.style.display = 'block';
-                marketPriceResult.textContent = `GHS ${marketPrice.toFixed(2)}`;
-                if (marketPrice < intrinsicValue * 0.85) {
-                    valuationComment.textContent = 'The stock may be significantly undervalued.';
-                    valuationComment.style.color = '#10b981';
-                    intrinsicInterpretation.textContent = 'The calculated intrinsic value is significantly higher than the current market price, suggesting this stock may be a strong buying opportunity.' + (isResidualIncomeAdjusted ? ' Note: Results may be less accurate due to adjusted residual income.' : '');
-                } else if (marketPrice < intrinsicValue * 0.95) {
-                    valuationComment.textContent = 'The stock may be undervalued.';
-                    valuationComment.style.color = '#10b981';
-                    intrinsicInterpretation.textContent = 'The calculated intrinsic value is higher than the current market price, suggesting this stock may be a good buying opportunity.' + (isResidualIncomeAdjusted ? ' Note: Results may be less accurate due to adjusted residual income.' : '');
-                } else if (marketPrice > intrinsicValue * 1.15) {
-                    valuationComment.textContent = 'The stock may be significantly overvalued.';
-                    valuationComment.style.color = '#ef4444';
-                    intrinsicInterpretation.textContent = 'The calculated intrinsic value is significantly lower than the current market price, suggesting caution or potential selling.' + (isResidualIncomeAdjusted ? ' Note: Results may be less accurate due to adjusted residual income.' : '');
-                } else if (marketPrice > intrinsicValue * 1.05) {
-                    valuationComment.textContent = 'The stock may be overvalued.';
-                    valuationComment.style.color = '#ef4444';
-                    intrinsicInterpretation.textContent = 'The calculated intrinsic value is lower than the current market price, suggesting caution.' + (isResidualIncomeAdjusted ? ' Note: Results may be less accurate due to adjusted residual income.' : '');
+                marketPriceResult.innerHTML = `<span id="market-price-currency">${currencySymbol}</span> ${marketPrice.toFixed(2)}`;
+                const marginOfSafety = ((intrinsicValue - marketPrice) / intrinsicValue * 100).toFixed(2);
+                marginOfSafetyResult.textContent = `${marginOfSafety}%`;
+                
+                if (marketPrice < intrinsicValue * 0.8) {
+                    intrinsicInterpretation.textContent = 'The stock appears significantly undervalued relative to its intrinsic value.';
+                } else if (marketPrice < intrinsicValue) {
+                    intrinsicInterpretation.textContent = 'The stock appears modestly undervalued relative to its intrinsic value.';
+                } else if (marketPrice > intrinsicValue * 1.2) {
+                    intrinsicInterpretation.textContent = 'The stock appears significantly overvalued relative to its intrinsic value.';
+                } else if (marketPrice > intrinsicValue) {
+                    intrinsicInterpretation.textContent = 'The stock appears modestly overvalued relative to its intrinsic value.';
                 } else {
-                    valuationComment.textContent = 'The stock appears fairly valued.';
-                    valuationComment.style.color = '#0ea5e9';
-                    intrinsicInterpretation.textContent = 'The calculated intrinsic value is close to the current market price, suggesting fair valuation.' + (isResidualIncomeAdjusted ? ' Note: Results may be less accurate due to adjusted residual income.' : '');
+                    intrinsicInterpretation.textContent = 'The stock appears fairly valued relative to its intrinsic value.';
                 }
             } else {
-                marketPriceResultContainer.style.display = 'none';
-                intrinsicInterpretation.textContent = 'The calculated intrinsic value of the bank stock.' + (isResidualIncomeAdjusted ? ' Note: Results may be less accurate due to adjusted residual income.' : '');
+                marketPriceResult.innerHTML = '<span id="market-price-currency"></span> Not provided';
+                marginOfSafetyResult.textContent = 'N/A';
+                intrinsicInterpretation.textContent = 'The calculated intrinsic value of the bank stock.';
             }
-
+            
+            // Generate sensitivity analysis
+            generateSensitivityAnalysis(bookValue, payoutRatio, roeValues, numYears, longTermROE, costOfEquity, terminalGrowthRate);
+            
             // Show results section
             resultsSection.classList.remove('hidden');
             resultsSection.scrollIntoView({ behavior: 'smooth' });
         });
+        
+        // Generate sensitivity analysis table
+        function generateSensitivityAnalysis(bookValue, payoutRatio, roeValues, numYears, longTermROE, baseCostOfEquity, baseTerminalGrowth) {
+            // Clear previous results
+            sensitivityBody.innerHTML = '';
+            
+            // Define ranges for sensitivity analysis
+            const coeVariations = [baseCostOfEquity - 0.02, baseCostOfEquity, baseCostOfEquity + 0.02];
+            const growthVariations = [baseTerminalGrowth - 0.01, baseTerminalGrowth, baseTerminalGrowth + 0.01];
+            
+            // Generate table rows
+            for (const coe of coeVariations) {
+                const row = document.createElement('tr');
+                
+                // Row header
+                const headerCell = document.createElement('td');
+                headerCell.textContent = `${(coe * 100).toFixed(2)}%`;
+                headerCell.className = 'font-medium';
+                row.appendChild(headerCell);
+                
+                // Calculate intrinsic value for each growth rate
+                for (const growth of growthVariations) {
+                    if (coe <= growth) {
+                        const cell = document.createElement('td');
+                        cell.textContent = 'N/A';
+                        row.appendChild(cell);
+                    } else {
+                        let intrinsicValue = bookValue;
+                        let currentBV = bookValue;
+                        
+                        // Forecast period calculation
+                        for (let t = 0; t < numYears; t++) {
+                            const roe = roeValues[t];
+                            const eps = roe * currentBV;
+                            const dividends = eps * payoutRatio;
+                            const retainedEarnings = eps - dividends;
+                            const residualIncome = eps - (coe * currentBV);
+                            
+                            intrinsicValue += residualIncome / Math.pow(1 + coe, t+1);
+                            
+                            // Update book value for next period
+                            currentBV += retainedEarnings;
+                        }
+                        
+                        // Terminal value calculation
+                        const terminalResidualIncome = (longTermROE - coe) * currentBV;
+                        const terminalValue = (terminalResidualIncome * (1 + growth)) / (coe - growth);
+                        intrinsicValue += terminalValue / Math.pow(1 + coe, numYears);
+                        
+                        const cell = document.createElement('td');
+                        cell.textContent = `${currencySymbol} ${intrinsicValue.toFixed(2)}`;
+                        row.appendChild(cell);
+                    }
+                }
+                
+                sensitivityBody.appendChild(row);
+            }
+        }
 
         // Reset button handler
         resetBtn.addEventListener('click', function() {
             form.reset();
             resultsSection.classList.add('hidden');
-            errorMessage.classList.add('hidden');
-            warningMessage.classList.add('hidden');
-            document.querySelectorAll('.form-error').forEach(el => el.classList.add('hidden'));
-            toggleYearInputs();
-        });
-
-        // Initialize form on page load
-        document.addEventListener('DOMContentLoaded', () => {
-            toggleYearInputs();
-            document.querySelectorAll('input[type="number"]').forEach(input => {
-                input.addEventListener('input', () => validatePositive(input));
-            });
+            document.querySelector('select[name="dividend_policy"]').dispatchEvent(new Event('change'));
         });
     </script>
 </body>
