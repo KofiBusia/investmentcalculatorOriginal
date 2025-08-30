@@ -168,6 +168,24 @@
             background-color: #e0e7ff;
             font-weight: 600;
         }
+        .home-button {
+            display: inline-flex;
+            align-items: center;
+            padding: 10px 20px;
+            background-color: #4f46e5;
+            color: white;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            margin-bottom: 20px;
+        }
+        .home-button:hover {
+            background-color: #3730a3;
+            transform: translateY(-2px);
+        }
+        .roe-input-group {
+            transition: all 0.3s ease;
+        }
     </style>
 </head>
 <body class="text-gray-800">
@@ -195,6 +213,11 @@
 
     <!-- Main Content -->
     <div class="max-w-6xl mx-auto px-4 py-8">
+        <!-- Home Button -->
+        <a href="https://younginvestorcalculator.com/" class="home-button">
+            <i class="fas fa-home mr-2"></i> Back to Home
+        </a>
+
         <!-- How to Use Section -->
         <div class="card p-6 mb-8">
             <h2 class="text-2xl font-bold text-gray-800 mb-6">How to Use This Calculator</h2>
@@ -311,7 +334,7 @@
                 <!-- Forecast Period -->
                 <div>
                     <label for="num_years" class="block text-gray-700 font-medium mb-2">Number of Forecast Years</label>
-                    <select name="num_years" id="num_years" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
+                    <select name="num_years" id="num_years" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" onchange="toggleYearInputs()">
                         <option value="3">3 Years</option>
                         <option value="4">4 Years</option>
                         <option value="5" selected>5 Years</option>
@@ -379,23 +402,23 @@
                     <div class="mt-6">
                         <h4 class="text-lg font-bold text-gray-800 mb-4">Forecasted Return on Equity (ROE) by Year</h4>
                         <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
-                            <div>
+                            <div class="roe-input-group" id="roe_year_1_group">
                                 <label class="block text-gray-700 font-medium mb-2">ROE Year 1 (%)</label>
                                 <input type="number" step="0.01" name="roe_1" placeholder="e.g., 15.0" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
                             </div>
-                            <div>
+                            <div class="roe-input-group" id="roe_year_2_group">
                                 <label class="block text-gray-700 font-medium mb-2">ROE Year 2 (%)</label>
                                 <input type="number" step="0.01" name="roe_2" placeholder="e.g., 15.5" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
                             </div>
-                            <div>
+                            <div class="roe-input-group" id="roe_year_3_group">
                                 <label class="block text-gray-700 font-medium mb-2">ROE Year 3 (%)</label>
                                 <input type="number" step="0.01" name="roe_3" placeholder="e.g., 16.0" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
                             </div>
-                            <div>
+                            <div class="roe-input-group" id="roe_year_4_group" style="display: none;">
                                 <label class="block text-gray-700 font-medium mb-2">ROE Year 4 (%)</label>
                                 <input type="number" step="0.01" name="roe_4" placeholder="e.g., 16.0" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
                             </div>
-                            <div>
+                            <div class="roe-input-group" id="roe_year_5_group" style="display: none;">
                                 <label class="block text-gray-700 font-medium mb-2">ROE Year 5 (%)</label>
                                 <input type="number" step="0.01" name="roe_5" placeholder="e.g., 16.0" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
                             </div>
@@ -504,10 +527,35 @@
                 </div>
             </div>
         </div>
+        
+        <!-- Back to Home Button at Bottom -->
+        <a href="https://younginvestorcalculator.com/" class="home-button">
+            <i class="fas fa-home mr-2"></i> Back to Home
+        </a>
     </div>
     
     <!-- JavaScript -->
     <script>
+        // Function to toggle year inputs based on selected number of years
+        function toggleYearInputs() {
+            const numYears = parseInt(document.getElementById('num_years').value);
+            
+            // Show/hide ROE input groups based on selection
+            for (let i = 1; i <= 5; i++) {
+                const group = document.getElementById(`roe_year_${i}_group`);
+                const input = group.querySelector('input');
+                
+                if (i <= numYears) {
+                    group.style.display = 'block';
+                    input.required = true;
+                } else {
+                    group.style.display = 'none';
+                    input.required = false;
+                    input.value = '';
+                }
+            }
+        }
+        
         // Set initial currency to GHS
         let currentCurrency = 'GHS';
         let currencySymbol = '₵';
@@ -549,8 +597,12 @@
             }
         });
 
-        // Initialize dividend policy on page load
+        // Initialize form on page load
         document.addEventListener('DOMContentLoaded', function() {
+            // Set up year inputs based on default selection
+            toggleYearInputs();
+            
+            // Initialize dividend policy
             document.querySelector('select[name="dividend_policy"]').dispatchEvent(new Event('change'));
         });
 
@@ -582,10 +634,14 @@
             
             // Get ROE values
             const roeValues = [];
-            for (let i = 1; i <= 5; i++) {
+            for (let i = 1; i <= numYears; i++) {
                 const roeInput = document.querySelector(`input[name="roe_${i}"]`);
                 if (roeInput && roeInput.value) {
                     roeValues.push(parseFloat(roeInput.value) / 100);
+                } else {
+                    // If no value provided, use the last available value or default to 15%
+                    const previousValue = i > 1 ? roeValues[i-2] : 0.15;
+                    roeValues.push(previousValue);
                 }
             }
             
@@ -729,6 +785,7 @@
             form.reset();
             resultsSection.classList.add('hidden');
             document.querySelector('select[name="dividend_policy"]').dispatchEvent(new Event('change'));
+            toggleYearInputs(); // Reset year inputs visibility
         });
     </script>
 </body>
