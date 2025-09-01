@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Credit Risk Calculator - InvestIQ</title>
+    <title>Bank Credit Risk Calculator - InvestIQ</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -96,7 +96,7 @@
         }
         .nav-button {
             display: flex;
-            align-items: center;
+            alignMSEs: center;
             padding: 10px 20px;
             background: white;
             border-radius: 8px;
@@ -133,7 +133,7 @@
             border-left: 4px solid #0ea5e9;
         }
         .formula {
-            font-family: 'Courier New', monospace;
+            font-family: 'Courier装置 New', monospace;
             background-color: #f8fafc;
             padding: 15px;
             border-radius: 8px;
@@ -183,6 +183,46 @@
             margin: 10px 0;
             border-left: 4px solid #4f46e5;
         }
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .statement-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        .statement-table th, .statement-table td {
+            padding: 8px;
+            border: 1px solid #e2e8f0;
+        }
+        .statement-table th {
+            background-color: #f1f5f9;
+        }
+        .tab-button {
+            padding: 10px 20px;
+            background: #e2e8f0;
+            border: none;
+            border-radius: 5px 5px 0 0;
+            cursor: pointer;
+            margin-right: 5px;
+        }
+        .tab-button.active {
+            background: #4f46e5;
+            color: white;
+        }
+        .tab-content {
+            display: none;
+            padding: 20px;
+            border: 1px solid #e2e8f0;
+            border-top: none;
+            border-radius: 0 0 5px 5px;
+        }
+        .tab-content.active {
+            display: block;
+        }
     </style>
 </head>
 <body class="text-gray-800">
@@ -198,8 +238,8 @@
                 <a href="/help" class="bg-white text-primary px-4 py-2 rounded-lg font-medium hover:bg-indigo-50 transition-colors">Get Started</a>
             </nav>
             <div class="max-w-3xl">
-                <h1 class="text-4xl md:text-5xl font-bold mb-4">Credit Risk Calculator</h1>
-                <p class="text-xl md:text-2xl text-indigo-100 mb-6">Calculate key credit risk metrics for 3 to 5 years to assess a bank's financial health and risk profile.</p>
+                <h1 class="text-4xl md:text-5xl font-bold mb-4">Bank Credit Risk Calculator</h1>
+                <p class="text-xl md:text-2xl text-indigo-100 mb-6">Calculate key credit risk metrics for Ghanaian banks using financial statements.</p>
                 <div class="flex flex-wrap gap-3">
                     <div class="bg-white/20 px-4 py-2 rounded-full flex items-center">
                         <i class="fas fa-lightbulb mr-2"></i>
@@ -221,62 +261,268 @@
         </div>
 
         <div class="card p-6 mb-8">
-            <h2 class="text-2xl font-bold text-gray-800 mb-4">Calculate Credit Risk Metrics</h2>
-            <p class="text-gray-600 mb-6">Enter financial data for 3 to 5 years to calculate key credit risk metrics for a bank. All monetary values in Ghanaian Cedi (GHS). Example: Use data for Access Bank Ghana (174 million shares).</p>
-            <div class="formula">
-                <p class="text-lg font-semibold">Credit Risk Formulas</p>
-                <p class="text-sm mt-2">1. <strong>Altman Z-Score</strong>: Z = 1.2 × (Working Capital / Total Assets) + 1.4 × (Retained Earnings / Total Assets) + 3.3 × (EBIT / Total Assets) + 0.6 × (Market Value of Equity / Total Liabilities) + 1.0 × (Operating Income / Total Assets)</p>
-                <p class="text-sm mt-2">2. <strong>PCL Ratio</strong>: |Net Impairment Loss| / Loans and Advances to Customers</p>
-                <p class="text-sm mt-2">3. <strong>Net Interest Margin (NIM)</strong>: (Interest Income - Interest Expense) / Earning Assets</p>
-                <p class="text-sm mt-2">4. <strong>Efficiency Ratio</strong>: Non-Interest Expenses / Operating Income</p>
-                <p class="text-sm mt-2">5. <strong>Leverage Ratio</strong>: Total Shareholders’ Equity / Total Assets</p>
-                <p class="text-sm mt-2">6. <strong>Debt to Assets Ratio</strong>: Total Liabilities / Total Assets</p>
-                <p class="text-sm mt-2 text-gray-600">Where Working Capital is current assets minus current liabilities, Earning Assets include loans, advances, investments, and cash, and Non-Interest Expenses include personnel, depreciation, and other expenses.</p>
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Calculate Bank Credit Risk Metrics</h2>
+            <p class="text-gray-600 mb-6">Enter financial statement data for 3 years to calculate key credit risk metrics for a Ghanaian bank. All monetary values in Ghanaian Cedi (GHS).</p>
+            
+            <div class="tabs mb-6">
+                <button class="tab-button active" data-tab="income-statement">Income Statement</button>
+                <button class="tab-button" data-tab="balance-sheet">Balance Sheet</button>
+                <button class="tab-button" data-tab="cash-flow">Cash Flow Statement</button>
+                <button class="tab-button" data-tab="economic-data">Economic Data</button>
             </div>
+            
             <form id="credit-risk-form" class="space-y-6">
-                <div class="bg-indigo-50 p-4 rounded-lg">
-                    <h3 class="text-lg font-semibold text-gray-800 mb-3">Select Number of Years</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="tab-content active" id="income-statement">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-3">Income Statement Data</h3>
+                    <table class="statement-table">
+                        <thead>
+                            <tr>
+                                <th>Description</th>
+                                <th>Year 1 (GH¢'000)</th>
+                                <th>Year 2 (GH¢'000)</th>
+                                <th>Year 3 (GH¢'000)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Interest income</td>
+                                <td><input type="number" name="interest_income_1" class="input-field w-full p-2"></td>
+                                <td><input type="number" name="interest_income_2" class="input-field w-full p-2"></td>
+                                <td><input type="number" name="interest_income_3" class="input-field w-full p-2"></td>
+                            </tr>
+                            <tr>
+                                <td>Interest expense</td>
+                                <td><input type="number" name="interest_expense_1" class="input-field w-full p-2"></td>
+                                <td><input type="number" name="interest_expense_2" class="input-field w-full p-2"></td>
+                                <td><input type="number" name="interest_expense_3" class="input-field w-full p-2"></td>
+                            </tr>
+                            <tr>
+                                <td>Net fee and commission</td>
+                                <td><input type="number" name="net_fee_commission_1" class="input-field w-full p-2"></td>
+                                <td><input type="number" name="net_fee_commission_2" class="input-field w-full p-2"></td>
+                                <td><input type="number" name="net_fee_commission_3" class="input-field w-full p-2"></td>
+                            </tr>
+                            <tr>
+                                <td>Net impairment loss on financial assets</td>
+                                <td><input type="number" name="impairment_loss_1" class="input-field w-full p-2"></td>
+                                <td><input type="number" name="impairment_loss_2" class="input-field w-full p-2"></td>
+                                <td><input type="number" name="impairment_loss_3" class="input-field w-full p-2"></td>
+                            </tr>
+                            <tr>
+                                <td>Net trading income</td>
+                                <td><input type="number" name="trading_income_1" class="input-field w-full p-2"></td>
+                                <td><input type="number" name="trading_income_2" class="input-field w-full p-2"></td>
+                                <td><input type="number" name="trading_income_3" class="input-field w-full p-2"></td>
+                            </tr>
+                            <tr>
+                                <td>Other operating income</td>
+                                <td><input type="number" name="other_income_1" class="input-field w-full p-2"></td>
+                                <td><input type="number" name="other_income_2" class="input-field w-full p-2"></td>
+                                <td><input type="number" name="other_income_3" class="input-field w-full p-2"></td>
+                            </tr>
+                            <tr>
+                                <td>Personnel expenses</td>
+                                <td><input type="number" name="personnel_expenses_1" class="input-field w-full p-2"></td>
+                                <td><input type="number" name="personnel_expenses_2" class="input-field w-full p-2"></td>
+                                <td><input type="number" name="personnel_expenses_3" class="input-field w-full p-2"></td>
+                            </tr>
+                            <tr>
+                                <td>Depreciation and amortization</td>
+                                <td><input type="number" name="depreciation_1" class="input-field w-full p-2"></td>
+                                <td><input type="number" name="depreciation_2" class="input-field w-full p-2"></td>
+                                <td><input type="number" name="depreciation_3" class="input-field w-full p-2"></td>
+                            </tr>
+                            <tr>
+                                <td>Other operating expenses</td>
+                                <td><input type="number" name="other_expenses_1" class="input-field w-full p-2"></td>
+                                <td><input type="number" name="other_expenses_2" class="input-field w-full p-2"></td>
+                                <td><input type="number" name="other_expenses_3" class="input-field w-full p-2"></td>
+                            </tr>
+                            <tr>
+                                <td>Taxation</td>
+                                <td><input type="number" name="taxation_1" class="input-field w-full p-2"></td>
+                                <td><input type="number" name="taxation_2" class="input-field w-full p-2"></td>
+                                <td><input type="number" name="taxation_3" class="input-field w-full p-2"></td>
+                            </tr>
+                            <tr>
+                                <td>Profit after tax</td>
+                                <td><input type="number" name="net_income_1" class="input-field w-full p-2"></td>
+                                <td><input type="number" name="net_income_2" class="input-field w-full p-2"></td>
+                                <td><input type="number" name="net_income_3" class="input-field w-full p-2"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="tab-content" id="balance-sheet">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-3">Balance Sheet Data</h3>
+                    <table class="statement-table">
+                        <thead>
+                            <tr>
+                                <th>Description</th>
+                                <th>Year 1 (GH¢'000)</th>
+                                <th>Year 2 (GH¢'000)</th>
+                                <th>Year 3 (GH¢'000)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Cash and cash equivalents</td>
+                                <td><input type="number" name="cash_equivalents_1" class="input-field w-full p-2"></td>
+                                <td><input type="number" name="cash_equivalents_2" class="input-field w-full p-2"></td>
+                                <td><input type="number" name="cash_equivalents_3" class="input-field w-full p-2"></td>
+                            </tr>
+                            <tr>
+                                <td>Non-pledged trading Assets</td>
+                                <td><input type="number" name="trading_assets_1" class="input-field w-full p-2"></td>
+                                <td><input type="number" name="trading_assets_2" class="input-field w-full p-2"></td>
+                                <td><input type="number" name="trading_assets_3" class="input-field w-full p-2"></td>
+                            </tr>
+                            <tr>
+                                <td>Investment securities</td>
+                                <td><input type="number" name="investment_securities_1" class="input-field w-full p-2"></td>
+                                <td><input type="number" name="investment_securities_2" class="input-field w-full p-2"></td>
+                                <td><input type="number" name="investment_securities_3" class="input-field w-full p-2"></td>
+                            </tr>
+                            <tr>
+                                <td>Loans and advances to customers</td>
+                                <td><input type="number" name="loans_customers_1" class="input-field w-full p-2"></td>
+                                <td><input type="number" name="loans_customers_2" class="input-field w-full p-2"></td>
+                                <td><input type="number" name="loans_customers_3" class="input-field w-full p-2"></td>
+                            </tr>
+                            <tr>
+                                <td>Property, equipment and right-of-use assets</td>
+                                <td><input type="number" name="property_assets_1" class="input-field w-full p-2"></td>
+                                <td><input type="number" name="property_assets_2" class="input-field w-full p-2"></td>
+                                <td><input type="number" name="property_assets_3" class="input-field w-full p-2"></td>
+                            </tr>
+                            <tr>
+                                <td>Other assets</td>
+                                <td><input type="number" name="other_assets_1" class="input-field w-full p-2"></td>
+                                <td><input type="number" name="other_assets_2" class="input-field w-full p-2"></td>
+                                <td><input type="number" name="other_assets_3" class="input-field w-full p-2"></td>
+                            </tr>
+                            <tr>
+                                <td>Deposits from banks</td>
+                                <td><input type="number" name="deposits_banks_1" class="input-field w-full p-2"></td>
+                                <td><input type="number" name="deposits_banks_2" class="input-field w-full p-2"></td>
+                                <td><input type="number" name="deposits_banks_3" class="input-field w-full p-2"></td>
+                            </tr>
+                            <tr>
+                                <td>Deposits from customers</td>
+                                <td><input type="number" name="deposits_customers_1" class="input-field w-full p-2"></td>
+                                <td><input type="number" name="deposits_customers_2" class="input-field w-full p-2"></td>
+                                <td><input type="number" name="deposits_customers_3" class="input-field w-full p-2"></td>
+                            </tr>
+                            <tr>
+                                <td>Borrowings</td>
+                                <td><input type="number" name="borrowings_1" class="input-field w-full p-2"></td>
+                                <td><input type="number" name="borrowings_2" class="input-field w-full p-2"></td>
+                                <td><input type="number" name="borrowings_3" class="input-field w-full p-2"></td>
+                            </tr>
+                            <tr>
+                                <td>Other liabilities</td>
+                                <td><input type="number" name="other_liabilities_1" class="input-field w-full p-2"></td>
+                                <td><input type="number" name="other_liabilities_2" class="input-field w-full p-2"></td>
+                                <td><input type="number" name="other_liabilities_3" class="input-field w-full p-2"></td>
+                            </tr>
+                            <tr>
+                                <td>Total equity</td>
+                                <td><input type="number" name="total_equity_1" class="input-field w-full p-2"></td>
+                                <td><input type="number" name="total_equity_2" class="input-field w-full p-2"></td>
+                                <td><input type="number" name="total_equity_3" class="input-field w-full p-2"></td>
+                            </tr>
+                            <tr>
+                                <td>Market Capitalization</td>
+                                <td><input type="number" name="market_cap_1" class="input-field w-full p-2"></td>
+                                <td><input type="number" name="market_cap_2" class="input-field w-full p-2"></td>
+                                <td><input type="number" name="market_cap_3" class="input-field w-full p-2"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="tab-content" id="cash-flow">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-3">Cash Flow Statement Data</h3>
+                    <table class="statement-table">
+                        <thead>
+                            <tr>
+                                <th>Description</th>
+                                <th>Year 1 (GH¢'000)</th>
+                                <th>Year 2 (GH¢'000)</th>
+                                <th>Year 3 (GH¢'000)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Net cash from operating activities</td>
+                                <td><input type="number" name="cash_operating_1" class="input-field w-full p-2"></td>
+                                <td><input type="number" name="cash_operating_2" class="input-field w-full p-2"></td>
+                                <td><input type="number" name="cash_operating_3" class="input-field w-full p-2"></td>
+                            </tr>
+                            <tr>
+                                <td>Net cash from investing activities</td>
+                                <td><input type="number" name="cash_investing_1" class="input-field w-full p-2"></td>
+                                <td><input type="number" name="cash_investing_2" class="input-field w-full p-2"></td>
+                                <td><input type="number" name="cash_investing_3" class="input-field w-full p-2"></td>
+                            </tr>
+                            <tr>
+                                <td>Net cash from financing activities</td>
+                                <td><input type="number" name="cash_financing_1" class="input-field w-full p-2"></td>
+                                <td><input type="number" name="cash_financing_2" class="input-field w-full p-2"></td>
+                                <td><input type="number" name="cash_financing_3" class="input-field w-full p-2"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="tab-content" id="economic-data">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-3">Economic Data & Forecast Assumptions</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label class="block text-gray-700 font-medium mb-2">Number of Years</label>
-                            <select name="num_years" id="num-years" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
-                                <option value="3">3 Years</option>
-                                <option value="4">4 Years</option>
-                                <option value="5">5 Years</option>
-                            </select>
+                            <label class="block text-gray-700 font-medium mb-2">Ghana Inflation Rate (%)</label>
+                            <input type="number" step="0.1" name="inflation_rate" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
                             <div class="tooltip mt-2">
                                 <i class="fas fa-info-circle text-gray-500"></i>
-                                <span class="tooltiptext">Choose the number of years (3 to 5) for credit risk calculations.</span>
+                                <span class="tooltiptext">Current inflation rate in Ghana (source: Bank of Ghana)</span>
                             </div>
-                            <div class="form-error text-danger text-sm mt-2 hidden" id="num_years-error">Please select a valid number of years.</div>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 font-medium mb-2">GHS Depreciation Rate (%)</label>
+                            <input type="number" step="0.1" name="depreciation_rate" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
+                            <div class="tooltip mt-2">
+                                <i class="fas fa-info-circle text-gray-500"></i>
+                                <span class="tooltiptext">Annual depreciation rate of Ghana Cedi against USD</span>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 font-medium mb-2">Bank of Ghana Policy Rate (%)</label>
+                            <input type="number" step="0.1" name="policy_rate" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
+                            <div class="tooltip mt-2">
+                                <i class="fas fa-info-circle text-gray-500"></i>
+                                <span class="tooltiptext">Central bank's monetary policy rate</span>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 font-medium mb-2">GDP Growth Forecast (%)</label>
+                            <input type="number" step="0.1" name="gdp_growth" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
+                            <div class="tooltip mt-2">
+                                <i class="fas fa-info-circle text-gray-500"></i>
+                                <span class="tooltiptext">Expected GDP growth rate for Ghana</span>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div id="annual-inputs" class="space-y-6"></div>
-                <div class="bg-indigo-50 p-4 rounded-lg">
-                    <h3 class="text-lg font-semibold text-gray-800 mb-3">Additional Parameters</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div>
-                            <label class="block text-gray-700 font-medium mb-2">Start Year</label>
-                            <input type="number" step="1" name="start_year" id="start_year" placeholder="e.g., 2025" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" value="">
-                            <div class="tooltip mt-2">
-                                <i class="fas fa-info-circle text-gray-500"></i>
-                                <span class="tooltiptext">The year for the first data input (Year 1). Set to current year for standard analysis or a past year for backtesting.</span>
-                            </div>
-                            <div class="form-error text-danger text-sm mt-2 hidden" id="start_year-error">Please enter a valid year.</div>
-                        </div>
-                        <div>
-                            <label class="block text-gray-700 font-medium mb-2">Valuation Year</label>
-                            <input type="number" step="1" name="valuation_year" id="valuation_year" placeholder="e.g., 2025" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" value="">
-                            <div class="tooltip mt-2">
-                                <i class="fas fa-info-circle text-gray-500"></i>
-                                <span class="tooltiptext">The year for assessing credit risk metrics (CFA standard). Typically the current year.</span>
-                            </div>
-                            <div class="form-error text-danger text-sm mt-2 hidden" id="valuation_year-error">Please enter a valid year.</div>
-                        </div>
+                    <div class="mt-6">
+                        <label class="block text-gray-700 font-medium mb-2">Forecast Period (Years)</label>
+                        <select name="forecast_years" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
+                            <option value="1">1 Year</option>
+                            <option value="2">2 Years</option>
+                            <option value="3" selected>3 Years</option>
+                        </select>
                     </div>
                 </div>
-                <div class="flex gap-4">
+
+                <div class="flex gap-4 mt-6">
                     <button type="submit" id="calculate-btn" class="px-6 py-3 bg-primary text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors"><i class="fas fa-calculator mr-2"></i> Calculate</button>
                     <button type="reset" class="px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors"><i class="fas fa-eraser mr-2"></i> Clear</button>
                 </div>
@@ -290,65 +536,19 @@
         </div>
 
         <div class="card p-6">
-            <h2 class="text-2xl font-bold text-gray-800 mb-4">Understanding Credit Risk Metrics</h2>
-            <p class="text-gray-600 mb-6">Credit risk metrics assess a bank's financial stability and exposure to loan defaults, crucial for evaluating lending risk and solvency.</p>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                <div class="bg-blue-50 p-5 rounded-lg">
-                    <div class="text-3xl font-bold text-blue-700 mb-2">Low Credit Risk</div>
-                    <h3 class="font-bold text-gray-800 mb-2">Z-Score > 2.99, Low PCL, High NIM</h3>
-                    <p class="text-gray-600">High Z-Score, low PCL Ratio, and strong NIM indicate robust financial health and low default risk.</p>
-                </div>
-                <div class="bg-orange-50 p-5 rounded-lg">
-                    <div class="text-3xl font-bold text-orange-700 mb-2">High Credit Risk</div>
-                    <h3 class="font-bold text-gray-800 mb-2">Z-Score < 1.81, High PCL, Low NIM</h3>
-                    <p class="text-gray-600">Low Z-Score, high PCL Ratio, or declining NIM suggest potential financial distress or high default risk.</p>
-                </div>
-            </div>
-            <h3 class="text-xl font-bold text-gray-800 mt-8 mb-4">How to Use the Credit Risk Calculator</h3>
-            <ol class="list-decimal pl-6 space-y-4">
-                <li><strong>Select Number of Years</strong><p>Choose 3, 4, or 5 years for credit risk analysis in the "Select Number of Years" section.</p></li>
-                <li><strong>Input Annual Financial Data</strong><p>For each selected year, enter the following in GHS (find on gse.com.gh, Yahoo Finance, or annual reports):</p>
-                    <ul class="list-disc list-inside ml-6 space-y-2">
-                        <li><strong>Cash and Cash Equivalents</strong>: From balance sheet, under assets.</li>
-                        <li><strong>Non-Pledged Trading Assets</strong>: From balance sheet, under assets.</li>
-                        <li><strong>Loans and Advances to Customers</strong>: From balance sheet, under assets.</li>
-                        <li><strong>Advances to Banks</strong>: From balance sheet, under assets.</li>
-                        <li><strong>Other Assets</strong>: From balance sheet, under assets.</li>
-                        <li><strong>Deposits from Banks & Other FIs</strong>: From balance sheet, under liabilities.</li>
-                        <li><strong>Deposits from Customers</strong>: From balance sheet, under liabilities.</li>
-                        <li><strong>Current Tax Liabilities</strong>: From balance sheet, under liabilities.</li>
-                        <li><strong>Other Liabilities and Provisions</strong>: From balance sheet, under liabilities.</li>
-                        <li><strong>Retained Earnings</strong>: From balance sheet, under equity.</li>
-                        <li><strong>EBIT</strong>: From income statement, operating profit before interest and taxes.</li>
-                        <li><strong>Operating Income</strong>: From income statement, total operating revenue.</li>
-                        <li><strong>Total Assets</strong>: From balance sheet, total assets.</li>
-                        <li><strong>Total Liabilities</strong>: From balance sheet, total liabilities.</li>
-                        <li><strong>Market Value of Equity</strong>: For past years, use P/E Ratio × Profit (income statement); for current year, use market cap.</li>
-                        <li><strong>Net Impairment Loss</strong>: From income statement, impairment on loans/financial assets.</li>
-                        <li><strong>Interest Income</strong>: From income statement.</li>
-                        <li><strong>Interest Expense</strong>: From income statement.</li>
-                        <li><strong>Investment Securities</strong>: From balance sheet, under assets.</li>
-                        <li><strong>Personnel Expenses</strong>: From income statement.</li>
-                        <li><strong>Depreciation and Amortisation</strong>: From income statement.</li>
-                        <li><strong>Other Expenses</strong>: From income statement.</li>
-                        <li><strong>Total Shareholders’ Equity</strong>: From balance sheet, under equity.</li>
-                    </ul>
-                </li>
-                <li><strong>Enter Additional Parameters</strong><p>Provide the Start Year and Valuation Year for context.</p></li>
-                <li><strong>Calculate Credit Risk Metrics</strong><p>Click "Calculate" to compute the six credit risk metrics for each year.</p></li>
-                <li><strong>Review Results</strong><p>The results section displays:</p>
-                    <ul class="list-disc list-inside ml-6 space-y-2">
-                        <li><strong>Metric Results</strong>: Altman Z-Score, PCL Ratio, NIM, Efficiency Ratio, Leverage Ratio, Debt to Assets Ratio for each year.</li>
-                        <li><strong>Interpretation</strong>: Analysis of credit risk based on Z-Score thresholds and trends in other ratios.</li>
-                        <li><strong>Trend Table</strong>: A table showing metrics across years to identify stability or deterioration.</li>
-                    </ul>
-                </li>
-                <li><strong>Reset and Recalculate</strong><p>Use the "Clear" button to reset inputs or "Calculate Another" in the results section.</p></li>
-            </ol>
-            <div class="flex flex-wrap gap-3 mt-6">
-                <a href="/download_guide" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium flex items-center"><i class="fas fa-download mr-2"></i> Download Guide</a>
-                <a href="/tutorial" class="px-4 py-2 bg-primary text-white rounded-lg font-medium flex items-center"><i class="fas fa-play-circle mr-2"></i> Watch Tutorial</a>
-            </div>
+            <h2 class="text-2xl font-bold text-gray-800 mb-4">Understanding Bank Credit Risk Metrics</h2>
+            <p class="text-gray-600 mb-6">Credit risk metrics are essential tools for assessing a bank's financial stability and its exposure to potential loan defaults. These metrics provide insights into the bank's ability to manage lending risks, maintain solvency, and operate efficiently in the context of Ghana's economic environment. Below is a detailed explanation of the key metrics used in this calculator:</p>
+            <ul class="list-disc pl-6 space-y-2 text-gray-600">
+                <li><strong>Provision for Credit Losses (PCL) Ratio:</strong> Measures the proportion of loans expected to default, calculated as the net impairment loss on financial assets divided by total loans to customers. A lower ratio indicates better loan quality and lower credit risk.</li>
+                <li><strong>Net Interest Margin (NIM):</strong> Represents the profitability of the bank's lending activities, calculated as the difference between interest income and interest expense divided by earning assets. A higher NIM suggests stronger profitability from interest-generating activities.</li>
+                <li><strong>Return on Assets (ROA):</strong> Indicates how efficiently a bank uses its assets to generate profit, calculated as net income divided by total assets. A higher ROA reflects better asset utilization.</li>
+                <li><strong>Return on Equity (ROE):</strong> Measures the return generated on shareholders' equity, calculated as net income divided by total equity. A higher ROE indicates better profitability for shareholders.</li>
+                <li><strong>Efficiency Ratio:</strong> Assesses operational efficiency by comparing non-interest expenses to operating income. A lower ratio indicates better cost management.</li>
+                <li><strong>Leverage Ratio:</strong> Evaluates capital adequacy by comparing total equity to total assets. A higher ratio suggests a stronger capital buffer against potential losses.</li>
+                <li><strong>Debt to Assets Ratio:</strong> Measures the proportion of assets financed by debt, calculated as total liabilities divided by total assets. A lower ratio indicates lower financial risk.</li>
+                <li><strong>Loans to Deposits Ratio:</strong> Reflects liquidity risk by comparing loans to customers with customer deposits. A lower ratio suggests a more conservative lending approach, while a higher ratio may indicate aggressive lending practices.</li>
+            </ul>
+            <p class="text-gray-600 mt-4">These metrics, when analyzed together, provide a comprehensive view of a bank's credit risk profile, helping investors, analysts, and regulators assess its financial health and resilience to economic challenges, particularly in Ghana's unique economic context influenced by factors like inflation and currency depreciation.</p>
         </div>
 
         <div class="card p-6 mb-8">
@@ -357,25 +557,17 @@
                 <span id="help-toggle-icon" class="text-gray-500 text-xl">➕</span>
             </button>
             <div id="help-section" class="hidden mt-4 text-gray-600">
-                <p class="mb-2">To calculate <strong>credit risk metrics</strong>, you need accurate financial data. Here's how to find the required information for global and Ghanaian banks:</p>
-                <ol class="list-decimal pl-6 space-y-4">
-                    <li><strong>Balance Sheet Data</strong><p>Find in the Statement of Financial Position:</p><ul class="list-disc list-inside ml-6 space-y-2"><li><strong>Cash and Cash Equivalents, Non-Pledged Trading Assets, Loans and Advances to Customers, Advances to Banks, Other Assets, Deposits from Banks & Other FIs, Deposits from Customers, Current Tax Liabilities, Other Liabilities, Retained Earnings, Total Assets, Total Liabilities, Total Shareholders’ Equity</strong>: From balance sheet (Yahoo Finance "Financials" > "Balance Sheet" or gse.com.gh).</li></ul></li>
-                    <li><strong>Income Statement Data</strong><p>Find in the Statement of Comprehensive Income:</p><ul class="list-disc list-inside ml-6 space-y-2"><li><strong>EBIT, Operating Income, Net Impairment Loss, Interest Income, Interest Expense, Personnel Expenses, Depreciation and Amortisation, Other Expenses</strong>: From income statement (Yahoo Finance "Financials" > "Income Statement" or gse.com.gh).</li></ul></li>
-                    <li><strong>Market Value of Equity</strong><p>Calculate as P/E Ratio × Profit for past years (income statement) or use market cap for current year (gse.com.gh or Yahoo Finance "Summary").</p></li>
-                    <li><strong>Investment Securities</strong><p>From balance sheet, under assets (Yahoo Finance or gse.com.gh).</p></li>
-                    <li><strong>Tips</strong><ul class="list-disc list-inside ml-6 space-y-2"><li>Verify data from multiple sources for accuracy.</li><li>For Ghanaian banks, check gse.com.gh for financial statements.</li><li>Use historical data for past years and analyst estimates for projections (Yahoo Finance "Analysis" tab).</li></ul></li>
-                </ol>
-                <p class="mt-4"><strong>Example for Access Bank Ghana (2024)</strong>:</p>
-                <ul class="list-disc list-inside ml-6 space-y-2">
-                    <li>Cash and Cash Equivalents: GHS 2,500M</li>
-                    <li>Loans and Advances to Customers: GHS 4,000M</li>
-                    <li>Total Assets: GHS 12,000M</li>
-                    <li>Total Liabilities: GHS 10,500M</li>
-                    <li>Net Impairment Loss: GHS 100M</li>
-                    <li>Interest Income: GHS 800M</li>
-                    <li>Interest Expense: GHS 200M</li>
-                    <li>Market Value of Equity: GHS 2,528M (market cap)</li>
+                <p class="mb-4">Obtaining accurate financial data is critical for calculating credit risk metrics. Below are detailed steps to source the necessary data for Ghanaian banks:</p>
+                <ul class="list-disc pl-6 space-y-2">
+                    <li><strong>Bank Financial Statements:</strong> Access the bank's annual reports, typically available on their official website under the investor relations section. These reports include income statements, balance sheets, and cash flow statements, which provide data for metrics like interest income, net income, total assets, and total equity.</li>
+                    <li><strong>Bank of Ghana Reports:</strong> The Bank of Ghana publishes financial stability reports and banking sector data, which include aggregated figures for loans, deposits, and impairment losses. Visit the Bank of Ghana's website for these reports.</li>
+                    <li><strong>Stock Exchange Data:</strong> For publicly listed banks, market capitalization and other financial metrics can be obtained from the Ghana Stock Exchange (GSE) website or financial data platforms like Bloomberg or Reuters.</li>
+                    <li><strong>Economic Data:</strong> Macroeconomic indicators such as inflation rate, currency depreciation rate, policy rate, and GDP growth forecasts are available from the Bank of Ghana, Ghana Statistical Service, or international organizations like the IMF and World Bank. Check their respective websites for the latest reports.</li>
+                    <li><strong>Regulatory Filings:</strong> Banks submit regulatory filings to the Bank of Ghana, which may include detailed breakdowns of loans, deposits, and provisions for credit losses. These can sometimes be accessed through formal requests or public disclosures.</li>
+                    <li><strong>Financial News and Analyst Reports:</strong> Local financial news outlets and analyst reports from firms like Databank or Stanbic Bank Ghana provide insights into bank performance and economic conditions, which can help contextualize the data.</li>
+                    <li><strong>Third-Party Databases:</strong> Platforms like S&P Global, Moody’s, or Fitch Ratings may provide credit risk data and ratings for major Ghanaian banks, though access may require a subscription.</li>
                 </ul>
+                <p class="mt-4">Ensure all data is in Ghanaian Cedi (GHS) and corresponds to the correct year. Cross-check figures from multiple sources to ensure accuracy, and consult a financial advisor if you are unsure about interpreting the data.</p>
             </div>
         </div>
 
@@ -386,49 +578,6 @@
     </div>
 
     <footer class="bg-dark text-white py-12">
-        <div class="max-w-6xl mx-auto px-4">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
-                <div>
-                    <h3 class="text-lg font-bold mb-4">InvestIQ</h3>
-                    <p class="text-gray-400 mb-4">Empowering investors with advanced tools, insights, and calculators to make smarter financial decisions.</p>
-                    <div class="flex gap-3">
-                        <a href="#" class="w-10 h-10 bg-gray-800 text-white rounded-full flex items-center justify-center hover:bg-primary transition-colors"><i class="fab fa-x-twitter"></i></a>
-                        <a href="#" class="w-10 h-10 bg-gray-800 text-white rounded-full flex items-center justify-center hover:bg-primary transition-colors"><i class="fab fa-linkedin-in"></i></a>
-                        <a href="#" class="w-10 h-10 bg-gray-800 text-white rounded-full flex items-center justify-center hover:bg-primary transition-colors"><i class="fab fa-facebook-f"></i></a>
-                        <a href="#" class="w-10 h-10 bg-gray-800 text-white rounded-full flex items-center justify-center hover:bg-primary transition-colors"><i class="fab fa-youtube"></i></a>
-                    </div>
-                </div>
-                <div>
-                    <h3 class="text-lg font-bold mb-4">Quick Links</h3>
-                    <ul class="space-y-2">
-                        <li><a href="/#calculators" class="text-gray-400 hover:text-white transition-colors flex items-center"><i class="fas fa-calculator mr-2"></i> Calculators</a></li>
-                        <li><a href="/help" class="text-gray-400 hover:text-white transition-colors flex items-center"><i class="fas fa-question-circle mr-2"></i> Help Center</a></li>
-                        <li><a href="/about" class="text-gray-400 hover:text-white transition-colors flex items-center"><i class="fas fa-info-circle mr-2"></i> About Us</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h3 class="text-lg font-bold mb-4">Resources</h3>
-                    <ul class="space-y-2">
-                        <li><a href="/non_portfolio_risk_help" class="text-gray-400 hover:text-white transition-colors flex items-center"><i class="fas fa-book mr-2"></i> Non-Portfolio Risk Guide</a></li>
-                        <li><a href="/portfolio_risk_help" class="text-gray-400 hover:text-white transition-colors flex items-center"><i class="fas fa-book mr-2"></i> Portfolio Risk Guide</a></li>
-                        <li><a href="/bond_risk_help" class="text-gray-400 hover:text-white transition-colors flex items-center"><i class="fas fa-book mr-2"></i> Bond Risk Guide</a></li>
-                        <li><a href="/contact" class="text-gray-400 hover:text-white transition-colors flex items-center"><i class="fas fa-envelope mr-2"></i> Contact Us</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h3 class="text-lg font-bold mb-4">Contact</h3>
-                    <ul class="space-y-2">
-                        <li><a href="mailto:info@cleanvisionhr.com" class="text-gray-400 hover:text-white transition-colors flex items-center"><i class="fas fa-envelope mr-2"></i> info@cleanvisionhr.com</a></li>
-                        <li><a href="tel:+233503566913" class="text-gray-400 hover:text-white transition-colors flex items-center"><i class="fas fa-phone mr-2"></i> +233 50 356 6913</a></li>
-                        <li><a href="/contact" class="text-gray-400 hover:text-white transition-colors flex items-center"><i class="fas fa-map-marker-alt mr-2"></i> Contact Form</a></li>
-                        <li><a href="/faq" class="text-gray-400 hover:text-white transition-colors flex items-center"><i class="fas fa-question-circle mr-2"></i> FAQ</a></li>
-                    </ul>
-                </div>
-            </div>
-            <div class="border-t border-gray-800 pt-6 text-center">
-                <p class="text-gray-400">© 2025 InvestIQ. All rights reserved. | <a href="/privacy" class="text-gray-400 hover:text-white">Privacy Policy</a> | <a href="/terms" class="text-gray-400 hover:text-white">Terms of Service</a></p>
-            </div>
-        </div>
     </footer>
 
     <button id="backToTop" class="back-to-top w-12 h-12 bg-primary text-white rounded-full shadow-lg flex items-center justify-center">
@@ -436,6 +585,19 @@
     </button>
 
     <script>
+        // Tab functionality
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.addEventListener('click', () => {
+                // Remove active class from all tabs and contents
+                document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+                
+                // Add active class to clicked tab and corresponding content
+                button.classList.add('active');
+                document.getElementById(button.dataset.tab).classList.add('active');
+            });
+        });
+
         // Number formatting function
         function formatNumber(value) {
             return parseFloat(value).toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
@@ -451,95 +613,10 @@
         });
 
         // Form elements
-        const numYearsSelect = document.getElementById('num-years');
-        const annualInputs = document.getElementById('annual-inputs');
         const form = document.getElementById('credit-risk-form');
         const resultsSection = document.getElementById('results-section');
         const errorMessage = document.getElementById('error-message');
         const errorText = document.getElementById('error-text');
-
-        let yearCount = parseInt(numYearsSelect.value) || 5;
-        const maxYears = 5;
-
-        // Input field definitions
-        const inputFields = [
-            { name: 'cash_equivalents', label: 'Cash and Cash Equivalents (GHS)', placeholder: 'e.g., 2500000', tooltip: 'From balance sheet, under assets (e.g., 2,500M GHS for Access Bank 2024).' },
-            { name: 'trading_assets', label: 'Non-Pledged Trading Assets (GHS)', placeholder: 'e.g., 500000', tooltip: 'From balance sheet, under assets.' },
-            { name: 'loans_customers', label: 'Loans and Advances to Customers (GHS)', placeholder: 'e.g., 4000000', tooltip: 'From balance sheet, under assets (e.g., 4,000M GHS).' },
-            { name: 'advances_banks', label: 'Advances to Banks (GHS)', placeholder: 'e.g., 200000', tooltip: 'From balance sheet, under assets.' },
-            { name: 'other_assets', label: 'Other Assets (GHS)', placeholder: 'e.g., 1000000', tooltip: 'From balance sheet, under assets.' },
-            { name: 'deposits_banks', label: 'Deposits from Banks & FIs (GHS)', placeholder: 'e.g., 1500000', tooltip: 'From balance sheet, under liabilities.' },
-            { name: 'deposits_customers', label: 'Deposits from Customers (GHS)', placeholder: 'e.g., 8000000', tooltip: 'From balance sheet, under liabilities.' },
-            { name: 'tax_liabilities', label: 'Current Tax Liabilities (GHS)', placeholder: 'e.g., 50000', tooltip: 'From balance sheet, under liabilities.' },
-            { name: 'other_liabilities', label: 'Other Liabilities and Provisions (GHS)', placeholder: 'e.g., 1000000', tooltip: 'From balance sheet, under liabilities.' },
-            { name: 'retained_earnings', label: 'Retained Earnings (GHS)', placeholder: 'e.g., 1500000', tooltip: 'From balance sheet, under equity.' },
-            { name: 'ebit', label: 'EBIT (GHS)', placeholder: 'e.g., 600000', tooltip: 'From income statement, operating profit before interest and taxes.' },
-            { name: 'operating_income', label: 'Operating Income (GHS)', placeholder: 'e.g., 800000', tooltip: 'From income statement, total operating revenue.' },
-            { name: 'total_assets', label: 'Total Assets (GHS)', placeholder: 'e.g., 12000000', tooltip: 'From balance sheet, total assets (e.g., 12,000M GHS).' },
-            { name: 'total_liabilities', label: 'Total Liabilities (GHS)', placeholder: 'e.g., 10500000', tooltip: 'From balance sheet, total liabilities.' },
-            { name: 'market_value_equity', label: 'Market Value of Equity (GHS)', placeholder: 'e.g., 2528100', tooltip: 'P/E Ratio × Profit (past years) or market cap (current year, e.g., 2,528M GHS).' },
-            { name: 'impairment_loss', label: 'Net Impairment Loss (GHS)', placeholder: 'e.g., 100000', tooltip: 'From income statement, impairment on loans/financial assets.' },
-            { name: 'interest_income', label: 'Interest Income (GHS)', placeholder: 'e.g., 800000', tooltip: 'From income statement.' },
-            { name: 'interest_expense', label: 'Interest Expense (GHS)', placeholder: 'e.g., 200000', tooltip: 'From income statement.' },
-            { name: 'investment_securities', label: 'Investment Securities (GHS)', placeholder: 'e.g., 3000000', tooltip: 'From balance sheet, under assets.' },
-            { name: 'personnel_expenses', label: 'Personnel Expenses (GHS)', placeholder: 'e.g., 250000', tooltip: 'From income statement.' },
-            { name: 'depreciation', label: 'Depreciation and Amortisation (GHS)', placeholder: 'e.g., 60000', tooltip: 'From income statement.' },
-            { name: 'other_expenses', label: 'Other Expenses (GHS)', placeholder: 'e.g., 150000', tooltip: 'From income statement.' },
-            { name: 'shareholders_equity', label: 'Total Shareholders’ Equity (GHS)', placeholder: 'e.g., 1500000', tooltip: 'From balance sheet, under equity.' }
-        ];
-
-        // Render dynamic year inputs
-        function renderYearInputs() {
-            annualInputs.innerHTML = '';
-            for (let i = 1; i <= maxYears; i++) {
-                const yearSection = document.createElement('div');
-                yearSection.className = `bg-indigo-50 p-4 rounded-lg year-section ${i > yearCount ? 'hidden' : ''}`;
-                yearSection.id = `year-${i}-section`;
-                yearSection.setAttribute('data-year', i);
-                yearSection.innerHTML = `
-                    <div class="flex justify-between items-center">
-                        <h3 class="text-lg font-semibold text-gray-800 mb-3">Year ${i}</h3>
-                        ${i > 1 ? `<button type="button" class="remove-year text-red-500 hover:text-red-700" data-year="${i}"><i class="fas fa-trash"></i></button>` : ''}
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 dynamic-inputs"></div>
-                `;
-                const dynamicInputs = yearSection.querySelector('.dynamic-inputs');
-                inputFields.forEach(field => {
-                    const { name, label, placeholder, tooltip } = field;
-                    dynamicInputs.insertAdjacentHTML('beforeend', `
-                        <div>
-                            <label class="block text-gray-700 font-medium mb-2">${label}</label>
-                            <input type="number" step="any" name="${name}_${i}" placeholder="${placeholder}" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
-                            <div class="tooltip mt-2"><i class="fas fa-info-circle text-gray-500"></i><span class="tooltiptext">${tooltip}</span></div>
-                            <div class="form-error text-danger text-sm mt-2 hidden" id="${name}_${i}-error">Please enter a valid number.</div>
-                        </div>
-                    `);
-                });
-                annualInputs.appendChild(yearSection);
-            }
-            document.querySelectorAll('.remove-year').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const year = parseInt(btn.getAttribute('data-year'));
-                    document.getElementById(`year-${year}-section`).remove();
-                    yearCount--;
-                    numYearsSelect.value = yearCount;
-                    toggleYearSections();
-                });
-            });
-        }
-
-        // Toggle year sections based on selected number of years
-        function toggleYearSections() {
-            yearCount = parseInt(numYearsSelect.value);
-            const yearSections = document.querySelectorAll('.year-section');
-            yearSections.forEach((section, index) => {
-                const year = index + 1;
-                section.classList.toggle('hidden', year > yearCount);
-                if (year > yearCount) {
-                    section.querySelectorAll('input[type="number"]').forEach(input => input.value = '');
-                }
-            });
-        }
 
         // Toggle help section
         function toggleHelpSection() {
@@ -557,73 +634,78 @@
 
             // Collect form data
             const formData = new FormData(e.target);
-            const numYears = parseInt(formData.get('num_years'));
-            const startYear = parseInt(formData.get('start_year'));
-            const valuationYear = parseInt(formData.get('valuation_year'));
+            const inflationRate = parseFloat(formData.get('inflation_rate')) / 100;
+            const depreciationRate = parseFloat(formData.get('depreciation_rate')) / 100;
+            const policyRate = parseFloat(formData.get('policy_rate')) / 100;
+            const gdpGrowth = parseFloat(formData.get('gdp_growth')) / 100;
+            const forecastYears = parseInt(formData.get('forecast_years'));
 
             // Validate inputs
             let errors = [];
-            if (isNaN(numYears) || numYears < 3 || numYears > 5) {
-                errors.push('Please select a valid number of years (3–5).');
-                document.getElementById('num_years-error').classList.remove('hidden');
-            }
-            if (isNaN(startYear) || startYear < 2000) {
-                errors.push('Start Year must be a valid year.');
-                document.getElementById('start_year-error').classList.remove('hidden');
-            }
-            if (isNaN(valuationYear) || valuationYear < 2000) {
-                errors.push('Valuation Year must be a valid year.');
-                document.getElementById('valuation_year-error').classList.remove('hidden');
+            if (isNaN(inflationRate) || isNaN(depreciationRate) || isNaN(policyRate) || isNaN(gdpGrowth)) {
+                errors.push('Please enter valid economic data.');
             }
 
-            const creditRiskData = [];
-            for (let i = 1; i <= numYears; i++) {
+            // Collect financial data for 3 years
+            const financialData = [];
+            for (let i = 1; i <= 3; i++) {
                 const data = {};
-                let yearValid = true;
-                inputFields.forEach(field => {
-                    const value = parseFloat(formData.get(`${field.name}_${i}`));
-                    if (isNaN(value)) {
-                        errors.push(`Please enter valid numbers for Year ${i}.`);
-                        document.getElementById(`${field.name}_${i}-error`).classList.remove('hidden');
-                        yearValid = false;
-                    }
-                    data[field.name] = value;
-                });
-
-                if (yearValid) {
-                    // Calculate Working Capital
-                    const workingCapital = (data.cash_equivalents + data.trading_assets + data.loans_customers + data.advances_banks + data.other_assets) -
-                                          (data.deposits_banks + data.deposits_customers + data.tax_liabilities + data.other_liabilities);
-                    // Calculate Earning Assets
-                    const earningAssets = data.loans_customers + data.advances_banks + data.investment_securities + data.cash_equivalents;
-                    // Calculate Non-Interest Expenses
-                    const nonInterestExpenses = data.personnel_expenses + data.depreciation + data.other_expenses;
-                    // Calculate Ratios
-                    const zScore = (1.2 * (workingCapital / data.total_assets)) +
-                                   (1.4 * (data.retained_earnings / data.total_assets)) +
-                                   (3.3 * (data.ebit / data.total_assets)) +
-                                   (0.6 * (data.market_value_equity / data.total_liabilities)) +
-                                   (1.0 * (data.operating_income / data.total_assets));
-                    const pclRatio = Math.abs(data.impairment_loss) / data.loans_customers;
-                    const nim = (data.interest_income - data.interest_expense) / earningAssets;
-                    const efficiencyRatio = nonInterestExpenses / data.operating_income;
-                    const leverageRatio = data.shareholders_equity / data.total_assets;
-                    const debtToAssets = data.total_liabilities / data.total_assets;
-
-                    creditRiskData.push({
-                        year: i,
-                        working_capital: workingCapital,
-                        earning_assets: earningAssets,
-                        non_interest_expenses: nonInterestExpenses,
-                        z_score: zScore,
-                        pcl_ratio: pclRatio,
-                        nim: nim,
-                        efficiency_ratio: efficiencyRatio,
-                        leverage_ratio: leverageRatio,
-                        debt_to_assets: debtToAssets,
-                        ...data
-                    });
-                }
+                
+                // Income statement data
+                data.interest_income = parseFloat(formData.get(`interest_income_${i}`));
+                data.interest_expense = parseFloat(formData.get(`interest_expense_${i}`));
+                data.net_fee_commission = parseFloat(formData.get(`net_fee_commission_${i}`));
+                data.impairment_loss = parseFloat(formData.get(`impairment_loss_${i}`));
+                data.trading_income = parseFloat(formData.get(`trading_income_${i}`));
+                data.other_income = parseFloat(formData.get(`other_income_${i}`));
+                data.personnel_expenses = parseFloat(formData.get(`personnel_expenses_${i}`));
+                data.depreciation = parseFloat(formData.get(`depreciation_${i}`));
+                data.other_expenses = parseFloat(formData.get(`other_expenses_${i}`));
+                data.taxation = parseFloat(formData.get(`taxation_${i}`));
+                data.net_income = parseFloat(formData.get(`net_income_${i}`));
+                
+                // Balance sheet data
+                data.cash_equivalents = parseFloat(formData.get(`cash_equivalents_${i}`));
+                data.trading_assets = parseFloat(formData.get(`trading_assets_${i}`));
+                data.investment_securities = parseFloat(formData.get(`investment_securities_${i}`));
+                data.loans_customers = parseFloat(formData.get(`loans_customers_${i}`));
+                data.property_assets = parseFloat(formData.get(`property_assets_${i}`));
+                data.other_assets = parseFloat(formData.get(`other_assets_${i}`));
+                data.deposits_banks = parseFloat(formData.get(`deposits_banks_${i}`));
+                data.deposits_customers = parseFloat(formData.get(`deposits_customers_${i}`));
+                data.borrowings = parseFloat(formData.get(`borrowings_${i}`));
+                data.other_liabilities = parseFloat(formData.get(`other_liabilities_${i}`));
+                data.total_equity = parseFloat(formData.get(`total_equity_${i}`));
+                data.market_cap = parseFloat(formData.get(`market_cap_${i}`));
+                
+                // Cash flow data
+                data.cash_operating = parseFloat(formData.get(`cash_operating_${i}`));
+                data.cash_investing = parseFloat(formData.get(`cash_investing_${i}`));
+                data.cash_financing = parseFloat(formData.get(`cash_financing_${i}`));
+                
+                // Calculate derived metrics
+                data.total_assets = data.cash_equivalents + data.trading_assets + data.investment_securities + 
+                                  data.loans_customers + data.property_assets + data.other_assets;
+                
+                data.total_liabilities = data.deposits_banks + data.deposits_customers + data.borrowings + data.other_liabilities;
+                
+                data.operating_income = data.interest_income + data.net_fee_commission + data.trading_income + data.other_income;
+                
+                data.non_interest_expenses = data.personnel_expenses + data.depreciation + data.other_expenses;
+                
+                data.earning_assets = data.loans_customers + data.investment_securities + data.cash_equivalents;
+                
+                // Calculate ratios
+                data.pcl_ratio = Math.abs(data.impairment_loss) / data.loans_customers;
+                data.nim = (data.interest_income - Math.abs(data.interest_expense)) / data.earning_assets;
+                data.efficiency_ratio = Math.abs(data.non_interest_expenses) / data.operating_income;
+                data.leverage_ratio = data.total_equity / data.total_assets;
+                data.debt_to_assets = data.total_liabilities / data.total_assets;
+                data.roa = data.net_income / data.total_assets;
+                data.roe = data.net_income / data.total_equity;
+                data.loans_to_deposits = data.loans_customers / data.deposits_customers;
+                
+                financialData.push(data);
             }
 
             if (errors.length > 0) {
@@ -634,106 +716,197 @@
             }
 
             // Calculate averages
-            const avgZScore = creditRiskData.reduce((sum, item) => sum + item.z_score, 0) / numYears;
-            const avgPclRatio = creditRiskData.reduce((sum, item) => sum + item.pcl_ratio, 0) / numYears;
-            const avgNim = creditRiskData.reduce((sum, item) => sum + item.nim, 0) / numYears;
-            const avgEfficiencyRatio = creditRiskData.reduce((sum, item) => sum + item.efficiency_ratio, 0) / numYears;
-            const avgLeverageRatio = creditRiskData.reduce((sum, item) => sum + item.leverage_ratio, 0) / numYears;
-            const avgDebtToAssets = creditRiskData.reduce((sum, item) => sum + item.debt_to_assets, 0) / numYears;
+            const avgPclRatio = financialData.reduce((sum, item) => sum + item.pcl_ratio, 0) / 3;
+            const avgNim = financialData.reduce((sum, item) => sum + item.nim, 0) / 3;
+            const avgEfficiencyRatio = financialData.reduce((sum, item) => sum + item.efficiency_ratio, 0) / 3;
+            const avgLeverageRatio = financialData.reduce((sum, item) => sum + item.leverage_ratio, 0) / 3;
+            const avgDebtToAssets = financialData.reduce((sum, item) => sum + item.debt_to_assets, 0) / 3;
+            const avgRoa = financialData.reduce((sum, item) => sum + item.roa, 0) / 3;
+            const avgRoe = financialData.reduce((sum, item) => sum + item.roe, 0) / 3;
+            const avgLoansToDeposits = financialData.reduce((sum, item) => sum + item.loans_to_deposits, 0) / 3;
+
+            // Create forecasts
+            const forecastData = [];
+            const latestData = financialData[2]; // Use Year 3 as base for forecasting
+            
+            for (let i = 1; i <= forecastYears; i++) {
+                const forecast = {
+                    year: 2025 + i,
+                    // Apply growth rates with economic factors
+                    loans_customers: latestData.loans_customers * (1 + gdpGrowth * 1.2 - inflationRate * 0.5),
+                    deposits_customers: latestData.deposits_customers * (1 + gdpGrowth * 0.8 - inflationRate * 0.3),
+                    net_income: latestData.net_income5050 * (1 + gdpGrowth * 1.1 - inflationRate * 0.4),
+                    total_assets: latestData.total_assets * (1 + gdpGrowth * 0.9 - inflationRate * 0.2),
+                    total_equity: latestData.total_equity * (1 + gdpGrowth * 0.7 - inflationRate * 0.1),
+                    interest_income: latestData.interest_income * (1 + policyRate * 0.8 - inflationRate * 0.3),
+                    interest_expense: latestData.interest_expense * (1 + policyRate * 0.6 - inflationRate * 0.2),
+                    impairment_loss: latestData.impairment_loss * (1 + depreciationRate * 0.5 + inflationRate * 0.4)
+                };
+                
+                // Calculate forecasted ratios
+                forecast.pcl_ratio = Math.abs(forecast.impairment_loss) / forecast.loans_customers;
+                forecast.nim = (forecast.interest_income - Math.abs(forecast.interest_expense)) / (forecast.loans_customers * 0.7 + forecast.total_assets * 0.3);
+                forecast.roa = forecast.net_income / forecast.total_assets;
+                forecast.roe = forecast.net_income / forecast.total_equity;
+                forecast.loans_to_deposits = forecast.loans_customers / forecast.deposits_customers;
+                
+                forecastData.push(forecast);
+            }
 
             // Interpretation
             let interpretation = '';
-            if (avgZScore > 2.99) {
-                interpretation = 'The bank exhibits <strong>low credit risk</strong> (Z-Score > 2.99), indicating strong financial stability.';
-            } else if (avgZScore >= 1.81 && avgZScore <= 2.99) {
-                interpretation = 'The bank is in the <strong>grey zone</strong> (Z-Score 1.81–2.99), suggesting moderate credit risk and potential financial uncertainty.';
+            
+            // PCL Ratio interpretation
+            if (avgPclRatio < 0.01) {
+                interpretation += 'The bank exhibits <strong>excellent loan quality</strong> (PCL Ratio < 1%), indicating minimal credit losses.';
+            } else if (avgPclRatio >= 0.01 && avgPclRatio <= 0.03) {
+                interpretation += 'The bank shows <strong>good loan quality</strong> (PCL Ratio 1-3%), with manageable credit losses.';
             } else {
-                interpretation = 'The bank shows <strong>high credit risk</strong> (Z-Score < 1.81), indicating a high likelihood of financial distress.';
+                interpretation += 'The bank shows <strong>concerning loan quality</strong> (PCL Ratio > 3%), indicating elevated credit risk.';
             }
-            interpretation += `<br>Average PCL Ratio (${(avgPclRatio * 100).toFixed(2)}%) reflects loan quality; higher values indicate riskier loans.`;
-            interpretation += `<br>Average NIM (${(avgNim * 100).toFixed(2)}%) shows profitability from lending; declining NIM may signal credit risk issues.`;
-            interpretation += `<br>Average Efficiency Ratio (${(avgEfficiencyRatio * 100).toFixed(2)}%) indicates operational efficiency; higher ratios suggest lower loss absorption capacity.`;
-            interpretation += `<br>Average Leverage Ratio (${(avgLeverageRatio * 100).toFixed(2)}%) shows capital adequacy; higher ratios indicate stronger buffers against losses.`;
-            interpretation += `<br>Average Debt to Assets Ratio (${(avgDebtToAssets * 100).toFixed(2)}%) reflects leverage; higher ratios increase risk if assets underperform.`;
+            
+            // NIM interpretation
+            interpretation += `<br>Average NIM (${(avgNim * 100).toFixed(2)}%) shows profitability from lending; ${avgNim > 0.035 ? 'strong' : 'weak'} net interest income generation.`;
+            
+            // ROA and ROE interpretation
+            interpretation += `<br>Average ROA (${(avgRoa * 100).toFixed(2)}%) and ROE (${(avgRoe * 100).toFixed(2)}%) indicate ${avgRoa > 0.01 ? 'satisfactory' : 'subpar'} profitability and efficiency.`;
+            
+            // Leverage interpretation
+            interpretation += `<br>Average Leverage Ratio (${(avgLeverageRatio * 100).toFixed(2)}%) shows capital adequacy; ${avgLeverageRatio > 0.1 ? 'strong' : 'weak'} capital buffer against losses.`;
+            
+            // Loans to Deposits interpretation
+            interpretation += `<br>Average Loans to Deposits Ratio (${(avgLoansToDeposits * 100).toFixed(2)}%) reflects liquidity risk; ${avgLoansToDeposits < 0.8 ? 'conservative' : 'aggressive'} lending relative to deposit base.`;
+
+            // Economic context
+            interpretation += `<br><br>Considering Ghana's economic context:`;
+            interpretation += `<br>- Inflation rate: ${(inflationRate * 100).toFixed(1)}% may ${inflationRate > 0.15 ? 'increase' : 'moderate'} credit risk`;
+            interpretation += `<br>- Currency depreciation: ${(depreciationRate * 100).toFixed(1)}% affects foreign currency loans`;
+            interpretation += `<br>- Policy rate: ${(policyRate * 100).toFixed(1)}% influences borrowing costs and NIM`;
 
             // Warning for high risk
             let warning = '';
-            if (avgZScore < 1.81 || avgPclRatio > 0.05 || avgNim < 0.03 || avgEfficiencyRatio > 0.7 || avgDebtToAssets > 0.9) {
-                warning = 'Warning: High credit risk detected. Low Z-Score (<1.81), high PCL Ratio (>5%), low NIM (<3%), high Efficiency Ratio (>70%), or high Debt to Assets Ratio (>90%) suggest potential financial distress.';
+            if (avgPclRatio > 0.05 || avgNim < 0.02 || avgRoa < 0.005 || avgLeverageRatio < 0.08) {
+                warning = 'Warning: Elevated credit risk detected. High PCL Ratio (>5%), low NIM (<2%), low ROA (<0.5%), or low LeverageThai Ratio (<8%) suggest potential financial stress.';
             }
 
             // Update results section
-            const scenario = startYear < valuationYear ? 'Past Data Analysis' : 'Current/Future Analysis';
             resultsSection.innerHTML = `
                 ${warning ? `
                 <div id="warning-message" class="warning-message">
                     <p class="font-medium" id="warning-text"><i class="fas fa-exclamation-triangle mr-2"></i>${warning}</p>
                 </div>
                 ` : ''}
-                <h3 class="text-xl font-bold text-gray-800 mb-4">Credit Risk Results</h3>
+                <h3 class="text-xl font-bold text-gray-800 mb-4">Bank Credit Risk Results</h3>
                 <div class="timeline-diagram" id="timeline-diagram">
-Scenario: ${scenario}
-Valuation Year: ${valuationYear}
-Data Years: ${startYear} [Year 1] — ${startYear + 1} [Year 2] — ${startYear + 2} [Year 3]${numYears > 3 ? ` — ${startYear + 3} [Year 4]` : ''}${numYears > 4 ? ` — ${startYear + 4} [Year 5]` : ''}
+Analysis Period: Year 1-Year 3
+Forecast Period: ${forecastYears} years (2026-${2025 + forecastYears})
+Economic Context: Inflation ${(inflationRate * 100).toFixed(1)}%, Policy Rate ${(policyRate * 100).toFixed(1)}%
                 </div>
                 <div class="text-center mb-6">
-                    <p class="text-gray-600" id="credit-risk-years-text">Credit Risk Metrics for ${numYears} Years</p>
-                    <div class="result-box">
-                        <p class="font-medium">Average Altman Z-Score</p>
-                        <p class="target-price" id="z-score-average-result">${formatNumber(avgZScore)}</p>
-                    </div>
-                    <div class="result-box">
-                        <p class="font-medium">Average PCL Ratio</p>
-                        <p class="target-price" id="pcl-ratio-average-result">${(avgPclRatio * 100).toFixed(2)}%</p>
-                    </div>
-                    <div class="result-box">
-                        <p class="font-medium">Average Net Interest Margin (NIM)</p>
-                        <p class="target-price" id="nim-average-result">${(avgNim * 100).toFixed(2)}%</p>
-                    </div>
-                    <div class="result-box">
-                        <p class="font-medium">Average Efficiency Ratio</p>
-                        <p class="target-price" id="efficiency-ratio-average-result">${(avgEfficiencyRatio * 100).toFixed(2)}%</p>
-                    </div>
-                    <div class="result-box">
-                        <p class="font-medium">Average Leverage Ratio</p>
-                        <p class="target-price" id="leverage-ratio-average-result">${(avgLeverageRatio * 100).toFixed(2)}%</p>
-                    </div>
-                    <div class="result-box">
-                        <p class="font-medium">Average Debt to Assets Ratio</p>
-                        <p class="target-price" id="debt-to-assets-average-result">${(avgDebtToAssets * 100).toFixed(2)}%</p>
+                    <p class="text-gray-600" id="credit-risk-years-text">Historical Credit Risk Metrics (Year 1-Year 3)</p>
+                    <div class="metrics-grid">
+                        <div class="result-box">
+                            <p class="font-medium">Average PCL Ratio</p>
+                            <p class="target-price" id="pcl-ratio-average-result">${(avgPclRatio * 100).toFixed(2)}%</p>
+                        </div>
+                        <div class="result-box">
+                            <p class="font-medium">Average Net Interest Margin (NIM)</p>
+                            <p class="target-price" id="nim-average-result">${(avgNim * 100).toFixed(2)}%</p>
+                        </div>
+                        <div class="result-box">
+                            <p class="font-medium">Average Return on Assets (ROA)</p>
+                            <p class="target-price" id="roa-average-result">${(avgRoa * 100).toFixed(2)}%</p>
+                        </div>
+                        <div class="result-box">
+                            <p class="font-medium">Average Return on Equity (ROE)</p>
+                            <p class="target-price" id="roe-average-result">${(avgRoe * 100).toFixed(2)}%</p>
+                        </div>
+                        <div class="result-box">
+                            <p class="font-medium">Average Efficiency Ratio</p>
+                            <p class="target-price" id="efficiency-ratio-average-result">${(avgEfficiencyRatio * 100).toFixed(2)}%</p>
+                        </div>
+                        <div class="result-box">
+                            <p class="font-medium">Average Leverage Ratio</p>
+                            <p class="target-price" id="leverage-ratio-average-result">${(avgLeverageRatio * 100).toFixed(2)}%</p>
+                        </div>
+                        <div class="result-box">
+                            <p class="font-medium">Average Debt to Assets Ratio</p>
+                            <p class="target-price" id="debt-to-assets-average-result">${(avgDebtToAssets * 100).toFixed(2)}%</p>
+                        </div>
+                        <div class="result-box">
+                            <p class="font-medium">Average Loans to Deposits Ratio</p>
+                            <p class="target-price" id="loans-to-deposits-average-result">${(avgLoansToDeposits * 100).toFixed(2)}%</p>
+                        </div>
                     </div>
                     <div class="target-interpretation">
                         <p class="font-medium">Interpretation:</p>
                         <p id="target-interpretation-text">${interpretation}</p>
                     </div>
                 </div>
-                <h4 class="text-lg font-bold text-gray-800 mb-3">Credit Risk Metrics by Year</h4>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Year</th>
-                            <th>Altman Z-Score</th>
-                            <th>PCL Ratio (%)</th>
-                            <th>NIM (%)</th>
-                            <th>Efficiency Ratio (%)</th>
-                            <th>Leverage Ratio (%)</th>
-                            <th>Debt to Assets (%)</th>
-                        </tr>
-                    </thead>
-                    <tbody id="credit-risk-results-table">
-                        ${creditRiskData.map(item => `
-                        <tr>
-                            <td>Year ${item.year}</td>
-                            <td>${formatNumber(item.z_score)}</td>
-                            <td>${(item.pcl_ratio * 100).toFixed(2)}</td>
-                            <td>${(item.nim * 100).toFixed(2)}</td>
-                            <td>${(item.efficiency_ratio * 100).toFixed(2)}</td>
-                            <td>${(item.leverage_ratio * 100).toFixed(2)}</td>
-                            <td>${(item.debt_to_assets * 100).toFixed(2)}</td>
-                        </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
+                
+                ${forecastYears > 0 ? `
+                <h4 class="text-lg font-bold text-gray-800 mb-3">Forecasted Credit Risk Metrics</h4>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Year</th>
+                                <th>PCL Ratio (%)</th>
+                                <th>NIM (%)</th>
+                                <th>ROA (%)</th>
+                                <th>ROE (%)</th>
+                                <th>Loans to Deposits (%)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${forecastData.map(item => `
+                            <tr>
+                                <td>${item.year}</td>
+                                <td>${(item.pcl_ratio * 100).toFixed(2)}</td>
+                                <td>${(item.nim * 100).toFixed(2)}</td>
+                                <td>${(item.roa * 100).toFixed(2)}</td>
+                                <td>${(item.roe * 100).toFixed(2)}</td>
+                                <td>${(item.loans_to_deposits * 100).toFixed(2)}</td>
+                            </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+                ` : ''}
+                
+                <h4 class="text-lg font-bold text-gray-800 mb-3 mt-6">Historical Credit Risk Metrics by Year</h4>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Year</th>
+                                <th>PCL Ratio (%)</th>
+                                <th>NIM (%)</th>
+                                <th>ROA (%)</th>
+                                <th>ROE (%)</th>
+                                <th>Efficiency Ratio (%)</th>
+                                <th>Leverage Ratio (%)</th>
+                                <th>Debt to Assets (%)</th>
+                                <th>Loans to Deposits (%)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${financialData.map((item, index) => `
+                            <tr>
+                                <td>Year ${index + 1}</td>
+                                <td>${(item.pcl_ratio * 100).toFixed(2)}</td>
+                                <td>${(item.nim * 100).toFixed(2)}</td>
+                                <td>${(item.roa * 100).toFixed(2)}</td>
+                                <td>${(item.roe * 100).toFixed(2)}</td>
+                                <td>${(item.efficiency_ratio * 100).toFixed(2)}</td>
+                                <td>${(item.leverage_ratio * 100).toFixed(2)}</td>
+                                <td>${(item.debt_to_assets * 100).toFixed(2)}</td>
+                                <td>${(item.loans_to_deposits * 100).toFixed(2)}</td>
+                            </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
                 <button id="reset-calculator" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium flex items-center inline-block mt-6"><i class="fas fa-redo mr-2"></i> Calculate Another</button>
             `;
             resultsSection.classList.remove('hidden');
@@ -741,45 +914,19 @@ Data Years: ${startYear} [Year 1] — ${startYear + 1} [Year 2] — ${startYear 
 
         // Reset form
         form.addEventListener('reset', () => {
-            yearCount = 5;
-            numYearsSelect.value = '5';
             resultsSection.classList.add('hidden');
             document.querySelectorAll('.form-error').forEach(el => el.classList.add('hidden'));
             errorMessage.classList.add('hidden');
-            form.querySelector('#start_year').value = '';
-            form.querySelector('#valuation_year').value = '';
-            renderYearInputs();
         });
 
         // Initialize reset button
         document.getElementById('results-section').addEventListener('click', (e) => {
             if (e.target.id === 'reset-calculator') {
                 form.reset();
-                yearCount = 5;
-                numYearsSelect.value = '5';
                 resultsSection.classList.add('hidden');
                 document.querySelectorAll('.form-error').forEach(el => el.classList.add('hidden'));
                 errorMessage.classList.add('hidden');
-                form.querySelector('#start_year').value = '';
-                form.querySelector('#valuation_year').value = '';
-                renderYearInputs();
             }
-        });
-
-        // Initialize inputs on load
-        document.addEventListener('DOMContentLoaded', () => {
-            document.querySelectorAll('input[type="number"]').forEach(input => {
-                input.addEventListener('input', () => {
-                    if (input.value === '' || isNaN(parseFloat(input.value))) {
-                        input.setCustomValidity('Please enter a valid number.');
-                        input.reportValidity();
-                    } else {
-                        input.setCustomValidity('');
-                    }
-                });
-            });
-            numYearsSelect.addEventListener('change', toggleYearSections);
-            renderYearInputs();
         });
     </script>
 </body>
