@@ -179,14 +179,86 @@
             border: 1px solid #e2e8f0;
         }
 
-        .return-input-group {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 15px;
+        .period-input {
+            display: none;
         }
 
-        .return-input-group > div {
-            flex: 1;
+        .period-input.active {
+            display: block;
+        }
+
+        .period-label {
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .period-input-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 12px;
+            align-items: center;
+        }
+
+        .period-input-row .period-text {
+            min-width: 80px;
+            font-weight: 500;
+            color: #4f46e5;
+            grid-column: 1;
+        }
+
+        .period-input-row input {
+            grid-column: span 1;
+        }
+
+        .return-display {
+            background-color: #f0fdf4;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-weight: 500;
+            color: #166534;
+            text-align: center;
+        }
+
+        .return-display.negative {
+            background-color: #fef2f2;
+            color: #991b1b;
+        }
+
+        @media (max-width: 768px) {
+            .period-input-row {
+                grid-template-columns: 1fr;
+            }
+            .period-input-row .period-text {
+                grid-column: 1;
+            }
+            .period-input-row input,
+            .period-input-row .return-display {
+                grid-column: 1;
+            }
+        }
+        
+        .input-error {
+            border-color: #ef4444 !important;
+            box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.25) !important;
+        }
+        
+        .period-container {
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
+            background-color: #f8fafc;
+        }
+        
+        .period-header {
+            font-weight: 600;
+            color: #4f46e5;
+            margin-bottom: 10px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid #e2e8f0;
         }
     </style>
 </head>
@@ -208,7 +280,7 @@
             <div class="max-w-3xl">
                 <h1 class="text-4xl md:text-5xl font-bold mb-4">Beta Coefficient Calculator</h1>
                 <p class="text-xl md:text-2xl text-indigo-100 mb-6">
-                    Measure a stock's volatility relative to the market to assess investment risk.
+                    Measure a stock's volatility relative to the market using price data.
                 </p>
                 <div class="flex flex-wrap gap-3">
                     <div class="bg-white/20 px-4 py-2 rounded-full flex items-center">
@@ -237,37 +309,65 @@
         <!-- Calculator Form -->
         <div class="card p-6 mb-8">
             <h2 class="text-2xl font-bold text-gray-800 mb-4">Calculate Stock Beta (β)</h2>
-            <p class="text-gray-600 mb-6">Enter historical returns to calculate a stock's beta coefficient, which measures its volatility relative to the overall market.</p>
+            <p class="text-gray-600 mb-6">Enter opening and closing prices for each period. Returns will be auto-calculated and used to compute beta.</p>
             <div class="beta-formula">
                 <p class="text-lg font-semibold">Beta Formula</p>
                 <p class="text-xl mt-2">β = Cov(R<sub>stock</sub>, R<sub>market</sub>) / Var(R<sub>market</sub>)</p>
                 <p class="text-sm mt-2 text-gray-600">Where Cov is covariance and Var is variance</p>
             </div>
+
+            <!-- Input Mode Toggle -->
+            <div class="flex gap-4 mb-6">
+                <button type="button" id="manual-mode-btn" class="px-4 py-2 bg-primary text-white rounded-lg font-medium">Manual Returns (Comma-Separated)</button>
+                <button type="button" id="price-mode-btn" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium">Price Entry (Auto-Calculate Returns)</button>
+            </div>
+
             <form id="beta-calculator-form" method="POST" class="grid grid-cols-1 gap-6">
-                <div>
-                    <label class="block text-gray-700 font-medium mb-2">Stock Returns (%), comma-separated</label>
-                    <input type="text" id="stock_returns" name="stock_returns" placeholder="e.g., 5.2, -3.1, 4.7, 2.4, -1.5" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
-                    <div class="tooltip mt-2">
-                        <i class="fas fa-info-circle text-gray-500"></i>
-                        <span class="tooltiptext">Enter returns as percentages, separated by commas. List returns in chronological order (oldest to newest).</span>
+                <!-- Manual Input Section -->
+                <div id="manual-input-section">
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">Stock Returns (%), comma-separated</label>
+                        <input type="text" id="stock_returns" name="stock_returns" placeholder="e.g., 5.2, -3.1, 4.7, 2.4, -1.5" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
+                        <div class="tooltip mt-2">
+                            <i class="fas fa-info-circle text-gray-500"></i>
+                            <span class="tooltiptext">Enter returns as percentages, separated by commas. List returns in chronological order (oldest to newest).</span>
+                        </div>
+                        <div class="form-error text-danger text-sm mt-2 hidden" id="stock_returns-error">Please enter valid percentage values separated by commas.</div>
                     </div>
-                    <div class="form-error text-danger text-sm mt-2 hidden" id="stock_returns-error">Please enter valid percentage values separated by commas.</div>
-                </div>
-                <div>
-                    <label class="block text-gray-700 font-medium mb-2">Market Returns (%), comma-separated</label>
-                    <input type="text" id="market_returns" name="market_returns" placeholder="e.g., 4.1, -2.8, 5.0, 3.2, -0.9" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
-                    <div class="tooltip mt-2">
-                        <i class="fas fa-info-circle text-gray-500"></i>
-                        <span class="tooltiptext">Enter market returns for the same time periods as the stock returns.</span>
+                    <div>
+                        <label class="block text-gray-700 font-medium mb-2">Market Returns (%), comma-separated</label>
+                        <input type="text" id="market_returns" name="market_returns" placeholder="e.g., 4.1, -2.8, 5.0, 3.2, -0.9" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm" required>
+                        <div class="tooltip mt-2">
+                            <i class="fas fa-info-circle text-gray-500"></i>
+                            <span class="tooltiptext">Enter market returns for the same time periods as the stock returns.</span>
+                        </div>
+                        <div class="form-error text-danger text-sm mt-2 hidden" id="market_returns-error">Please enter valid percentage values separated by commas.</div>
                     </div>
-                    <div class="form-error text-danger text-sm mt-2 hidden" id="market_returns-error">Please enter valid percentage values separated by commas.</div>
                 </div>
+
+                <!-- Price Input Section -->
+                <div id="price-input-section" class="period-input">
+                    <div class="mb-4">
+                        <label class="block text-gray-700 font-medium mb-2">Select Number of Periods</label>
+                        <select id="periods-select" class="input-field w-full h-12 px-4 py-3 rounded-lg shadow-sm">
+                            <option value="5">5 Periods</option>
+                            <option value="6">6 Periods</option>
+                            <option value="7">7 Periods</option>
+                            <option value="8">8 Periods</option>
+                            <option value="9">9 Periods</option>
+                            <option value="10">10 Periods</option>
+                        </select>
+                    </div>
+                    <div id="price-fields"></div>
+                </div>
+
                 <div class="mt-4">
                     <button type="submit" class="px-6 py-3 bg-primary text-white rounded-lg font-medium hover:bg-indigo-700 transition-colors">
                         <i class="fas fa-calculator mr-2"></i> Calculate Beta
                     </button>
                 </div>
             </form>
+
             <!-- Results Section -->
             <div id="results-section" class="mt-8 hidden">
                 <h3 class="text-xl font-bold text-gray-800 mb-4">Beta Calculation Results</h3>
@@ -297,6 +397,7 @@
                     </button>
                 </div>
             </div>
+
             <!-- Error Message -->
             <div id="error-message" class="mt-6 hidden">
                 <div class="bg-red-50 p-4 rounded-lg">
@@ -304,13 +405,14 @@
                 </div>
             </div>
         </div>
+
         <!-- Guide Section -->
         <div class="card p-6">
             <h2 class="text-2xl font-bold text-gray-800 mb-4">Understanding Beta Coefficient</h2>
             <p class="text-gray-600 mb-6">Beta measures a stock's volatility in relation to the overall market. Here's how to interpret beta values and use them in your investment decisions.</p>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                 <div class="bg-blue-50 p-5 rounded-lg">
-                    <div class="text-3xl font-bold text-blue-700 mb-2">β &lt; 1</div>
+                    <div class="text-3xl font-bold text-blue-700 mb-2">β less than 1</div>
                     <h3 class="font-bold text-gray-800 mb-2">Defensive Stock</h3>
                     <p class="text-gray-600">Less volatile than the market. Tends to be less affected by market swings.</p>
                 </div>
@@ -320,7 +422,7 @@
                     <p class="text-gray-600">Moves in line with the market. Expected to match market performance.</p>
                 </div>
                 <div class="bg-orange-50 p-5 rounded-lg">
-                    <div class="text-3xl font-bold text-orange-700 mb-2">β &gt; 1</div>
+                    <div class="text-3xl font-bold text-orange-700 mb-2">β greater than 1</div>
                     <h3 class="font-bold text-gray-800 mb-2">Aggressive Stock</h3>
                     <p class="text-gray-600">More volatile than the market. Tends to amplify market movements.</p>
                 </div>
@@ -328,20 +430,20 @@
             <h3 class="text-xl font-bold text-gray-800 mt-8 mb-4">How to Use the Beta Calculator</h3>
             <ol class="list-decimal pl-6 space-y-4">
                 <li>
-                    <strong>Gather Historical Returns</strong>
-                    <p>Collect periodic returns (daily, weekly, monthly) for both the stock and a market index (like the Ghana Stock Exchange Composite Index) for the same time periods.</p>
+                    <strong>Gather Price Data</strong>
+                    <p>Collect opening and closing prices for the stock and the market index (e.g., GSE Composite Index points) for the same periods.</p>
                 </li>
                 <li>
-                    <strong>Enter Returns</strong>
-                    <p>Input the returns as percentages, separated by commas. Ensure the stock and market returns are in chronological order and correspond to the same time periods.</p>
+                    <strong>Enter Prices</strong>
+                    <p>Input the opening and closing prices for each period. The calculator will automatically compute the percentage returns.</p>
                 </li>
                 <li>
                     <strong>Calculate Beta</strong>
-                    <p>Click "Calculate Beta" to compute the stock's beta coefficient. The result will show the beta value along with an interpretation of what it means for your investment.</p>
+                    <p>Click "Calculate Beta" to compute the stock's beta coefficient using the auto-calculated returns.</p>
                 </li>
                 <li>
                     <strong>Apply to Investment Strategy</strong>
-                    <p>Use beta to assess the stock's risk profile. Higher beta stocks may offer higher returns but come with greater risk, especially in volatile markets.</p>
+                    <p>Use beta to assess the stock's risk profile. Higher beta stocks may offer higher returns but come with greater risk.</p>
                 </li>
             </ol>
             <div class="mt-8">
@@ -362,6 +464,7 @@
                 </a>
             </div>
         </div>
+
         <!-- Navigation Buttons at Bottom -->
         <div class="nav-buttons mt-6">
             <a href="https://younginvestorcalculator.com/" class="nav-button home">
@@ -372,10 +475,12 @@
             </a>
         </div>
     </div>
+
     <!-- Back to Top Button -->
     <button id="backToTop" class="back-to-top w-12 h-12 bg-primary text-white rounded-full shadow-lg flex items-center justify-center">
         <i class="fas fa-arrow-up"></i>
     </button>
+
     <!-- JavaScript -->
     <script>
         // Back to top button
@@ -390,6 +495,116 @@
         backToTopBtn.addEventListener('click', function() {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
+
+        // Input mode toggle
+        const manualModeBtn = document.getElementById('manual-mode-btn');
+        const priceModeBtn = document.getElementById('price-mode-btn');
+        const manualSection = document.getElementById('manual-input-section');
+        const priceSection = document.getElementById('price-input-section');
+        const periodsSelect = document.getElementById('periods-select');
+        const priceFields = document.getElementById('price-fields');
+
+        manualModeBtn.addEventListener('click', () => {
+            manualModeBtn.classList.add('bg-primary', 'text-white');
+            manualModeBtn.classList.remove('bg-white', 'border', 'border-gray-300', 'text-gray-700');
+            priceModeBtn.classList.remove('bg-primary', 'text-white');
+            priceModeBtn.classList.add('bg-white', 'border', 'border-gray-300', 'text-gray-700');
+            manualSection.style.display = 'block';
+            priceSection.classList.remove('active');
+            clearErrors();
+        });
+
+        priceModeBtn.addEventListener('click', () => {
+            priceModeBtn.classList.add('bg-primary', 'text-white');
+            priceModeBtn.classList.remove('bg-white', 'border', 'border-gray-300', 'text-gray-700');
+            manualModeBtn.classList.remove('bg-primary', 'text-white');
+            manualModeBtn.classList.add('bg-white', 'border', 'border-gray-300', 'text-gray-700');
+            manualSection.style.display = 'none';
+            priceSection.classList.add('active');
+            renderPriceFields();
+            clearErrors();
+        });
+
+        periodsSelect.addEventListener('change', renderPriceFields);
+
+        function renderPriceFields() {
+            const periods = parseInt(periodsSelect.value);
+            priceFields.innerHTML = '';
+            
+            for (let i = 1; i <= periods; i++) {
+                priceFields.innerHTML += `
+                    <div class="period-container">
+                        <div class="period-header">Period ${i}</div>
+                        <div class="period-input-row">
+                            <span class="period-text">Stock Open:</span>
+                            <input type="number" step="any" class="stock-open-input input-field" placeholder="e.g. 45.50" data-period="${i}">
+                            <span class="period-text">Stock Close:</span>
+                            <input type="number" step="any" class="stock-close-input input-field" placeholder="e.g. 48.20" data-period="${i}">
+                            <span class="period-text">Stock Return:</span>
+                            <div class="return-display" id="stock-return-${i}">—</div>
+                        </div>
+                        <div class="period-input-row">
+                            <span class="period-text">Index Open:</span>
+                            <input type="number" step="any" class="index-open-input input-field" placeholder="e.g. 2850" data-period="${i}">
+                            <span class="period-text">Index Close:</span>
+                            <input type="number" step="any" class="index-close-input input-field" placeholder="e.g. 2920" data-period="${i}">
+                            <span class="period-text">Market Return:</span>
+                            <div class="return-display" id="market-return-${i}">—</div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Add event listeners for real-time return calculation
+            setTimeout(() => {
+                document.querySelectorAll('.stock-open-input, .stock-close-input, .index-open-input, .index-close-input').forEach(input => {
+                    input.addEventListener('input', updateReturns);
+                });
+            }, 100);
+        }
+
+        function updateReturns() {
+            const periods = parseInt(periodsSelect.value);
+            for (let i = 1; i <= periods; i++) {
+                const stockOpen = parseFloat(document.querySelector(`.stock-open-input[data-period="${i}"]`)?.value || 0);
+                const stockClose = parseFloat(document.querySelector(`.stock-close-input[data-period="${i}"]`)?.value || 0);
+                const indexOpen = parseFloat(document.querySelector(`.index-open-input[data-period="${i}"]`)?.value || 0);
+                const indexClose = parseFloat(document.querySelector(`.index-close-input[data-period="${i}"]`)?.value || 0);
+
+                // Calculate stock return
+                let stockReturn = 0;
+                if (stockOpen > 0 && stockClose > 0) {
+                    stockReturn = ((stockClose - stockOpen) / stockOpen) * 100;
+                }
+                const stockReturnEl = document.getElementById(`stock-return-${i}`);
+                if (stockReturnEl) {
+                    stockReturnEl.textContent = stockReturn.toFixed(2) + '%';
+                    stockReturnEl.className = 'return-display';
+                    if (stockReturn < 0) stockReturnEl.classList.add('negative');
+                }
+
+                // Calculate market return
+                let marketReturn = 0;
+                if (indexOpen > 0 && indexClose > 0) {
+                    marketReturn = ((indexClose - indexOpen) / indexOpen) * 100;
+                }
+                const marketReturnEl = document.getElementById(`market-return-${i}`);
+                if (marketReturnEl) {
+                    marketReturnEl.textContent = marketReturn.toFixed(2) + '%';
+                    marketReturnEl.className = 'return-display';
+                    if (marketReturn < 0) marketReturnEl.classList.add('negative');
+                }
+            }
+        }
+
+        // Initialize with manual mode active
+        manualSection.style.display = 'block';
+        priceSection.classList.remove('active');
+        manualModeBtn.classList.add('bg-primary', 'text-white');
+        manualModeBtn.classList.remove('bg-white', 'border', 'border-gray-300', 'text-gray-700');
+        priceModeBtn.classList.remove('bg-primary', 'text-white');
+        priceModeBtn.classList.add('bg-white', 'border', 'border-gray-300', 'text-gray-700');
+
         // DOM elements
         const form = document.getElementById('beta-calculator-form');
         const resultsSection = document.getElementById('results-section');
@@ -400,50 +615,123 @@
         const errorMessage = document.getElementById('error-message');
         const errorText = document.getElementById('error-text');
         const resetBtn = document.getElementById('reset-calculator');
+
         // Form submission handler
         form.addEventListener('submit', function(e) {
             e.preventDefault();
-            // Get input values
-            const stockInput = document.getElementById('stock_returns').value;
-            const marketInput = document.getElementById('market_returns').value;
+            let stockReturns = [], marketReturns = [];
+
             // Reset error state
+            clearErrors();
             errorMessage.classList.add('hidden');
-            document.getElementById('stock_returns-error').classList.add('hidden');
-            document.getElementById('market_returns-error').classList.add('hidden');
-            // Parse inputs
-            let stockReturns, marketReturns;
-            try {
-                stockReturns = stockInput.split(',').map(val => {
-                    const num = parseFloat(val.trim());
-                    if (isNaN(num)) throw new Error('Invalid stock return value');
-                    return num / 100; // Convert percentage to decimal
-                });
-            } catch (err) {
-                document.getElementById('stock_returns-error').classList.remove('hidden');
-                return;
+
+            if (priceSection.classList.contains('active')) {
+                // Collect from price inputs and calculate returns
+                const periods = parseInt(periodsSelect.value);
+                let hasError = false;
+                let errorFields = [];
+
+                for (let i = 1; i <= periods; i++) {
+                    const stockOpen = parseFloat(document.querySelector(`.stock-open-input[data-period="${i}"]`)?.value || 0);
+                    const stockClose = parseFloat(document.querySelector(`.stock-close-input[data-period="${i}"]`)?.value || 0);
+                    const indexOpen = parseFloat(document.querySelector(`.index-open-input[data-period="${i}"]`)?.value || 0);
+                    const indexClose = parseFloat(document.querySelector(`.index-close-input[data-period="${i}"]`)?.value || 0);
+
+                    // Validate inputs
+                    if (isNaN(stockOpen) || stockOpen <= 0) {
+                        hasError = true;
+                        document.querySelector(`.stock-open-input[data-period="${i}"]`).classList.add('input-error');
+                        errorFields.push(`Period ${i} Stock Open Price`);
+                    }
+                    if (isNaN(stockClose) || stockClose <= 0) {
+                        hasError = true;
+                        document.querySelector(`.stock-close-input[data-period="${i}"]`).classList.add('input-error');
+                        errorFields.push(`Period ${i} Stock Close Price`);
+                    }
+                    if (isNaN(indexOpen) || indexOpen <= 0) {
+                        hasError = true;
+                        document.querySelector(`.index-open-input[data-period="${i}"]`).classList.add('input-error');
+                        errorFields.push(`Period ${i} Index Open Price`);
+                    }
+                    if (isNaN(indexClose) || indexClose <= 0) {
+                        hasError = true;
+                        document.querySelector(`.index-close-input[data-period="${i}"]`).classList.add('input-error');
+                        errorFields.push(`Period ${i} Index Close Price`);
+                    }
+
+                    // Calculate returns if inputs are valid
+                    if (!hasError) {
+                        const stockReturn = (stockClose - stockOpen) / stockOpen;
+                        const marketReturn = (indexClose - indexOpen) / indexOpen;
+                        stockReturns.push(stockReturn);
+                        marketReturns.push(marketReturn);
+                    }
+                }
+
+                if (hasError) {
+                    errorText.textContent = `Please fill in all price fields with valid positive numbers. Invalid fields: ${errorFields.join(', ')}`;
+                    errorMessage.classList.remove('hidden');
+                    return;
+                }
+            } else {
+                // Manual input
+                const stockInput = document.getElementById('stock_returns').value;
+                const marketInput = document.getElementById('market_returns').value;
+
+                // Validate stock returns
+                if (!stockInput.trim()) {
+                    document.getElementById('stock_returns-error').textContent = 'Please enter stock returns.';
+                    document.getElementById('stock_returns-error').classList.remove('hidden');
+                    document.getElementById('stock_returns').classList.add('input-error');
+                    return;
+                }
+                
+                try {
+                    stockReturns = stockInput.split(',').map(val => {
+                        const num = parseFloat(val.trim());
+                        if (isNaN(num)) throw new Error('Invalid stock return value');
+                        return num / 100;
+                    });
+                } catch (err) {
+                    document.getElementById('stock_returns-error').classList.remove('hidden');
+                    document.getElementById('stock_returns').classList.add('input-error');
+                    return;
+                }
+                
+                // Validate market returns
+                if (!marketInput.trim()) {
+                    document.getElementById('market_returns-error').textContent = 'Please enter market returns.';
+                    document.getElementById('market_returns-error').classList.remove('hidden');
+                    document.getElementById('market_returns').classList.add('input-error');
+                    return;
+                }
+                
+                try {
+                    marketReturns = marketInput.split(',').map(val => {
+                        const num = parseFloat(val.trim());
+                        if (isNaN(num)) throw new Error('Invalid market return value');
+                        return num / 100;
+                    });
+                } catch (err) {
+                    document.getElementById('market_returns-error').classList.remove('hidden');
+                    document.getElementById('market_returns').classList.add('input-error');
+                    return;
+                }
+
+                if (stockReturns.length !== marketReturns.length) {
+                    errorText.textContent = 'Stock and market returns must have the same number of entries.';
+                    errorMessage.classList.remove('hidden');
+                    return;
+                }
             }
-            try {
-                marketReturns = marketInput.split(',').map(val => {
-                    const num = parseFloat(val.trim());
-                    if (isNaN(num)) throw new Error('Invalid market return value');
-                    return num / 100; // Convert percentage to decimal
-                });
-            } catch (err) {
-                document.getElementById('market_returns-error').classList.remove('hidden');
-                return;
-            }
-            // Check if both arrays have the same length
-            if (stockReturns.length !== marketReturns.length) {
-                errorText.textContent = 'Stock and market returns must have the same number of entries.';
-                errorMessage.classList.remove('hidden');
-                return;
-            }
+
             // Check minimum data points
             if (stockReturns.length < 3) {
                 errorText.textContent = 'Please provide at least 3 return periods for accurate calculation.';
                 errorMessage.classList.remove('hidden');
                 return;
             }
+
             // Calculate beta
             const result = calculateBeta(stockReturns, marketReturns);
             if (result.error) {
@@ -451,10 +739,12 @@
                 errorMessage.classList.remove('hidden');
                 return;
             }
+
             // Display results
             betaResult.textContent = result.beta.toFixed(4);
             covarianceResult.textContent = result.covariance.toFixed(6);
             varianceResult.textContent = result.variance.toFixed(6);
+
             // Interpretation
             if (result.beta < 0.7) {
                 betaInterpretation.textContent = "This is a defensive stock. It's less volatile than the market and may provide more stability during market downturns.";
@@ -463,20 +753,35 @@
             } else {
                 betaInterpretation.textContent = "This is an aggressive stock. It's more volatile than the market and may offer higher returns but comes with greater risk.";
             }
+            
+            // Add detailed interpretation for extreme values
+            if (result.beta < 0) {
+                betaInterpretation.textContent = "This stock has a negative beta, which is unusual. It tends to move in the opposite direction of the market. This could be a hedging opportunity.";
+            } else if (result.beta > 2.5) {
+                betaInterpretation.textContent = "This is a highly aggressive stock with very high volatility. It's significantly more volatile than the market and carries substantial risk.";
+            }
+            
             resultsSection.classList.remove('hidden');
+            
+            // Scroll to results
+            resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
         });
+
         // Reset button handler
         resetBtn.addEventListener('click', function() {
             form.reset();
             resultsSection.classList.add('hidden');
             errorMessage.classList.add('hidden');
+            clearErrors();
+            if (priceSection.classList.contains('active')) {
+                renderPriceFields();
+            }
         });
+
         // Beta calculation function
         function calculateBeta(stockReturns, marketReturns) {
-            // Calculate means
             const stockMean = stockReturns.reduce((sum, val) => sum + val, 0) / stockReturns.length;
             const marketMean = marketReturns.reduce((sum, val) => sum + val, 0) / marketReturns.length;
-            // Calculate covariance and variance
             let covariance = 0;
             let variance = 0;
             for (let i = 0; i < stockReturns.length; i++) {
@@ -487,7 +792,6 @@
             }
             covariance = covariance / (stockReturns.length - 1);
             variance = variance / (marketReturns.length - 1);
-            // Avoid division by zero
             if (variance === 0) {
                 return { error: "Market returns have no variability. Cannot calculate beta." };
             }
@@ -497,6 +801,13 @@
                 covariance: covariance,
                 variance: variance
             };
+        }
+
+        // Helper function to clear all error states
+        function clearErrors() {
+            document.querySelectorAll('.form-error').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.input-error').forEach(el => el.classList.remove('input-error'));
+            document.querySelectorAll('.input-field').forEach(el => el.classList.remove('input-error'));
         }
     </script>
 </body>
