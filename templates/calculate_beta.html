@@ -537,17 +537,33 @@
                         <div class="period-header">Period ${i}</div>
                         <div class="period-input-row">
                             <span class="period-text">Stock Open:</span>
-                            <input type="number" step="any" class="stock-open-input input-field" placeholder="e.g. 45.50" data-period="${i}">
+                            <input type="number" step="any" class="stock-open-input input-field" placeholder="e.g., 45.50" data-period="${i}">
+                            <div class="tooltip mt-2">
+                                <i class="fas fa-info-circle text-gray-500"></i>
+                                <span class="tooltiptext">Opening price of the stock at the start of the period.</span>
+                            </div>
                             <span class="period-text">Stock Close:</span>
-                            <input type="number" step="any" class="stock-close-input input-field" placeholder="e.g. 48.20" data-period="${i}">
+                            <input type="number" step="any" class="stock-close-input input-field" placeholder="e.g., 48.20" data-period="${i}">
+                            <div class="tooltip mt-2">
+                                <i class="fas fa-info-circle text-gray-500"></i>
+                                <span class="tooltiptext">Closing price of the stock at the end of the period.</span>
+                            </div>
                             <span class="period-text">Stock Return:</span>
                             <div class="return-display" id="stock-return-${i}">—</div>
                         </div>
                         <div class="period-input-row">
                             <span class="period-text">Index Open:</span>
-                            <input type="number" step="any" class="index-open-input input-field" placeholder="e.g. 2850" data-period="${i}">
+                            <input type="number" step="any" class="index-open-input input-field" placeholder="e.g., 2850" data-period="${i}">
+                            <div class="tooltip mt-2">
+                                <i class="fas fa-info-circle text-gray-500"></i>
+                                <span class="tooltiptext">Opening value of the market index (e.g., S&P 500) at the start of the period.</span>
+                            </div>
                             <span class="period-text">Index Close:</span>
-                            <input type="number" step="any" class="index-close-input input-field" placeholder="e.g. 2920" data-period="${i}">
+                            <input type="number" step="any" class="index-close-input input-field" placeholder="e.g., 2920" data-period="${i}">
+                            <div class="tooltip mt-2">
+                                <i class="fas fa-info-circle text-gray-500"></i>
+                                <span class="tooltiptext">Closing value of the market index at the end of the period.</span>
+                            </div>
                             <span class="period-text">Market Return:</span>
                             <div class="return-display" id="market-return-${i}">—</div>
                         </div>
