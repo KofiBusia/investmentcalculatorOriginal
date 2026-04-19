@@ -129,10 +129,13 @@
         .calculator-card:hover{transform:translateY(-6px);box-shadow:var(--shadow-hover);border-color:rgba(37,99,235,.14);}
         /* Lock overlay for premium calculators */
         .calculator-card.locked-card .lock-overlay{display:flex;}
-        .lock-overlay{display:none;position:absolute;inset:0;background:rgba(15,23,42,.55);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);z-index:10;align-items:center;justify-content:center;border-radius:var(--radius-lg);flex-direction:column;gap:8px;transition:var(--transition);}
-        .lock-overlay i{font-size:28px;color:white;filter:drop-shadow(0 2px 8px rgba(0,0,0,.4));}
-        .lock-overlay span{font-size:.72rem;font-weight:700;color:rgba(255,255,255,.85);letter-spacing:.04em;text-align:center;padding:0 12px;}
-        .calculator-card.locked-card:hover .lock-overlay{background:rgba(15,23,42,.65);}
+        /* Lock — bottom strip only, no blur, content stays readable */
+        .lock-overlay{display:none;position:absolute;bottom:0;left:0;right:0;height:44px;background:linear-gradient(135deg,#1d4ed8,#7c3aed);z-index:10;align-items:center;justify-content:center;border-radius:0 0 var(--radius-lg) var(--radius-lg);gap:7px;transition:var(--transition);}
+        .lock-overlay i{font-size:13px;color:rgba(255,255,255,.95);}
+        .lock-overlay span{font-size:.72rem;font-weight:700;color:white;letter-spacing:.04em;}
+        .calculator-card.locked-card:hover .lock-overlay{opacity:.92;}
+        /* Hide the original link button on locked cards so the strip shows cleanly */
+        .calculator-card.locked-card .calculator-link{visibility:hidden;}
         .free-badge{position:absolute;top:8px;right:8px;z-index:5;background:linear-gradient(135deg,#059669,#047857);color:white;font-size:.62rem;font-weight:800;padding:2px 8px;border-radius:20px;letter-spacing:.04em;}
         /* Auth modal */
         .auth-modal-bg{display:none;position:fixed;inset:0;background:rgba(15,23,42,.75);backdrop-filter:blur(6px);z-index:1000;align-items:center;justify-content:center;}
@@ -419,105 +422,15 @@
                 </div>                </div>
             </div>
             
+            <!-- Free / Premium section labels -->
+            <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap;">
+                <span style="display:inline-flex;align-items:center;gap:7px;background:#d1fae5;border:1px solid #6ee7b7;color:#065f46;font-size:.8rem;font-weight:700;padding:5px 14px;border-radius:20px;letter-spacing:.04em;"><i class="fas fa-lock-open"></i> 5 FREE Calculators below — no sign-in needed</span>
+                <span style="color:#64748b;font-size:.82rem;">Unlock all 51+ by creating a free account &rarr; <a href="/signup" style="color:#2563eb;font-weight:700;text-decoration:none;">Sign Up Free</a></span>
+            </div>
+
             <div class="calculator-grid">
-                <!-- Stocks Calculators -->
-                <div class="calculator-card" data-category="Stocks">
-                    <div class="calculator-icon">
-                        <i class="fas fa-university"></i>
-                    </div>
-                    <div class="calculator-content">
-                        <span class="calculator-category">Stocks</span>
-                        <h3 class="calculator-title">Bank Stock Valuation</h3>
-                        <p class="calculator-desc">
-                            Specialized valuation for banking sector stocks.
-                        </p>
-                        <a href="/bank-intrinsic-value" class="calculator-link">
-                            Calculate <i class="fas fa-arrow-right"></i>
-                        </a>
-                    </div>
-                </div>
-                <div class="calculator-card" data-category="Stocks">
-                    <div class="calculator-icon">
-                        <i class="fas fa-bullseye"></i>
-                    </div>
-                    <div class="calculator-content">
-                        <span class="calculator-category">Stocks</span>
-                        <h3 class="calculator-title">Target Price (Stocks)</h3>
-                        <p class="calculator-desc">
-                            Estimate the future price of stocks based on various factors.
-                        </p>
-                        <a href="/target-price" class="calculator-link">
-                            Calculate <i class="fas fa-arrow-right"></i>
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Bonds Calculators -->
-                <div class="calculator-card" data-category="Stocks">
-                    <div class="calculator-icon">
-                        <i class="fas fa-redo"></i>
-                    </div>
-                    <div class="calculator-content">
-                        <span class="calculator-category">Bonds</span>
-                        <h3 class="calculator-title">Treasury Bills Rediscount</h3>
-                        <p class="calculator-desc">
-                            Calculate rediscount rates for T-Bills.
-                        </p>
-                        <a href="/tbills-rediscount" class="calculator-link">
-                            Calculate <i class="fas fa-arrow-right"></i>
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Portfolio Tools Calculators -->
-                <div class="calculator-card" data-category="Portfolio &amp; Risk">
-                    <div class="calculator-icon">
-                        <i class="fas fa-chart-pie"></i>
-                    </div>
-                    <div class="calculator-content">
-                        <span class="calculator-category">Portfolio Tools</span>
-                        <h3 class="calculator-title">Asset Allocation</h3>
-                        <p class="calculator-desc">
-                            Build a diversified portfolio compliant with NPRA guidelines for Ghana.
-                        </p>
-                        <a href="/asset-allocation" class="calculator-link">
-                            Calculate <i class="fas fa-arrow-right"></i>
-                        </a>
-                    </div>
-                </div>
-                <div class="calculator-card" data-category="Valuation">
-                    <div class="calculator-icon">
-                        <i class="fas fa-percent"></i>
-                    </div>
-                    <div class="calculator-content">
-                        <span class="calculator-category">Portfolio Tools</span>
-                        <h3 class="calculator-title">Leverage Ratios</h3>
-                        <p class="calculator-desc">
-                            Calculate key leverage ratios to assess financial risk and stability.
-                        </p>
-                        <a href="/leverage_ratios" class="calculator-link">
-                            Calculate <i class="fas fa-arrow-right"></i>
-                        </a>
-                    </div>
-                </div>
-                <div class="calculator-card" data-category="Valuation">
-                    <div class="calculator-icon">
-                        <i class="fas fa-leaf"></i>
-                    </div>
-                    <div class="calculator-content">
-                        <span class="calculator-category">Portfolio Tools</span>
-                        <h3 class="calculator-title">Cost Sustainability</h3>
-                        <p class="calculator-desc">
-                            Analyze the sustainability of costs relative to income or investments.
-                        </p>
-                        <a href="/cost_sustainability" class="calculator-link">
-                            Calculate <i class="fas fa-arrow-right"></i>
-                        </a>
-                    </div>
-                </div>
-
-                <!-- Advanced Valuation Calculators -->
-                <div class="calculator-card" data-category="Valuation">
+                <!-- ── FREE CALCULATORS (no sign-in needed) ── -->
+<div class="calculator-card" data-category="Valuation">
                     <div class="calculator-icon">
                         <i class="fas fa-cogs"></i>
                     </div>
@@ -532,7 +445,147 @@
                         </a>
                     </div>
                 </div>
-                <div class="calculator-card" data-category="Valuation">
+<div class="calculator-card" data-category="Personal Finance">
+                    <div class="calculator-icon" style="background:linear-gradient(135deg,#4f46e5,#7c3aed);">
+                        <i class="fas fa-landmark"></i>
+                    </div>
+                    <div class="calculator-content">
+                        <span class="calculator-category">Bonds</span>
+                        <h3 class="calculator-title">Treasury Bill Calculator <span style="background:#ef4444;color:white;font-size:.6rem;padding:.1rem .35rem;border-radius:.25rem;vertical-align:middle;">NEW</span></h3>
+                        <p class="calculator-desc">Price, effective yield, and HPR for 91, 182, and 364-day T-Bills. Act/364 discount basis — Ghana, UK, US standard.</p>
+                        <a href="/tbill" class="calculator-link">Calculate <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+<div class="calculator-card" data-category="Personal Finance">
+                    <div class="calculator-icon" style="background:linear-gradient(135deg,#1e3a5f,#0f4c81);">
+                        <i class="fas fa-home"></i>
+                    </div>
+                    <div class="calculator-content">
+                        <span class="calculator-category">Personal Finance</span>
+                        <h3 class="calculator-title">Mortgage Calculator <span style="background:#ef4444;color:white;font-size:.6rem;padding:.1rem .35rem;border-radius:.25rem;vertical-align:middle;">NEW</span></h3>
+                        <p class="calculator-desc">Monthly payment, amortization schedule, total interest, and affordability analysis. Supports fixed and adjustable rates.</p>
+                        <a href="/mortgage" class="calculator-link">Calculate <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+<div class="calculator-card" data-category="Portfolio &amp; Risk">
+                    <div class="calculator-icon" style="background:linear-gradient(135deg,#0f4c81,#1d4ed8);">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="calculator-content">
+                        <span class="calculator-category">Portfolio</span>
+                        <h3 class="calculator-title">Portfolio Return Calculator</h3>
+                        <p class="calculator-desc">TWR, MWR (MWRR), CAGR, and Sharpe ratio. Compare portfolio performance against benchmark indices.</p>
+                        <a href="/portfolio-return" class="calculator-link">Calculate <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+<div class="calculator-card" data-category="Bonds">
+                    <div class="calculator-icon" style="background:linear-gradient(135deg,#1e293b,#0f172a);">
+                        <i class="fas fa-coins"></i>
+                    </div>
+                    <div class="calculator-content">
+                        <span class="calculator-category">Bonds</span>
+                        <h3 class="calculator-title">Bond Yield &amp; Pricing</h3>
+                        <p class="calculator-desc">YTM, YTC, current yield, dirty/clean price, accrued interest, and spread-to-benchmark calculations.</p>
+                        <a href="/bonds" class="calculator-link">Calculate <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+                <!-- ── PREMIUM CALCULATORS (sign in to unlock) ── -->
+                <div style="grid-column:1/-1;display:flex;align-items:center;gap:14px;padding:8px 0 4px;">
+                    <div style="flex:1;height:1px;background:linear-gradient(to right,#e2e8f0,transparent);"></div>
+                    <span style="display:inline-flex;align-items:center;gap:7px;background:linear-gradient(135deg,#1d4ed8,#7c3aed);color:white;font-size:.78rem;font-weight:700;padding:5px 16px;border-radius:20px;letter-spacing:.04em;white-space:nowrap;"><i class="fas fa-lock"></i> Premium Calculators — Sign in to unlock all 46+</span>
+                    <div style="flex:1;height:1px;background:linear-gradient(to left,#e2e8f0,transparent);"></div>
+                </div>
+<div class="calculator-card" data-category="Stocks">
+                    <div class="calculator-icon">
+                        <i class="fas fa-university"></i>
+                    </div>
+                    <div class="calculator-content">
+                        <span class="calculator-category">Stocks</span>
+                        <h3 class="calculator-title">Bank Stock Valuation</h3>
+                        <p class="calculator-desc">
+                            Specialized valuation for banking sector stocks.
+                        </p>
+                        <a href="/bank-intrinsic-value" class="calculator-link">
+                            Calculate <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+<div class="calculator-card" data-category="Stocks">
+                    <div class="calculator-icon">
+                        <i class="fas fa-bullseye"></i>
+                    </div>
+                    <div class="calculator-content">
+                        <span class="calculator-category">Stocks</span>
+                        <h3 class="calculator-title">Target Price (Stocks)</h3>
+                        <p class="calculator-desc">
+                            Estimate the future price of stocks based on various factors.
+                        </p>
+                        <a href="/target-price" class="calculator-link">
+                            Calculate <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+<div class="calculator-card" data-category="Stocks">
+                    <div class="calculator-icon">
+                        <i class="fas fa-redo"></i>
+                    </div>
+                    <div class="calculator-content">
+                        <span class="calculator-category">Bonds</span>
+                        <h3 class="calculator-title">Treasury Bills Rediscount</h3>
+                        <p class="calculator-desc">
+                            Calculate rediscount rates for T-Bills.
+                        </p>
+                        <a href="/tbills-rediscount" class="calculator-link">
+                            Calculate <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+<div class="calculator-card" data-category="Portfolio &amp; Risk">
+                    <div class="calculator-icon">
+                        <i class="fas fa-chart-pie"></i>
+                    </div>
+                    <div class="calculator-content">
+                        <span class="calculator-category">Portfolio Tools</span>
+                        <h3 class="calculator-title">Asset Allocation</h3>
+                        <p class="calculator-desc">
+                            Build a diversified portfolio compliant with NPRA guidelines for Ghana.
+                        </p>
+                        <a href="/asset-allocation" class="calculator-link">
+                            Calculate <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+<div class="calculator-card" data-category="Valuation">
+                    <div class="calculator-icon">
+                        <i class="fas fa-percent"></i>
+                    </div>
+                    <div class="calculator-content">
+                        <span class="calculator-category">Portfolio Tools</span>
+                        <h3 class="calculator-title">Leverage Ratios</h3>
+                        <p class="calculator-desc">
+                            Calculate key leverage ratios to assess financial risk and stability.
+                        </p>
+                        <a href="/leverage_ratios" class="calculator-link">
+                            Calculate <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+<div class="calculator-card" data-category="Valuation">
+                    <div class="calculator-icon">
+                        <i class="fas fa-leaf"></i>
+                    </div>
+                    <div class="calculator-content">
+                        <span class="calculator-category">Portfolio Tools</span>
+                        <h3 class="calculator-title">Cost Sustainability</h3>
+                        <p class="calculator-desc">
+                            Analyze the sustainability of costs relative to income or investments.
+                        </p>
+                        <a href="/cost_sustainability" class="calculator-link">
+                            Calculate <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                </div>
+<div class="calculator-card" data-category="Valuation">
                     <div class="calculator-icon">
                         <i class="fas fa-hand-holding-usd"></i>
                     </div>
@@ -547,7 +600,7 @@
                         </a>
                     </div>
                 </div>
-                <div class="calculator-card" data-category="Valuation">
+<div class="calculator-card" data-category="Valuation">
                     <div class="calculator-icon">
                         <i class="fas fa-hand-holding-usd"></i>
                     </div>
@@ -562,7 +615,7 @@
                         </a>
                     </div>
                 </div>
-                <div class="calculator-card" data-category="Stocks">
+<div class="calculator-card" data-category="Stocks">
                     <div class="calculator-icon">
                         <i class="fas fa-chart-area"></i>
                     </div>
@@ -577,7 +630,7 @@
                         </a>
                     </div>
                 </div>
-                <div class="calculator-card" data-category="Stocks">
+<div class="calculator-card" data-category="Stocks">
                     <div class="calculator-icon">
                         <i class="fas fa-percentage"></i>
                     </div>
@@ -592,7 +645,7 @@
                         </a>
                     </div>
                 </div>
-                <div class="calculator-card" data-category="Valuation">
+<div class="calculator-card" data-category="Valuation">
                     <div class="calculator-icon">
                         <i class="fas fa-balance-scale"></i>
                     </div>
@@ -607,7 +660,7 @@
                         </a>
                     </div>
                 </div>
-                <div class="calculator-card" data-category="Valuation">
+<div class="calculator-card" data-category="Valuation">
                     <div class="calculator-icon">
                         <i class="fas fa-university"></i>
                     </div>
@@ -622,7 +675,7 @@
                         </a>
                     </div>
                 </div>
-                <div class="calculator-card" data-category="Valuation">
+<div class="calculator-card" data-category="Valuation">
                     <div class="calculator-icon" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
                         <i class="fas fa-exclamation-triangle"></i>
                     </div>
@@ -637,9 +690,7 @@
                         </a>
                     </div>
                 </div>
-
-                <!-- Bonds Calculators -->
-                <div class="calculator-card" data-category="Bonds">
+<div class="calculator-card" data-category="Bonds">
                     <div class="calculator-icon" style="background: linear-gradient(135deg, #0ea5e9, #0284c7);">
                         <i class="fas fa-wave-square"></i>
                     </div>
@@ -654,9 +705,7 @@
                         </a>
                     </div>
                 </div>
-
-                <!-- Portfolio Tools -->
-                <div class="calculator-card" data-category="Portfolio &amp; Risk">
+<div class="calculator-card" data-category="Portfolio &amp; Risk">
                     <div class="calculator-icon" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">
                         <i class="fas fa-shield-alt"></i>
                     </div>
@@ -671,22 +720,7 @@
                         </a>
                     </div>
                 </div>
-
-                <!-- NEW: T-Bill Calculator -->
-                <div class="calculator-card" data-category="Personal Finance">
-                    <div class="calculator-icon" style="background:linear-gradient(135deg,#4f46e5,#7c3aed);">
-                        <i class="fas fa-landmark"></i>
-                    </div>
-                    <div class="calculator-content">
-                        <span class="calculator-category">Bonds</span>
-                        <h3 class="calculator-title">Treasury Bill Calculator <span style="background:#ef4444;color:white;font-size:.6rem;padding:.1rem .35rem;border-radius:.25rem;vertical-align:middle;">NEW</span></h3>
-                        <p class="calculator-desc">Price, effective yield, and HPR for 91, 182, and 364-day T-Bills. Act/364 discount basis — Ghana, UK, US standard.</p>
-                        <a href="/tbill" class="calculator-link">Calculate <i class="fas fa-arrow-right"></i></a>
-                    </div>
-                </div>
-
-                <!-- NEW: Bond Pricing Calculator -->
-                <div class="calculator-card" data-category="Bonds">
+<div class="calculator-card" data-category="Bonds">
                     <div class="calculator-icon" style="background:linear-gradient(135deg,#1e293b,#334155);">
                         <i class="fas fa-file-invoice-dollar"></i>
                     </div>
@@ -697,9 +731,7 @@
                         <a href="/bond-calculator" class="calculator-link">Calculate <i class="fas fa-arrow-right"></i></a>
                     </div>
                 </div>
-
-                <!-- NEW: Private Equity -->
-                <div class="calculator-card" data-category="Private Markets">
+<div class="calculator-card" data-category="Private Markets">
                     <div class="calculator-icon" style="background:linear-gradient(135deg,#7c3aed,#a21caf);">
                         <i class="fas fa-briefcase"></i>
                     </div>
@@ -710,9 +742,7 @@
                         <a href="/private-equity" class="calculator-link">Calculate <i class="fas fa-arrow-right"></i></a>
                     </div>
                 </div>
-
-                <!-- NEW: Private Debt -->
-                <div class="calculator-card" data-category="Private Markets">
+<div class="calculator-card" data-category="Private Markets">
                     <div class="calculator-icon" style="background:linear-gradient(135deg,#0f172a,#1e3a5f);">
                         <i class="fas fa-hand-holding-usd"></i>
                     </div>
@@ -723,9 +753,7 @@
                         <a href="/private-debt" class="calculator-link">Calculate <i class="fas fa-arrow-right"></i></a>
                     </div>
                 </div>
-
-                <!-- NEW: Startup Valuation -->
-                <div class="calculator-card" data-category="Private Markets">
+<div class="calculator-card" data-category="Private Markets">
                     <div class="calculator-icon" style="background:linear-gradient(135deg,#065f46,#047857);">
                         <i class="fas fa-rocket"></i>
                     </div>
@@ -736,9 +764,7 @@
                         <a href="/startup-valuation" class="calculator-link">Value Now <i class="fas fa-arrow-right"></i></a>
                     </div>
                 </div>
-
-                <!-- NEW: Informal Sector Restructuring -->
-                <div class="calculator-card" data-category="Private Markets">
+<div class="calculator-card" data-category="Private Markets">
                     <div class="calculator-icon" style="background:linear-gradient(135deg,#78350f,#92400e);">
                         <i class="fas fa-store"></i>
                     </div>
@@ -749,9 +775,7 @@
                         <a href="/informal-sector" class="calculator-link">Get Roadmap <i class="fas fa-arrow-right"></i></a>
                     </div>
                 </div>
-
-                <!-- Options Pricing -->
-                <div class="calculator-card" data-category="Derivatives">
+<div class="calculator-card" data-category="Derivatives">
                     <div class="calculator-icon" style="background:linear-gradient(135deg,#1e1b4b,#312e81);">
                         <i class="fas fa-chart-bar"></i>
                     </div>
@@ -762,9 +786,7 @@
                         <a href="/options" class="calculator-link">Calculate <i class="fas fa-arrow-right"></i></a>
                     </div>
                 </div>
-
-                <!-- Monte Carlo -->
-                <div class="calculator-card" data-category="Derivatives">
+<div class="calculator-card" data-category="Derivatives">
                     <div class="calculator-icon" style="background:linear-gradient(135deg,#0c4a6e,#0369a1);">
                         <i class="fas fa-dice"></i>
                     </div>
@@ -775,9 +797,7 @@
                         <a href="/monte-carlo" class="calculator-link">Simulate <i class="fas fa-arrow-right"></i></a>
                     </div>
                 </div>
-
-                <!-- Real Estate -->
-                <div class="calculator-card" data-category="Real Estate">
+<div class="calculator-card" data-category="Real Estate">
                     <div class="calculator-icon" style="background:linear-gradient(135deg,#14532d,#166534);">
                         <i class="fas fa-building"></i>
                     </div>
@@ -788,9 +808,7 @@
                         <a href="/real-estate" class="calculator-link">Calculate <i class="fas fa-arrow-right"></i></a>
                     </div>
                 </div>
-
-                <!-- FX Forward -->
-                <div class="calculator-card" data-category="Derivatives">
+<div class="calculator-card" data-category="Derivatives">
                     <div class="calculator-icon" style="background:linear-gradient(135deg,#1e3a5f,#0f4c81);">
                         <i class="fas fa-exchange-alt"></i>
                     </div>
@@ -801,9 +819,7 @@
                         <a href="/fx-forward" class="calculator-link">Calculate <i class="fas fa-arrow-right"></i></a>
                     </div>
                 </div>
-
-                <!-- Commodity Futures -->
-                <div class="calculator-card" data-category="Derivatives">
+<div class="calculator-card" data-category="Derivatives">
                     <div class="calculator-icon" style="background:linear-gradient(135deg,#78350f,#b45309);">
                         <i class="fas fa-oil-can"></i>
                     </div>
@@ -814,9 +830,7 @@
                         <a href="/commodity-futures" class="calculator-link">Calculate <i class="fas fa-arrow-right"></i></a>
                     </div>
                 </div>
-
-                <!-- Yield Curve -->
-                <div class="calculator-card" data-category="Bonds">
+<div class="calculator-card" data-category="Bonds">
                     <div class="calculator-icon" style="background:linear-gradient(135deg,#0f172a,#1e293b);">
                         <i class="fas fa-wave-square"></i>
                     </div>
@@ -827,9 +841,7 @@
                         <a href="/yield-curve" class="calculator-link">Build Curve <i class="fas fa-arrow-right"></i></a>
                     </div>
                 </div>
-
-                <!-- TIPS -->
-                <div class="calculator-card" data-category="Bonds">
+<div class="calculator-card" data-category="Bonds">
                     <div class="calculator-icon" style="background:linear-gradient(135deg,#064e3b,#047857);">
                         <i class="fas fa-shield-alt"></i>
                     </div>
@@ -840,9 +852,7 @@
                         <a href="/tips" class="calculator-link">Calculate <i class="fas fa-arrow-right"></i></a>
                     </div>
                 </div>
-
-                <!-- Convertible Bond -->
-                <div class="calculator-card" data-category="Bonds">
+<div class="calculator-card" data-category="Bonds">
                     <div class="calculator-icon" style="background:linear-gradient(135deg,#4c1d95,#6d28d9);">
                         <i class="fas fa-sync-alt"></i>
                     </div>
@@ -853,9 +863,7 @@
                         <a href="/convertible-bond" class="calculator-link">Value Bond <i class="fas fa-arrow-right"></i></a>
                     </div>
                 </div>
-
-                <!-- CDS -->
-                <div class="calculator-card" data-category="Bonds">
+<div class="calculator-card" data-category="Bonds">
                     <div class="calculator-icon" style="background:linear-gradient(135deg,#7f1d1d,#991b1b);">
                         <i class="fas fa-umbrella"></i>
                     </div>
@@ -866,9 +874,7 @@
                         <a href="/cds" class="calculator-link">Calculate <i class="fas fa-arrow-right"></i></a>
                     </div>
                 </div>
-
-                <!-- ESOP -->
-                <div class="calculator-card" data-category="Stocks">
+<div class="calculator-card" data-category="Stocks">
                     <div class="calculator-icon" style="background:linear-gradient(135deg,#1e3a5f,#2563eb);">
                         <i class="fas fa-users"></i>
                     </div>
@@ -879,9 +885,7 @@
                         <a href="/esop" class="calculator-link">Value ESOP <i class="fas fa-arrow-right"></i></a>
                     </div>
                 </div>
-
-                <!-- DRIP -->
-                <div class="calculator-card" data-category="Personal Finance">
+<div class="calculator-card" data-category="Personal Finance">
                     <div class="calculator-icon" style="background:linear-gradient(135deg,#065f46,#059669);">
                         <i class="fas fa-redo"></i>
                     </div>
@@ -892,22 +896,7 @@
                         <a href="/drip" class="calculator-link">Calculate <i class="fas fa-arrow-right"></i></a>
                     </div>
                 </div>
-
-                <!-- Mortgage -->
-                <div class="calculator-card" data-category="Personal Finance">
-                    <div class="calculator-icon" style="background:linear-gradient(135deg,#1e3a5f,#0f4c81);">
-                        <i class="fas fa-home"></i>
-                    </div>
-                    <div class="calculator-content">
-                        <span class="calculator-category">Personal Finance</span>
-                        <h3 class="calculator-title">Mortgage Calculator <span style="background:#ef4444;color:white;font-size:.6rem;padding:.1rem .35rem;border-radius:.25rem;vertical-align:middle;">NEW</span></h3>
-                        <p class="calculator-desc">Monthly payment, amortization schedule, total interest, and affordability analysis. Supports fixed and adjustable rates.</p>
-                        <a href="/mortgage" class="calculator-link">Calculate <i class="fas fa-arrow-right"></i></a>
-                    </div>
-                </div>
-
-                <!-- Pension -->
-                <div class="calculator-card" data-category="Personal Finance">
+<div class="calculator-card" data-category="Personal Finance">
                     <div class="calculator-icon" style="background:linear-gradient(135deg,#374151,#4b5563);">
                         <i class="fas fa-piggy-bank"></i>
                     </div>
@@ -918,9 +907,7 @@
                         <a href="/pension" class="calculator-link">Plan Retirement <i class="fas fa-arrow-right"></i></a>
                     </div>
                 </div>
-
-                <!-- Microfinance -->
-                <div class="calculator-card" data-category="Personal Finance">
+<div class="calculator-card" data-category="Personal Finance">
                     <div class="calculator-icon" style="background:linear-gradient(135deg,#92400e,#b45309);">
                         <i class="fas fa-hand-holding-heart"></i>
                     </div>
@@ -931,9 +918,7 @@
                         <a href="/microfinance" class="calculator-link">Calculate <i class="fas fa-arrow-right"></i></a>
                     </div>
                 </div>
-
-                <!-- ESG -->
-                <div class="calculator-card" data-category="ESG &amp; Impact">
+<div class="calculator-card" data-category="ESG &amp; Impact">
                     <div class="calculator-icon" style="background:linear-gradient(135deg,#064e3b,#065f46);">
                         <i class="fas fa-leaf"></i>
                     </div>
@@ -944,22 +929,7 @@
                         <a href="/esg" class="calculator-link">Score Now <i class="fas fa-arrow-right"></i></a>
                     </div>
                 </div>
-
-                <!-- Portfolio Return -->
-                <div class="calculator-card" data-category="Portfolio &amp; Risk">
-                    <div class="calculator-icon" style="background:linear-gradient(135deg,#0f4c81,#1d4ed8);">
-                        <i class="fas fa-chart-line"></i>
-                    </div>
-                    <div class="calculator-content">
-                        <span class="calculator-category">Portfolio</span>
-                        <h3 class="calculator-title">Portfolio Return Calculator</h3>
-                        <p class="calculator-desc">TWR, MWR (MWRR), CAGR, and Sharpe ratio. Compare portfolio performance against benchmark indices.</p>
-                        <a href="/portfolio-return" class="calculator-link">Calculate <i class="fas fa-arrow-right"></i></a>
-                    </div>
-                </div>
-
-                <!-- Portfolio Diversification -->
-                <div class="calculator-card" data-category="Portfolio &amp; Risk">
+<div class="calculator-card" data-category="Portfolio &amp; Risk">
                     <div class="calculator-icon" style="background:linear-gradient(135deg,#1e40af,#2563eb);">
                         <i class="fas fa-th"></i>
                     </div>
@@ -970,9 +940,7 @@
                         <a href="/portfolio-diversification" class="calculator-link">Analyse <i class="fas fa-arrow-right"></i></a>
                     </div>
                 </div>
-
-                <!-- Volatility -->
-                <div class="calculator-card" data-category="Portfolio &amp; Risk">
+<div class="calculator-card" data-category="Portfolio &amp; Risk">
                     <div class="calculator-icon" style="background:linear-gradient(135deg,#7c3aed,#8b5cf6);">
                         <i class="fas fa-bolt"></i>
                     </div>
@@ -983,9 +951,7 @@
                         <a href="/volatility" class="calculator-link">Calculate <i class="fas fa-arrow-right"></i></a>
                     </div>
                 </div>
-
-                <!-- Risk Calculator -->
-                <div class="calculator-card" data-category="Portfolio &amp; Risk">
+<div class="calculator-card" data-category="Portfolio &amp; Risk">
                     <div class="calculator-icon" style="background:linear-gradient(135deg,#be123c,#e11d48);">
                         <i class="fas fa-exclamation-triangle"></i>
                     </div>
@@ -996,9 +962,7 @@
                         <a href="/risk-calculator" class="calculator-link">Measure Risk <i class="fas fa-arrow-right"></i></a>
                     </div>
                 </div>
-
-                <!-- Risk Assessment -->
-                <div class="calculator-card" data-category="Portfolio &amp; Risk">
+<div class="calculator-card" data-category="Portfolio &amp; Risk">
                     <div class="calculator-icon" style="background:linear-gradient(135deg,#9f1239,#be123c);">
                         <i class="fas fa-clipboard-list"></i>
                     </div>
@@ -1009,9 +973,7 @@
                         <a href="/risk-assessment" class="calculator-link">Assess Risk <i class="fas fa-arrow-right"></i></a>
                     </div>
                 </div>
-
-                <!-- Expected Return -->
-                <div class="calculator-card" data-category="Portfolio &amp; Risk">
+<div class="calculator-card" data-category="Portfolio &amp; Risk">
                     <div class="calculator-icon" style="background:linear-gradient(135deg,#1e3a5f,#0f4c81);">
                         <i class="fas fa-percentage"></i>
                     </div>
@@ -1022,9 +984,7 @@
                         <a href="/expected-return" class="calculator-link">Calculate <i class="fas fa-arrow-right"></i></a>
                     </div>
                 </div>
-
-                <!-- Duration -->
-                <div class="calculator-card" data-category="Bonds">
+<div class="calculator-card" data-category="Bonds">
                     <div class="calculator-icon" style="background:linear-gradient(135deg,#134e4a,#0f766e);">
                         <i class="fas fa-ruler-horizontal"></i>
                     </div>
@@ -1035,22 +995,7 @@
                         <a href="/duration" class="calculator-link">Calculate <i class="fas fa-arrow-right"></i></a>
                     </div>
                 </div>
-
-                <!-- Bonds -->
-                <div class="calculator-card" data-category="Bonds">
-                    <div class="calculator-icon" style="background:linear-gradient(135deg,#1e293b,#0f172a);">
-                        <i class="fas fa-coins"></i>
-                    </div>
-                    <div class="calculator-content">
-                        <span class="calculator-category">Bonds</span>
-                        <h3 class="calculator-title">Bond Yield &amp; Pricing</h3>
-                        <p class="calculator-desc">YTM, YTC, current yield, dirty/clean price, accrued interest, and spread-to-benchmark calculations.</p>
-                        <a href="/bonds" class="calculator-link">Calculate <i class="fas fa-arrow-right"></i></a>
-                    </div>
-                </div>
-
-                <!-- DVM -->
-                <div class="calculator-card" data-category="Valuation">
+<div class="calculator-card" data-category="Valuation">
                     <div class="calculator-icon" style="background:linear-gradient(135deg,#0c4a6e,#075985);">
                         <i class="fas fa-hand-holding-usd"></i>
                     </div>
@@ -1061,9 +1006,7 @@
                         <a href="/dvm" class="calculator-link">Value Stock <i class="fas fa-arrow-right"></i></a>
                     </div>
                 </div>
-
-                <!-- Intrinsic Value -->
-                <div class="calculator-card" data-category="Valuation">
+<div class="calculator-card" data-category="Valuation">
                     <div class="calculator-icon" style="background:linear-gradient(135deg,#064e3b,#047857);">
                         <i class="fas fa-gem"></i>
                     </div>
@@ -1074,9 +1017,7 @@
                         <a href="/intrinsic-value" class="calculator-link">Find Value <i class="fas fa-arrow-right"></i></a>
                     </div>
                 </div>
-
-                <!-- Valuation Methods -->
-                <div class="calculator-card" data-category="Valuation">
+<div class="calculator-card" data-category="Valuation">
                     <div class="calculator-icon" style="background:linear-gradient(135deg,#1e3a5f,#1d4ed8);">
                         <i class="fas fa-balance-scale"></i>
                     </div>
@@ -1087,9 +1028,7 @@
                         <a href="/valuation-methods" class="calculator-link">Value Now <i class="fas fa-arrow-right"></i></a>
                     </div>
                 </div>
-
-                <!-- Multi-Method Valuation -->
-                <div class="calculator-card" data-category="Valuation">
+<div class="calculator-card" data-category="Valuation">
                     <div class="calculator-icon" style="background:linear-gradient(135deg,#312e81,#4338ca);">
                         <i class="fas fa-layer-group"></i>
                     </div>
@@ -1100,9 +1039,7 @@
                         <a href="/multi-method-valuation" class="calculator-link">Value Now <i class="fas fa-arrow-right"></i></a>
                     </div>
                 </div>
-
-                <!-- Specialized Industry Multiples -->
-                <div class="calculator-card" data-category="Valuation">
+<div class="calculator-card" data-category="Valuation">
                     <div class="calculator-icon" style="background:linear-gradient(135deg,#1e3a5f,#0f4c81);">
                         <i class="fas fa-industry"></i>
                     </div>
@@ -1113,9 +1050,7 @@
                         <a href="/specialized-industry-multiples" class="calculator-link">Apply Multiples <i class="fas fa-arrow-right"></i></a>
                     </div>
                 </div>
-
-                <!-- Valuation Performance Multiples -->
-                <div class="calculator-card" data-category="Valuation">
+<div class="calculator-card" data-category="Valuation">
                     <div class="calculator-icon" style="background:linear-gradient(135deg,#0c4a6e,#0284c7);">
                         <i class="fas fa-tachometer-alt"></i>
                     </div>
