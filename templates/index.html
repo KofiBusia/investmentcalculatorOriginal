@@ -124,9 +124,30 @@
         .category-filter:hover{border-color:var(--primary);color:var(--primary);background:rgba(37,99,235,.04);}
         .category-filter.active{background:var(--primary);color:white;border-color:var(--primary);box-shadow:0 4px 14px rgba(37,99,235,.3);}
         .calculator-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(265px,1fr));gap:18px;}
-        .calculator-card{background:white;border-radius:var(--radius-lg);overflow:hidden;border:1px solid var(--border);box-shadow:var(--shadow-sm);transition:var(--transition);display:flex;flex-direction:column;}
+        .calculator-card{background:white;border-radius:var(--radius-lg);overflow:hidden;border:1px solid var(--border);box-shadow:var(--shadow-sm);transition:var(--transition);display:flex;flex-direction:column;position:relative;}
         .calculator-card.hidden{display:none;}
         .calculator-card:hover{transform:translateY(-6px);box-shadow:var(--shadow-hover);border-color:rgba(37,99,235,.14);}
+        /* Lock overlay for premium calculators */
+        .calculator-card.locked-card .lock-overlay{display:flex;}
+        .lock-overlay{display:none;position:absolute;inset:0;background:rgba(15,23,42,.55);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);z-index:10;align-items:center;justify-content:center;border-radius:var(--radius-lg);flex-direction:column;gap:8px;transition:var(--transition);}
+        .lock-overlay i{font-size:28px;color:white;filter:drop-shadow(0 2px 8px rgba(0,0,0,.4));}
+        .lock-overlay span{font-size:.72rem;font-weight:700;color:rgba(255,255,255,.85);letter-spacing:.04em;text-align:center;padding:0 12px;}
+        .calculator-card.locked-card:hover .lock-overlay{background:rgba(15,23,42,.65);}
+        .free-badge{position:absolute;top:8px;right:8px;z-index:5;background:linear-gradient(135deg,#059669,#047857);color:white;font-size:.62rem;font-weight:800;padding:2px 8px;border-radius:20px;letter-spacing:.04em;}
+        /* Auth modal */
+        .auth-modal-bg{display:none;position:fixed;inset:0;background:rgba(15,23,42,.75);backdrop-filter:blur(6px);z-index:1000;align-items:center;justify-content:center;}
+        .auth-modal-bg.open{display:flex;}
+        .auth-modal{background:white;border-radius:22px;padding:40px 36px;max-width:420px;width:90%;text-align:center;box-shadow:0 24px 64px rgba(0,0,0,.22);position:relative;}
+        .auth-modal-close{position:absolute;top:14px;right:18px;font-size:1.3rem;color:#94a3b8;cursor:pointer;border:none;background:none;padding:4px;}
+        .auth-modal-close:hover{color:#334155;}
+        .auth-modal h2{font-size:1.4rem;font-weight:800;color:#0f172a;margin-bottom:8px;}
+        .auth-modal p{color:#64748b;font-size:.9rem;margin-bottom:24px;line-height:1.55;}
+        .auth-modal .btn-row{display:flex;flex-direction:column;gap:10px;}
+        .auth-modal .btn-signup{display:block;padding:13px;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:white;border-radius:12px;font-weight:700;font-size:.95rem;text-decoration:none;transition:opacity .2s;}
+        .auth-modal .btn-signup:hover{opacity:.9;}
+        .auth-modal .btn-login{display:block;padding:12px;border:1.5px solid #e2e8f0;border-radius:12px;font-weight:600;font-size:.92rem;text-decoration:none;color:#334155;transition:border-color .2s;}
+        .auth-modal .btn-login:hover{border-color:#2563eb;color:#2563eb;}
+        .auth-modal .free-note{font-size:.78rem;color:#94a3b8;margin-top:14px;}
         .calculator-icon{height:92px;position:relative;overflow:hidden;background:linear-gradient(135deg,var(--primary),var(--secondary));display:flex;align-items:center;justify-content:center;}
         .calculator-icon::after{content:'';position:absolute;bottom:-26px;right:-26px;width:76px;height:76px;border-radius:50%;background:rgba(255,255,255,.1);}
         .calculator-icon::before{content:'';position:absolute;top:-16px;left:-16px;width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,.07);}
@@ -1567,6 +1588,75 @@
           if (el) el.innerHTML = '<span style="color:#546e7a;font-size:.72rem;padding:0 20px;">Market data temporarily unavailable</span>';
         });
     })();
+    </script>
+
+    <!-- Auth gate modal -->
+    <div class="auth-modal-bg" id="auth-modal-bg" role="dialog" aria-modal="true" aria-label="Sign in required">
+      <div class="auth-modal">
+        <button class="auth-modal-close" onclick="closeAuthModal()" aria-label="Close">&times;</button>
+        <div style="width:56px;height:56px;border-radius:14px;background:linear-gradient(135deg,#2563eb,#8b5cf6);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
+          <i class="fas fa-lock" style="font-size:1.4rem;color:white;"></i>
+        </div>
+        <h2>Sign In to Access</h2>
+        <p>You've reached your 5 free calculator limit.<br>Create a free account to unlock all <strong>51+ professional calculators</strong>, articles, and videos.</p>
+        <div class="btn-row">
+          <a id="modal-signup-btn" href="/signup" class="btn-signup"><i class="fas fa-user-plus" style="margin-right:6px;"></i>Create Free Account</a>
+          <a id="modal-login-btn" href="/login" class="btn-login"><i class="fas fa-sign-in-alt" style="margin-right:6px;"></i>I already have an account</a>
+        </div>
+        <p class="free-note">Free forever — no credit card required</p>
+      </div>
+    </div>
+
+    <script>
+    // ── FREEMIUM GATE ──────────────────────────────────────────────────────────
+    const IS_LOGGED_IN = {{ 'true' if current_user and current_user.is_authenticated else 'false' }};
+    const FREE_ROUTES  = new Set(['/dcf','/bonds','/mortgage','/portfolio-return','/portfolio_return','/tbill','/treasury-bill']);
+
+    function openAuthModal(targetHref) {
+      const bg = document.getElementById('auth-modal-bg');
+      document.getElementById('modal-signup-btn').href = '/signup?next=' + encodeURIComponent(targetHref);
+      document.getElementById('modal-login-btn').href  = '/login?next='  + encodeURIComponent(targetHref);
+      bg.classList.add('open');
+      document.body.style.overflow = 'hidden';
+    }
+    function closeAuthModal() {
+      document.getElementById('auth-modal-bg').classList.remove('open');
+      document.body.style.overflow = '';
+    }
+    document.getElementById('auth-modal-bg').addEventListener('click', function(e){
+      if(e.target === this) closeAuthModal();
+    });
+    document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeAuthModal(); });
+
+    // Tag & overlay locked cards
+    document.addEventListener('DOMContentLoaded', function(){
+      if(IS_LOGGED_IN) return; // all cards open for logged-in users
+      document.querySelectorAll('.calculator-card').forEach(function(card){
+        const link = card.querySelector('.calculator-link');
+        if(!link) return;
+        const href = link.getAttribute('href');
+        if(FREE_ROUTES.has(href)) {
+          // Mark free
+          const badge = document.createElement('span');
+          badge.className = 'free-badge';
+          badge.textContent = 'FREE';
+          card.appendChild(badge);
+          return;
+        }
+        // Lock card
+        card.classList.add('locked-card');
+        const overlay = document.createElement('div');
+        overlay.className = 'lock-overlay';
+        overlay.innerHTML = '<i class="fas fa-lock"></i><span>Sign in to unlock</span>';
+        card.appendChild(overlay);
+        card.addEventListener('click', function(e){
+          e.preventDefault();
+          openAuthModal(href);
+        });
+        card.style.cursor = 'pointer';
+        if(link) { link.addEventListener('click', function(e){ e.preventDefault(); e.stopPropagation(); openAuthModal(href); }); }
+      });
+    });
     </script>
 </body>
 </html>

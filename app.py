@@ -457,6 +457,53 @@ def calculate_tbills_rediscount(face_value, discount_rate, days_to_maturity):
     discount_amount = face_value * discount_rate * (days_to_maturity / 365)
     return face_value - discount_amount
 
+# ── FREEMIUM ACCESS CONTROL ───────────────────────────────────────────────────
+# 5 calculators available free (no login); all others require authentication.
+FREE_CALC_ROUTES = {
+    '/dcf', '/bonds', '/mortgage',
+    '/portfolio-return', '/portfolio_return',
+    '/tbill', '/treasury-bill',
+}
+
+# Every calculator/tool route that requires login.
+# Public pages (home, about, contact, jobs listing, training, donate, books, etc.) are always open.
+PROTECTED_CALC_ROUTES = {
+    '/fcff', '/fcfe', '/asset-allocation', '/leverage_ratios', '/cost_sustainability',
+    '/capital-structure', '/multiples-master-valuation', '/calculate-beta',
+    '/bank-intrinsic-value', '/calculate-cost-of-equity', '/target-price',
+    '/tbills-rediscount', '/credit_risk', '/bond_risk_help', '/portfolio_risk_help',
+    '/bond_risk', '/bond-risk', '/portfolio-risk', '/portfolio_risks',
+    '/portfolio-diversification', '/portfolio_diversification',
+    '/volatility', '/risk-calculator', '/risk_calculator',
+    '/risk-assessment', '/risk_assessment', '/expected-return', '/duration',
+    '/dvm', '/intrinsic-value', '/valuation-methods', '/multi-method-valuation',
+    '/specialized-industry-multiples', '/Specialized_Industry_Multiples',
+    '/valuation-performance-multiples', '/Valuation_Performance_Multiples',
+    '/bond-calculator', '/private-equity', '/private-debt', '/startup-valuation',
+    '/informal-sector', '/options', '/monte-carlo', '/real-estate',
+    '/fx-forward', '/commodity-futures', '/yield-curve', '/tips',
+    '/convertible-bond', '/cds', '/esop', '/drip', '/pension', '/microfinance',
+    '/esg', '/early-exit',
+}
+
+@app.before_request
+def enforce_freemium():
+    path = request.path.rstrip('/')
+    if not path:
+        path = '/'
+    # Calculator routes that are not free
+    if path in PROTECTED_CALC_ROUTES and path not in FREE_CALC_ROUTES:
+        if not current_user.is_authenticated:
+            return redirect(url_for('user_login', next=request.url))
+    # Articles and videos require login
+    if path in ('/articles', '/videos') or path.startswith('/articles/'):
+        if not current_user.is_authenticated:
+            return redirect(url_for('user_login', next=request.url))
+    # Job application requires login (job listings remain public)
+    if request.endpoint == 'job_apply' and not current_user.is_authenticated:
+        return redirect(url_for('user_login', next=request.url))
+
+
 # --- ROUTES ---
 @app.route('/')
 def index():
