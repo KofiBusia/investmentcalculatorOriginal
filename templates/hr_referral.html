@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Referral Program — InvestIQ Talent Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body{font-family:'Inter',sans-serif;background:#f8fafc;}
+  .hero-gradient{background:linear-gradient(135deg,#0f172a,#1e3a5f);}
+  .card{background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.07);border:1px solid #e2e8f0;}
+  .input-field{width:100%;padding:.65rem 1rem;border:1.5px solid #e2e8f0;border-radius:.5rem;font-size:.93rem;outline:none;transition:border .2s;}
+  .input-field:focus{border-color:#0f4c81;box-shadow:0 0 0 3px rgba(15,76,129,.1);}
+  .submit-btn{background:linear-gradient(135deg,#059669,#065f46);color:#fff;padding:.85rem 2rem;border-radius:12px;font-weight:700;font-size:1rem;border:none;cursor:pointer;width:100%;}
+</style>
+</head>
+<body>
+<nav class="hero-gradient text-white py-4 px-6 shadow-xl">
+  <div class="max-w-7xl mx-auto flex justify-between items-center">
+    <a href="/" class="text-xl font-bold flex items-center gap-2">
+      <i class="fas fa-chart-line text-blue-300"></i> Invest<span class="text-blue-300">IQ</span>
+    </a>
+    <div class="flex gap-5 text-sm">
+      <a href="/jobs" class="text-blue-200 hover:text-white">Jobs</a>
+      <a href="/cv-builder" class="text-blue-200 hover:text-white">CV Builder</a>
+      <a href="/training" class="text-blue-200 hover:text-white">Training</a>
+    </div>
+  </div>
+</nav>
+
+<div class="hero-gradient text-white py-14 px-4">
+  <div class="max-w-3xl mx-auto text-center">
+    <div class="inline-flex items-center gap-2 bg-yellow-400/20 border border-yellow-400/30 px-4 py-1.5 rounded-full text-sm mb-4">
+      <i class="fas fa-star text-yellow-300"></i> <span class="text-yellow-200">Earn While You Help Others Grow</span>
+    </div>
+    <h1 class="text-4xl font-bold mb-3">Refer & <span class="text-yellow-300">Earn</span></h1>
+    <p class="text-blue-200 text-lg">Know a finance professional looking for their next move? Refer them and earn referral bonuses when they get placed.</p>
+  </div>
+</div>
+
+<main class="max-w-5xl mx-auto px-4 py-12 grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+  <!-- How it works -->
+  <div class="space-y-5">
+    <div class="card p-6">
+      <h2 class="text-xl font-bold text-gray-800 mb-5"><i class="fas fa-info-circle text-blue-600 mr-2"></i>How It Works</h2>
+      <div class="space-y-4">
+        <div class="flex items-start gap-4">
+          <div class="w-10 h-10 rounded-full bg-blue-900 text-white flex items-center justify-center font-bold flex-shrink-0">1</div>
+          <div>
+            <p class="font-semibold text-gray-800">Register Below</p>
+            <p class="text-sm text-gray-500">Sign up with your name and email to join the referral program.</p>
+          </div>
+        </div>
+        <div class="flex items-start gap-4">
+          <div class="w-10 h-10 rounded-full bg-blue-800 text-white flex items-center justify-center font-bold flex-shrink-0">2</div>
+          <div>
+            <p class="font-semibold text-gray-800">Share Your Link</p>
+            <p class="text-sm text-gray-500">We'll send you a unique referral link to share with your network.</p>
+          </div>
+        </div>
+        <div class="flex items-start gap-4">
+          <div class="w-10 h-10 rounded-full bg-blue-700 text-white flex items-center justify-center font-bold flex-shrink-0">3</div>
+          <div>
+            <p class="font-semibold text-gray-800">They Get Placed</p>
+            <p class="text-sm text-gray-500">When your referral gets placed or books a training program, you earn.</p>
+          </div>
+        </div>
+        <div class="flex items-start gap-4">
+          <div class="w-10 h-10 rounded-full bg-green-700 text-white flex items-center justify-center font-bold flex-shrink-0">4</div>
+          <div>
+            <p class="font-semibold text-gray-800">Collect Your Reward</p>
+            <p class="text-sm text-gray-500">Referral bonuses paid via Mobile Money or bank transfer within 30 days.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card p-6">
+      <h2 class="text-xl font-bold text-gray-800 mb-4"><i class="fas fa-gift text-yellow-500 mr-2"></i>Referral Rewards</h2>
+      <div class="space-y-3">
+        <div class="flex justify-between items-center py-2 border-b border-gray-100">
+          <span class="text-sm text-gray-600">Job placement referral</span>
+          <span class="font-bold text-green-700">GHS 500</span>
+        </div>
+        <div class="flex justify-between items-center py-2 border-b border-gray-100">
+          <span class="text-sm text-gray-600">Training program referral</span>
+          <span class="font-bold text-green-700">GHS 200</span>
+        </div>
+        <div class="flex justify-between items-center py-2">
+          <span class="text-sm text-gray-600">Corporate training referral</span>
+          <span class="font-bold text-green-700">GHS 1,000+</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Registration Form -->
+  <div class="card p-6">
+    {% if success %}
+    <div class="text-center py-8">
+      <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <i class="fas fa-check-circle text-3xl text-green-600"></i>
+      </div>
+      <h3 class="text-xl font-bold text-gray-800 mb-2">You're In!</h3>
+      <p class="text-gray-500 mb-4">We'll send your referral link within 24 hours. Start sharing and start earning!</p>
+      <a href="/jobs" class="inline-block bg-blue-900 text-white px-5 py-2.5 rounded-lg font-semibold text-sm">Browse Jobs to Share</a>
+    </div>
+    {% else %}
+    <h2 class="text-xl font-bold text-gray-800 mb-5"><i class="fas fa-user-plus text-blue-600 mr-2"></i>Join the Referral Program</h2>
+    <form method="POST" class="space-y-4">
+      <div>
+        <label class="block text-sm font-semibold text-gray-600 mb-1">Full Name *</label>
+        <input type="text" name="full_name" required class="input-field" placeholder="Kwame Asante"/>
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-gray-600 mb-1">Email *</label>
+        <input type="email" name="email" required class="input-field" placeholder="kwame@example.com"/>
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-gray-600 mb-1">Phone</label>
+        <input type="tel" name="phone" class="input-field" placeholder="+233 XX XXX XXXX"/>
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-gray-600 mb-1">How did you hear about us?</label>
+        <select name="source" class="input-field">
+          <option>LinkedIn</option><option>Friend / Colleague</option><option>Google</option>
+          <option>Facebook / Instagram</option><option>Twitter / X</option><option>Other</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-gray-600 mb-1">Tell us about your network</label>
+        <textarea name="network_desc" rows="3" class="input-field" placeholder="e.g. I work in banking and have connections with 50+ finance professionals in Ghana and Nigeria"></textarea>
+      </div>
+      <button type="submit" class="submit-btn"><i class="fas fa-handshake mr-2"></i>Join Now — It's Free</button>
+    </form>
+    {% endif %}
+  </div>
+
+</main>
+
+<footer class="bg-gray-900 text-white py-6 px-4 text-center">
+  <p class="text-gray-400 text-sm">© 2026 InvestIQ Talent Hub — Referral Program</p>
+</footer>
+</body>
+</html>

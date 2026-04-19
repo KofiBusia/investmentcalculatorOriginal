@@ -65,7 +65,14 @@
         <p><strong>Real Return (Average Inflation):</strong> {{ result.real_return_avg }}</p>
         <p><strong>Real Return (Time-Weighted Inflation):</strong> {{ result.real_return_tw }}</p>
     </div>
-    {% endif %}
+    
+<div class="mt-4 text-center">
+  <button onclick="investiqDownloadCSV('portfolio-return')" class="inline-flex items-center gap-2 px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-semibold text-sm transition-colors shadow">
+    <i class="fas fa-download"></i> Download Results (CSV)
+  </button>
+</div>
+
+{% endif %}
 </div>
 
 <script>

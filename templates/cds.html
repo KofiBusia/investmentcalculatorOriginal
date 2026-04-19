@@ -53,5 +53,64 @@
     <footer>
         <p>Created by Kofi Busia Kyei</p>
     </footer>
+
+<script>
+(function(){
+  window.investiqDownloadCSV = function(filename){
+    var rows = [['Metric','Value']];
+    // 1. Try result-row divs (span label / span value pattern)
+    document.querySelectorAll('.result-row').forEach(function(el){
+      var spans = el.querySelectorAll('span');
+      if(spans.length>=2){
+        var label = spans[0].innerText.trim();
+        var val   = spans[spans.length-1].innerText.trim();
+        if(label && val) rows.push([label, val]);
+      }
+    });
+    // 2. Try table rows
+    if(rows.length<=1){
+      document.querySelectorAll('table tbody tr, table tr').forEach(function(tr){
+        var tds = tr.querySelectorAll('td');
+        if(tds.length>=2){
+          rows.push([tds[0].innerText.trim(), tds[1].innerText.trim()]);
+        }
+      });
+    }
+    // 3. Try definition lists / flex rows with two children
+    if(rows.length<=1){
+      document.querySelectorAll('[class*="result"],[class*="metric"],[class*="stat"]').forEach(function(el){
+        var children = el.children;
+        if(children.length>=2){
+          var label = children[0].innerText.trim();
+          var val   = children[children.length-1].innerText.trim();
+          if(label && val && label!==val) rows.push([label, val]);
+        }
+      });
+    }
+    // 4. Scrape all visible labels + values from results section
+    if(rows.length<=1){
+      var section = document.getElementById('results-section') || document.querySelector('[id*="result"]');
+      if(section){
+        section.querySelectorAll('p,span,td,li').forEach(function(el){
+          var txt = el.innerText.trim();
+          if(txt.includes(':') && txt.length<200){
+            var parts = txt.split(':');
+            if(parts.length>=2) rows.push([parts[0].trim(), parts.slice(1).join(':').trim()]);
+          }
+        });
+      }
+    }
+    if(rows.length<=1){ alert('No results to download yet.'); return; }
+    var csv = rows.map(function(r){
+      return r.map(function(c){ return '"'+String(c).replace(/"/g,'""')+'"'; }).join(',');
+    }).join('\n');
+    var a = document.createElement('a');
+    a.href = 'data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+    a.download = (filename||'investiq_result')+'.csv';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  };
+})();
+</script>
+
 </body>
 </html>

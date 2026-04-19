@@ -59,7 +59,14 @@
         <h3>Results</h3>
         {{ result|safe }}
     </div>
-    {% endif %}
+    
+<div class="mt-4 text-center">
+  <button onclick="investiqDownloadCSV('volatility')" class="inline-flex items-center gap-2 px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-semibold text-sm transition-colors shadow">
+    <i class="fas fa-download"></i> Download Results (CSV)
+  </button>
+</div>
+
+{% endif %}
     {% if error %}
     <p style="color: red;">{{ error }}</p>
     {% endif %}

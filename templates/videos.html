@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Investment Videos — InvestIQ</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={theme:{extend:{colors:{primary:'#4f46e5',dark:'#1e293b'},fontFamily:{sans:['Inter','sans-serif']}}}}</script>
+  <style>
+    body{background:linear-gradient(135deg,#f0f4f8,#e6e9ff);min-height:100vh;font-family:'Inter',sans-serif;}
+    .gradient-bg{background:linear-gradient(135deg,#4f46e5,#7c3aed);}
+    .card{background:rgba(255,255,255,.92);backdrop-filter:blur(10px);border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.08);transition:all .3s;}
+    .card:hover{transform:translateY(-4px);box-shadow:0 18px 36px rgba(0,0,0,.12);}
+    .back-to-top{position:fixed;bottom:28px;right:28px;opacity:0;transform:translateY(20px);transition:all .3s;width:48px;height:48px;background:#4f46e5;color:white;border:none;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+    .back-to-top.visible{opacity:1;transform:translateY(0);}
+  </style>
+</head>
+<body class="text-gray-800">
+<header class="gradient-bg text-white py-8 px-4">
+  <div class="max-w-6xl mx-auto">
+    <nav class="flex justify-between items-center mb-6 flex-wrap gap-4">
+      <a href="/" class="flex items-center gap-2 text-white text-xl font-bold"><i class="fas fa-chart-line text-indigo-200"></i> Invest<span class="text-indigo-200">IQ</span></a>
+      <div class="flex gap-5 text-sm">
+        <a href="/" class="text-indigo-100 hover:text-white">Home</a>
+        <a href="/articles" class="text-indigo-100 hover:text-white">Articles</a>
+        <a href="/videos" class="text-white font-semibold border-b-2 border-white pb-0.5">Videos</a>
+        <a href="/#calculators" class="text-indigo-100 hover:text-white">Calculators</a>
+      </div>
+      <a href="/admin" class="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg text-sm font-medium"><i class="fas fa-lock mr-1"></i> Admin</a>
+    </nav>
+    <h1 class="text-4xl font-bold mb-2">Investment Videos</h1>
+    <p class="text-indigo-100 text-lg">Tutorials, market analysis, and financial education from InvestIQ.</p>
+  </div>
+</header>
+
+<main class="max-w-6xl mx-auto px-4 py-8">
+  <div class="flex gap-3 mb-8">
+    <a href="/" class="inline-flex items-center gap-2 px-5 py-2 bg-indigo-600 text-white rounded-lg font-medium text-sm"><i class="fas fa-home"></i> Home</a>
+    <a href="/articles" class="inline-flex items-center gap-2 px-5 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg font-medium text-sm"><i class="fas fa-newspaper"></i> Articles</a>
+    <a href="/#calculators" class="inline-flex items-center gap-2 px-5 py-2 bg-emerald-500 text-white rounded-lg font-medium text-sm"><i class="fas fa-calculator"></i> Calculators</a>
+  </div>
+
+  {% if videos %}
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {% for video in videos %}
+    <div class="card overflow-hidden flex flex-col">
+      <div class="relative" style="padding-top:56.25%;">
+        <iframe class="absolute inset-0 w-full h-full" src="{{ video.embed_url }}"
+          title="{{ video.title }}" frameborder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowfullscreen loading="lazy"></iframe>
+      </div>
+      <div class="p-5 flex-1 flex flex-col">
+        {% if video.is_featured %}
+        <span class="inline-block bg-red-100 text-red-700 text-xs font-bold px-2 py-0.5 rounded-full mb-2 self-start"><i class="fas fa-star mr-1"></i>Featured</span>
+        {% endif %}
+        <h2 class="font-bold text-gray-800 text-base mb-2 leading-snug">{{ video.title }}</h2>
+        {% if video.description %}
+        <p class="text-gray-500 text-sm flex-1">{{ video.description }}</p>
+        {% endif %}
+        <p class="text-xs text-gray-400 mt-3"><i class="fas fa-calendar-alt mr-1"></i>{{ video.created_at.strftime('%b %d, %Y') }}</p>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="card p-12 text-center">
+    <i class="fab fa-youtube text-5xl text-red-300 mb-4"></i>
+    <h2 class="text-xl font-semibold text-gray-500 mb-2">No videos yet</h2>
+    <p class="text-gray-400 mb-6">Check back soon. Admins can add YouTube videos via the admin panel.</p>
+    <a href="/admin/videos/new" class="inline-flex items-center gap-2 px-6 py-3 bg-red-500 text-white rounded-lg font-medium hover:bg-red-600"><i class="fab fa-youtube"></i> Add First Video (Admin)</a>
+  </div>
+  {% endif %}
+
+  <div class="flex gap-3 mt-10">
+    <a href="/" class="inline-flex items-center gap-2 px-5 py-2 bg-indigo-600 text-white rounded-lg font-medium text-sm"><i class="fas fa-home"></i> Home</a>
+    <a href="/#calculators" class="inline-flex items-center gap-2 px-5 py-2 bg-emerald-500 text-white rounded-lg font-medium text-sm"><i class="fas fa-calculator"></i> Calculators</a>
+  </div>
+</main>
+
+<footer class="bg-gray-900 text-white py-8 mt-10">
+  <div class="max-w-6xl mx-auto px-4 text-center">
+    <p class="text-gray-400 text-sm">© 2026 InvestIQ. Videos are for educational purposes only — not financial advice.</p>
+  </div>
+</footer>
+
+<button id="backToTop" class="back-to-top" onclick="window.scrollTo({top:0,behavior:'smooth'})"><i class="fas fa-arrow-up"></i></button>
+<script>window.addEventListener('scroll',()=>{document.getElementById('backToTop').classList.toggle('visible',window.scrollY>300);});</script>
+</body>
+</html>

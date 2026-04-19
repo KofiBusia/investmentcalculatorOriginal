@@ -642,7 +642,7 @@
         });
 
         document.getElementById('download-results')?.addEventListener('click', function() {
-            const result = {{ result | tojson | safe }};
+            const result = {{ (result | tojson | safe) if result else 'null' }};
             if (result) {
                 const csv = `Metric,Value,Description\n${result.metric},"${result.value.replace(/<br>/g, '\n')}","${result.description}"`;
                 const blob = new Blob([csv], { type: 'text/csv' });

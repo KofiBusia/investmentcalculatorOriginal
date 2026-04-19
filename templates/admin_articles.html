@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Manage Articles — InvestIQ Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>body{font-family:'Inter',sans-serif;background:#f1f5f9;min-height:100vh;}</style>
+</head>
+<body class="text-gray-800">
+<div class="flex min-h-screen">
+  <!-- Sidebar -->
+  <aside class="w-64 bg-gray-900 text-white flex flex-col" style="min-height:100vh;">
+    <div class="p-6 border-b border-gray-800"><a href="/" class="flex items-center gap-2 font-bold text-lg"><i class="fas fa-chart-line text-indigo-400"></i> InvestIQ Admin</a></div>
+    <nav class="flex-1 p-4 space-y-1">
+      <a href="/admin" class="flex items-center gap-3 px-3 py-2.5 text-gray-300 hover:bg-gray-800 rounded-lg text-sm">
+        <i class="fas fa-tachometer-alt w-4"></i> Dashboard</a>
+      <a href="/admin/articles" class="flex items-center gap-3 px-3 py-2.5 bg-indigo-600 text-white rounded-lg text-sm font-medium">
+        <i class="fas fa-newspaper w-4"></i> Articles</a>
+      <a href="/admin/videos" class="flex items-center gap-3 px-3 py-2.5 text-gray-300 hover:bg-gray-800 rounded-lg text-sm">
+        <i class="fab fa-youtube w-4"></i> Videos</a>
+      <hr class="border-gray-800 my-3" />
+      <a href="/" class="flex items-center gap-3 px-3 py-2.5 text-gray-400 hover:bg-gray-800 rounded-lg text-sm"><i class="fas fa-globe w-4"></i> View Website</a>
+      <a href="/articles" class="flex items-center gap-3 px-3 py-2.5 text-gray-400 hover:bg-gray-800 rounded-lg text-sm"><i class="fas fa-eye w-4"></i> View Articles</a>
+    </nav>
+    <div class="p-4 border-t border-gray-800">
+      <a href="/admin/logout" class="flex items-center gap-2 text-gray-400 hover:text-white text-sm"><i class="fas fa-sign-out-alt"></i> Logout</a>
+    </div>
+  </aside>
+
+  <main class="flex-1 p-8">
+    <div class="flex items-center justify-between mb-8">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-800">Articles</h1>
+        <p class="text-gray-500 text-sm mt-1">{{ posts|length }} article(s) total</p>
+      </div>
+      <a href="/admin/articles/new" class="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium text-sm transition-colors">
+        <i class="fas fa-plus"></i> New Article
+      </a>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      {% if posts %}
+      <table class="w-full text-sm">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Title</th>
+            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Category</th>
+            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Status</th>
+            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Date</th>
+            <th class="px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-50">
+          {% for post in posts %}
+          <tr class="hover:bg-gray-50">
+            <td class="px-6 py-4">
+              <div class="font-medium text-gray-800 truncate max-w-xs">{{ post.title }}</div>
+              <div class="text-gray-400 text-xs mt-0.5 truncate max-w-xs">{{ post.summary[:80] }}...</div>
+            </td>
+            <td class="px-6 py-4 text-gray-500">{{ post.category }}</td>
+            <td class="px-6 py-4">
+              {% if post.is_published %}
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">Published</span>
+              {% else %}
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">Draft</span>
+              {% endif %}
+            </td>
+            <td class="px-6 py-4 text-gray-400 whitespace-nowrap">{{ post.created_at.strftime('%b %d, %Y') }}</td>
+            <td class="px-6 py-4 text-right whitespace-nowrap">
+              <a href="/articles/{{ post.id }}" target="_blank" class="text-gray-400 hover:text-gray-600 mr-3 text-xs" title="View public"><i class="fas fa-external-link-alt"></i></a>
+              <a href="/admin/articles/{{ post.id }}/edit" class="text-indigo-600 hover:text-indigo-800 font-medium mr-3 text-xs">Edit</a>
+              <form method="POST" action="/admin/articles/{{ post.id }}/delete" class="inline" onsubmit="return confirm('Delete this article?')">
+                <button type="submit" class="text-red-500 hover:text-red-700 font-medium text-xs">Delete</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <div class="p-12 text-center">
+        <i class="fas fa-newspaper text-4xl text-gray-200 mb-4"></i>
+        <p class="text-gray-500 mb-4">No articles yet.</p>
+        <a href="/admin/articles/new" class="inline-flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-lg text-sm font-medium"><i class="fas fa-plus"></i> Create First Article</a>
+      </div>
+      {% endif %}
+    </div>
+  </main>
+</div>
+</body>
+</html>

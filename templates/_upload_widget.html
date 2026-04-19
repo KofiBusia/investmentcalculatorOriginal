@@ -1,0 +1,118 @@
+{% macro upload_widget(calculator_key, form_id='main-form') %}
+<!-- Data Input Mode Toggle -->
+<div class="flex gap-2 mb-5" id="input-mode-tabs-{{ calculator_key }}">
+  <button type="button"
+    onclick="setInputMode('{{ calculator_key }}','manual')"
+    id="tab-manual-{{ calculator_key }}"
+    class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all bg-indigo-600 text-white shadow-sm">
+    <i class="fas fa-keyboard"></i> Manual Input
+  </button>
+  <button type="button"
+    onclick="setInputMode('{{ calculator_key }}','upload')"
+    id="tab-upload-{{ calculator_key }}"
+    class="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all bg-white border border-gray-200 text-gray-600 hover:bg-gray-50">
+    <i class="fas fa-upload"></i> Upload CSV
+  </button>
+</div>
+
+<!-- Upload Panel -->
+<div id="upload-panel-{{ calculator_key }}" class="hidden mb-5">
+  <div class="bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-100 rounded-xl p-5">
+    <p class="text-sm font-semibold text-indigo-800 mb-3"><i class="fas fa-file-csv mr-2 text-indigo-500"></i>Upload Data (CSV)</p>
+    <!-- Step 1: Download template -->
+    <div class="flex items-center gap-3 mb-4">
+      <div class="w-6 h-6 bg-indigo-600 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">1</div>
+      <div class="flex-1">
+        <p class="text-xs font-semibold text-gray-700 mb-1">Download the template, fill it in Excel / Google Sheets</p>
+        <a href="/api/template/{{ calculator_key }}" download
+          class="inline-flex items-center gap-2 px-4 py-1.5 bg-indigo-600 text-white rounded-lg text-xs font-semibold hover:bg-indigo-700 transition-colors">
+          <i class="fas fa-download"></i> Download CSV Template
+        </a>
+      </div>
+    </div>
+    <!-- Step 2: Upload -->
+    <div class="flex items-center gap-3 mb-4">
+      <div class="w-6 h-6 bg-indigo-600 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">2</div>
+      <div class="flex-1">
+        <p class="text-xs font-semibold text-gray-700 mb-1">Upload your filled CSV</p>
+        <label class="flex items-center justify-center gap-2 w-full py-6 border-2 border-dashed border-indigo-200 rounded-xl cursor-pointer hover:border-indigo-400 hover:bg-indigo-50 transition-all" id="drop-{{ calculator_key }}">
+          <i class="fas fa-cloud-upload-alt text-2xl text-indigo-300"></i>
+          <span class="text-sm text-indigo-400 font-medium">Click to browse or drag & drop CSV</span>
+          <input type="file" accept=".csv" class="hidden" onchange="handleCSVUpload('{{ calculator_key }}', this)" />
+        </label>
+      </div>
+    </div>
+    <!-- Step 3: Status -->
+    <div id="upload-status-{{ calculator_key }}" class="hidden">
+      <div class="flex items-center gap-3">
+        <div class="w-6 h-6 bg-emerald-500 text-white rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0">3</div>
+        <div class="flex-1">
+          <p id="upload-msg-{{ calculator_key }}" class="text-xs text-emerald-700 font-semibold"></p>
+          <button type="button" onclick="applyUploadedData('{{ calculator_key }}')"
+            class="mt-2 px-4 py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-semibold hover:bg-emerald-700 transition-colors">
+            <i class="fas fa-magic mr-1"></i> Apply to Form & Calculate
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  var _uploadedRows_{{ calculator_key|replace('-','_') }} = [];
+
+  window.setInputMode = window.setInputMode || function(key, mode) {
+    document.getElementById('upload-panel-' + key).classList.toggle('hidden', mode !== 'upload');
+    document.getElementById('tab-manual-' + key).className = mode === 'manual'
+      ? 'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all bg-indigo-600 text-white shadow-sm'
+      : 'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all bg-white border border-gray-200 text-gray-600 hover:bg-gray-50';
+    document.getElementById('tab-upload-' + key).className = mode === 'upload'
+      ? 'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all bg-indigo-600 text-white shadow-sm'
+      : 'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all bg-white border border-gray-200 text-gray-600 hover:bg-gray-50';
+  };
+
+  window.handleCSVUpload = window.handleCSVUpload || function(key, input) {
+    var file = input.files[0];
+    if (!file) return;
+    var fd = new FormData();
+    fd.append('file', file);
+    fetch('/api/upload/' + key, {method: 'POST', body: fd})
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.error) { alert('Error: ' + data.error); return; }
+        window['_uploadedRows_' + key.replace(/-/g,'_')] = data.rows;
+        var status = document.getElementById('upload-status-' + key);
+        var msg = document.getElementById('upload-msg-' + key);
+        status.classList.remove('hidden');
+        msg.textContent = data.count + ' row(s) loaded from "' + file.name + '". Click Apply to populate the form.';
+      })
+      .catch(function(e) { alert('Upload failed: ' + e); });
+  };
+
+  window.applyUploadedData = window.applyUploadedData || function(key) {
+    var rows = window['_uploadedRows_' + key.replace(/-/g,'_')] || [];
+    if (!rows.length) return;
+    var row = rows[0];
+    Object.keys(row).forEach(function(field) {
+      var els = document.querySelectorAll('[name="' + field + '"]');
+      els.forEach(function(el) {
+        if (el.tagName === 'SELECT') {
+          Array.from(el.options).forEach(function(opt) {
+            if (opt.value === row[field] || opt.text === row[field]) opt.selected = true;
+          });
+        } else if (el.type === 'checkbox') {
+          el.checked = row[field] === '1' || row[field] === 'true' || row[field] === 'yes';
+        } else {
+          el.value = row[field];
+        }
+      });
+    });
+    // Switch back to manual mode and submit
+    setInputMode(key, 'manual');
+    var form = document.querySelector('form');
+    if (form) form.submit();
+  };
+})();
+</script>
+{% endmacro %}

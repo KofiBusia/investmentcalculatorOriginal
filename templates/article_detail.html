@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="{{ post.summary }}" />
+  <title>{{ post.title }} — InvestIQ</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Merriweather:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Chart.js + Plotly for admin-embedded charts in article body -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.plot.ly/plotly-2.30.0.min.js"></script>
+  <script>
+    tailwind.config = { theme: { extend: { colors: { primary:'#4f46e5', dark:'#1e293b' }, fontFamily: { sans:['Inter','sans-serif'] } } } }
+  </script>
+  <style>
+    body { background: linear-gradient(135deg,#f0f4f8 0%,#e6e9ff 100%); min-height:100vh; font-family:'Inter',sans-serif; }
+    .gradient-bg { background: linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%); }
+    .prose { max-width:none; }
+    .prose h2 { font-size:1.5rem; font-weight:700; margin:2rem 0 .6rem; color:#1e293b; border-bottom:2px solid #e2e8f0; padding-bottom:.4rem; }
+    .prose h3 { font-size:1.2rem; font-weight:600; margin:1.5rem 0 .4rem; color:#1e293b; }
+    .prose p  { margin-bottom:1rem; line-height:1.8; color:#374151; }
+    .prose ul, .prose ol { padding-left:1.5rem; margin-bottom:1rem; }
+    .prose li { margin-bottom:.4rem; color:#374151; line-height:1.7; }
+    .prose strong { color:#1e293b; font-weight:600; }
+    .prose blockquote { border-left:4px solid #4f46e5; padding:.75rem 1.25rem; margin:1.5rem 0; background:#f0f0ff; border-radius:0 8px 8px 0; color:#374151; font-style:italic; }
+    .back-to-top { position:fixed; bottom:28px; right:28px; opacity:0; transform:translateY(20px); transition:all .3s; width:48px; height:48px; background:#4f46e5; color:white; border:none; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+    .back-to-top.visible { opacity:1; transform:translateY(0); }
+  </style>
+</head>
+<body class="text-gray-800">
+
+<header class="gradient-bg text-white py-8 px-4">
+  <div class="max-w-4xl mx-auto">
+    <nav class="flex justify-between items-center mb-6 flex-wrap gap-4">
+      <a href="/" class="flex items-center gap-2 text-white text-xl font-bold" style="font-family:'Montserrat',sans-serif;">
+        <i class="fas fa-chart-line text-indigo-200"></i> Invest<span class="text-indigo-200">IQ</span>
+      </a>
+      <div class="flex items-center gap-5 text-sm">
+        <a href="/" class="text-indigo-100 hover:text-white">Home</a>
+        <a href="/articles" class="text-indigo-100 hover:text-white">Articles</a>
+        <a href="/#calculators" class="text-indigo-100 hover:text-white">Calculators</a>
+      </div>
+    </nav>
+    <span class="inline-block bg-white/20 text-white text-xs font-bold px-3 py-1 rounded-full mb-3">{{ post.category }}</span>
+    <h1 class="text-3xl md:text-4xl font-bold mb-3 leading-tight">{{ post.title }}</h1>
+    <p class="text-indigo-100 text-lg">{{ post.summary }}</p>
+    <p class="text-indigo-200 text-sm mt-3"><i class="fas fa-calendar-alt mr-1"></i> {{ post.created_at.strftime('%B %d, %Y') }}</p>
+  </div>
+</header>
+
+<main class="max-w-4xl mx-auto px-4 py-10">
+  <div class="flex gap-3 mb-8">
+    <a href="/articles" class="inline-flex items-center gap-2 px-5 py-2 bg-indigo-600 text-white rounded-lg font-medium text-sm"><i class="fas fa-arrow-left"></i> All Articles</a>
+    <a href="/#calculators" class="inline-flex items-center gap-2 px-5 py-2 bg-emerald-500 text-white rounded-lg font-medium text-sm"><i class="fas fa-calculator"></i> Calculators</a>
+  </div>
+
+  {% if post.thumbnail_url %}
+  <img src="{{ post.thumbnail_url }}" alt="{{ post.title }}" class="w-full rounded-2xl mb-8 max-h-80 object-cover shadow-lg" />
+  {% endif %}
+
+  <div class="bg-white/90 backdrop-blur rounded-2xl shadow-lg p-8 md:p-12">
+    <div class="prose">
+      {{ post.body | safe }}
+    </div>
+  </div>
+
+  <div class="mt-10 p-6 bg-indigo-50 rounded-2xl border border-indigo-100">
+    <p class="text-sm text-indigo-700 font-medium mb-2"><i class="fas fa-exclamation-circle mr-1"></i> Disclaimer</p>
+    <p class="text-xs text-indigo-600">This article is for educational and informational purposes only and does not constitute financial advice. Always consult a qualified financial advisor before making investment decisions.</p>
+  </div>
+
+  <div class="flex gap-3 mt-8">
+    <a href="/articles" class="inline-flex items-center gap-2 px-5 py-2 bg-indigo-600 text-white rounded-lg font-medium text-sm"><i class="fas fa-arrow-left"></i> All Articles</a>
+    <a href="/" class="inline-flex items-center gap-2 px-5 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg font-medium text-sm"><i class="fas fa-home"></i> Home</a>
+  </div>
+</main>
+
+<footer class="bg-gray-900 text-white py-8 mt-10">
+  <div class="max-w-4xl mx-auto px-4 text-center">
+    <p class="text-gray-400 text-sm">© 2026 InvestIQ. Articles are for educational purposes only.</p>
+  </div>
+</footer>
+
+<button id="backToTop" class="back-to-top" onclick="window.scrollTo({top:0,behavior:'smooth'})"><i class="fas fa-arrow-up"></i></button>
+<script>window.addEventListener('scroll',()=>{ document.getElementById('backToTop').classList.toggle('visible',window.scrollY>300); });</script>
+</body>
+</html>

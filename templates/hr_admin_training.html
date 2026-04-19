@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Training Bookings — InvestIQ Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+<nav class="bg-blue-900 text-white py-4 px-6">
+  <div class="max-w-7xl mx-auto flex justify-between items-center">
+    <a href="/admin" class="font-bold text-lg"><i class="fas fa-chart-line mr-2 text-blue-300"></i>InvestIQ Admin</a>
+    <div class="flex gap-4 text-sm">
+      <a href="/admin" class="text-blue-200 hover:text-white">Dashboard</a>
+      <a href="/admin/jobs" class="text-blue-200 hover:text-white">Jobs</a>
+      <a href="/admin/training" class="text-white font-semibold">Training</a>
+      <a href="/admin/logout" class="text-red-300 hover:text-red-100">Logout</a>
+    </div>
+  </div>
+</nav>
+
+<main class="max-w-7xl mx-auto px-4 py-8">
+  <h1 class="text-2xl font-bold text-gray-800 mb-6"><i class="fas fa-graduation-cap text-blue-600 mr-2"></i>Training Bookings</h1>
+
+  <!-- Stats -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+    {% set total = bookings|length %}
+    {% set individual = bookings|selectattr('booking_type','eq','individual')|list|length %}
+    {% set corporate = bookings|selectattr('booking_type','eq','corporate')|list|length %}
+    <div class="bg-white rounded-xl p-4 border border-gray-100 shadow">
+      <p class="text-sm text-gray-500">Total Bookings</p>
+      <p class="text-2xl font-bold text-blue-900">{{ total }}</p>
+    </div>
+    <div class="bg-white rounded-xl p-4 border border-gray-100 shadow">
+      <p class="text-sm text-gray-500">Individual</p>
+      <p class="text-2xl font-bold text-blue-600">{{ individual }}</p>
+    </div>
+    <div class="bg-white rounded-xl p-4 border border-gray-100 shadow">
+      <p class="text-sm text-gray-500">Corporate</p>
+      <p class="text-2xl font-bold text-purple-700">{{ corporate }}</p>
+    </div>
+    <div class="bg-white rounded-xl p-4 border border-gray-100 shadow">
+      <p class="text-sm text-gray-500">This Month</p>
+      <p class="text-2xl font-bold text-green-700">{{ bookings|selectattr('created_at')|list|length }}</p>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-xl shadow border border-gray-100 overflow-hidden">
+    <table class="w-full text-sm">
+      <thead class="bg-gray-50 border-b">
+        <tr>
+          <th class="px-4 py-3 text-left text-gray-600 font-semibold">Name</th>
+          <th class="px-4 py-3 text-left text-gray-600 font-semibold">Email</th>
+          <th class="px-4 py-3 text-left text-gray-600 font-semibold">Phone</th>
+          <th class="px-4 py-3 text-left text-gray-600 font-semibold">Type</th>
+          <th class="px-4 py-3 text-left text-gray-600 font-semibold">Program</th>
+          <th class="px-4 py-3 text-left text-gray-600 font-semibold">Organisation</th>
+          <th class="px-4 py-3 text-left text-gray-600 font-semibold">Preferred Date</th>
+          <th class="px-4 py-3 text-left text-gray-600 font-semibold">Submitted</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for b in bookings %}
+        <tr class="border-b border-gray-50 hover:bg-gray-50">
+          <td class="px-4 py-3 font-medium text-gray-800">{{ b.full_name }}</td>
+          <td class="px-4 py-3 text-blue-600">{{ b.email }}</td>
+          <td class="px-4 py-3 text-gray-500">{{ b.phone or '—' }}</td>
+          <td class="px-4 py-3">
+            <span class="px-2 py-0.5 rounded-full text-xs font-medium {{ 'bg-blue-100 text-blue-700' if b.booking_type=='individual' else 'bg-purple-100 text-purple-700' }}">
+              {{ b.booking_type.capitalize() }}
+            </span>
+          </td>
+          <td class="px-4 py-3 text-gray-600">{{ b.category or '—' }}</td>
+          <td class="px-4 py-3 text-gray-500">{{ b.organization or '—' }}</td>
+          <td class="px-4 py-3 text-gray-500">{{ b.preferred_date or '—' }}</td>
+          <td class="px-4 py-3 text-gray-400 text-xs">{{ b.created_at.strftime('%d %b %Y') }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="8" class="px-4 py-10 text-center text-gray-400">No training bookings yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</main>
+</body>
+</html>

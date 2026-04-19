@@ -1,0 +1,167 @@
+{% from "_upload_widget.html" import upload_widget %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Private Equity Calculator — InvestIQ</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body{font-family:'Inter',sans-serif;background:linear-gradient(135deg,#f0f4f8,#fdf2f8);min-height:100vh;}
+    .gradient-bg{background:linear-gradient(135deg,#7c3aed,#a21caf);}
+    .card{background:rgba(255,255,255,.93);backdrop-filter:blur(10px);border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.08);}
+    .input-field{width:100%;padding:.65rem 1rem;border:1.5px solid #e2e8f0;border-radius:.5rem;font-size:.93rem;transition:border-color .2s;}
+    .input-field:focus{outline:none;border-color:#7c3aed;box-shadow:0 0 0 3px rgba(124,58,237,.15);}
+    .result-row{display:flex;justify-content:space-between;padding:.55rem 0;border-bottom:1px solid #f3f4f6;}
+    .result-row:last-child{border-bottom:none;}
+    .tab{cursor:pointer;padding:.5rem 1.25rem;border-radius:.5rem;font-size:.85rem;font-weight:600;transition:all .2s;}
+    .tab.active{background:#7c3aed;color:white;}
+    .tab:not(.active){background:#f3f4f6;color:#6b7280;}
+    .section{display:none;} .section.active{display:block;}
+  </style>
+</head>
+<body class="text-gray-800">
+
+<header class="gradient-bg text-white py-8 px-4">
+  <div class="max-w-5xl mx-auto">
+    <nav class="flex justify-between items-center mb-6 flex-wrap gap-3">
+      <a href="/" class="flex items-center gap-2 text-white text-xl font-bold"><i class="fas fa-chart-line text-purple-200"></i> Invest<span class="text-purple-200">IQ</span></a>
+      <div class="flex gap-5 text-sm"><a href="/" class="text-purple-200 hover:text-white">Home</a><a href="/#calculators" class="text-purple-200 hover:text-white">Calculators</a><a href="/help" class="text-purple-200 hover:text-white">Help</a></div>
+    </nav>
+    <h1 class="text-3xl md:text-4xl font-bold mb-2"><i class="fas fa-briefcase mr-3 text-purple-200"></i>Private Equity Calculator</h1>
+    <p class="text-purple-200 text-lg">VC Method (pre-money/post-money valuation) and LBO (Leveraged Buyout) — MOIC & IRR.</p>
+  </div>
+</header>
+
+<main class="max-w-5xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+  <!-- Method selector + inputs -->
+  <div class="card p-6">
+    <h2 class="text-xl font-bold text-gray-800 mb-4"><i class="fas fa-sliders-h mr-2 text-purple-500"></i>Inputs</h2>
+    {% if error %}<div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4 text-sm"><i class="fas fa-exclamation-circle mr-2"></i>{{ error }}</div>{% endif %}
+
+    <!-- Tabs -->
+    <div class="flex gap-2 mb-5" id="tabs">
+      <button class="tab {% if not result or result.method.startswith('Venture') %}active{% endif %}" onclick="switchTab('vc')">VC Method</button>
+      <button class="tab {% if result and result.method.startswith('Leveraged') %}active{% endif %}" onclick="switchTab('lbo')">LBO Method</button>
+    </div>
+
+    <form method="POST" id="pe-form" class="space-y-4">
+      <input type="hidden" name="method" id="method-input" value="{% if result and result.method.startswith('Leveraged') %}lbo{% else %}vc{% endif %}" />
+
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-1">Currency</label>
+        <select name="currency" class="input-field">
+          <option value="USD" {% if result and result.currency=='USD' %}selected{% endif %}>USD</option>
+          <option value="GHS" {% if result and result.currency=='GHS' %}selected{% endif %}>GHS</option>
+          <option value="GBP" {% if result and result.currency=='GBP' %}selected{% endif %}>GBP</option>
+          <option value="EUR" {% if result and result.currency=='EUR' %}selected{% endif %}>EUR</option>
+          <option value="ZAR">ZAR</option>
+          <option value="NGN">NGN</option>
+        </select>
+      </div>
+
+      <!-- VC fields -->
+      <div id="vc-fields" class="section {% if not result or result.method.startswith('Venture') %}active{% endif %} space-y-4">
+        <div><label class="block text-sm font-semibold text-gray-700 mb-1">Exit Revenue (projected)</label><input type="number" name="exit_revenue" step="0.01" class="input-field" placeholder="e.g. 5000000" value="{{ result.exit_value / result.get('exit_multiple',1) if result and result.method.startswith('Venture') else '' }}" /></div>
+        <div><label class="block text-sm font-semibold text-gray-700 mb-1">Exit Revenue Multiple (x)</label><input type="number" name="exit_multiple" step="0.1" class="input-field" placeholder="e.g. 8" /></div>
+        <div><label class="block text-sm font-semibold text-gray-700 mb-1">Investment Amount</label><input type="number" name="investment" step="0.01" class="input-field" placeholder="e.g. 500000" /></div>
+        <div><label class="block text-sm font-semibold text-gray-700 mb-1">Ownership % (post-investment)</label><input type="number" name="ownership_pct" step="0.1" min="0" max="100" class="input-field" placeholder="e.g. 20" /></div>
+        <div><label class="block text-sm font-semibold text-gray-700 mb-1">Hold Period (years)</label><input type="number" name="hold_years" step="0.5" class="input-field" placeholder="e.g. 5" /></div>
+        <div><label class="block text-sm font-semibold text-gray-700 mb-1">Required Return (% p.a.)</label><input type="number" name="required_return" step="0.1" class="input-field" placeholder="e.g. 30" /></div>
+      </div>
+
+      <!-- LBO fields -->
+      <div id="lbo-fields" class="section {% if result and result.method.startswith('Leveraged') %}active{% endif %} space-y-4">
+        <div><label class="block text-sm font-semibold text-gray-700 mb-1">Entry EBITDA</label><input type="number" name="entry_ebitda" step="0.01" class="input-field" placeholder="e.g. 10000000" /></div>
+        <div><label class="block text-sm font-semibold text-gray-700 mb-1">Entry EV/EBITDA Multiple (x)</label><input type="number" name="entry_multiple" step="0.1" class="input-field" placeholder="e.g. 8" /></div>
+        <div><label class="block text-sm font-semibold text-gray-700 mb-1">Exit EBITDA (projected)</label><input type="number" name="exit_ebitda" step="0.01" class="input-field" placeholder="e.g. 15000000" /></div>
+        <div><label class="block text-sm font-semibold text-gray-700 mb-1">Exit EV/EBITDA Multiple (x)</label><input type="number" name="exit_multiple_lbo" step="0.1" class="input-field" placeholder="e.g. 9" /></div>
+        <div><label class="block text-sm font-semibold text-gray-700 mb-1">Debt % of Entry EV</label><input type="number" name="debt_pct" step="0.1" min="0" max="100" class="input-field" placeholder="e.g. 60" /></div>
+        <div><label class="block text-sm font-semibold text-gray-700 mb-1">Hold Period (years)</label><input type="number" name="hold_years" step="0.5" class="input-field" placeholder="e.g. 5" /></div>
+      </div>
+
+      <button type="submit" class="w-full py-3 bg-purple-700 hover:bg-purple-800 text-white rounded-lg font-semibold transition-colors">
+        <i class="fas fa-calculator mr-2"></i>Calculate
+      </button>
+    </form>
+  </div>
+
+  <!-- Results -->
+  <div class="space-y-6">
+    {% if result %}
+    <div class="card p-6">
+      <h2 class="text-xl font-bold text-gray-800 mb-1"><i class="fas fa-chart-bar mr-2 text-purple-500"></i>{{ result.method }}</h2>
+      <p class="text-xs text-gray-400 mb-5">Currency: {{ result.currency }}</p>
+
+      <div class="grid grid-cols-2 gap-4 mb-6">
+        <div class="bg-purple-700 text-white rounded-xl p-4 text-center">
+          <p class="text-purple-200 text-xs mb-1">MOIC</p>
+          <p class="text-3xl font-bold">{{ result.moic }}x</p>
+        </div>
+        <div class="bg-emerald-500 text-white rounded-xl p-4 text-center">
+          <p class="text-emerald-100 text-xs mb-1">IRR</p>
+          <p class="text-3xl font-bold">{{ result.irr }}%</p>
+        </div>
+      </div>
+
+      {% if result.method.startswith('Venture') %}
+      <div class="result-row"><span class="text-gray-500">Pre-Money Valuation</span><span class="font-bold text-purple-700">{{ result.currency }} {{ "{:,.2f}".format(result.pre_money_valuation) }}</span></div>
+      <div class="result-row"><span class="text-gray-500">Post-Money Valuation</span><span class="font-semibold">{{ result.currency }} {{ "{:,.2f}".format(result.post_money_valuation) }}</span></div>
+      <div class="result-row"><span class="text-gray-500">Investor Ownership</span><span class="font-semibold">{{ result.ownership_pct }}%</span></div>
+      <div class="result-row"><span class="text-gray-500">Projected Exit Value</span><span class="font-semibold">{{ result.currency }} {{ "{:,.2f}".format(result.exit_value) }}</span></div>
+      <div class="result-row"><span class="text-gray-500">Investor Exit Proceeds</span><span class="font-bold text-emerald-600">{{ result.currency }} {{ "{:,.2f}".format(result.investor_exit_value) }}</span></div>
+      {% else %}
+      <div class="result-row"><span class="text-gray-500">Entry Enterprise Value</span><span class="font-semibold">{{ result.currency }} {{ "{:,.2f}".format(result.entry_ev) }}</span></div>
+      <div class="result-row"><span class="text-gray-500">Equity Invested</span><span class="font-bold text-purple-700">{{ result.currency }} {{ "{:,.2f}".format(result.equity_invested) }}</span></div>
+      <div class="result-row"><span class="text-gray-500">Debt ({{ result.debt_pct }}%)</span><span class="font-semibold text-red-500">{{ result.currency }} {{ "{:,.2f}".format(result.debt) }}</span></div>
+      <div class="result-row"><span class="text-gray-500">Exit Enterprise Value</span><span class="font-semibold">{{ result.currency }} {{ "{:,.2f}".format(result.exit_ev) }}</span></div>
+      <div class="result-row"><span class="text-gray-500">Exit Equity Value</span><span class="font-bold text-emerald-600">{{ result.currency }} {{ "{:,.2f}".format(result.exit_equity) }}</span></div>
+      {% endif %}
+      <div class="result-row"><span class="text-gray-500">Hold Period</span><span class="font-semibold">{{ result.hold_years }} years</span></div>
+
+      <button onclick="exportCSV()" class="mt-5 w-full py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-semibold text-sm transition-colors">
+        <i class="fas fa-download mr-2"></i>Download CSV
+      </button>
+
+      <div class="mt-4 bg-amber-50 border border-amber-200 rounded-xl p-4 text-xs text-amber-700">
+        <strong>Interpretation:</strong> MOIC &gt;2.5x and IRR &gt;25% is typically the benchmark for institutional PE/VC funds. IRR below cost of capital destroys value.
+      </div>
+    </div>
+    <script>
+    function exportCSV() {
+      fetch('/api/export/csv', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({filename:'pe_result', rows:[{{ result | tojson }}]})
+      }).then(r=>r.blob()).then(b=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='pe_result.csv';a.click();});
+    }
+    </script>
+    {% else %}
+    <div class="card p-10 text-center text-gray-400">
+      <i class="fas fa-briefcase text-5xl mb-4 text-purple-200"></i>
+      <p class="text-lg font-semibold text-gray-500">Enter deal parameters and calculate</p>
+    </div>
+    {% endif %}
+  </div>
+</main>
+
+<div class="max-w-5xl mx-auto px-4 pb-10 flex flex-wrap gap-3">
+  <a href="/" class="px-5 py-2 bg-purple-700 text-white rounded-lg text-sm font-medium"><i class="fas fa-home mr-1"></i>Home</a>
+  <a href="/private-debt" class="px-5 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg text-sm font-medium">Private Debt</a>
+  <a href="/startup-valuation" class="px-5 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg text-sm font-medium">Startup Valuation</a>
+</div>
+
+<footer class="bg-gray-900 text-white py-6 mt-4"><div class="max-w-5xl mx-auto px-4 text-center"><p class="text-gray-400 text-sm">© 2026 InvestIQ. For educational use only.</p></div></footer>
+
+<script>
+function switchTab(tab) {
+  document.getElementById('method-input').value = tab;
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active', (tab==='vc'&&i===0)||(tab==='lbo'&&i===1)));
+  document.getElementById('vc-fields').classList.toggle('active', tab==='vc');
+  document.getElementById('lbo-fields').classList.toggle('active', tab==='lbo');
+}
+</script>
+</body>
+</html>

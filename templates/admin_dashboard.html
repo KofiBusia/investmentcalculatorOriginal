@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard — InvestIQ</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>body{font-family:'Inter',sans-serif;background:#f1f5f9;min-height:100vh;}</style>
+</head>
+<body class="text-gray-800">
+
+<!-- Sidebar + content layout -->
+<div class="flex min-h-screen">
+
+  <!-- Sidebar -->
+  <aside class="w-64 bg-gray-900 text-white flex flex-col" style="min-height:100vh;">
+    <div class="p-6 border-b border-gray-800">
+      <a href="/" class="flex items-center gap-2 text-white font-bold text-lg">
+        <i class="fas fa-chart-line text-indigo-400"></i> InvestIQ Admin
+      </a>
+      <p class="text-gray-400 text-xs mt-1">Content Management</p>
+    </div>
+    <nav class="flex-1 p-4 space-y-1">
+      <a href="/admin" class="flex items-center gap-3 px-3 py-2.5 bg-indigo-600 text-white rounded-lg text-sm font-medium">
+        <i class="fas fa-tachometer-alt w-4"></i> Dashboard
+      </a>
+      <a href="/admin/articles" class="flex items-center gap-3 px-3 py-2.5 text-gray-300 hover:bg-gray-800 rounded-lg text-sm font-medium transition-colors">
+        <i class="fas fa-newspaper w-4"></i> Articles
+      </a>
+      <a href="/admin/videos" class="flex items-center gap-3 px-3 py-2.5 text-gray-300 hover:bg-gray-800 rounded-lg text-sm font-medium transition-colors">
+        <i class="fab fa-youtube w-4"></i> Videos
+      </a>
+      <a href="/admin/jobs" class="flex items-center gap-3 px-3 py-2.5 text-gray-300 hover:bg-gray-800 rounded-lg text-sm font-medium transition-colors">
+        <i class="fas fa-briefcase w-4"></i> Jobs & Careers
+      </a>
+      <a href="/admin/training" class="flex items-center gap-3 px-3 py-2.5 text-gray-300 hover:bg-gray-800 rounded-lg text-sm font-medium transition-colors">
+        <i class="fas fa-graduation-cap w-4"></i> Training
+      </a>
+      <hr class="border-gray-800 my-3" />
+      <a href="/" class="flex items-center gap-3 px-3 py-2.5 text-gray-400 hover:bg-gray-800 rounded-lg text-sm transition-colors">
+        <i class="fas fa-globe w-4"></i> View Website
+      </a>
+      <a href="/articles" class="flex items-center gap-3 px-3 py-2.5 text-gray-400 hover:bg-gray-800 rounded-lg text-sm transition-colors">
+        <i class="fas fa-eye w-4"></i> View Articles
+      </a>
+      <a href="/jobs" class="flex items-center gap-3 px-3 py-2.5 text-gray-400 hover:bg-gray-800 rounded-lg text-sm transition-colors">
+        <i class="fas fa-users w-4"></i> View Jobs Page
+      </a>
+    </nav>
+    <div class="p-4 border-t border-gray-800">
+      <a href="/admin/logout" class="flex items-center gap-2 text-gray-400 hover:text-white text-sm transition-colors">
+        <i class="fas fa-sign-out-alt"></i> Logout
+      </a>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <main class="flex-1 p-8">
+    <div class="mb-8">
+      <h1 class="text-2xl font-bold text-gray-800">Dashboard</h1>
+      <p class="text-gray-500 text-sm mt-1">Manage your articles and YouTube videos</p>
+    </div>
+
+    <!-- Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 mb-8">
+      <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm text-gray-500 mb-1">Total Articles</p>
+            <p class="text-3xl font-bold text-indigo-600">{{ article_count }}</p>
+          </div>
+          <div class="w-12 h-12 bg-indigo-50 rounded-xl flex items-center justify-center">
+            <i class="fas fa-newspaper text-indigo-600 text-xl"></i>
+          </div>
+        </div>
+      </div>
+      <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm text-gray-500 mb-1">Published</p>
+            <p class="text-3xl font-bold text-emerald-600">{{ published }}</p>
+          </div>
+          <div class="w-12 h-12 bg-emerald-50 rounded-xl flex items-center justify-center">
+            <i class="fas fa-check-circle text-emerald-600 text-xl"></i>
+          </div>
+        </div>
+      </div>
+      <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm text-gray-500 mb-1">Videos</p>
+            <p class="text-3xl font-bold text-red-500">{{ video_count }}</p>
+          </div>
+          <div class="w-12 h-12 bg-red-50 rounded-xl flex items-center justify-center">
+            <i class="fab fa-youtube text-red-500 text-xl"></i>
+          </div>
+        </div>
+      </div>
+      <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm text-gray-500 mb-1">Active Jobs</p>
+            <p class="text-3xl font-bold text-blue-700">{{ job_count }}</p>
+          </div>
+          <div class="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center">
+            <i class="fas fa-briefcase text-blue-700 text-xl"></i>
+          </div>
+        </div>
+      </div>
+      <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm text-gray-500 mb-1">Applications</p>
+            <p class="text-3xl font-bold text-green-700">{{ app_count }}</p>
+          </div>
+          <div class="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center">
+            <i class="fas fa-users text-green-700 text-xl"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick actions -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+      <a href="/admin/articles/new" class="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl p-6 flex items-center gap-4 transition-colors shadow-sm">
+        <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0">
+          <i class="fas fa-plus text-xl"></i>
+        </div>
+        <div>
+          <p class="font-bold text-lg">New Article</p>
+          <p class="text-indigo-100 text-sm">Write and publish an investment insight</p>
+        </div>
+      </a>
+      <a href="/admin/videos/new" class="bg-red-500 hover:bg-red-600 text-white rounded-xl p-6 flex items-center gap-4 transition-colors shadow-sm">
+        <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0">
+          <i class="fab fa-youtube text-xl"></i>
+        </div>
+        <div>
+          <p class="font-bold text-lg">Add YouTube Video</p>
+          <p class="text-red-100 text-sm">Paste a YouTube link to feature on the site</p>
+        </div>
+      </a>
+    </div>
+
+    <!-- Recent articles -->
+    {% if recent %}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+      <div class="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+        <h2 class="font-bold text-gray-800">Recent Articles</h2>
+        <a href="/admin/articles" class="text-indigo-600 text-sm font-medium hover:underline">View all</a>
+      </div>
+      <table class="w-full text-sm">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Title</th>
+            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Category</th>
+            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Status</th>
+            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Date</th>
+            <th class="px-6 py-3"></th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-50">
+          {% for post in recent %}
+          <tr class="hover:bg-gray-50 transition-colors">
+            <td class="px-6 py-4 font-medium text-gray-800 truncate max-w-xs">{{ post.title }}</td>
+            <td class="px-6 py-4 text-gray-500">{{ post.category }}</td>
+            <td class="px-6 py-4">
+              {% if post.is_published %}
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">Published</span>
+              {% else %}
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600">Draft</span>
+              {% endif %}
+            </td>
+            <td class="px-6 py-4 text-gray-400">{{ post.created_at.strftime('%b %d, %Y') }}</td>
+            <td class="px-6 py-4 text-right">
+              <a href="/admin/articles/{{ post.id }}/edit" class="text-indigo-600 hover:underline text-xs">Edit</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
+  </main>
+</div>
+</body>
+</html>

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Manage Videos — InvestIQ Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>body{font-family:'Inter',sans-serif;background:#f1f5f9;min-height:100vh;}</style>
+</head>
+<body class="text-gray-800">
+<div class="flex min-h-screen">
+  <aside class="w-64 bg-gray-900 text-white flex flex-col" style="min-height:100vh;">
+    <div class="p-6 border-b border-gray-800"><a href="/" class="flex items-center gap-2 font-bold text-lg"><i class="fas fa-chart-line text-indigo-400"></i> InvestIQ Admin</a></div>
+    <nav class="flex-1 p-4 space-y-1">
+      <a href="/admin" class="flex items-center gap-3 px-3 py-2.5 text-gray-300 hover:bg-gray-800 rounded-lg text-sm"><i class="fas fa-tachometer-alt w-4"></i> Dashboard</a>
+      <a href="/admin/articles" class="flex items-center gap-3 px-3 py-2.5 text-gray-300 hover:bg-gray-800 rounded-lg text-sm"><i class="fas fa-newspaper w-4"></i> Articles</a>
+      <a href="/admin/videos" class="flex items-center gap-3 px-3 py-2.5 bg-red-600 text-white rounded-lg text-sm font-medium"><i class="fab fa-youtube w-4"></i> Videos</a>
+    </nav>
+    <div class="p-4 border-t border-gray-800"><a href="/admin/logout" class="flex items-center gap-2 text-gray-400 hover:text-white text-sm"><i class="fas fa-sign-out-alt"></i> Logout</a></div>
+  </aside>
+
+  <main class="flex-1 p-8">
+    <div class="flex items-center justify-between mb-8">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-800">YouTube Videos</h1>
+        <p class="text-gray-500 text-sm mt-1">{{ videos|length }} video(s) — paste any YouTube URL to embed it</p>
+      </div>
+      <a href="/admin/videos/new" class="inline-flex items-center gap-2 px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium text-sm transition-colors">
+        <i class="fab fa-youtube"></i> Add Video
+      </a>
+    </div>
+
+    {% if videos %}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {% for video in videos %}
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div class="relative" style="padding-top:56.25%;">
+          <iframe class="absolute inset-0 w-full h-full" src="{{ video.embed_url }}"
+            title="{{ video.title }}" frameborder="0" allowfullscreen loading="lazy"></iframe>
+        </div>
+        <div class="p-4">
+          <div class="flex items-start justify-between gap-2 mb-2">
+            <h3 class="font-semibold text-gray-800 text-sm leading-snug flex-1">{{ video.title }}</h3>
+            <div class="flex flex-col gap-1 flex-shrink-0">
+              {% if video.is_featured %}
+              <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-yellow-100 text-yellow-700"><i class="fas fa-star mr-1"></i>Featured</span>
+              {% endif %}
+              {% if video.is_published %}
+              <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-700">Published</span>
+              {% else %}
+              <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">Hidden</span>
+              {% endif %}
+            </div>
+          </div>
+          {% if video.description %}
+          <p class="text-gray-500 text-xs mb-3 leading-relaxed">{{ video.description[:100] }}{% if video.description|length > 100 %}...{% endif %}</p>
+          {% endif %}
+          <p class="text-gray-400 text-xs mb-3"><i class="fas fa-calendar-alt mr-1"></i>{{ video.created_at.strftime('%b %d, %Y') }}</p>
+          <div class="flex gap-2">
+            <a href="/admin/videos/{{ video.id }}/edit" class="flex-1 text-center py-1.5 bg-indigo-50 text-indigo-600 rounded-lg text-xs font-medium hover:bg-indigo-100">Edit</a>
+            <form method="POST" action="/admin/videos/{{ video.id }}/delete" class="flex-1" onsubmit="return confirm('Delete this video?')">
+              <button type="submit" class="w-full py-1.5 bg-red-50 text-red-600 rounded-lg text-xs font-medium hover:bg-red-100">Delete</button>
+            </form>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="bg-white rounded-xl p-12 text-center shadow-sm border border-gray-100">
+      <i class="fab fa-youtube text-5xl text-red-200 mb-4"></i>
+      <p class="text-gray-500 mb-4">No videos added yet.</p>
+      <a href="/admin/videos/new" class="inline-flex items-center gap-2 px-5 py-2.5 bg-red-500 text-white rounded-lg text-sm font-medium"><i class="fab fa-youtube"></i> Add First Video</a>
+    </div>
+    {% endif %}
+  </main>
+</div>
+</body>
+</html>

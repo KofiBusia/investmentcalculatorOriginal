@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Professional Training — InvestIQ Talent Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body{font-family:'Inter',sans-serif;background:#f8fafc;}
+  .hero-gradient{background:linear-gradient(135deg,#0f172a,#1e3a5f);}
+  .card{background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.07);border:1px solid #e2e8f0;}
+  .input-field{width:100%;padding:.65rem 1rem;border:1.5px solid #e2e8f0;border-radius:.5rem;font-size:.93rem;outline:none;transition:border .2s;}
+  .input-field:focus{border-color:#0f4c81;box-shadow:0 0 0 3px rgba(15,76,129,.1);}
+  .course-card{border:2px solid #e2e8f0;border-radius:14px;padding:1.25rem;transition:all .2s;cursor:pointer;}
+  .course-card:hover{border-color:#0f4c81;background:#eff6ff;transform:translateY(-2px);}
+  .submit-btn{background:linear-gradient(135deg,#0f4c81,#1e3a5f);color:#fff;padding:.8rem 2rem;border-radius:10px;font-weight:700;font-size:1rem;border:none;cursor:pointer;width:100%;}
+  .tab-btn{padding:.6rem 1.5rem;border-radius:8px;font-weight:600;font-size:.9rem;border:1.5px solid #e2e8f0;cursor:pointer;transition:all .15s;}
+  .tab-btn.active{background:#0f4c81;color:#fff;border-color:#0f4c81;}
+</style>
+</head>
+<body>
+
+<nav class="hero-gradient text-white py-4 px-6 shadow-xl">
+  <div class="max-w-7xl mx-auto flex justify-between items-center">
+    <a href="/" class="text-xl font-bold flex items-center gap-2">
+      <i class="fas fa-chart-line text-blue-300"></i> Invest<span class="text-blue-300">IQ</span>
+    </a>
+    <div class="flex gap-5 text-sm">
+      <a href="/jobs" class="text-blue-200 hover:text-white">Jobs</a>
+      <a href="/cv-builder" class="text-blue-200 hover:text-white">CV Builder</a>
+      <a href="/training" class="text-white font-semibold border-b-2 border-blue-300">Training</a>
+    </div>
+  </div>
+</nav>
+
+<div class="hero-gradient text-white py-12 px-4">
+  <div class="max-w-4xl mx-auto text-center">
+    <h1 class="text-4xl font-bold mb-3"><i class="fas fa-graduation-cap text-blue-300 mr-3"></i>Professional Training</h1>
+    <p class="text-blue-200 text-lg">CFA | ACCA | Financial Modelling | Investment Banking | Risk Management</p>
+    <p class="text-blue-300 text-sm mt-2">Individual & Corporate Programs — Accra, Lagos, London & Online</p>
+  </div>
+</div>
+
+<main class="max-w-6xl mx-auto px-4 py-10">
+
+  {% if success %}
+  <div class="card p-10 text-center max-w-lg mx-auto">
+    <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+      <i class="fas fa-check-circle text-3xl text-green-600"></i>
+    </div>
+    <h2 class="text-2xl font-bold text-gray-800 mb-2">Booking Received!</h2>
+    <p class="text-gray-500 mb-5">Thank you! Our team will contact you within 24 hours with details and payment instructions.</p>
+    <a href="/training" class="inline-block bg-blue-900 text-white px-6 py-3 rounded-xl font-semibold hover:bg-blue-800">Book Another</a>
+  </div>
+  {% else %}
+
+  <!-- Course Categories -->
+  <div class="mb-10">
+    <h2 class="text-xl font-bold text-gray-800 mb-5">Our Training Programs</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      {% set courses = [
+        ('fas fa-chart-line','Financial Modelling & DCF','3 Days','#dbeafe','#1d4ed8','Build institutional-quality financial models, DCF valuations, and scenario analysis.'),
+        ('fas fa-award','CFA Exam Preparation','12 Weeks','#ede9fe','#5b21b6','Structured CFA Level I/II/III prep with mock exams and expert tutors.'),
+        ('fas fa-university','Investment Banking','5 Days','#fef9c3','#92400e','M&A, LBO, pitchbook creation, and deal structuring — used by top banks.'),
+        ('fas fa-shield-alt','Risk Management','2 Days','#dcfce7','#065f46','Basel III, credit risk, market risk, VaR, stress testing and regulatory compliance.'),
+        ('fas fa-coins','Portfolio Management','3 Days','#ffedd5','#9a3412','Modern portfolio theory, factor models, performance attribution, and rebalancing.'),
+        ('fas fa-file-invoice-dollar','ACCA / ICAG Coaching','Ongoing','#fce7f3','#9d174d','Expert coaching for ACCA and ICAG professional accounting qualifications.'),
+      ] %}
+      {% for icon, title, duration, bg, color, desc in courses %}
+      <div class="course-card" onclick="document.querySelector('[name=category]').value='{{ title }}'; document.getElementById('booking-section').scrollIntoView({behavior:'smooth'});">
+        <div style="background:{{ bg }};color:{{ color }}" class="w-10 h-10 rounded-lg flex items-center justify-center mb-3">
+          <i class="{{ icon }}"></i>
+        </div>
+        <h3 class="font-bold text-gray-800 mb-1">{{ title }}</h3>
+        <p class="text-xs text-gray-500 mb-2"><i class="fas fa-clock mr-1"></i>{{ duration }}</p>
+        <p class="text-sm text-gray-600">{{ desc }}</p>
+        <p class="text-xs text-blue-600 font-semibold mt-2">Click to book →</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Booking Form -->
+  <div id="booking-section" class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <div class="card p-6">
+      <h2 class="text-xl font-bold text-gray-800 mb-4"><i class="fas fa-calendar-check text-blue-600 mr-2"></i>Book Your Training</h2>
+
+      <!-- Individual / Corporate tabs -->
+      <div class="flex gap-2 mb-5">
+        <button type="button" class="tab-btn active" id="tab-individual" onclick="setType('individual')"><i class="fas fa-user mr-1"></i> Individual</button>
+        <button type="button" class="tab-btn" id="tab-corporate" onclick="setType('corporate')"><i class="fas fa-building mr-1"></i> Corporate</button>
+      </div>
+
+      {% if error %}
+      <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4 text-sm">{{ error }}</div>
+      {% endif %}
+
+      <form method="POST" class="space-y-4">
+        <input type="hidden" name="booking_type" id="booking_type" value="{{ booking_type }}"/>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-gray-500 mb-1">Full Name *</label>
+            <input type="text" name="full_name" required class="input-field" placeholder="Ama Owusu"/>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-500 mb-1">Email *</label>
+            <input type="email" name="email" required class="input-field" placeholder="ama@example.com"/>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-gray-500 mb-1">Phone</label>
+            <input type="tel" name="phone" class="input-field" placeholder="+233 XX XXX XXXX"/>
+          </div>
+          <div id="participants-field" style="display:none;">
+            <label class="block text-xs font-semibold text-gray-500 mb-1">No. of Participants</label>
+            <input type="number" name="participants" min="2" class="input-field" placeholder="10"/>
+          </div>
+          <div id="org-field" style="display:none;grid-column:span 2">
+            <label class="block text-xs font-semibold text-gray-500 mb-1">Organisation Name</label>
+            <input type="text" name="organization" class="input-field" placeholder="Ghana Commercial Bank"/>
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-500 mb-1">Training Program *</label>
+          <select name="category" class="input-field">
+            <option value="">— Select Program —</option>
+            <option>Financial Modelling & DCF</option>
+            <option>CFA Exam Preparation</option>
+            <option>Investment Banking</option>
+            <option>Risk Management</option>
+            <option>Portfolio Management</option>
+            <option>ACCA / ICAG Coaching</option>
+            <option>Custom Corporate Training</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-500 mb-1">Preferred Date / Format</label>
+          <input type="text" name="preferred_date" class="input-field" placeholder="e.g. March 2026, Weekends, Online"/>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-500 mb-1">Additional Notes</label>
+          <textarea name="notes" rows="3" class="input-field" placeholder="Any specific requirements, prior experience level, etc."></textarea>
+        </div>
+        <button type="submit" class="submit-btn"><i class="fas fa-paper-plane mr-2"></i>Submit Booking Request</button>
+      </form>
+    </div>
+
+    <!-- Info Panel -->
+    <div class="space-y-5">
+      <div class="card p-6">
+        <h3 class="font-bold text-gray-800 mb-3"><i class="fas fa-check-circle text-green-500 mr-2"></i>What's Included</h3>
+        <ul class="space-y-2 text-sm text-gray-600">
+          <li class="flex items-center gap-2"><i class="fas fa-check text-green-500 text-xs"></i> Expert-led instruction by CFA/ACCA practitioners</li>
+          <li class="flex items-center gap-2"><i class="fas fa-check text-green-500 text-xs"></i> Comprehensive course materials & templates</li>
+          <li class="flex items-center gap-2"><i class="fas fa-check text-green-500 text-xs"></i> Real-world case studies & financial models</li>
+          <li class="flex items-center gap-2"><i class="fas fa-check text-green-500 text-xs"></i> Certificate of completion</li>
+          <li class="flex items-center gap-2"><i class="fas fa-check text-green-500 text-xs"></i> Post-training mentorship access</li>
+          <li class="flex items-center gap-2"><i class="fas fa-check text-green-500 text-xs"></i> Exclusive InvestIQ calculator access</li>
+        </ul>
+      </div>
+      <div class="card p-6">
+        <h3 class="font-bold text-gray-800 mb-3"><i class="fas fa-map-marker-alt text-blue-500 mr-2"></i>Training Locations</h3>
+        <div class="space-y-2 text-sm text-gray-600">
+          <div class="flex items-center gap-2"><span class="w-6 h-6 bg-blue-100 rounded flex items-center justify-center text-xs font-bold text-blue-700">GH</span> Accra, Ghana</div>
+          <div class="flex items-center gap-2"><span class="w-6 h-6 bg-green-100 rounded flex items-center justify-center text-xs font-bold text-green-700">NG</span> Lagos, Nigeria</div>
+          <div class="flex items-center gap-2"><span class="w-6 h-6 bg-red-100 rounded flex items-center justify-center text-xs font-bold text-red-700">UK</span> London, United Kingdom</div>
+          <div class="flex items-center gap-2"><span class="w-6 h-6 bg-purple-100 rounded flex items-center justify-center text-xs font-bold text-purple-700">🌐</span> Online (Zoom / Teams)</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</main>
+
+<footer class="bg-gray-900 text-white py-6 px-4 text-center mt-8">
+  <p class="text-gray-400 text-sm">© 2026 InvestIQ Talent Hub — Professional Training Programs</p>
+</footer>
+
+<script>
+function setType(type) {
+  document.getElementById('booking_type').value = type;
+  document.getElementById('tab-individual').classList.toggle('active', type==='individual');
+  document.getElementById('tab-corporate').classList.toggle('active', type==='corporate');
+  document.getElementById('participants-field').style.display = type==='corporate' ? '' : 'none';
+  document.getElementById('org-field').style.display = type==='corporate' ? '' : 'none';
+}
+document.addEventListener('DOMContentLoaded', function(){
+  setType('{{ booking_type }}');
+});
+</script>
+</body>
+</html>

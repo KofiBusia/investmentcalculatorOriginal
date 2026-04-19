@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Career Opportunities — InvestIQ Talent Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body{font-family:'Inter',sans-serif;background:#f8fafc;}
+  .hero-gradient{background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 50%,#0f4c81 100%);}
+  .card{background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.07);border:1px solid #e2e8f0;transition:all .2s;}
+  .card:hover{box-shadow:0 8px 40px rgba(15,82,129,.12);transform:translateY(-2px);}
+  .badge{display:inline-flex;align-items:center;padding:.25rem .75rem;border-radius:999px;font-size:.78rem;font-weight:600;}
+  .badge-blue{background:#dbeafe;color:#1d4ed8;}
+  .badge-green{background:#d1fae5;color:#065f46;}
+  .badge-purple{background:#ede9fe;color:#5b21b6;}
+  .badge-orange{background:#ffedd5;color:#9a3412;}
+  .filter-btn{padding:.5rem 1.25rem;border-radius:8px;font-weight:500;font-size:.9rem;border:1.5px solid #e2e8f0;background:#fff;cursor:pointer;transition:all .15s;}
+  .filter-btn.active,.filter-btn:hover{background:#0f4c81;color:#fff;border-color:#0f4c81;}
+  .search-input{border:1.5px solid #e2e8f0;border-radius:10px;padding:.65rem 1rem .65rem 2.75rem;font-size:.95rem;width:100%;outline:none;transition:border .2s;}
+  .search-input:focus{border-color:#0f4c81;box-shadow:0 0 0 3px rgba(15,76,129,.12);}
+  .apply-btn{background:linear-gradient(135deg,#0f4c81,#1e3a5f);color:#fff;padding:.7rem 1.75rem;border-radius:10px;font-weight:600;font-size:.93rem;border:none;cursor:pointer;transition:all .2s;}
+  .apply-btn:hover{opacity:.9;transform:translateY(-1px);}
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="hero-gradient text-white py-4 px-6 sticky top-0 z-50 shadow-xl">
+  <div class="max-w-7xl mx-auto flex justify-between items-center">
+    <a href="/" class="text-xl font-bold flex items-center gap-2">
+      <i class="fas fa-chart-line text-blue-300"></i>
+      Invest<span class="text-blue-300">IQ</span>
+      <span class="ml-2 text-xs font-normal bg-blue-500/30 px-2 py-0.5 rounded-full">Talent Hub</span>
+    </a>
+    <div class="hidden md:flex items-center gap-6 text-sm">
+      <a href="/" class="text-blue-200 hover:text-white transition-colors">Home</a>
+      <a href="/jobs" class="text-white font-semibold border-b-2 border-blue-300 pb-0.5">Jobs</a>
+      <a href="/cv-builder" class="text-blue-200 hover:text-white transition-colors">Build CV</a>
+      <a href="/training" class="text-blue-200 hover:text-white transition-colors">Training</a>
+      <a href="/referral" class="text-blue-200 hover:text-white transition-colors">Referrals</a>
+    </div>
+    <a href="/cv-builder" class="hidden md:block bg-blue-500 hover:bg-blue-400 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors">
+      <i class="fas fa-file-alt mr-1"></i> Build Your CV
+    </a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero-gradient text-white py-16 px-4">
+  <div class="max-w-4xl mx-auto text-center">
+    <div class="inline-flex items-center gap-2 bg-blue-500/20 border border-blue-400/30 rounded-full px-4 py-1.5 text-sm mb-5">
+      <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
+      <span class="text-blue-200">{{ listings|length }} Active Opportunities</span>
+    </div>
+    <h1 class="text-4xl md:text-5xl font-bold mb-4">Find Your Dream Career <span class="text-blue-300">Across Every Industry</span></h1>
+    <p class="text-blue-200 text-lg mb-8 max-w-2xl mx-auto">Connecting talented professionals with world-class organisations across Africa and beyond — finance, tech, healthcare, and more.</p>
+    <!-- Search -->
+    <div class="max-w-xl mx-auto relative">
+      <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></i>
+      <input id="search-input" type="text" placeholder="Search jobs, skills, or company..." class="search-input bg-white text-gray-800" oninput="filterJobs()"/>
+    </div>
+  </div>
+</section>
+
+<!-- FILTERS -->
+<div class="max-w-7xl mx-auto px-4 py-6">
+  <div class="flex flex-wrap gap-2" id="sector-filters">
+    <button class="filter-btn active" onclick="setFilter('all',this)">All Jobs</button>
+    <button class="filter-btn" onclick="setFilter('Finance',this)">Finance</button>
+    <button class="filter-btn" onclick="setFilter('Banking',this)">Banking</button>
+    <button class="filter-btn" onclick="setFilter('Technology',this)">Technology</button>
+    <button class="filter-btn" onclick="setFilter('Accounting',this)">Accounting</button>
+    <button class="filter-btn" onclick="setFilter('Investment',this)">Investment</button>
+    <button class="filter-btn" onclick="setFilter('Risk',this)">Risk &amp; Compliance</button>
+    <button class="filter-btn" onclick="setFilter('Healthcare',this)">Healthcare</button>
+    <button class="filter-btn" onclick="setFilter('Engineering',this)">Engineering</button>
+    <button class="filter-btn" onclick="setFilter('Education',this)">Education</button>
+    <button class="filter-btn" onclick="setFilter('Marketing',this)">Marketing</button>
+    <button class="filter-btn" onclick="setFilter('Legal',this)">Legal</button>
+    <button class="filter-btn" onclick="setFilter('HR',this)">Human Resources</button>
+    <button class="filter-btn" onclick="setFilter('Logistics',this)">Logistics</button>
+    <button class="filter-btn" onclick="setFilter('Consulting',this)">Consulting</button>
+    <button class="filter-btn" onclick="setFilter('Government',this)">Government</button>
+    <button class="filter-btn" onclick="setFilter('NGO',this)">NGO / Non-Profit</button>
+  </div>
+</div>
+
+<!-- JOB LISTINGS -->
+<main class="max-w-7xl mx-auto px-4 pb-16">
+  {% if listings %}
+  <div id="jobs-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+    {% for job in listings %}
+    <div class="card p-6 job-card" data-sector="{{ job.sector }}" data-title="{{ job.title|lower }}" data-company="{{ job.company|lower }}">
+      <div class="flex justify-between items-start mb-3">
+        <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white font-bold text-lg shadow">
+          {{ job.company[0]|upper if job.company else 'I' }}
+        </div>
+        <span class="badge {% if job.job_type == 'Full-Time' %}badge-green{% elif job.job_type == 'Part-Time' %}badge-orange{% elif job.job_type == 'Contract' %}badge-purple{% else %}badge-blue{% endif %}">
+          {{ job.job_type }}
+        </span>
+      </div>
+      <h3 class="text-lg font-bold text-gray-900 mt-3 mb-1">{{ job.title }}</h3>
+      <p class="text-blue-700 font-medium text-sm mb-2">{{ job.company }}</p>
+      <div class="flex flex-wrap gap-3 text-xs text-gray-500 mb-3">
+        <span class="flex items-center gap-1"><i class="fas fa-map-marker-alt text-blue-400"></i> {{ job.location or 'Remote / Multiple' }}</span>
+        <span class="flex items-center gap-1"><i class="fas fa-tag text-blue-400"></i> {{ job.sector }}</span>
+        {% if job.salary_range %}
+        <span class="flex items-center gap-1"><i class="fas fa-money-bill text-green-500"></i> {{ job.salary_range }}</span>
+        {% endif %}
+      </div>
+      {% if job.description %}
+      <p class="text-gray-600 text-sm mb-4 line-clamp-2">{{ job.description[:120] }}{% if job.description|length > 120 %}...{% endif %}</p>
+      {% endif %}
+      <div class="flex gap-2 mt-auto">
+        <a href="/jobs/{{ job.id }}/apply" class="flex-1 text-center apply-btn text-sm py-2">
+          <i class="fas fa-paper-plane mr-1"></i> Apply Now
+        </a>
+        <a href="/jobs/{{ job.id }}/apply" class="border border-blue-200 text-blue-700 hover:bg-blue-50 px-3 py-2 rounded-lg text-sm font-medium transition-colors">
+          Details
+        </a>
+      </div>
+      <p class="text-xs text-gray-400 mt-3">Posted {{ job.created_at.strftime('%b %d, %Y') }}</p>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="text-center py-20">
+    <div class="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+      <i class="fas fa-briefcase text-3xl text-blue-400"></i>
+    </div>
+    <h3 class="text-xl font-semibold text-gray-700 mb-2">No Active Jobs Yet</h3>
+    <p class="text-gray-500 mb-6">Check back soon or build your CV now to be ready when opportunities open.</p>
+    <a href="/cv-builder" class="apply-btn inline-block">Build Your CV</a>
+  </div>
+  {% endif %}
+
+  <div id="no-results" class="text-center py-12 hidden">
+    <i class="fas fa-search text-4xl text-gray-300 mb-3"></i>
+    <p class="text-gray-500">No jobs match your search. Try different keywords.</p>
+  </div>
+</main>
+
+<!-- CTA STRIP -->
+<section class="bg-gradient-to-r from-blue-900 to-indigo-900 text-white py-12 px-4">
+  <div class="max-w-4xl mx-auto text-center">
+    <h2 class="text-2xl font-bold mb-3">Ready to Stand Out?</h2>
+    <p class="text-blue-200 mb-6">Create a professional CV in minutes using our free CV builder — no sign-up required.</p>
+    <div class="flex flex-wrap justify-center gap-4">
+      <a href="/cv-builder" class="bg-white text-blue-900 font-bold px-6 py-3 rounded-xl hover:bg-blue-50 transition-colors">
+        <i class="fas fa-file-alt mr-2"></i> Build Your CV Free
+      </a>
+      <a href="/training" class="border border-blue-400 text-white font-semibold px-6 py-3 rounded-xl hover:bg-white/10 transition-colors">
+        <i class="fas fa-graduation-cap mr-2"></i> Professional Training
+      </a>
+    </div>
+  </div>
+</section>
+
+<footer class="bg-gray-900 text-white py-8 px-4 text-center">
+  <p class="text-gray-400 text-sm">© 2026 InvestIQ Talent Hub. Connecting Professionals Worldwide.</p>
+  <div class="flex justify-center gap-6 mt-3 text-sm">
+    <a href="/" class="text-blue-400 hover:text-blue-300">InvestIQ Home</a>
+    <a href="/cv-builder" class="text-blue-400 hover:text-blue-300">CV Builder</a>
+    <a href="/training" class="text-blue-400 hover:text-blue-300">Training</a>
+  </div>
+</footer>
+
+<script>
+let activeFilter = 'all';
+
+// Show only filter buttons for sectors that have at least one job
+(function() {
+  const presentSectors = new Set();
+  document.querySelectorAll('.job-card').forEach(c => presentSectors.add(c.dataset.sector));
+  document.querySelectorAll('#sector-filters .filter-btn').forEach(btn => {
+    const sector = btn.getAttribute('onclick').match(/'([^']+)'/)?.[1];
+    if (sector && sector !== 'all' && !presentSectors.has(sector)) {
+      btn.style.display = 'none';
+    }
+  });
+})();
+
+function setFilter(sector, btn) {
+  activeFilter = sector;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  filterJobs();
+}
+function filterJobs() {
+  const q = (document.getElementById('search-input').value || '').toLowerCase();
+  let visible = 0;
+  document.querySelectorAll('.job-card').forEach(card => {
+    const matchSector = activeFilter === 'all' || card.dataset.sector === activeFilter;
+    const matchSearch = !q || card.dataset.title.includes(q) || card.dataset.company.includes(q) || card.dataset.sector.toLowerCase().includes(q);
+    const show = matchSector && matchSearch;
+    card.style.display = show ? '' : 'none';
+    if (show) visible++;
+  });
+  document.getElementById('no-results').classList.toggle('hidden', visible > 0);
+}
+</script>
+</body>
+</html>

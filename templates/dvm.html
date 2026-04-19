@@ -107,10 +107,20 @@
             <p><strong>Intrinsic Value:</strong> GHS{{ "%.2f"|format(results.intrinsic_value) }}</p>
             <p><strong>Formula:</strong> {{ results.formula }}</p>
         {% endif %}
+        <div class="mt-4 text-center">
+          <button onclick="investiqDownloadCSV('dvm-result')" style="background:#059669;color:#fff;padding:.6rem 1.5rem;border-radius:.5rem;border:none;font-weight:600;cursor:pointer;font-size:.9rem;">
+            <i class="fas fa-download"></i> Download Results (CSV)
+          </button>
+        </div>
     </div>
     {% endif %}
 </div>
 
+<script>
+(function(){
+  window.investiqDownloadCSV=function(fn){var rows=[['Metric','Value']];document.querySelectorAll('.results p,p strong').forEach(function(el){var t=el.parentElement?el.parentElement.innerText.trim():'';if(t.includes(':')){var p=t.split(':');if(p.length>=2)rows.push([p[0].trim(),p.slice(1).join(':').trim()]);}});if(rows.length<=1){alert('No results yet.');return;}var csv=rows.map(function(r){return r.map(function(c){return'"'+String(c).replace(/"/g,'""')+'"';}).join(',');}).join('\n');var a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download=(fn||'dvm')+'.csv';document.body.appendChild(a);a.click();document.body.removeChild(a);};
+})();
+</script>
 <script>
     function updateModelInputs() {
         const model = document.getElementById('model_type').value;

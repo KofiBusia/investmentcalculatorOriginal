@@ -1,0 +1,174 @@
+{% from '_upload_widget.html' import upload_widget %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Treasury Bill Calculator — InvestIQ</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body{font-family:'Inter',sans-serif;background:linear-gradient(135deg,#f0f4f8,#e6e9ff);min-height:100vh;}
+    .gradient-bg{background:linear-gradient(135deg,#4f46e5,#7c3aed);}
+    .card{background:rgba(255,255,255,.92);backdrop-filter:blur(10px);border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.08);}
+    .input-field{width:100%;padding:.65rem 1rem;border:1.5px solid #e2e8f0;border-radius:.5rem;font-size:.93rem;transition:border-color .2s;}
+    .input-field:focus{outline:none;border-color:#4f46e5;box-shadow:0 0 0 3px rgba(79,70,229,.15);}
+    .result-row{display:flex;justify-content:space-between;padding:.6rem 0;border-bottom:1px solid #f1f5f9;}
+    .result-row:last-child{border-bottom:none;}
+  </style>
+</head>
+<body class="text-gray-800">
+
+<header class="gradient-bg text-white py-8 px-4">
+  <div class="max-w-5xl mx-auto">
+    <nav class="flex justify-between items-center mb-6 flex-wrap gap-3">
+      <a href="/" class="flex items-center gap-2 text-white text-xl font-bold"><i class="fas fa-chart-line text-indigo-200"></i> Invest<span class="text-indigo-200">IQ</span></a>
+      <div class="flex gap-5 text-sm flex-wrap">
+        <a href="/" class="text-indigo-100 hover:text-white">Home</a>
+        <a href="/#calculators" class="text-indigo-100 hover:text-white">Calculators</a>
+        <a href="/articles" class="text-indigo-100 hover:text-white">Insights</a>
+        <a href="/help" class="text-indigo-100 hover:text-white">Help</a>
+      </div>
+    </nav>
+    <h1 class="text-3xl md:text-4xl font-bold mb-2"><i class="fas fa-landmark mr-3 text-indigo-200"></i>Treasury Bill Calculator</h1>
+    <p class="text-indigo-100 text-lg">Price, yield, and return on 91, 182, and 364-day T-Bills — global standard (Act/364 discount basis).</p>
+  </div>
+</header>
+
+<main class="max-w-5xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+  <!-- Input Form -->
+  <div class="card p-6">
+    <h2 class="text-xl font-bold text-gray-800 mb-5"><i class="fas fa-sliders-h mr-2 text-indigo-500"></i>Inputs</h2>
+    {% if error %}<div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4 text-sm"><i class="fas fa-exclamation-circle mr-2"></i>{{ error }}</div>{% endif %}
+
+    {{ upload_widget('tbill') }}
+    <form method="POST" class="space-y-4">
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-1">Currency</label>
+        <select name="currency" class="input-field">
+          <option value="GHS">GHS — Ghana Cedi</option>
+          <option value="USD">USD — US Dollar</option>
+          <option value="GBP">GBP — British Pound</option>
+          <option value="EUR">EUR — Euro</option>
+          <option value="KES">KES — Kenyan Shilling</option>
+          <option value="NGN">NGN — Nigerian Naira</option>
+          <option value="ZAR">ZAR — South African Rand</option>
+          <option value="XOF">XOF — CFA Franc</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-1">Face Value (at maturity)</label>
+        <input type="number" name="face_value" step="0.01" min="0" required class="input-field" placeholder="e.g. 10000" value="{{ result.face_value if result else '' }}" />
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-1">Discount Rate (% p.a.)</label>
+        <input type="number" name="discount_rate" step="0.001" min="0" max="100" required class="input-field" placeholder="e.g. 28.5" value="{{ result.discount_rate_pct if result else '' }}" />
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-1">Tenor</label>
+        <select name="tenor_days" class="input-field">
+          <option value="91" {% if result and result.tenor_days==91 %}selected{% endif %}>91 days</option>
+          <option value="182" {% if result and result.tenor_days==182 %}selected{% endif %}>182 days</option>
+          <option value="364" {% if not result or result.tenor_days==364 %}selected{% endif %}>364 days</option>
+        </select>
+      </div>
+      <button type="submit" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold transition-colors">
+        <i class="fas fa-calculator mr-2"></i>Calculate
+      </button>
+    </form>
+
+    <!-- Formula box -->
+    <div class="mt-6 bg-indigo-50 rounded-xl p-4 text-sm">
+      <p class="font-semibold text-indigo-800 mb-2"><i class="fas fa-square-root-alt mr-1"></i>Formula</p>
+      <p class="font-mono text-indigo-700 text-xs">Price = Face Value ÷ (1 + r × d/364)</p>
+      <p class="font-mono text-indigo-700 text-xs mt-1">Effective Yield = (Discount ÷ Price) × (365/d)</p>
+      <p class="text-indigo-600 text-xs mt-2">d = days to maturity; r = discount rate. Standard: Bank of Ghana, UK DMO, US Treasury.</p>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div class="space-y-6">
+    {% if result %}
+    <div class="card p-6">
+      <h2 class="text-xl font-bold text-gray-800 mb-4"><i class="fas fa-chart-bar mr-2 text-emerald-500"></i>Results</h2>
+      <div class="result-row"><span class="text-gray-500">Purchase Price</span><span class="font-bold text-indigo-700">{{ result.currency }} {{ "{:,.4f}".format(result.price) }}</span></div>
+      <div class="result-row"><span class="text-gray-500">Face Value</span><span class="font-semibold">{{ result.currency }} {{ "{:,.2f}".format(result.face_value) }}</span></div>
+      <div class="result-row"><span class="text-gray-500">Discount Amount (Return)</span><span class="font-semibold text-emerald-600">{{ result.currency }} {{ "{:,.4f}".format(result.discount_amount) }}</span></div>
+      <div class="result-row"><span class="text-gray-500">Discount Rate (quoted)</span><span class="font-semibold">{{ "%.4f"|format(result.discount_rate_pct) }}%</span></div>
+      <div class="result-row"><span class="text-gray-500">Effective Yield (Act/365)</span><span class="font-bold text-emerald-600">{{ "%.4f"|format(result.effective_yield) }}%</span></div>
+      <div class="result-row"><span class="text-gray-500">Holding Period Return</span><span class="font-semibold">{{ "%.4f"|format(result.hpr) }}%</span></div>
+      <div class="result-row"><span class="text-gray-500">Tenor</span><span class="font-semibold">{{ result.tenor_days }} days</span></div>
+
+      <!-- Export -->
+      <button onclick="exportCSV()" class="mt-5 w-full py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-semibold text-sm transition-colors">
+        <i class="fas fa-download mr-2"></i>Download CSV
+      </button>
+    </div>
+
+    <!-- Chart -->
+    <div class="card p-6">
+      <h3 class="font-bold text-gray-800 mb-4">Price vs Face Value</h3>
+      <canvas id="tbillChart" height="160"></canvas>
+    </div>
+
+    <script>
+    const ctx = document.getElementById('tbillChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['Purchase Price', 'Discount (Return)', 'Face Value'],
+        datasets: [{
+          label: '{{ result.currency }}',
+          data: [{{ result.price }}, {{ result.discount_amount }}, {{ result.face_value }}],
+          backgroundColor: ['#4f46e5','#10b981','#f59e0b'],
+          borderRadius: 8,
+        }]
+      },
+      options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: false } } }
+    });
+
+    function exportCSV() {
+      fetch('/api/export/csv', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({
+          filename: 'tbill_result',
+          rows: [{
+            'Face Value': {{ result.face_value }},
+            'Purchase Price': {{ result.price }},
+            'Discount Amount': {{ result.discount_amount }},
+            'Discount Rate (%)': {{ result.discount_rate_pct }},
+            'Effective Yield (%)': {{ result.effective_yield }},
+            'HPR (%)': {{ result.hpr }},
+            'Tenor (days)': {{ result.tenor_days }},
+            'Currency': '{{ result.currency }}'
+          }]
+        })
+      }).then(r => r.blob()).then(b => {
+        const a = document.createElement('a'); a.href = URL.createObjectURL(b);
+        a.download = 'tbill_result.csv'; a.click();
+      });
+    }
+    </script>
+    {% else %}
+    <div class="card p-10 text-center text-gray-400">
+      <i class="fas fa-landmark text-5xl mb-4 text-indigo-200"></i>
+      <p class="text-lg font-semibold text-gray-500">Enter inputs and click Calculate</p>
+    </div>
+    {% endif %}
+  </div>
+</main>
+
+<!-- Nav -->
+<div class="max-w-5xl mx-auto px-4 pb-10 flex flex-wrap gap-3">
+  <a href="/" class="px-5 py-2 bg-indigo-600 text-white rounded-lg text-sm font-medium"><i class="fas fa-home mr-1"></i>Home</a>
+  <a href="/bond-calculator" class="px-5 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg text-sm font-medium">Bond Calculator</a>
+  <a href="/private-equity" class="px-5 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg text-sm font-medium">Private Equity</a>
+  <a href="/help" class="px-5 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg text-sm font-medium">Help</a>
+</div>
+
+<footer class="bg-gray-900 text-white py-6 mt-4"><div class="max-w-5xl mx-auto px-4 text-center"><p class="text-gray-400 text-sm">© 2026 InvestIQ. For educational use only. Not financial advice.</p></div></footer>
+</body>
+</html>

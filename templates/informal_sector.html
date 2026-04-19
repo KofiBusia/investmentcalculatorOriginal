@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Informal Sector Restructuring — InvestIQ</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body{font-family:'Inter',sans-serif;background:linear-gradient(135deg,#fffbeb,#fef3c7);min-height:100vh;}
+    .gradient-bg{background:linear-gradient(135deg,#78350f,#92400e);}
+    .card{background:rgba(255,255,255,.95);backdrop-filter:blur(10px);border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.08);}
+    .input-field{width:100%;padding:.65rem 1rem;border:1.5px solid #e2e8f0;border-radius:.5rem;font-size:.93rem;transition:border-color .2s;}
+    .input-field:focus{outline:none;border-color:#92400e;box-shadow:0 0 0 3px rgba(146,64,14,.1);}
+    .new-badge{background:#dc2626;color:white;font-size:.65rem;font-weight:700;padding:.15rem .4rem;border-radius:.25rem;}
+    .step-card{border-left:4px solid;padding:1rem 1.25rem;border-radius:0 12px 12px 0;margin-bottom:.75rem;}
+    .priority-critical{border-color:#ef4444;background:#fef2f2;}
+    .priority-high{border-color:#f59e0b;background:#fffbeb;}
+    .priority-medium{border-color:#3b82f6;background:#eff6ff;}
+    .priority-low{border-color:#10b981;background:#f0fdf4;}
+  </style>
+</head>
+<body class="text-gray-800">
+
+<header class="gradient-bg text-white py-8 px-4">
+  <div class="max-w-5xl mx-auto">
+    <nav class="flex justify-between items-center mb-6 flex-wrap gap-3">
+      <a href="/" class="flex items-center gap-2 text-white text-xl font-bold"><i class="fas fa-chart-line text-amber-200"></i> Invest<span class="text-amber-200">IQ</span></a>
+      <div class="flex gap-5 text-sm"><a href="/" class="text-amber-200 hover:text-white">Home</a><a href="/startup-valuation" class="text-amber-200 hover:text-white">Startup Valuation</a></div>
+    </nav>
+    <h1 class="text-3xl md:text-4xl font-bold mb-2">
+      <i class="fas fa-store mr-3 text-amber-200"></i>Informal Sector Restructuring
+      <span class="new-badge ml-2">NEW</span>
+    </h1>
+    <p class="text-amber-100 text-lg">Step-by-step formalisation roadmap for informal enterprises and startups in Africa, Asia, and Latin America.</p>
+  </div>
+</header>
+
+<main class="max-w-5xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+  <!-- Form -->
+  <div class="card p-6">
+    <h2 class="text-xl font-bold text-gray-800 mb-5"><i class="fas fa-clipboard-list mr-2 text-amber-600"></i>Enterprise Profile</h2>
+
+    <form method="POST" class="space-y-4">
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-1">Sector</label>
+        <select name="sector" class="input-field">
+          <option value="retail">Retail / Trading</option>
+          <option value="agriculture">Agriculture / Farming</option>
+          <option value="manufacturing">Manufacturing / Artisan</option>
+          <option value="services">Services (hair, tailoring, etc.)</option>
+          <option value="transport">Transport / Logistics</option>
+          <option value="construction">Construction / Real Estate</option>
+          <option value="food">Food & Beverage</option>
+          <option value="tech">Technology / Digital</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-1">Currency</label>
+        <select name="currency" class="input-field">
+          <option value="GHS">GHS</option><option value="USD">USD</option><option value="KES">KES</option>
+          <option value="NGN">NGN</option><option value="ZAR">ZAR</option><option value="XOF">XOF (CFA)</option>
+          <option value="ETB">ETB (Birr)</option><option value="TZS">TZS</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-1">Number of Employees</label>
+        <input type="number" name="employees" min="1" class="input-field" placeholder="e.g. 3" />
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-1">Estimated Annual Revenue</label>
+        <input type="number" name="annual_revenue" step="0.01" class="input-field" placeholder="e.g. 80000" />
+      </div>
+
+      <div class="bg-gray-50 rounded-xl p-4 space-y-3">
+        <p class="text-sm font-semibold text-gray-700 mb-2">Current Formalisation Status</p>
+        <label class="flex items-center gap-3 cursor-pointer">
+          <input type="checkbox" name="registered" value="yes" class="w-4 h-4 text-amber-600" />
+          <span class="text-sm text-gray-600">Legally registered (companies / business registry)</span>
+        </label>
+        <label class="flex items-center gap-3 cursor-pointer">
+          <input type="checkbox" name="has_accounts" value="yes" class="w-4 h-4 text-amber-600" />
+          <span class="text-sm text-gray-600">Maintains formal financial records / books</span>
+        </label>
+        <label class="flex items-center gap-3 cursor-pointer">
+          <input type="checkbox" name="has_banking" value="yes" class="w-4 h-4 text-amber-600" />
+          <span class="text-sm text-gray-600">Has a dedicated business bank account</span>
+        </label>
+      </div>
+
+      <button type="submit" class="w-full py-3 bg-amber-700 hover:bg-amber-800 text-white rounded-lg font-semibold transition-colors">
+        <i class="fas fa-road mr-2"></i>Generate Restructuring Roadmap
+      </button>
+    </form>
+  </div>
+
+  <!-- Results -->
+  <div class="space-y-6">
+    {% if result %}
+    {% if result.get('error') %}
+    <div class="card p-6 bg-red-50 border border-red-200 text-red-700">{{ result.error }}</div>
+    {% else %}
+
+    <!-- Formality score -->
+    <div class="card p-6">
+      <h2 class="text-xl font-bold text-gray-800 mb-4"><i class="fas fa-tachometer-alt mr-2 text-amber-600"></i>Formalisation Score</h2>
+      <div class="flex items-center gap-4 mb-4">
+        <div class="w-24 h-24 rounded-full flex items-center justify-center text-2xl font-bold text-white" style="background:{% if result.formality_score < 20 %}#ef4444{% elif result.formality_score < 50 %}#f59e0b{% else %}#10b981{% endif %}">
+          {{ result.formality_score }}%
+        </div>
+        <div>
+          <p class="text-xl font-bold text-gray-800">{{ result.formality_label }}</p>
+          <p class="text-sm text-gray-500">{{ result.sector }} | {{ result.currency }} {{ "{:,.0f}".format(result.annual_revenue) }} revenue | {{ result.employees }} staff</p>
+        </div>
+      </div>
+      <div class="w-full bg-gray-200 rounded-full h-3 mb-2">
+        <div class="h-3 rounded-full transition-all" style="width:{{ result.formality_score }}%;background:{% if result.formality_score < 20 %}#ef4444{% elif result.formality_score < 50 %}#f59e0b{% else %}#10b981{% endif %}"></div>
+      </div>
+      <p class="text-xs text-gray-400">0% = Fully Informal → 100% = Fully Formal</p>
+    </div>
+
+    <!-- Roadmap steps -->
+    <div class="card p-6">
+      <h2 class="text-xl font-bold text-gray-800 mb-5"><i class="fas fa-map-signs mr-2 text-amber-600"></i>Restructuring Roadmap</h2>
+      {% for step in result.steps %}
+      <div class="step-card priority-{{ step.priority | lower | replace(' ','_') }}">
+        <div class="flex justify-between items-start mb-1">
+          <h3 class="font-bold text-gray-800 text-sm">{{ step.step }}</h3>
+          <span class="text-xs font-bold px-2 py-0.5 rounded-full {% if step.priority=='Critical' %}bg-red-200 text-red-800{% elif step.priority=='High' %}bg-amber-200 text-amber-800{% elif step.priority=='Medium' %}bg-blue-200 text-blue-800{% else %}bg-green-200 text-green-800{% endif %}">{{ step.priority }}</span>
+        </div>
+        <p class="text-sm text-gray-700 mb-1"><i class="fas fa-arrow-right mr-1 text-gray-400"></i>{{ step.action }}</p>
+        <p class="text-xs text-gray-500"><i class="fas fa-star mr-1 text-amber-400"></i>{{ step.benefit }}</p>
+        <p class="text-xs text-gray-400 mt-1"><i class="fas fa-clock mr-1"></i>{{ step.timeline }}</p>
+      </div>
+      {% endfor %}
+
+      <button onclick="exportCSV()" class="mt-4 w-full py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-semibold text-sm transition-colors">
+        <i class="fas fa-download mr-2"></i>Download Roadmap (CSV)
+      </button>
+    </div>
+    {% endif %}
+    {% else %}
+
+    <div class="card p-8 text-center">
+      <i class="fas fa-store text-5xl mb-4 text-amber-200"></i>
+      <p class="text-lg font-semibold text-gray-600 mb-2">Your personalised formalisation roadmap will appear here</p>
+      <p class="text-sm text-gray-400">Designed for informal traders, market sellers, artisans, farmers, and small enterprises across the developing world.</p>
+    </div>
+
+    <div class="card p-6">
+      <h3 class="font-bold text-gray-700 mb-3"><i class="fas fa-globe-africa mr-2 text-amber-600"></i>Why Formalise?</h3>
+      <ul class="space-y-2 text-sm text-gray-600">
+        <li><i class="fas fa-check mr-2 text-emerald-500"></i>Access bank loans and DFI financing at 5–15% vs 60%+ informal rates</li>
+        <li><i class="fas fa-check mr-2 text-emerald-500"></i>Participate in government contracts and procurement</li>
+        <li><i class="fas fa-check mr-2 text-emerald-500"></i>Attract equity investors and grants</li>
+        <li><i class="fas fa-check mr-2 text-emerald-500"></i>Build bankable credit history</li>
+        <li><i class="fas fa-check mr-2 text-emerald-500"></i>Succession planning — protect your family's wealth</li>
+        <li><i class="fas fa-check mr-2 text-emerald-500"></i>Scale beyond the one-person bottleneck</li>
+      </ul>
+    </div>
+    {% endif %}
+  </div>
+</main>
+
+<div class="max-w-5xl mx-auto px-4 pb-10 flex flex-wrap gap-3">
+  <a href="/" class="px-5 py-2 bg-amber-700 text-white rounded-lg text-sm font-medium"><i class="fas fa-home mr-1"></i>Home</a>
+  <a href="/startup-valuation" class="px-5 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg text-sm font-medium">Value Your Enterprise</a>
+  <a href="/private-equity" class="px-5 py-2 bg-white border border-gray-200 text-gray-700 rounded-lg text-sm font-medium">Private Equity</a>
+</div>
+<footer class="bg-gray-900 text-white py-6 mt-4"><div class="max-w-5xl mx-auto px-4 text-center"><p class="text-gray-400 text-sm">© 2026 InvestIQ. Educational tool. Consult a legal/financial advisor for specific advice.</p></div></footer>
+
+{% if result and not result.get('error') %}
+<script>
+function exportCSV(){
+  const steps = {{ result.steps | tojson }};
+  fetch('/api/export/csv',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({filename:'restructuring_roadmap',rows:steps})
+  }).then(r=>r.blob()).then(b=>{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='restructuring_roadmap.csv';a.click();});
+}
+</script>
+{% endif %}
+</body>
+</html>

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ action }} Video — InvestIQ Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body{font-family:'Inter',sans-serif;background:#f1f5f9;min-height:100vh;}
+    .input-field{width:100%;padding:.75rem 1rem;border:1px solid #e2e8f0;border-radius:.5rem;font-size:.95rem;color:#1e293b;transition:border-color .2s,box-shadow .2s;}
+    .input-field:focus{outline:none;border-color:#fca5a5;box-shadow:0 0 0 3px rgba(252,165,165,.3);}
+  </style>
+</head>
+<body class="text-gray-800">
+<div class="flex min-h-screen">
+  <aside class="w-64 bg-gray-900 text-white flex flex-col" style="min-height:100vh;">
+    <div class="p-6 border-b border-gray-800"><a href="/" class="flex items-center gap-2 font-bold text-lg"><i class="fas fa-chart-line text-indigo-400"></i> InvestIQ Admin</a></div>
+    <nav class="flex-1 p-4 space-y-1">
+      <a href="/admin" class="flex items-center gap-3 px-3 py-2.5 text-gray-300 hover:bg-gray-800 rounded-lg text-sm"><i class="fas fa-tachometer-alt w-4"></i> Dashboard</a>
+      <a href="/admin/articles" class="flex items-center gap-3 px-3 py-2.5 text-gray-300 hover:bg-gray-800 rounded-lg text-sm"><i class="fas fa-newspaper w-4"></i> Articles</a>
+      <a href="/admin/videos" class="flex items-center gap-3 px-3 py-2.5 bg-red-600 text-white rounded-lg text-sm font-medium"><i class="fab fa-youtube w-4"></i> Videos</a>
+    </nav>
+    <div class="p-4 border-t border-gray-800"><a href="/admin/logout" class="flex items-center gap-2 text-gray-400 hover:text-white text-sm"><i class="fas fa-sign-out-alt"></i> Logout</a></div>
+  </aside>
+
+  <main class="flex-1 p-8">
+    <div class="flex items-center gap-3 mb-8">
+      <a href="/admin/videos" class="text-gray-400 hover:text-gray-600"><i class="fas fa-arrow-left"></i></a>
+      <div>
+        <h1 class="text-2xl font-bold text-gray-800">{{ action }} YouTube Video</h1>
+        <p class="text-gray-500 text-sm">Paste any YouTube URL — share, watch, or embed format all work</p>
+      </div>
+    </div>
+
+    {% if error %}
+    <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6 flex items-center gap-2">
+      <i class="fas fa-exclamation-circle"></i> {{ error }}
+    </div>
+    {% endif %}
+
+    <!-- URL examples -->
+    <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6 text-sm">
+      <p class="font-semibold text-yellow-800 mb-2"><i class="fab fa-youtube mr-1 text-red-500"></i> Accepted YouTube URL formats:</p>
+      <ul class="space-y-1 text-yellow-700 font-mono text-xs">
+        <li>• https://www.youtube.com/watch?v=<strong>dQw4w9WgXcQ</strong></li>
+        <li>• https://youtu.be/<strong>dQw4w9WgXcQ</strong></li>
+        <li>• https://www.youtube.com/embed/<strong>dQw4w9WgXcQ</strong></li>
+      </ul>
+    </div>
+
+    <form method="POST" class="space-y-6" id="video-form">
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-5">
+
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-2">Video Title <span class="text-red-500">*</span></label>
+          <input type="text" name="title" required class="input-field" placeholder="e.g. DCF Valuation Tutorial — How to Value a Stock"
+            value="{{ video.title if video else '' }}" />
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-2">YouTube URL <span class="text-red-500">*</span></label>
+          <input type="text" name="youtube_url" id="youtube_url" required class="input-field"
+            placeholder="https://www.youtube.com/watch?v=XXXXXXXXXXX"
+            value="{{ video.youtube_url if video else '' }}"
+            oninput="updatePreview(this.value)" />
+        </div>
+
+        <!-- Live preview -->
+        <div id="preview-container" class="hidden">
+          <label class="block text-sm font-semibold text-gray-700 mb-2">Preview</label>
+          <div class="relative rounded-xl overflow-hidden" style="padding-top:56.25%;max-width:480px;">
+            <iframe id="preview-frame" class="absolute inset-0 w-full h-full" src="" frameborder="0" allowfullscreen></iframe>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-2">Description <span class="text-gray-400 font-normal">(optional)</span></label>
+          <textarea name="description" class="input-field" rows="3" placeholder="Brief description shown under the video">{{ video.description if video else '' }}</textarea>
+        </div>
+
+        <div class="flex flex-col gap-4">
+          <label class="flex items-center gap-3 cursor-pointer">
+            <input type="checkbox" name="is_featured" value="1" class="w-4 h-4 text-red-500 rounded"
+              {{ 'checked' if (video and video.is_featured) else '' }} />
+            <div>
+              <span class="text-sm font-medium text-gray-700">Feature this video</span>
+              <p class="text-xs text-gray-400">Featured video appears prominently on the Articles page and homepage. Only one video can be featured at a time.</p>
+            </div>
+          </label>
+          <label class="flex items-center gap-3 cursor-pointer">
+            <input type="checkbox" name="is_published" value="1" class="w-4 h-4 text-indigo-600 rounded"
+              {{ 'checked' if (not video or video.is_published) else '' }} />
+            <div>
+              <span class="text-sm font-medium text-gray-700">Publish immediately</span>
+              <p class="text-xs text-gray-400">Unchecked = hidden from public until you publish it</p>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <div class="flex gap-3">
+        <button type="submit" class="inline-flex items-center gap-2 px-6 py-3 bg-red-500 hover:bg-red-600 text-white rounded-lg font-semibold transition-colors">
+          <i class="fab fa-youtube"></i> {{ 'Update Video' if action == 'Edit' else 'Add Video' }}
+        </button>
+        <a href="/admin/videos" class="inline-flex items-center gap-2 px-6 py-3 bg-white border border-gray-200 text-gray-600 rounded-lg font-medium hover:bg-gray-50">Cancel</a>
+      </div>
+    </form>
+  </main>
+</div>
+
+<script>
+function extractYouTubeId(url) {
+  const patterns = [
+    /(?:v=|youtu\.be\/|embed\/)([A-Za-z0-9_-]{11})/,
+    /^([A-Za-z0-9_-]{11})$/,
+  ];
+  for (const p of patterns) {
+    const m = url.match(p);
+    if (m) return m[1];
+  }
+  return null;
+}
+
+function updatePreview(url) {
+  const vid = extractYouTubeId(url.trim());
+  const container = document.getElementById('preview-container');
+  const frame = document.getElementById('preview-frame');
+  if (vid) {
+    frame.src = `https://www.youtube.com/embed/${vid}`;
+    container.classList.remove('hidden');
+  } else {
+    frame.src = '';
+    container.classList.add('hidden');
+  }
+}
+
+// Init preview on page load (edit mode)
+window.addEventListener('DOMContentLoaded', () => {
+  const urlInput = document.getElementById('youtube_url');
+  if (urlInput.value) updatePreview(urlInput.value);
+});
+</script>
+</body>
+</html>

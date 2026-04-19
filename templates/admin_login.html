@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Login — InvestIQ</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>body{font-family:'Inter',sans-serif;background:linear-gradient(135deg,#1e293b,#0f172a);min-height:100vh;display:flex;align-items:center;justify-content:center;}</style>
+</head>
+<body class="text-gray-800">
+  <div class="w-full max-w-md px-4">
+    <div class="bg-white rounded-2xl shadow-2xl p-8">
+      <div class="text-center mb-8">
+        <div class="inline-flex items-center justify-center w-16 h-16 bg-indigo-100 rounded-2xl mb-4">
+          <i class="fas fa-lock text-2xl text-indigo-600"></i>
+        </div>
+        <h1 class="text-2xl font-bold text-gray-800">Admin Access</h1>
+        <p class="text-gray-500 text-sm mt-1">InvestIQ Content Management</p>
+      </div>
+
+      {% if error %}
+      <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6 text-sm flex items-center gap-2">
+        <i class="fas fa-exclamation-circle"></i> {{ error }}
+      </div>
+      {% endif %}
+
+      <form method="POST" action="/admin/login">
+        <div class="mb-5">
+          <label class="block text-sm font-medium text-gray-700 mb-2">Admin Password</label>
+          <input type="password" name="password" required autofocus
+            class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent"
+            placeholder="Enter admin password" />
+        </div>
+        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-lg transition-colors">
+          <i class="fas fa-sign-in-alt mr-2"></i> Sign In
+        </button>
+      </form>
+
+      <p class="text-center text-sm text-gray-400 mt-6">
+        <a href="/" class="text-indigo-500 hover:text-indigo-700"><i class="fas fa-arrow-left mr-1"></i>Back to InvestIQ</a>
+      </p>
+
+      <div class="mt-6 p-4 bg-gray-50 rounded-lg">
+        <p class="text-xs text-gray-500 text-center">Default password can be changed via the <code class="bg-gray-100 px-1 rounded">ADMIN_PASSWORD</code> environment variable.</p>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

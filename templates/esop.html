@@ -1,0 +1,113 @@
+{% from '_upload_widget.html' import upload_widget %}
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>ESOP / Stock Option Calculator — InvestIQ</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+body{font-family:'Inter',sans-serif;background:linear-gradient(135deg,#0f172a,#1e293b);min-height:100vh;color:#e2e8f0;}
+.card{background:rgba(255,255,255,.06);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,.1);border-radius:16px;}
+.input-field{width:100%;padding:.65rem 1rem;border:1.5px solid rgba(255,255,255,.15);border-radius:.5rem;font-size:.93rem;background:rgba(255,255,255,.07);color:#e2e8f0;transition:border-color .2s;}
+.input-field:focus{outline:none;border-color:#818cf8;box-shadow:0 0 0 3px rgba(129,140,248,.2);}
+.result-row{display:flex;justify-content:space-between;padding:.5rem 0;border-bottom:1px solid rgba(255,255,255,.06);}
+.result-row:last-child{border-bottom:none;}
+</style></head>
+<body>
+<header style="background:linear-gradient(135deg,#312e81,#4c1d95)" class="py-8 px-4">
+  <div class="max-w-5xl mx-auto">
+    <nav class="flex justify-between items-center mb-6 flex-wrap gap-3">
+      <a href="/" class="text-white text-xl font-bold flex items-center gap-2"><i class="fas fa-chart-line text-indigo-300"></i> Invest<span class="text-indigo-300">IQ</span></a>
+      <div class="flex gap-5 text-sm"><a href="/" class="text-indigo-200 hover:text-white">Home</a><a href="/#calculators" class="text-indigo-200 hover:text-white">Calculators</a></div>
+    </nav>
+    <h1 class="text-3xl md:text-4xl font-bold mb-2"><i class="fas fa-user-tie mr-3 text-indigo-300"></i>ESOP / Stock Option Calculator</h1>
+    <p class="text-indigo-200">ASC 718 / IFRS 2 fair value, dilution, and vesting schedule.</p>
+  </div>
+</header>
+<main class="max-w-5xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
+  <div class="card p-6">
+    <h2 class="text-lg font-bold mb-4 text-indigo-300"><i class="fas fa-sliders-h mr-2"></i>Inputs</h2>
+    {% if error %}<div class="bg-red-900/40 border border-red-500/50 text-red-300 px-4 py-3 rounded-lg mb-4 text-sm">{{ error }}</div>{% endif %}
+    {{ upload_widget('esop') }}
+    <form method="POST" class="space-y-4">
+      <div><label class="block text-xs font-semibold text-gray-400 mb-1">Currency</label>
+  <select name="currency" class="input-field"><option>USD</option><option>GHS</option><option>GBP</option><option>EUR</option><option>NGN</option><option>ZAR</option></select></div><div><label class="block text-xs font-semibold text-gray-400 mb-1">Options Granted</label>
+  <input type="number" name="options_granted" step="0.01" class="input-field" placeholder="10000" value="{{ result.options_granted if result else '' }}"/>
+  </div><div><label class="block text-xs font-semibold text-gray-400 mb-1">Strike Price (Exercise Price)</label>
+  <input type="number" name="strike_price" step="0.01" class="input-field" placeholder="10.00" value="{{ result.strike_price if result else '' }}"/>
+  </div><div><label class="block text-xs font-semibold text-gray-400 mb-1">Current Stock Price</label>
+  <input type="number" name="current_stock_price" step="0.01" class="input-field" placeholder="15.00" value="{{ result.current_stock_price if result else '' }}"/>
+  </div><div><label class="block text-xs font-semibold text-gray-400 mb-1">Vesting Period (years)</label>
+  <input type="number" name="vesting_years" step="0.01" class="input-field" placeholder="4" value="{{ result.vesting_years if result else '' }}"/>
+  </div><div><label class="block text-xs font-semibold text-gray-400 mb-1">Cliff Period (years)</label>
+  <input type="number" name="cliff_years" step="0.01" class="input-field" placeholder="1" value="{{ result.cliff_years if result else '' }}"/>
+  </div><div><label class="block text-xs font-semibold text-gray-400 mb-1">Time to Expiry (years)</label>
+  <input type="number" name="time_to_expiry" step="0.01" class="input-field" placeholder="7" value="{{ result.time_to_expiry if result else '' }}"/>
+  </div><div><label class="block text-xs font-semibold text-gray-400 mb-1">Volatility σ (% p.a.)</label>
+  <input type="number" name="volatility" step="0.01" class="input-field" placeholder="35.00" value="{{ result.volatility if result else '' }}"/>
+  </div><div><label class="block text-xs font-semibold text-gray-400 mb-1">Risk-Free Rate (% p.a.)</label>
+  <input type="number" name="risk_free_rate" step="0.01" class="input-field" placeholder="5.00" value="{{ result.risk_free_rate if result else '' }}"/>
+  </div><div><label class="block text-xs font-semibold text-gray-400 mb-1">Tax Rate (%)</label>
+  <input type="number" name="tax_rate" step="0.01" class="input-field" placeholder="25.00" value="{{ result.tax_rate if result else '' }}"/>
+  </div><div><label class="block text-xs font-semibold text-gray-400 mb-1">Shares Outstanding</label>
+  <input type="number" name="shares_outstanding" step="0.01" class="input-field" placeholder="1000000" value="{{ result.shares_outstanding if result else '' }}"/>
+  </div>
+      <button type="submit" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold transition-colors"><i class="fas fa-calculator mr-2"></i>Calculate</button>
+    </form>
+    <div class="mt-5 bg-indigo-900/30 rounded-xl p-4 text-xs text-indigo-300">
+  <p class="font-semibold mb-1">ESOP — ASC 718 / IFRS 2</p>
+  <p class="font-mono">Fair Value = Black-Scholes Call</p>
+  <p class="font-mono mt-1">Annual Expense = FV × Options / Vesting Yrs</p>
+  <p class="mt-2 text-indigo-400">Source: FASB ASC 718, IFRS 2, CFA L3.</p>
+</div>
+  </div>
+  <div class="space-y-5">
+  {% if result %}
+  <div class="card p-6">
+    <h2 class="text-lg font-bold text-indigo-300 mb-4"><i class="fas fa-chart-bar mr-2"></i>Results</h2>
+    <div class="bg-indigo-900/50 rounded-2xl p-5 text-center mb-4">
+      <p class="text-indigo-300 text-xs mb-1">Total ESOP Fair Value</p>
+      <p class="text-4xl font-bold">{{ result.total_fair_value }}</p>
+    </div><div class="grid grid-cols-2 gap-3 mb-4">
+  <div class="bg-indigo-900/40 rounded-xl p-3 text-center"><p class="text-xs text-indigo-300">Per Option Value</p><p class="text-lg font-bold">{{ result.per_option_value }}</p></div>
+  <div class="bg-indigo-900/40 rounded-xl p-3 text-center"><p class="text-xs text-indigo-300">Dilution %</p><p class="text-lg font-bold">{{ result.dilution_pct }}%</p></div>
+</div><div class="result-row"><span class="text-gray-500">Options Granted</span><span class="font-semibold">{{ result.options_granted }}</span></div>
+    <div class="result-row"><span class="text-gray-500">Strike Price</span><span class="font-semibold">{{ result.strike_price }}</span></div>
+    <div class="result-row"><span class="text-gray-500">Intrinsic Value / Option</span><span class="font-semibold">{{ result.intrinsic_value }}</span></div>
+    <div class="result-row"><span class="text-gray-500">Time Value / Option</span><span class="font-semibold">{{ result.time_value }}</span></div>
+    <div class="result-row"><span class="text-gray-500">Post-Tax Benefit (Employee)</span><span class="font-semibold">{{ result.post_tax_benefit }}</span></div>
+    <div class="result-row"><span class="text-gray-500">Annual Expense (ASC 718 / IFRS 2)</span><span class="font-semibold">{{ result.annual_expense }}</span></div>
+    <div class="result-row"><span class="text-gray-500">Annual Vesting (shares/yr)</span><span class="font-semibold">{{ result.annual_vesting }}</span></div>
+    
+    <div class="mt-4 text-center">
+      <button onclick="investiqDownloadCSV('esop-result')" class="inline-flex items-center gap-2 px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-semibold text-sm transition-colors">
+        <i class="fas fa-download"></i> Download CSV
+      </button>
+    </div>
+  </div>
+  {% else %}
+  <div class="card p-10 text-center"><i class="fas fa-user-tie text-5xl mb-4 text-indigo-800"></i><p class="text-gray-400 text-lg font-semibold">Enter parameters to calculate</p></div>
+  {% endif %}
+  </div>
+</main>
+<div class="max-w-5xl mx-auto px-4 pb-10 flex flex-wrap gap-3">
+  <a href="/" class="px-5 py-2 bg-indigo-700 text-white rounded-lg text-sm font-medium">Home</a>
+  <a href="/options" class="px-5 py-2 bg-white/10 text-gray-300 rounded-lg text-sm font-medium">Options</a>
+</div>
+<footer class="bg-black/30 py-6 mt-4 text-center"><p class="text-gray-500 text-sm">© 2026 InvestIQ. Educational use only.</p></footer>
+<script>
+(function(){
+  window.investiqDownloadCSV=function(fn){
+    var rows=[['Metric','Value']];
+    document.querySelectorAll('.result-row').forEach(function(el){
+      var s=el.querySelectorAll('span');
+      if(s.length>=2)rows.push([s[0].innerText.trim(),s[s.length-1].innerText.trim()]);
+    });
+    if(rows.length<=1){alert('No results yet.');return;}
+    var csv=rows.map(function(r){return r.map(function(c){return'"'+String(c).replace(/"/g,'""')+'"';}).join(',');}).join('\n');
+    var a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+    a.download=(fn||'result')+'.csv';document.body.appendChild(a);a.click();document.body.removeChild(a);
+  };
+})();
+</script>
+</body></html>
