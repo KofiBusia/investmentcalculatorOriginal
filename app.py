@@ -37,7 +37,7 @@ app.config.update(
     SESSION_PERMANENT=True,
     PERMANENT_SESSION_LIFETIME=86400,
     WTF_CSRF_TIME_LIMIT=7200,
-    SQLALCHEMY_DATABASE_URI=os.getenv('DATABASE_URL', 'sqlite:///site.db'),
+    SQLALCHEMY_DATABASE_URI='sqlite:///site.db',
     SQLALCHEMY_TRACK_MODIFICATIONS=False,
     SESSION_FILE_DIR=os.path.join(os.path.dirname(__file__), 'instance', 'sessions')
 )
@@ -1065,8 +1065,38 @@ if __name__ == '__main__':
 
 # --- APPLICATION RUNNER ---
 if __name__ == '__main__':
-    if os.getenv('FLASK_ENV') != 'production':
+    import socket
+    
+    # Get the actual IP address dynamically
+    def get_ip():
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        try:
+            # doesn't even have to be reachable
+            s.connect(('10.255.255.255', 1))
+            ip = s.getsockname()[0]
+        except Exception:
+            ip = '127.0.0.1'
+        finally:
+            s.close()
+        return ip
+    
+    your_ip = get_ip()
+    
+    print("\n" + "="*60)
+    print("💰 INVESTMENT CALCULATOR APPLICATION")
+    print("="*60)
+    print("Starting server...")
+    print(f"Local access: http://127.0.0.1:5000")
+    print(f"Network access: http://{your_ip}:5000")
+    print("Press Ctrl+C to stop the server")
+    print("="*60 + "\n")
+    
+    try:
+        # CRITICAL: Use '0.0.0.0' to allow network access
         app.run(debug=True, host='0.0.0.0', port=5000)
-    else:
-        from waitress import serve
-        serve(app, host="0.0.0.0", port=5000)
+    except Exception as e:
+        print(f"\n❌ Error starting server: {e}")
+        print("\n💡 Troubleshooting steps:")
+        print("1. Check if port 5000 is in use: netstat -ano | findstr :5000")
+        print("2. Try a different port: Change port=5000 to port=5001")
+        print("3. Make sure all dependencies are installed: pip install -r requirements.txt")
