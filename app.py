@@ -11,18 +11,23 @@ from datetime import datetime
 from logging.handlers import RotatingFileHandler
 
 # --- THIRD-PARTY IMPORTS ---
-from flask import Flask, jsonify, render_template, request, send_from_directory, session, redirect, url_for, make_response
+from flask import Flask, jsonify, render_template, request, send_from_directory, session, redirect, url_for, make_response, flash, abort
 from flask_wtf import FlaskForm
 from wtforms import StringField, SelectField, FloatField, IntegerField
 from wtforms.validators import DataRequired, Length, NumberRange
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_session import Session
+from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
+from flask_mail import Mail, Message
 from dotenv import load_dotenv
 import statistics
 import csv
 import io
+import hashlib
 import requests as http_requests
+from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
 
 # --- ENVIRONMENT CONFIGURATION ---
 load_dotenv()
@@ -32,9 +37,12 @@ logger = logging.getLogger(__name__)
 app = Flask(__name__)
 
 # --- CONFIGURATION SETTINGS ---
+UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), 'static', 'books')
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
 app.config.update(
     SECRET_KEY=os.getenv('SECRET_KEY', 'e1efa2b32b1bac66588d074bac02a168212082d8befd0b6466f5ee37a8c2836a'),
-    MAX_CONTENT_LENGTH=5 * 1024 * 1024,  # 5 MB limit
+    MAX_CONTENT_LENGTH=50 * 1024 * 1024,  # 50 MB limit for book uploads
     SESSION_TYPE='filesystem',
     SESSION_FILE_THRESHOLD=500,
     SESSION_PERMANENT=True,
@@ -42,7 +50,19 @@ app.config.update(
     WTF_CSRF_TIME_LIMIT=7200,
     SQLALCHEMY_DATABASE_URI='sqlite:///site.db',
     SQLALCHEMY_TRACK_MODIFICATIONS=False,
-    SESSION_FILE_DIR=os.path.join(os.path.dirname(__file__), 'instance', 'sessions')
+    SESSION_FILE_DIR=os.path.join(os.path.dirname(__file__), 'instance', 'sessions'),
+    UPLOAD_FOLDER=UPLOAD_FOLDER,
+    # Flask-Mail (Gmail SMTP)
+    MAIL_SERVER='smtp.gmail.com',
+    MAIL_PORT=587,
+    MAIL_USE_TLS=True,
+    MAIL_USERNAME=os.getenv('MAIL_USERNAME', ''),
+    MAIL_PASSWORD=os.getenv('MAIL_PASSWORD', ''),
+    MAIL_DEFAULT_SENDER=os.getenv('MAIL_USERNAME', 'noreply@investiq.com'),
+    ADMIN_EMAIL=os.getenv('ADMIN_EMAIL', 'kyeikofi@gmail.com'),
+    # Google OAuth
+    GOOGLE_CLIENT_ID=os.getenv('GOOGLE_CLIENT_ID', ''),
+    GOOGLE_CLIENT_SECRET=os.getenv('GOOGLE_CLIENT_SECRET', ''),
 )
 
 # Ensure session directory exists
@@ -63,9 +83,21 @@ handler.setLevel(logging.INFO)
 app.logger.addHandler(handler)
 logger.info("Application initialized")
 
-# --- SQLALCHEMY INITIALIZATION ---
+# --- SQLALCHEMY & EXTENSIONS INITIALIZATION ---
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
+mail = Mail(app)
+login_manager = LoginManager(app)
+login_manager.login_view = 'user_login'
+login_manager.login_message = 'Please log in to access this page.'
+
+def send_email_safe(subject, recipients, body_html, body_text=''):
+    """Send email; silently log on failure so the app never crashes."""
+    try:
+        msg = Message(subject, recipients=recipients, html=body_html, body=body_text or body_html)
+        mail.send(msg)
+    except Exception as e:
+        logger.error(f'Email send error: {e}')
 
 # --- HR PLATFORM MODELS ---
 class JobListing(db.Model):
@@ -167,6 +199,86 @@ class Video(db.Model):
 
     def __repr__(self):
         return f'<Video {self.title}>'
+
+
+# --- USER AUTHENTICATION MODEL ---
+class SiteUser(UserMixin, db.Model):
+    __tablename__ = 'site_users'
+    id           = db.Column(db.Integer, primary_key=True)
+    full_name    = db.Column(db.String(200), nullable=False)
+    email        = db.Column(db.String(200), unique=True, nullable=False)
+    phone        = db.Column(db.String(50), default='')
+    password_hash= db.Column(db.String(256), default='')
+    google_id    = db.Column(db.String(200), default='')
+    is_active    = db.Column(db.Boolean, default=True)
+    created_at   = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def set_password(self, pw):
+        self.password_hash = generate_password_hash(pw)
+
+    def check_password(self, pw):
+        return check_password_hash(self.password_hash, pw)
+
+@login_manager.user_loader
+def load_user(user_id):
+    return SiteUser.query.get(int(user_id))
+
+
+# --- BOOK MODELS ---
+class Book(db.Model):
+    __tablename__ = 'books'
+    id           = db.Column(db.Integer, primary_key=True)
+    title        = db.Column(db.String(300), nullable=False)
+    author       = db.Column(db.String(200), default='')
+    description  = db.Column(db.Text, default='')
+    cover_url    = db.Column(db.String(500), default='')
+    file_path    = db.Column(db.String(500), default='')
+    requires_donation = db.Column(db.Boolean, default=False)
+    donation_amount   = db.Column(db.Float, default=0.0)
+    is_active    = db.Column(db.Boolean, default=True)
+    created_at   = db.Column(db.DateTime, default=datetime.utcnow)
+
+class BookRequest(db.Model):
+    __tablename__ = 'book_requests'
+    id           = db.Column(db.Integer, primary_key=True)
+    book_id      = db.Column(db.Integer, db.ForeignKey('books.id'), nullable=False)
+    full_name    = db.Column(db.String(200), nullable=False)
+    email        = db.Column(db.String(200), nullable=False)
+    phone        = db.Column(db.String(50), default='')
+    request_type = db.Column(db.String(20), default='access')  # access | donation
+    donation_ref = db.Column(db.String(200), default='')
+    message      = db.Column(db.Text, default='')
+    status       = db.Column(db.String(30), default='Pending')
+    created_at   = db.Column(db.DateTime, default=datetime.utcnow)
+    book         = db.relationship('Book', backref='requests', lazy=True)
+
+
+# --- DONATION MODEL ---
+class Donation(db.Model):
+    __tablename__ = 'donations'
+    id           = db.Column(db.Integer, primary_key=True)
+    full_name    = db.Column(db.String(200), nullable=False)
+    email        = db.Column(db.String(200), nullable=False)
+    phone        = db.Column(db.String(50), default='')
+    amount       = db.Column(db.Float, nullable=False)
+    currency     = db.Column(db.String(10), default='GHS')
+    purpose      = db.Column(db.String(200), default='General Support')
+    reference    = db.Column(db.String(200), default='')
+    message      = db.Column(db.Text, default='')
+    status       = db.Column(db.String(30), default='Pending')
+    created_at   = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+# --- CONTACT MESSAGE MODEL ---
+class ContactMessage(db.Model):
+    __tablename__ = 'contact_messages'
+    id           = db.Column(db.Integer, primary_key=True)
+    full_name    = db.Column(db.String(200), nullable=False)
+    email        = db.Column(db.String(200), nullable=False)
+    phone        = db.Column(db.String(50), default='')
+    subject      = db.Column(db.String(300), default='')
+    message      = db.Column(db.Text, nullable=False)
+    created_at   = db.Column(db.DateTime, default=datetime.utcnow)
 
 
 # --- DATACLASSES ---
@@ -350,7 +462,261 @@ def calculate_tbills_rediscount(face_value, discount_rate, days_to_maturity):
 def index():
     """Render the homepage."""
     logger.debug("Rendering index page")
-    return render_template('index.html')
+    books = Book.query.filter_by(is_active=True).order_by(Book.created_at.desc()).limit(4).all()
+    return render_template('index.html', featured_books=books)
+
+
+# ── USER AUTH ROUTES ──────────────────────────────────────────────────────────
+@app.route('/signup', methods=['GET', 'POST'])
+def user_signup():
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    error = None
+    if request.method == 'POST':
+        full_name = request.form.get('full_name', '').strip()
+        email     = request.form.get('email', '').strip().lower()
+        phone     = request.form.get('phone', '').strip()
+        password  = request.form.get('password', '')
+        confirm   = request.form.get('confirm_password', '')
+        if not full_name or not email or not password:
+            error = 'Name, email and password are required.'
+        elif password != confirm:
+            error = 'Passwords do not match.'
+        elif SiteUser.query.filter_by(email=email).first():
+            error = 'An account with that email already exists.'
+        else:
+            user = SiteUser(full_name=full_name, email=email, phone=phone)
+            user.set_password(password)
+            db.session.add(user)
+            db.session.commit()
+            login_user(user)
+            send_email_safe(
+                'Welcome to InvestIQ!',
+                [email],
+                f'<h2>Welcome, {full_name}!</h2><p>Your InvestIQ account is now active. '
+                f'Explore our <a href="https://investiq.com">financial calculators</a> and professional tools.</p>'
+            )
+            return redirect(url_for('index'))
+    return render_template('signup.html', error=error)
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def user_login():
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    error = None
+    if request.method == 'POST':
+        email    = request.form.get('email', '').strip().lower()
+        password = request.form.get('password', '')
+        user     = SiteUser.query.filter_by(email=email).first()
+        if user and user.check_password(password):
+            login_user(user, remember=request.form.get('remember') == 'on')
+            return redirect(request.args.get('next') or url_for('index'))
+        error = 'Invalid email or password.'
+    return render_template('login.html', error=error)
+
+
+@app.route('/logout')
+@login_required
+def user_logout():
+    logout_user()
+    return redirect(url_for('index'))
+
+
+# ── ADMIN: USER CSV EXPORT ────────────────────────────────────────────────────
+@app.route('/admin/users')
+def admin_users():
+    if not session.get('admin'):
+        return redirect(url_for('admin_login'))
+    users = SiteUser.query.order_by(SiteUser.created_at.desc()).all()
+    return render_template('admin_users.html', users=users)
+
+
+@app.route('/admin/users/export')
+def admin_users_export():
+    if not session.get('admin'):
+        return redirect(url_for('admin_login'))
+    users = SiteUser.query.order_by(SiteUser.created_at.desc()).all()
+    si = io.StringIO()
+    w  = csv.writer(si)
+    w.writerow(['ID', 'Full Name', 'Email', 'Phone', 'Registered'])
+    for u in users:
+        w.writerow([u.id, u.full_name, u.email, u.phone, u.created_at.strftime('%Y-%m-%d %H:%M')])
+    output = make_response(si.getvalue())
+    output.headers['Content-Disposition'] = 'attachment; filename=users.csv'
+    output.headers['Content-type'] = 'text/csv'
+    return output
+
+
+# ── BOOKS ROUTES ──────────────────────────────────────────────────────────────
+@app.route('/books')
+def books_page():
+    books = Book.query.filter_by(is_active=True).order_by(Book.created_at.desc()).all()
+    return render_template('books.html', books=books)
+
+
+@app.route('/books/<int:book_id>/request', methods=['GET', 'POST'])
+def book_request(book_id):
+    book  = Book.query.get_or_404(book_id)
+    success = False
+    error   = None
+    if request.method == 'POST':
+        full_name    = request.form.get('full_name', '').strip()
+        email        = request.form.get('email', '').strip()
+        phone        = request.form.get('phone', '').strip()
+        request_type = request.form.get('request_type', 'access')
+        donation_ref = request.form.get('donation_ref', '').strip()
+        message      = request.form.get('message', '').strip()
+        if not full_name or not email:
+            error = 'Name and email are required.'
+        else:
+            br = BookRequest(book_id=book.id, full_name=full_name, email=email, phone=phone,
+                             request_type=request_type, donation_ref=donation_ref, message=message)
+            db.session.add(br)
+            db.session.commit()
+            send_email_safe(
+                f'Book Request: {book.title}',
+                [app.config['ADMIN_EMAIL']],
+                f'''<h3>Book Request</h3>
+<p><b>Book:</b> {book.title}</p>
+<p><b>Type:</b> {request_type}</p>
+<p><b>From:</b> {full_name} ({email}) — {phone}</p>
+<p><b>Donation Ref:</b> {donation_ref or "N/A"}</p>
+<p><b>Message:</b> {message or "None"}</p>'''
+            )
+            success = True
+    return render_template('book_request.html', book=book, success=success, error=error)
+
+
+@app.route('/admin/books')
+def admin_books():
+    if not session.get('admin'):
+        return redirect(url_for('admin_login'))
+    books = Book.query.order_by(Book.created_at.desc()).all()
+    return render_template('admin_books.html', books=books)
+
+
+@app.route('/admin/books/new', methods=['GET', 'POST'])
+def admin_book_new():
+    if not session.get('admin'):
+        return redirect(url_for('admin_login'))
+    error = None
+    if request.method == 'POST':
+        title       = request.form.get('title', '').strip()
+        author      = request.form.get('author', '').strip()
+        description = request.form.get('description', '').strip()
+        cover_url   = request.form.get('cover_url', '').strip()
+        req_donation= request.form.get('requires_donation') == 'on'
+        don_amount  = float(request.form.get('donation_amount', 0) or 0)
+        file_path   = ''
+        if 'book_file' in request.files:
+            f = request.files['book_file']
+            if f and f.filename:
+                fname = secure_filename(f.filename)
+                dest  = os.path.join(app.config['UPLOAD_FOLDER'], fname)
+                f.save(dest)
+                file_path = fname
+        if not title:
+            error = 'Title is required.'
+        else:
+            book = Book(title=title, author=author, description=description, cover_url=cover_url,
+                        file_path=file_path, requires_donation=req_donation, donation_amount=don_amount)
+            db.session.add(book)
+            db.session.commit()
+            return redirect(url_for('admin_books'))
+    return render_template('admin_book_form.html', book=None, error=error)
+
+
+@app.route('/admin/books/<int:book_id>/edit', methods=['GET', 'POST'])
+def admin_book_edit(book_id):
+    if not session.get('admin'):
+        return redirect(url_for('admin_login'))
+    book  = Book.query.get_or_404(book_id)
+    error = None
+    if request.method == 'POST':
+        book.title       = request.form.get('title', '').strip()
+        book.author      = request.form.get('author', '').strip()
+        book.description = request.form.get('description', '').strip()
+        book.cover_url   = request.form.get('cover_url', '').strip()
+        book.requires_donation = request.form.get('requires_donation') == 'on'
+        book.donation_amount   = float(request.form.get('donation_amount', 0) or 0)
+        book.is_active   = request.form.get('is_active') == 'on'
+        if 'book_file' in request.files:
+            f = request.files['book_file']
+            if f and f.filename:
+                fname = secure_filename(f.filename)
+                dest  = os.path.join(app.config['UPLOAD_FOLDER'], fname)
+                f.save(dest)
+                book.file_path = fname
+        db.session.commit()
+        return redirect(url_for('admin_books'))
+    return render_template('admin_book_form.html', book=book, error=error)
+
+
+@app.route('/admin/books/<int:book_id>/delete', methods=['POST'])
+def admin_book_delete(book_id):
+    if not session.get('admin'):
+        return redirect(url_for('admin_login'))
+    book = Book.query.get_or_404(book_id)
+    db.session.delete(book)
+    db.session.commit()
+    return redirect(url_for('admin_books'))
+
+
+@app.route('/admin/book-requests')
+def admin_book_requests():
+    if not session.get('admin'):
+        return redirect(url_for('admin_login'))
+    requests_list = BookRequest.query.order_by(BookRequest.created_at.desc()).all()
+    return render_template('admin_book_requests.html', requests=requests_list)
+
+
+# ── DONATION ROUTES ───────────────────────────────────────────────────────────
+@app.route('/donate', methods=['GET', 'POST'])
+def donate_page():
+    success = False
+    error   = None
+    if request.method == 'POST':
+        full_name = request.form.get('full_name', '').strip()
+        email     = request.form.get('email', '').strip()
+        phone     = request.form.get('phone', '').strip()
+        amount    = request.form.get('amount', '').strip()
+        currency  = request.form.get('currency', 'GHS')
+        purpose   = request.form.get('purpose', 'General Support')
+        reference = request.form.get('reference', '').strip()
+        message   = request.form.get('message', '').strip()
+        if not full_name or not email or not amount:
+            error = 'Name, email and amount are required.'
+        else:
+            try:
+                don = Donation(full_name=full_name, email=email, phone=phone,
+                               amount=float(amount), currency=currency,
+                               purpose=purpose, reference=reference, message=message)
+                db.session.add(don)
+                db.session.commit()
+                send_email_safe(
+                    f'Donation Received: {currency} {amount} — {full_name}',
+                    [app.config['ADMIN_EMAIL']],
+                    f'''<h3>New Donation</h3>
+<p><b>From:</b> {full_name} ({email}) — {phone}</p>
+<p><b>Amount:</b> {currency} {amount}</p>
+<p><b>Purpose:</b> {purpose}</p>
+<p><b>Reference:</b> {reference or "None"}</p>
+<p><b>Message:</b> {message or "None"}</p>'''
+                )
+                success = True
+            except Exception as e:
+                logger.error(f'Donation error: {e}')
+                error = 'Could not process. Please try again.'
+    return render_template('donate.html', success=success, error=error)
+
+
+@app.route('/admin/donations')
+def admin_donations():
+    if not session.get('admin'):
+        return redirect(url_for('admin_login'))
+    donations = Donation.query.order_by(Donation.created_at.desc()).all()
+    return render_template('admin_donations.html', donations=donations)
 
 @app.route('/asset-allocation')
 def asset_allocation():
@@ -1158,9 +1524,37 @@ def target_price():
 def about():
     return render_template('about.html')
 
-@app.route('/contact')
+@app.route('/contact', methods=['GET', 'POST'])
 def contact():
-    return render_template('contact.html')
+    success = False
+    error = None
+    if request.method == 'POST':
+        full_name = request.form.get('full_name', '').strip()
+        email     = request.form.get('email', '').strip()
+        phone     = request.form.get('phone', '').strip()
+        subject   = request.form.get('subject', '').strip()
+        message   = request.form.get('message', '').strip()
+        if not full_name or not email or not message:
+            error = 'Name, email, and message are required.'
+        else:
+            try:
+                msg_obj = ContactMessage(full_name=full_name, email=email, phone=phone, subject=subject, message=message)
+                db.session.add(msg_obj)
+                db.session.commit()
+                send_email_safe(
+                    f'InvestIQ Contact: {subject or "New Message"}',
+                    [app.config['ADMIN_EMAIL']],
+                    f'''<h3>New Contact Message</h3>
+<p><b>From:</b> {full_name} ({email})</p>
+<p><b>Phone:</b> {phone or "Not provided"}</p>
+<p><b>Subject:</b> {subject or "No subject"}</p>
+<hr><p>{message.replace(chr(10),"<br>")}</p>'''
+                )
+                success = True
+            except Exception as e:
+                logger.error(f'Contact form error: {e}')
+                error = 'Message could not be sent. Please try again.'
+    return render_template('contact.html', success=success, error=error)
 
 @app.route('/team')
 def team():
@@ -3252,6 +3646,22 @@ def training_page():
             else:
                 db.session.add(booking)
                 db.session.commit()
+                send_email_safe(
+                    f'New Training Booking: {booking.category}',
+                    [app.config['ADMIN_EMAIL']],
+                    f'''<h3>New Training Booking Request</h3>
+<table>
+<tr><td><b>Name:</b></td><td>{booking.full_name}</td></tr>
+<tr><td><b>Email:</b></td><td>{booking.email}</td></tr>
+<tr><td><b>Phone:</b></td><td>{booking.phone or "N/A"}</td></tr>
+<tr><td><b>Type:</b></td><td>{booking.booking_type}</td></tr>
+<tr><td><b>Organisation:</b></td><td>{booking.organization or "N/A"}</td></tr>
+<tr><td><b>Participants:</b></td><td>{booking.participants}</td></tr>
+<tr><td><b>Program:</b></td><td>{booking.category}</td></tr>
+<tr><td><b>Preferred Date:</b></td><td>{booking.preferred_date or "Flexible"}</td></tr>
+<tr><td><b>Notes:</b></td><td>{booking.notes or "None"}</td></tr>
+</table>'''
+                )
                 success = True
         except Exception as e:
             error = 'Booking failed. Please try again.'

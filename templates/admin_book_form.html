@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}{% if book %}Edit Book{% else %}Add Book{% endif %} — Admin{% endblock %}
+{% block content %}
+<style>
+  .admin-header{background:linear-gradient(135deg,#0f172a,#1e3a5f);color:#fff;padding:28px 32px;}
+  .admin-header h1{font-size:1.5rem;font-weight:800;}
+  .form-wrap{max-width:680px;margin:36px auto;padding:0 20px;}
+  .form-card{background:#fff;border-radius:16px;box-shadow:0 6px 28px rgba(0,0,0,.09);padding:32px;}
+  .form-group{margin-bottom:16px;}
+  .form-label{display:block;font-size:.82rem;font-weight:600;color:#475569;margin-bottom:5px;}
+  .form-input{width:100%;padding:10px 13px;border:1.5px solid #e2e8f0;border-radius:9px;font-size:.92rem;outline:none;transition:border .2s;}
+  .form-input:focus{border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.09);}
+  .btn{display:inline-flex;align-items:center;gap:6px;padding:11px 22px;border-radius:9px;font-weight:600;font-size:.92rem;cursor:pointer;border:none;text-decoration:none;}
+  .btn-primary{background:#2563eb;color:#fff;} .btn-primary:hover{background:#1d4ed8;}
+  .btn-back{background:#f1f5f9;color:#334155;} .btn-back:hover{background:#e2e8f0;}
+  .error-box{background:#fef2f2;border:1px solid #fecaca;color:#dc2626;padding:10px 14px;border-radius:8px;font-size:.88rem;margin-bottom:16px;}
+  .switch-row{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+  .donation-row{display:none;}
+</style>
+<div class="admin-header">
+  <h1><i class="fas fa-{% if book %}edit{% else %}plus{% endif %} mr-2"></i>{% if book %}Edit: {{ book.title }}{% else %}Add New Book{% endif %}</h1>
+</div>
+<div class="form-wrap">
+  <div class="form-card">
+    {% if error %}<div class="error-box">{{ error }}</div>{% endif %}
+    <form method="POST" enctype="multipart/form-data">
+      <div class="form-group">
+        <label class="form-label">Title *</label>
+        <input type="text" name="title" required class="form-input" value="{{ book.title if book else '' }}" placeholder="Book title"/>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="form-group">
+          <label class="form-label">Author</label>
+          <input type="text" name="author" class="form-input" value="{{ book.author if book else '' }}" placeholder="Author name"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Cover Image URL</label>
+          <input type="url" name="cover_url" class="form-input" value="{{ book.cover_url if book else '' }}" placeholder="https://..."/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <textarea name="description" rows="4" class="form-input" placeholder="Brief description of the book...">{{ book.description if book else '' }}</textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Upload Book File (PDF/ePub)</label>
+        <input type="file" name="book_file" accept=".pdf,.epub,.mobi" class="form-input" style="padding:6px;"/>
+        {% if book and book.file_path %}<p style="font-size:.8rem;color:#64748b;margin-top:4px;">Current: {{ book.file_path }}</p>{% endif %}
+      </div>
+      <div class="switch-row">
+        <input type="checkbox" name="requires_donation" id="req-don" onchange="toggleDonation(this.checked)" {% if book and book.requires_donation %}checked{% endif %}/>
+        <label for="req-don" class="form-label" style="margin:0;">Requires Donation to Access</label>
+      </div>
+      <div class="donation-row form-group" id="donation-amount-row" {% if book and book.requires_donation %}style="display:block"{% endif %}>
+        <label class="form-label">Suggested Donation Amount (GHS)</label>
+        <input type="number" name="donation_amount" min="0" step="1" class="form-input" value="{{ book.donation_amount|int if book else 0 }}" placeholder="e.g. 100"/>
+      </div>
+      {% if book %}
+      <div class="switch-row">
+        <input type="checkbox" name="is_active" id="is-active" {% if book.is_active %}checked{% endif %}/>
+        <label for="is-active" class="form-label" style="margin:0;">Active (visible to users)</label>
+      </div>
+      {% endif %}
+      <div style="display:flex;gap:10px;margin-top:8px;">
+        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> {% if book %}Save Changes{% else %}Add Book{% endif %}</button>
+        <a href="/admin/books" class="btn btn-back"><i class="fas fa-arrow-left"></i> Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+<script>
+function toggleDonation(checked) {
+  document.getElementById('donation-amount-row').style.display = checked ? 'block' : 'none';
+}
+</script>
+{% endblock %}

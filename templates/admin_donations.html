@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Donations — Admin{% endblock %}
+{% block content %}
+<style>
+  .admin-header{background:linear-gradient(135deg,#0f172a,#1e3a5f);color:#fff;padding:28px 32px;}
+  .admin-header h1{font-size:1.6rem;font-weight:800;}
+  .admin-body{max-width:1200px;margin:32px auto;padding:0 20px;}
+  .stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;}
+  .stat-card{background:#fff;border-radius:12px;padding:18px;box-shadow:0 2px 12px rgba(0,0,0,.06);text-align:center;}
+  .stat-val{font-size:2rem;font-weight:800;color:#2563eb;}
+  .stat-lbl{font-size:.8rem;color:#64748b;margin-top:2px;}
+  .table-wrap{background:#fff;border-radius:14px;box-shadow:0 4px 20px rgba(0,0,0,.07);overflow:hidden;}
+  table{width:100%;border-collapse:collapse;}
+  th{background:#f8fafc;padding:12px 16px;text-align:left;font-size:.8rem;font-weight:700;color:#64748b;text-transform:uppercase;}
+  td{padding:13px 16px;border-top:1px solid #f1f5f9;font-size:.85rem;color:#334155;}
+  tr:hover td{background:#f8fafc;}
+</style>
+<div class="admin-header">
+  <h1><i class="fas fa-heart mr-2" style="color:#f472b6;"></i>Donations</h1>
+  <p style="color:#93c5fd;font-size:.9rem;margin-top:4px;">All received donation records</p>
+</div>
+<div class="admin-body">
+  {% set total = donations|sum(attribute='amount') if donations else 0 %}
+  <div class="stat-grid">
+    <div class="stat-card"><div class="stat-val">{{ donations|length }}</div><div class="stat-lbl">Total Donations</div></div>
+    <div class="stat-card"><div class="stat-val">GHS {{ "%.0f"|format(total) }}</div><div class="stat-lbl">Total Amount</div></div>
+    <div class="stat-card"><div class="stat-val">{{ donations|selectattr('status','equalto','Confirmed')|list|length }}</div><div class="stat-lbl">Confirmed</div></div>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Name</th><th>Email</th><th>Amount</th><th>Purpose</th><th>Reference</th><th>Date</th></tr></thead>
+      <tbody>
+      {% for d in donations %}
+      <tr>
+        <td><b>{{ d.full_name }}</b></td>
+        <td>{{ d.email }}</td>
+        <td><b>{{ d.currency }} {{ "%.2f"|format(d.amount) }}</b></td>
+        <td>{{ d.purpose }}</td>
+        <td>{{ d.reference or '—' }}</td>
+        <td>{{ d.created_at.strftime('%d %b %Y') }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:30px;">No donations yet.</td></tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

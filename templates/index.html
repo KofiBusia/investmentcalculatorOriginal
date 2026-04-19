@@ -38,7 +38,7 @@
         .container{width:100%;max-width:1400px;margin:0 auto;padding:0 24px;}
 
         /* ── HEADER ────────────────────────────────────────── */
-        header{position:fixed;top:0;width:100%;z-index:200;background:rgba(255,255,255,.86);backdrop-filter:blur(20px) saturate(160%);-webkit-backdrop-filter:blur(20px) saturate(160%);border-bottom:1px solid rgba(37,99,235,.07);box-shadow:0 2px 24px rgba(37,99,235,.06);transition:transform .3s cubic-bezier(.4,0,.2,1),box-shadow .3s,background .3s;}
+        header{position:fixed;top:32px;width:100%;z-index:200;background:rgba(255,255,255,.86);backdrop-filter:blur(20px) saturate(160%);-webkit-backdrop-filter:blur(20px) saturate(160%);border-bottom:1px solid rgba(37,99,235,.07);box-shadow:0 2px 24px rgba(37,99,235,.06);transition:transform .3s cubic-bezier(.4,0,.2,1),box-shadow .3s,background .3s;}
         header.hidden{transform:translateY(-100%);}
         header.scrolled{background:rgba(255,255,255,.97);box-shadow:0 4px 32px rgba(0,0,0,.09);}
         .header-container{display:flex;justify-content:space-between;align-items:center;padding:13px 0;}
@@ -228,7 +228,7 @@
 </head>
 <body>
     <!-- Stock Ticker — Bloomberg/Reuters style -->
-    <div id="stock-ticker" style="background:#0d1117;border-bottom:1px solid #1e2d3d;overflow:hidden;white-space:nowrap;padding:0;font-family:'Poppins',monospace;position:relative;z-index:200;display:flex;align-items:stretch;">
+    <div id="stock-ticker" style="background:#0d1117;border-bottom:1px solid #1e2d3d;overflow:hidden;white-space:nowrap;padding:0;font-family:'Poppins',monospace;position:fixed;top:0;left:0;right:0;z-index:201;display:flex;align-items:stretch;height:32px;">
       <!-- Label -->
       <div style="background:#1565c0;color:#fff;font-size:.72rem;font-weight:700;padding:5px 12px;white-space:nowrap;display:flex;align-items:center;gap:6px;letter-spacing:.04em;flex-shrink:0;">
         <span style="width:7px;height:7px;background:#00e676;border-radius:50%;display:inline-block;animation:blink 1.4s infinite;"></span> LIVE
@@ -283,6 +283,8 @@
                     <i class="fas fa-search search-icon"></i>
                     <input type="text" id="search-input" class="search-input" placeholder="Search calculators...">
                 </div>
+                <a href="/login" class="nav-link" style="font-size:.85rem;font-weight:600;color:#475569;"><i class="fas fa-sign-in-alt"></i> Login</a>
+                <a href="/signup" class="btn" style="padding:8px 18px;font-size:.84rem;border-radius:20px;"><i class="fas fa-user-plus"></i> Sign Up</a>
             </div>
         </div>
     </header>
@@ -1040,7 +1042,8 @@
                 </div>
 
                 <!-- Intrinsic Value -->
-                <div class="calculator-card" data-category="Valuation"Valuation"     <div class="calculator-icon" style="background:linear-gradient(135deg,#064e3b,#047857);">
+                <div class="calculator-card" data-category="Valuation">
+                    <div class="calculator-icon" style="background:linear-gradient(135deg,#064e3b,#047857);">
                         <i class="fas fa-gem"></i>
                     </div>
                     <div class="calculator-content">
@@ -1052,7 +1055,8 @@
                 </div>
 
                 <!-- Valuation Methods -->
-                <div class="calculator-card" data-category="Valuation"Valuation"div class="calculator-icon" style="background:linear-gradient(135deg,#1e3a5f,#1d4ed8);">
+                <div class="calculator-card" data-category="Valuation">
+                    <div class="calculator-icon" style="background:linear-gradient(135deg,#1e3a5f,#1d4ed8);">
                         <i class="fas fa-balance-scale"></i>
                     </div>
                     <div class="calculator-content">
@@ -1064,7 +1068,8 @@
                 </div>
 
                 <!-- Multi-Method Valuation -->
-                <div class="calculator-card" data-category="Valuation"Valuation"ass="calculator-icon" style="background:linear-gradient(135deg,#312e81,#4338ca);">
+                <div class="calculator-card" data-category="Valuation">
+                    <div class="calculator-icon" style="background:linear-gradient(135deg,#312e81,#4338ca);">
                         <i class="fas fa-layer-group"></i>
                     </div>
                     <div class="calculator-content">
@@ -1077,7 +1082,7 @@
 
                 <!-- Specialized Industry Multiples -->
                 <div class="calculator-card" data-category="Valuation">
-  alculator-icon" style="background:linear-gradient(135deg,#1e3a5f,#0f4c81);">
+                    <div class="calculator-icon" style="background:linear-gradient(135deg,#1e3a5f,#0f4c81);">
                         <i class="fas fa-industry"></i>
                     </div>
                     <div class="calculator-content">
@@ -1089,7 +1094,8 @@
                 </div>
 
                 <!-- Valuation Performance Multiples -->
-                <div class="calculator-card" data-category="Valuation">tor-icon" style="background:linear-gradient(135deg,#0c4a6e,#0284c7);">
+                <div class="calculator-card" data-category="Valuation">
+                    <div class="calculator-icon" style="background:linear-gradient(135deg,#0c4a6e,#0284c7);">
                         <i class="fas fa-tachometer-alt"></i>
                     </div>
                     <div class="calculator-content">
@@ -1273,6 +1279,49 @@
     })();
     </script>
 
+    <!-- Donation Section -->
+    <section style="padding:80px 0;background:linear-gradient(135deg,#0f172a 0%,#1a1060 50%,#0f172a 100%);position:relative;overflow:hidden;">
+      <div style="position:absolute;top:-100px;right:-80px;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(139,92,246,.2) 0%,transparent 65%);pointer-events:none;"></div>
+      <div style="position:absolute;bottom:-80px;left:5%;width:320px;height:320px;border-radius:50%;background:radial-gradient(circle,rgba(37,99,235,.18) 0%,transparent 65%);pointer-events:none;"></div>
+      <div class="container" style="position:relative;z-index:1;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center;max-width:1100px;margin:0 auto;">
+          <div style="color:white;">
+            <div style="display:inline-flex;align-items:center;gap:8px;background:rgba(244,114,182,.15);border:1px solid rgba(244,114,182,.25);border-radius:30px;padding:6px 16px;font-size:.75rem;font-weight:700;color:#f9a8d4;margin-bottom:20px;letter-spacing:.06em;">
+              <i class="fas fa-heart" style="color:#f472b6;"></i> SUPPORT THE MISSION
+            </div>
+            <h2 style="font-family:'Montserrat',sans-serif;font-size:clamp(28px,3.5vw,42px);font-weight:800;line-height:1.1;margin-bottom:16px;letter-spacing:-.5px;">Help Us Keep <span style="background:linear-gradient(90deg,#f9a8d4,#c084fc);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">Finance Education</span> Free</h2>
+            <p style="color:rgba(203,213,225,.75);font-size:1rem;line-height:1.7;margin-bottom:28px;max-width:460px;">Your donation keeps 51+ professional calculators free, funds training scholarships, expands our library, and reaches aspiring professionals across Africa and beyond.</p>
+            <div style="display:flex;flex-wrap:wrap;gap:16px;margin-bottom:32px;">
+              {% for icon, label, val in [('fa-calculator','Free Calculators','51+'),('fa-users','Users Helped','500K+'),('fa-graduation-cap','Scholarships','Growing')] %}
+              <div style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:14px 18px;text-align:center;min-width:100px;">
+                <i class="fas {{ icon }}" style="font-size:1.3rem;color:#c084fc;margin-bottom:6px;display:block;"></i>
+                <div style="font-size:1.2rem;font-weight:800;color:white;">{{ val }}</div>
+                <div style="font-size:.72rem;color:rgba(148,163,184,.7);margin-top:2px;">{{ label }}</div>
+              </div>
+              {% endfor %}
+            </div>
+            <a href="/donate" style="display:inline-flex;align-items:center;gap:10px;background:linear-gradient(135deg,#ec4899,#8b5cf6);color:white;padding:14px 32px;border-radius:30px;font-weight:700;font-size:1rem;text-decoration:none;box-shadow:0 6px 20px rgba(236,72,153,.35);transition:all .2s;" onmouseover="this.style.transform='translateY(-3px)';this.style.boxShadow='0 12px 30px rgba(236,72,153,.4)'" onmouseout="this.style.transform='';this.style.boxShadow='0 6px 20px rgba(236,72,153,.35)'">
+              <i class="fas fa-heart"></i> Donate &amp; Support Us
+            </a>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+            {% for icon, title, desc, col in [
+              ('fa-calculator','Keep Tools Free','Maintain all calculators at no cost to users','#60a5fa'),
+              ('fa-book','Grow the Library','Add professional books and resources','#a78bfa'),
+              ('fa-graduation-cap','Fund Scholarships','Help students access professional training','#34d399'),
+              ('fa-globe-africa','Expand Reach','Grow financial education across Africa','#fbbf24'),
+            ] %}
+            <div style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:18px;transition:all .2s;" onmouseover="this.style.background='rgba(255,255,255,.09)'" onmouseout="this.style.background='rgba(255,255,255,.05)'">
+              <i class="fas {{ icon }}" style="font-size:1.4rem;color:{{ col }};margin-bottom:10px;"></i>
+              <h4 style="color:white;font-weight:700;font-size:.9rem;margin-bottom:5px;">{{ title }}</h4>
+              <p style="color:rgba(148,163,184,.7);font-size:.78rem;line-height:1.5;">{{ desc }}</p>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- Footer -->
     <footer>
         <div class="container">
@@ -1294,13 +1343,19 @@
                     <h3>Quick Links</h3>
                     <ul class="footer-links">
                         <li><a href="/#calculators"><i class="fas fa-calculator"></i> Calculators</a></li>
+                        <li><a href="/jobs"><i class="fas fa-briefcase"></i> Find a Job</a></li>
+                        <li><a href="/training"><i class="fas fa-graduation-cap"></i> Training</a></li>
+                        <li><a href="/books"><i class="fas fa-book-open"></i> Online Library</a></li>
                         <li><a href="/about"><i class="fas fa-info-circle"></i> About Us</a></li>
                     </ul>
                 </div>
-                
+
                 <div class="footer-column">
-                    <h3>Resources</h3>
+                    <h3>Community</h3>
                     <ul class="footer-links">
+                        <li><a href="/signup"><i class="fas fa-user-plus"></i> Sign Up Free</a></li>
+                        <li><a href="/donate"><i class="fas fa-heart"></i> Support / Donate</a></li>
+                        <li><a href="/cv-builder"><i class="fas fa-file-alt"></i> Build Your CV</a></li>
                         <li><a href="/contact"><i class="fas fa-envelope"></i> Contact Us</a></li>
                         <li><a href="/help"><i class="fas fa-question-circle"></i> Help Center</a></li>
                     </ul>

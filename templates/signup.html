@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Sign Up — InvestIQ{% endblock %}
+{% block content %}
+<style>
+  .auth-wrap{min-height:80vh;display:flex;align-items:center;justify-content:center;padding:40px 16px;background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 100%);}
+  .auth-card{background:#fff;border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,.18);width:100%;max-width:460px;padding:40px 36px;}
+  .auth-logo{text-align:center;margin-bottom:28px;}
+  .auth-logo .brand{font-size:1.6rem;font-weight:800;color:#0f172a;letter-spacing:-.5px;}
+  .auth-logo .brand span{color:#2563eb;}
+  .auth-title{font-size:1.5rem;font-weight:700;color:#0f172a;margin-bottom:4px;}
+  .auth-sub{color:#64748b;font-size:.9rem;margin-bottom:24px;}
+  .form-group{margin-bottom:16px;}
+  .form-label{display:block;font-size:.82rem;font-weight:600;color:#475569;margin-bottom:5px;}
+  .form-input{width:100%;padding:11px 14px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:.93rem;outline:none;transition:border .2s,box-shadow .2s;}
+  .form-input:focus{border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.1);}
+  .btn-primary{width:100%;padding:13px;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;border:none;border-radius:10px;font-weight:700;font-size:1rem;cursor:pointer;transition:opacity .2s;}
+  .btn-primary:hover{opacity:.9;}
+  .divider{display:flex;align-items:center;gap:12px;margin:20px 0;color:#94a3b8;font-size:.82rem;}
+  .divider::before,.divider::after{content:'';flex:1;height:1px;background:#e2e8f0;}
+  .btn-google{width:100%;padding:12px;background:#fff;border:1.5px solid #e2e8f0;border-radius:10px;font-weight:600;font-size:.93rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;color:#374151;transition:border-color .2s,box-shadow .2s;}
+  .btn-google:hover{border-color:#2563eb;box-shadow:0 2px 8px rgba(37,99,235,.1);}
+  .auth-footer{text-align:center;margin-top:20px;font-size:.88rem;color:#64748b;}
+  .auth-footer a{color:#2563eb;font-weight:600;text-decoration:none;}
+  .error-box{background:#fef2f2;border:1px solid #fecaca;color:#dc2626;padding:10px 14px;border-radius:8px;font-size:.88rem;margin-bottom:16px;}
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  @media(max-width:500px){.grid-2{grid-template-columns:1fr;}.auth-card{padding:28px 20px;}}
+</style>
+<div class="auth-wrap">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <a href="/" class="brand">Invest<span>IQ</span></a>
+    </div>
+    <h1 class="auth-title">Create your account</h1>
+    <p class="auth-sub">Join thousands of investors using InvestIQ.</p>
+
+    {% if error %}
+    <div class="error-box"><i class="fas fa-exclamation-circle mr-1"></i> {{ error }}</div>
+    {% endif %}
+
+    <form method="POST" novalidate>
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="form-label">Full Name *</label>
+          <input type="text" name="full_name" required class="form-input" placeholder="Kofi Mensah"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Phone</label>
+          <input type="tel" name="phone" class="form-input" placeholder="+233 24 000 0000"/>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email Address *</label>
+        <input type="email" name="email" required class="form-input" placeholder="you@gmail.com"/>
+      </div>
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="form-label">Password *</label>
+          <input type="password" name="password" required class="form-input" placeholder="Min 8 characters"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Confirm Password *</label>
+          <input type="password" name="confirm_password" required class="form-input" placeholder="Repeat password"/>
+        </div>
+      </div>
+      <button type="submit" class="btn-primary"><i class="fas fa-user-plus mr-2"></i>Create Account</button>
+    </form>
+
+    <div class="divider">or sign up with</div>
+    <a href="/auth/google" class="btn-google" style="text-decoration:none;">
+      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20" height="20" alt="Google"/>
+      Continue with Google
+    </a>
+
+    <div class="auth-footer">
+      Already have an account? <a href="/login">Sign in</a>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,118 @@
+{% extends "base.html" %}
+{% block title %}Request Book — {{ book.title }}{% endblock %}
+{% block content %}
+<style>
+  .req-wrap{max-width:560px;margin:40px auto;padding:0 16px;}
+  .req-card{background:#fff;border-radius:18px;box-shadow:0 8px 32px rgba(0,0,0,.09);padding:36px;}
+  .book-preview{display:flex;gap:16px;align-items:flex-start;background:#f8fafc;border-radius:12px;padding:16px;margin-bottom:28px;}
+  .book-thumb{width:70px;height:90px;border-radius:8px;background:linear-gradient(135deg,#1e3a5f,#2563eb);display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.8rem;flex-shrink:0;overflow:hidden;}
+  .book-thumb img{width:100%;height:100%;object-fit:cover;}
+  .book-meta h3{font-size:1.05rem;font-weight:700;color:#0f172a;margin-bottom:4px;}
+  .book-meta p{font-size:.85rem;color:#64748b;}
+  .req-title{font-size:1.4rem;font-weight:700;color:#0f172a;margin-bottom:6px;}
+  .req-sub{color:#64748b;font-size:.9rem;margin-bottom:24px;}
+  .form-group{margin-bottom:15px;}
+  .form-label{display:block;font-size:.82rem;font-weight:600;color:#475569;margin-bottom:5px;}
+  .form-input{width:100%;padding:10px 13px;border:1.5px solid #e2e8f0;border-radius:9px;font-size:.92rem;outline:none;transition:border .2s;}
+  .form-input:focus{border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.09);}
+  .type-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:15px;}
+  .type-option{border:2px solid #e2e8f0;border-radius:10px;padding:14px 12px;cursor:pointer;text-align:center;transition:all .15s;}
+  .type-option:hover,.type-option.selected{border-color:#2563eb;background:#eff6ff;}
+  .type-option i{font-size:1.4rem;color:#2563eb;margin-bottom:6px;display:block;}
+  .type-option h4{font-size:.88rem;font-weight:700;color:#0f172a;margin-bottom:2px;}
+  .type-option p{font-size:.78rem;color:#64748b;}
+  .btn-submit{width:100%;padding:13px;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;border:none;border-radius:10px;font-weight:700;font-size:1rem;cursor:pointer;transition:opacity .2s;}
+  .btn-submit:hover{opacity:.9;}
+  .success-box{text-align:center;padding:40px 20px;}
+  .success-box i{font-size:3rem;color:#10b981;margin-bottom:16px;}
+  .success-box h3{font-size:1.4rem;font-weight:700;margin-bottom:8px;}
+  .error-box{background:#fef2f2;border:1px solid #fecaca;color:#dc2626;padding:10px 14px;border-radius:8px;font-size:.88rem;margin-bottom:16px;}
+  #donation-ref-row{display:none;}
+</style>
+<div class="req-wrap">
+  <div class="req-card">
+    {% if success %}
+    <div class="success-box">
+      <i class="fas fa-check-circle"></i>
+      <h3>Request Submitted!</h3>
+      <p style="color:#64748b;margin-bottom:20px;">Thank you! We'll review your request and respond within 24 hours.</p>
+      <a href="/books" style="color:#2563eb;font-weight:600;text-decoration:none;">← Back to Library</a>
+    </div>
+    {% else %}
+    <div class="book-preview">
+      <div class="book-thumb">
+        {% if book.cover_url %}<img src="{{ book.cover_url }}" alt=""/>{% else %}<i class="fas fa-book"></i>{% endif %}
+      </div>
+      <div class="book-meta">
+        <h3>{{ book.title }}</h3>
+        {% if book.author %}<p>by {{ book.author }}</p>{% endif %}
+        {% if book.requires_donation %}
+        <p style="color:#92400e;font-weight:600;margin-top:4px;"><i class="fas fa-hand-holding-heart mr-1"></i>Suggested donation: GHS {{ book.donation_amount|int }}</p>
+        {% else %}
+        <p style="color:#065f46;font-weight:600;margin-top:4px;"><i class="fas fa-lock-open mr-1"></i>Free Access</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <h2 class="req-title">Request This Book</h2>
+    <p class="req-sub">Fill in your details and choose how you'd like to access this book.</p>
+
+    {% if error %}<div class="error-box"><i class="fas fa-exclamation-circle mr-1"></i> {{ error }}</div>{% endif %}
+
+    <form method="POST" id="req-form">
+      <div class="form-group">
+        <label class="form-label">Full Name *</label>
+        <input type="text" name="full_name" required class="form-input" placeholder="Ama Owusu"/>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div class="form-group">
+          <label class="form-label">Email *</label>
+          <input type="email" name="email" required class="form-input" placeholder="you@email.com"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Phone</label>
+          <input type="tel" name="phone" class="form-input" placeholder="+233 XX XXX XXXX"/>
+        </div>
+      </div>
+
+      <p class="form-label" style="margin-bottom:8px;">Request Type</p>
+      <div class="type-grid">
+        <div class="type-option selected" onclick="setType('access',this)">
+          <i class="fas fa-door-open"></i>
+          <h4>Request Access</h4>
+          <p>Ask for free access to this book</p>
+          <input type="radio" name="request_type" value="access" checked style="display:none;"/>
+        </div>
+        <div class="type-option" onclick="setType('donation',this)">
+          <i class="fas fa-heart"></i>
+          <h4>Donate to Receive</h4>
+          <p>Make a donation and get the book</p>
+          <input type="radio" name="request_type" value="donation" style="display:none;"/>
+        </div>
+      </div>
+
+      <div id="donation-ref-row" class="form-group">
+        <label class="form-label">Donation Reference / Receipt Number</label>
+        <input type="text" name="donation_ref" class="form-input" placeholder="e.g. TXN-12345678"/>
+        <p style="font-size:.78rem;color:#64748b;margin-top:4px;">
+          Send donation to: <b>kyeikofi@gmail.com</b> or MoMo: <b>+233 XXX XXX XXXX</b> — then enter your reference above.
+        </p>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Message (Optional)</label>
+        <textarea name="message" rows="3" class="form-input" placeholder="Tell us a bit about yourself or why you need this book..."></textarea>
+      </div>
+      <button type="submit" class="btn-submit"><i class="fas fa-paper-plane mr-2"></i>Submit Request</button>
+    </form>
+    {% endif %}
+  </div>
+</div>
+<script>
+function setType(val, el) {
+  document.querySelectorAll('.type-option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  el.querySelector('input[type=radio]').checked = true;
+  document.getElementById('donation-ref-row').style.display = val === 'donation' ? '' : 'none';
+}
+</script>
+{% endblock %}
