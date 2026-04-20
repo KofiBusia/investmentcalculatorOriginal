@@ -2956,27 +2956,48 @@ def api_stock_lookup():
 
     if market == 'gse':
         try:
-            r = http_requests.get('https://dev.kwayisi.org/apis/gse/live', timeout=8)
-            if r.ok:
-                for s in r.json():
-                    if s.get('name','').upper() == symbol or s.get('code','').upper() == symbol:
-                        return jsonify({
-                            'symbol': symbol,
-                            'name': s.get('name', symbol),
-                            'current_price': s.get('price', 0),
-                            'shares_outstanding': s.get('shares', ''),
-                            'traded_volume': s.get('volume', ''),
-                            'market_cap': s.get('market_cap', ''),
-                            'pe_ratio': s.get('pe', ''),
-                            'eps': s.get('eps', ''),
-                            'dividend_yield': s.get('dividend_yield', ''),
-                            'sector': s.get('sector', ''),
-                            'currency': 'GHS',
-                            'exchange': 'GSE',
-                        })
-        except Exception:
-            pass
-        return jsonify({'error': 'GSE stock not found'}), 404
+            # Detailed equity endpoint — has shares, eps, dps, sector
+            detail_r = http_requests.get(f'https://dev.kwayisi.org/apis/gse/equities/{symbol}', timeout=8)
+            if detail_r.status_code == 404:
+                return jsonify({'error': f'GSE stock "{symbol}" not found'}), 404
+            if not detail_r.ok:
+                raise Exception(f'Equity endpoint returned {detail_r.status_code}')
+            d = detail_r.json()
+            company = d.get('company') or {}
+            # Get traded volume from the live feed
+            traded_volume = ''
+            try:
+                live_r = http_requests.get('https://dev.kwayisi.org/apis/gse/live', timeout=6)
+                if live_r.ok:
+                    for s in live_r.json():
+                        if s.get('name', '').upper() == symbol:
+                            traded_volume = s.get('volume', '')
+                            break
+            except Exception:
+                pass
+            shares = d.get('shares', '')
+            price  = d.get('price', 0)
+            eps    = d.get('eps', '')
+            dps    = d.get('dps', '')
+            capital = d.get('capital', '')  # market cap
+            market_cap = capital if capital else (shares * price if shares and price else '')
+            pe_ratio = round(price / eps, 2) if eps and price else ''
+            return jsonify({
+                'symbol': symbol,
+                'name': company.get('name', d.get('name', symbol)),
+                'current_price': price,
+                'shares_outstanding': shares,
+                'traded_volume': traded_volume,
+                'market_cap': market_cap,
+                'pe_ratio': pe_ratio,
+                'eps': eps,
+                'dps': dps,
+                'sector': company.get('sector', company.get('industry', '')),
+                'currency': 'GHS',
+                'exchange': 'GSE',
+            })
+        except Exception as e:
+            return jsonify({'error': f'GSE lookup failed: {str(e)}'}), 500
     else:
         try:
             import yfinance as yf
