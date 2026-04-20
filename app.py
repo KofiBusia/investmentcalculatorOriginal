@@ -91,6 +91,17 @@ login_manager = LoginManager(app)
 login_manager.login_view = 'user_login'
 login_manager.login_message = 'Please log in to access this page.'
 
+# Google OAuth via Authlib
+from authlib.integrations.flask_client import OAuth as AuthlibOAuth
+_oauth = AuthlibOAuth(app)
+google_oauth = _oauth.register(
+    name='google',
+    client_id=os.getenv('GOOGLE_CLIENT_ID', ''),
+    client_secret=os.getenv('GOOGLE_CLIENT_SECRET', ''),
+    server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
+    client_kwargs={'scope': 'openid email profile'},
+)
+
 def send_email_safe(subject, recipients, body_html, body_text=''):
     """Send email; silently log on failure so the app never crashes."""
     try:
@@ -564,10 +575,63 @@ def user_login():
 
 
 @app.route('/logout')
-@login_required
 def user_logout():
     logout_user()
     return redirect(url_for('index'))
+
+
+# ── GOOGLE OAUTH ──────────────────────────────────────────────────────────────
+@app.route('/auth/google')
+def google_login():
+    if not app.config.get('GOOGLE_CLIENT_ID'):
+        flash('Google login is not configured yet. Please use email/password.', 'warning')
+        return redirect(url_for('user_login'))
+    # Save the 'next' destination so we can redirect after login
+    next_url = request.args.get('next') or request.referrer or url_for('index')
+    session['oauth_next'] = next_url
+    redirect_uri = url_for('google_callback', _external=True)
+    return google_oauth.authorize_redirect(redirect_uri)
+
+
+@app.route('/auth/google/callback')
+def google_callback():
+    try:
+        token     = google_oauth.authorize_access_token()
+        user_info = token.get('userinfo') or google_oauth.userinfo()
+        g_email   = (user_info.get('email') or '').lower().strip()
+        g_name    = user_info.get('name') or user_info.get('given_name', '')
+        g_id      = user_info.get('sub', '')
+        if not g_email:
+            flash('Google did not return an email address. Try again.', 'error')
+            return redirect(url_for('user_login'))
+        # Find existing user by Google ID or email
+        user = SiteUser.query.filter_by(google_id=g_id).first()
+        if not user:
+            user = SiteUser.query.filter_by(email=g_email).first()
+        if user:
+            # Update google_id if missing
+            if not user.google_id:
+                user.google_id = g_id
+                db.session.commit()
+        else:
+            # Create new account
+            user = SiteUser(full_name=g_name, email=g_email, google_id=g_id)
+            db.session.add(user)
+            db.session.commit()
+            send_email_safe(
+                'Welcome to InvestIQ!',
+                [g_email],
+                f'<h2>Welcome, {g_name}!</h2>'
+                f'<p>Your InvestIQ account is now active via Google. '
+                f'Explore our 51+ professional calculators at investiq.com.</p>'
+            )
+        login_user(user, remember=True)
+        next_url = session.pop('oauth_next', None) or url_for('index')
+        return redirect(next_url)
+    except Exception as e:
+        logger.error(f'Google OAuth callback error: {e}')
+        flash('Google sign-in failed. Please try again or use email/password.', 'error')
+        return redirect(url_for('user_login'))
 
 
 # ── ADMIN: USER CSV EXPORT ────────────────────────────────────────────────────

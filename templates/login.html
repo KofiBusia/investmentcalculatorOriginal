@@ -33,6 +33,11 @@
     <h1 class="auth-title">Welcome back</h1>
     <p class="auth-sub">Sign in to your InvestIQ account.</p>
 
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+      <div class="error-box" style="{% if category == 'warning' %}background:#fffbeb;border-color:#fcd34d;color:#92400e;{% endif %}"><i class="fas fa-exclamation-circle mr-1"></i> {{ message }}</div>
+      {% endfor %}
+    {% endwith %}
     {% if error %}
     <div class="error-box"><i class="fas fa-exclamation-circle mr-1"></i> {{ error }}</div>
     {% endif %}
@@ -55,9 +60,9 @@
     </form>
 
     <div class="divider">or continue with</div>
-    <a href="/auth/google" class="btn-google">
+    <a href="/auth/google{% if request.args.get('next') %}?next={{ request.args.get('next')|urlencode }}{% endif %}" class="btn-google">
       <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20" height="20" alt="Google"/>
-      Sign in with Google
+      Continue with Google
     </a>
 
     <div class="auth-footer">
