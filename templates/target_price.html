@@ -557,8 +557,10 @@ window.investiqLookupStock = window.investiqLookupStock || (async function(symbo
     if(d.error){if(infoEl)infoEl.innerHTML='<span style="color:red;font-size:.8rem">'+d.error+'</span>';return;}
     if(fieldMap)Object.entries(fieldMap).forEach(function(e){var ak=e[0],es=e[1],val=d[ak];if(val==null||val==='')return;if(ak==='shares_outstanding')val=Math.round(Number(val));else if(typeof val==='number')val=Number(val.toFixed(6));_set(es,val);});
     if(infoEl){
-      var fmt=function(v,p){return v!=null?(p||'')+Number(v).toLocaleString(undefined,{maximumFractionDigits:4}):'N/A';};
-      var parts=[d.name?'<b style="font-size:.82rem">'+d.name+'</b>':null,'<span style="font-size:.78rem;color:#4b5563">'+(d.sector||'')+'</span>','<span style="font-size:.78rem">Price: <b style="color:#2563eb">'+fmt(d.current_price,(d.currency||'')+' ')+'</b></span>',d.eps!=null?'<span style="font-size:.78rem">EPS: <b>'+fmt(d.eps)+'</b></span>':null,d.pe_ratio!=null?'<span style="font-size:.78rem">P/E: <b>'+fmt(d.pe_ratio)+'</b></span>':null].filter(Boolean);
+      var fmt=function(v,p){return v!=null&&v!==''?(p||'')+Number(v).toLocaleString(undefined,{maximumFractionDigits:4}):'N/A';};
+      var sharesM=d.shares_outstanding!=null&&d.shares_outstanding!==''?'<span style="font-size:.78rem">Shares: <b>'+(Number(d.shares_outstanding)/1e6).toFixed(2)+'M</b></span>':null;
+      var tradedVol=d.traded_volume!=null&&d.traded_volume!==''?'<span style="font-size:.78rem">Traded Vol: <b>'+Number(d.traded_volume).toLocaleString()+'</b></span>':null;
+      var parts=[d.name?'<b style="font-size:.82rem">'+d.name+'</b>':null,'<span style="font-size:.78rem;color:#4b5563">'+(d.sector||'')+'</span>','<span style="font-size:.78rem">Price: <b style="color:#2563eb">'+fmt(d.current_price,(d.currency||'')+' ')+'</b></span>',d.eps!=null&&d.eps!==''?'<span style="font-size:.78rem">EPS: <b>'+fmt(d.eps)+'</b></span>':null,d.pe_ratio!=null&&d.pe_ratio!==''?'<span style="font-size:.78rem">P/E: <b>'+fmt(d.pe_ratio)+'</b></span>':null,sharesM,tradedVol].filter(Boolean);
       infoEl.innerHTML='<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center;background:#fff;border:1px solid #bfdbfe;border-radius:8px;padding:8px">'+parts.join('')+'</div>';
     }
   }catch(e){if(infoEl)infoEl.innerHTML='<span style="color:red;font-size:.8rem">Lookup failed.</span>';}

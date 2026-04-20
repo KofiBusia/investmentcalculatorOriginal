@@ -2962,8 +2962,10 @@ def api_stock_lookup():
                     if s.get('name','').upper() == symbol or s.get('code','').upper() == symbol:
                         return jsonify({
                             'symbol': symbol,
+                            'name': s.get('name', symbol),
                             'current_price': s.get('price', 0),
-                            'shares_outstanding': s.get('shares', s.get('volume', '')),
+                            'shares_outstanding': s.get('shares', ''),
+                            'traded_volume': s.get('volume', ''),
                             'market_cap': s.get('market_cap', ''),
                             'pe_ratio': s.get('pe', ''),
                             'eps': s.get('eps', ''),

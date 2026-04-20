@@ -831,19 +831,20 @@
                 const resp = await fetch(`/api/stocks/lookup?symbol=${encodeURIComponent(symbol)}&market=${market}`);
                 const data = await resp.json();
                 if (data.error) { infoDiv.innerHTML = `<span class="text-red-500">${data.error}</span>`; return; }
-                // Auto-fill shares outstanding
-                if (data.shares_outstanding) {
-                    const sharesM = data.shares_outstanding / 1e6;
+                // Auto-fill shares outstanding (form expects millions)
+                if (data.shares_outstanding != null && data.shares_outstanding !== '') {
+                    const sharesM = Number(data.shares_outstanding) / 1e6;
                     document.getElementById('shares_outstanding').value = sharesM.toFixed(2);
                 }
                 // Display info
-                const fmt = (v, prefix='') => v != null ? `${prefix}${Number(v).toLocaleString(undefined,{maximumFractionDigits:2})}` : 'N/A';
+                const fmt = (v, prefix='') => v != null && v !== '' ? `${prefix}${Number(v).toLocaleString(undefined,{maximumFractionDigits:2})}` : 'N/A';
                 infoDiv.innerHTML = [
                     data.name ? `<div><span class="font-semibold text-gray-500 text-xs">Company</span><br/><span class="font-bold text-gray-800">${data.name}</span></div>` : '',
                     `<div><span class="font-semibold text-gray-500 text-xs">Current Price</span><br/><span class="font-bold text-blue-700">${fmt(data.current_price, (data.currency||'')+ ' ')}</span></div>`,
-                    `<div><span class="font-semibold text-gray-500 text-xs">Shares (M)</span><br/><span class="font-bold text-indigo-700">${data.shares_outstanding ? (data.shares_outstanding/1e6).toFixed(2)+'M' : 'N/A'}</span></div>`,
-                    data.eps != null ? `<div><span class="font-semibold text-gray-500 text-xs">EPS</span><br/><span class="font-bold text-gray-700">${fmt(data.eps)}</span></div>` : '',
-                    data.pe_ratio != null ? `<div><span class="font-semibold text-gray-500 text-xs">P/E</span><br/><span class="font-bold text-gray-700">${fmt(data.pe_ratio)}</span></div>` : '',
+                    (data.shares_outstanding != null && data.shares_outstanding !== '') ? `<div><span class="font-semibold text-gray-500 text-xs">Shares Outstanding</span><br/><span class="font-bold text-indigo-700">${(Number(data.shares_outstanding)/1e6).toFixed(2)}M</span></div>` : '',
+                    (data.traded_volume != null && data.traded_volume !== '') ? `<div><span class="font-semibold text-gray-500 text-xs">Traded Volume</span><br/><span class="font-bold text-gray-600">${Number(data.traded_volume).toLocaleString()}</span></div>` : '',
+                    data.eps != null && data.eps !== '' ? `<div><span class="font-semibold text-gray-500 text-xs">EPS</span><br/><span class="font-bold text-gray-700">${fmt(data.eps)}</span></div>` : '',
+                    data.pe_ratio != null && data.pe_ratio !== '' ? `<div><span class="font-semibold text-gray-500 text-xs">P/E</span><br/><span class="font-bold text-gray-700">${fmt(data.pe_ratio)}</span></div>` : '',
                     data.sector ? `<div><span class="font-semibold text-gray-500 text-xs">Sector</span><br/><span class="font-bold text-gray-700">${data.sector}</span></div>` : '',
                 ].filter(Boolean).join('');
             } catch(e) {

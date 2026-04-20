@@ -365,7 +365,8 @@
             d.eps!=null&&d.eps!==''?'<span class="text-xs">EPS: <b>'+fmt(d.eps)+'</b></span>':null,
             d.pe_ratio!=null&&d.pe_ratio!==''?'<span class="text-xs">P/E: <b>'+fmt(d.pe_ratio)+'</b></span>':null,
             d.beta!=null&&d.beta!==''?'<span class="text-xs">Beta: <b>'+fmt(d.beta)+'</b></span>':null,
-            sharesM?'<span class="text-xs">Shares: <b>'+sharesM+'</b></span>':null,
+            sharesM?'<span class="text-xs">Shares Outstanding: <b>'+sharesM+'</b></span>':null,
+            d.traded_volume!=null&&d.traded_volume!==''?'<span class="text-xs">Traded Vol: <b>'+Number(d.traded_volume).toLocaleString()+'</b></span>':null,
             d.dividend_yield!=null&&d.dividend_yield!==''?'<span class="text-xs">Div Yield: <b>'+fmt(d.dividend_yield)+'%</b></span>':null,
             d.book_value!=null&&d.book_value!==''?'<span class="text-xs">Book/Share: <b>'+fmt(d.book_value)+'</b></span>':null,
           ].filter(Boolean);
