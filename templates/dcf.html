@@ -271,6 +271,30 @@
                 <p class="text-xl mt-2">DCF = Σ (Cash Flowₜ / (1 + Discount Rate)ᵗ) + Terminal Value / (1 + Discount Rate)ⁿ</p>
                 <p class="text-sm mt-2 text-gray-600">Where Cash Flowₜ = Base Cash Flow × (1 + Growth Rate)^t for each year, Terminal Value = (Final Year Cash Flow × (1 + Terminal Growth Rate)) / (Discount Rate - Terminal Growth Rate). For FCFF: Equity Value = DCF - Net Debt, Per-share value = Equity Value ÷ Shares Outstanding. For FCFE: Per-share value = DCF ÷ Shares Outstanding.</p>
             </div>
+            <!-- Stock Auto-Fill Widget -->
+            <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-5 mb-6">
+              <h3 class="font-semibold text-gray-700 mb-3 flex items-center gap-2"><i class="fas fa-search-dollar text-blue-600"></i> Stock Auto-Fill</h3>
+              <div class="flex flex-wrap gap-3 items-end">
+                <div class="flex-1" style="min-width:140px;max-width:220px">
+                  <label class="block text-xs font-semibold text-gray-500 mb-1">Ticker / Symbol</label>
+                  <input type="text" id="stock-symbol-input" placeholder="e.g. AAPL or ACCESS" class="input-field w-full h-10 px-3 py-2 rounded-lg text-sm" style="border:1.5px solid #c7d2fe;"/>
+                </div>
+                <div style="min-width:120px;max-width:160px">
+                  <label class="block text-xs font-semibold text-gray-500 mb-1">Market</label>
+                  <select id="stock-market-select" class="input-field h-10 px-2 py-2 rounded-lg text-sm w-full" style="border:1.5px solid #c7d2fe;">
+                    <option value="global">Global</option>
+                    <option value="gse">Ghana (GSE)</option>
+                  </select>
+                </div>
+                <button type="button" onclick="lookupStockDCF()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium text-sm flex items-center gap-2 h-10">
+                  <i class="fas fa-search"></i> Lookup
+                </button>
+              </div>
+              <div id="stock-lookup-result" class="mt-3 text-sm text-gray-600 hidden">
+                <div id="stock-lookup-info" class="bg-white rounded-lg p-3 border border-blue-100 grid grid-cols-2 md:grid-cols-3 gap-2"></div>
+              </div>
+            </div>
+
             <form id="dcf-form" class="space-y-6">
                 <div>
                     <label class="block text-gray-700 font-medium mb-2">Cash Flow Type</label>
@@ -411,9 +435,12 @@
                     </tfoot>
                 </table>
                 <p class="text-gray-600 mt-4">The forecasted cash flows are based on the base cash flow and growth rate. Use the total DCF value (and equity value for FCFF) and per-share value to assess the intrinsic value of the investment. The per-share value is calculated by dividing the equity value (or total DCF for FCFE) by shares outstanding (e.g., 174 million for Access Bank Ghana).</p>
-                <div class="mt-6">
-                    <button id="reset-calculator" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium flex items-center inline-block">
+                <div class="mt-6 flex flex-wrap gap-3">
+                    <button id="reset-calculator" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg font-medium flex items-center">
                         <i class="fas fa-redo mr-2"></i> Calculate Another
+                    </button>
+                    <button type="button" onclick="downloadDCFCSV()" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium flex items-center gap-2">
+                        <i class="fas fa-download"></i> Download CSV
                     </button>
                 </div>
             </div>
@@ -790,23 +817,78 @@
                 input.addEventListener('input', () => validateInput(input));
             });
         });
+
+        // Stock auto-fill lookup
+        async function lookupStockDCF() {
+            const symbol = document.getElementById('stock-symbol-input').value.trim();
+            const market = document.getElementById('stock-market-select').value;
+            const resultDiv = document.getElementById('stock-lookup-result');
+            const infoDiv = document.getElementById('stock-lookup-info');
+            if (!symbol) { alert('Enter a stock symbol first.'); return; }
+            infoDiv.innerHTML = '<span class="text-blue-500"><i class="fas fa-spinner fa-spin"></i> Looking up...</span>';
+            resultDiv.classList.remove('hidden');
+            try {
+                const resp = await fetch(`/api/stocks/lookup?symbol=${encodeURIComponent(symbol)}&market=${market}`);
+                const data = await resp.json();
+                if (data.error) { infoDiv.innerHTML = `<span class="text-red-500">${data.error}</span>`; return; }
+                // Auto-fill shares outstanding
+                if (data.shares_outstanding) {
+                    const sharesM = data.shares_outstanding / 1e6;
+                    document.getElementById('shares_outstanding').value = sharesM.toFixed(2);
+                }
+                // Display info
+                const fmt = (v, prefix='') => v != null ? `${prefix}${Number(v).toLocaleString(undefined,{maximumFractionDigits:2})}` : 'N/A';
+                infoDiv.innerHTML = [
+                    data.name ? `<div><span class="font-semibold text-gray-500 text-xs">Company</span><br/><span class="font-bold text-gray-800">${data.name}</span></div>` : '',
+                    `<div><span class="font-semibold text-gray-500 text-xs">Current Price</span><br/><span class="font-bold text-blue-700">${fmt(data.current_price, (data.currency||'')+ ' ')}</span></div>`,
+                    `<div><span class="font-semibold text-gray-500 text-xs">Shares (M)</span><br/><span class="font-bold text-indigo-700">${data.shares_outstanding ? (data.shares_outstanding/1e6).toFixed(2)+'M' : 'N/A'}</span></div>`,
+                    data.eps != null ? `<div><span class="font-semibold text-gray-500 text-xs">EPS</span><br/><span class="font-bold text-gray-700">${fmt(data.eps)}</span></div>` : '',
+                    data.pe_ratio != null ? `<div><span class="font-semibold text-gray-500 text-xs">P/E</span><br/><span class="font-bold text-gray-700">${fmt(data.pe_ratio)}</span></div>` : '',
+                    data.sector ? `<div><span class="font-semibold text-gray-500 text-xs">Sector</span><br/><span class="font-bold text-gray-700">${data.sector}</span></div>` : '',
+                ].filter(Boolean).join('');
+            } catch(e) {
+                infoDiv.innerHTML = '<span class="text-red-500">Lookup failed. Check symbol and try again.</span>';
+            }
+        }
+
+        // DCF-specific CSV download
+        function downloadDCFCSV() {
+            const rows = [['DCF Valuation Results']];
+            const cashFlowType = document.getElementById('cash_flow_type').value;
+            rows.push(['Cash Flow Type', cashFlowType]);
+            rows.push(['Years', document.getElementById('years').value]);
+            rows.push(['Base Cash Flow', document.getElementById('base_cash_flow').value]);
+            rows.push(['Growth Rate (%)', document.getElementById('growth_rate').value]);
+            rows.push(['Discount Rate (%)', document.getElementById('discount_rate').value]);
+            rows.push(['Terminal Growth Rate (%)', document.getElementById('terminal_growth').value]);
+            rows.push(['Shares Outstanding (M)', document.getElementById('shares_outstanding').value]);
+            if (cashFlowType === 'FCFF') rows.push(['Net Debt', document.getElementById('net_debt').value]);
+            rows.push([]);
+            rows.push(['Year', 'Cash Flow', 'Present Value']);
+            document.querySelectorAll('#cash-flow-results-table tr').forEach(tr => {
+                const tds = tr.querySelectorAll('td');
+                if (tds.length >= 3) rows.push([tds[0].innerText.trim(), tds[1].innerText.trim(), tds[2].innerText.trim()]);
+            });
+            const tv = document.getElementById('terminal-value').innerText.trim();
+            const pvtv = document.getElementById('pv-terminal-value').innerText.trim();
+            if (tv) rows.push(['Terminal Value', tv, pvtv]);
+            rows.push(['Total DCF', '', document.getElementById('total-pv').innerText.trim()]);
+            rows.push([]);
+            rows.push([document.getElementById('total-dcf-label').innerText.trim(), document.getElementById('total-dcf-result').innerText.trim()]);
+            if (cashFlowType === 'FCFF') rows.push(['Equity Value', document.getElementById('equity-value-result').innerText.trim()]);
+            rows.push(['Intrinsic Value per Share', document.getElementById('per-share-result').innerText.trim()]);
+            const csv = rows.map(r => r.map(c => '"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n');
+            const a = document.createElement('a');
+            a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+            a.download = 'dcf_valuation.csv';
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        }
+
+        // Allow Enter key in stock symbol input
+        document.addEventListener('DOMContentLoaded', () => {
+            const symInput = document.getElementById('stock-symbol-input');
+            if (symInput) symInput.addEventListener('keydown', e => { if(e.key==='Enter'){e.preventDefault();lookupStockDCF();} });
+        });
     </script>
 </body>
 </html>
-<div class="mt-4 text-center" id="csv-download-wrapper" style="display:none;">
-  <button onclick="investiqDownloadCSV('dcf')" class="inline-flex items-center gap-2 px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-semibold text-sm transition-colors shadow">
-    <i class="fas fa-download"></i> Download Results (CSV)
-  </button>
-</div>
-<script>
-(function(){
-  var wrapper = document.getElementById('csv-download-wrapper');
-  var section = document.getElementById('results-section');
-  if(!section||!wrapper) return;
-  var obs = new MutationObserver(function(){
-    wrapper.style.display = section.classList.contains('hidden') ? 'none' : 'block';
-  });
-  obs.observe(section, {attributes:true, attributeFilter:['class','style']});
-  wrapper.style.display = section.classList.contains('hidden') ? 'none' : 'block';
-})();
-</script>

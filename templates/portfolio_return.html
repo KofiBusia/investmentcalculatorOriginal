@@ -1,123 +1,196 @@
 {% extends "base.html" %}
-
-{% block title %}Portfolio Return Calculator{% endblock %}
-
+{% block title %}Portfolio Return Calculator — InvestIQ{% endblock %}
 {% block content %}
-<div class="container">
-    <h2>Portfolio Return Calculator</h2>
-    <p>Calculate portfolio returns using various methods and adjust for inflation to find real returns.</p>
-    
-    <!-- Error Message Display -->
+<style>
+body{background:linear-gradient(135deg,#f0f4f8,#e6f0ff);min-height:100vh;}
+.calc-card{background:#fff;border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.08);padding:1.75rem;}
+.input-field{width:100%;padding:.65rem 1rem;border:1.5px solid #e2e8f0;border-radius:.5rem;font-size:.93rem;transition:border .2s;background:#fff;}
+.input-field:focus{outline:none;border-color:#4f46e5;box-shadow:0 0 0 3px rgba(79,70,229,.1);}
+.result-row{display:flex;justify-content:space-between;align-items:center;padding:.6rem 0;border-bottom:1px solid #f1f5f9;}
+.result-row:last-child{border-bottom:none;}
+.method-hint{background:#f0f4ff;border:1px solid #c7d2fe;border-radius:.5rem;padding:.75rem 1rem;font-size:.82rem;color:#4338ca;margin-top:.5rem;display:none;}
+</style>
+
+<header class="py-8 px-4" style="background:linear-gradient(135deg,#4f46e5,#7c3aed);">
+  <div class="max-w-5xl mx-auto">
+    <nav class="flex justify-between items-center mb-5 flex-wrap gap-3">
+      <a href="/" class="text-white text-xl font-bold flex items-center gap-2"><i class="fas fa-chart-line text-indigo-300"></i> Invest<span class="text-indigo-300">IQ</span></a>
+      <div class="flex gap-5 text-sm">
+        <a href="/" class="text-indigo-200 hover:text-white">Home</a>
+        <a href="/#calculators" class="text-indigo-200 hover:text-white">Calculators</a>
+      </div>
+    </nav>
+    <h1 class="text-3xl md:text-4xl font-bold text-white mb-2"><i class="fas fa-briefcase mr-3 text-indigo-300"></i>Portfolio Return Calculator</h1>
+    <p class="text-indigo-200">Calculate nominal and real portfolio returns using multiple methods, adjusted for inflation.</p>
+  </div>
+</header>
+
+<main class="max-w-5xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+  <!-- Form Card -->
+  <div class="calc-card">
+    <h2 class="text-xl font-bold text-gray-800 mb-5"><i class="fas fa-sliders-h mr-2 text-indigo-500"></i>Parameters</h2>
+
     {% if error %}
-    <div class="error" style="color: red; background-color: #ffe6e6; padding: 10px; margin-bottom: 20px; border: 1px solid red;">
-        <p><strong>Error:</strong> {{ error }}</p>
+    <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-4 text-sm flex items-start gap-2">
+      <i class="fas fa-exclamation-circle mt-0.5"></i>
+      <div><strong>Error:</strong> {{ error }}</div>
     </div>
     {% endif %}
-    <form method="POST" action="{{ url_for('portfolio_return') }}">
-    
-        <!-- Return Method Selection -->
-        <h3>Step 1: Select Return Method</h3>
-        <div class="group">
-            <label for="method">Return Method:</label>
-            <select name="method" id="method" required>
-                <option value="twr">Time-Weighted Rate of Return (TWR)</option>
-                <option value="mwr">Money-Weighted Rate of Return (MWR)</option>
-                <option value="modified psa_dietz">Modified Dietz Method</option>
-                <option value="simple_dietz">Simple Dietz Method</option>
-                <option value="irr">Internal Rate of Return (IRR)</option>
-                <option value="hpr">Holding Period Return (HPR)</option>
-                <option value="annualized">Annualized Return</option>
-                <option value="geometric_mean">Geometric Mean Return</option>
-                <option value="arithmetic_mean">Arithmetic Mean Return</option>
-            </select>
-        </div>
 
-        <!-- Data Input Section -->
-        <h3>Step 2: Input Data</h3>
-        <div class="group">
-            <label for="data">Data (comma-separated values):</label>
-            <textarea name="data" id="data" placeholder="Select a method to see example input" rows="4" required></textarea>
-        </div>
+    <form method="POST" action="{{ url_for('portfolio_return') }}" class="space-y-5">
 
-        <!-- Inflation Input -->
-        <h3>Step 3: Inflation Data</h3>
-        <div class="group">
-            <label for="average_inflation">Average Inflation Rate (%):</label>
-            <input type="number" step="0.01" name="average_inflation" id="average_inflation" value="{{ request.form.get('average_inflation', '') }}" placeholder="e.g., 3.5" required min="0">
-        </div>
-        <div class="group">
-            <label for="monthly_inflation">Monthly Inflation Rates (%) (optional, comma-separated):</label>
-            <textarea name="monthly_inflation" id="monthly_inflation" placeholder="e.g., 0.3, 0.4, 0.2" rows="3">{{ request.form.get('monthly_inflation', '') }}</textarea>
-        </div>
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-1">Return Method</label>
+        <select name="method" id="method" class="input-field" onchange="updateHint()" required>
+          <option value="twr">Time-Weighted Rate of Return (TWR)</option>
+          <option value="mwr">Money-Weighted Rate of Return (MWR)</option>
+          <option value="modified psa_dietz">Modified Dietz Method</option>
+          <option value="simple_dietz">Simple Dietz Method</option>
+          <option value="irr">Internal Rate of Return (IRR)</option>
+          <option value="hpr">Holding Period Return (HPR)</option>
+          <option value="annualized">Annualized Return</option>
+          <option value="geometric_mean">Geometric Mean Return</option>
+          <option value="arithmetic_mean">Arithmetic Mean Return</option>
+        </select>
+      </div>
 
-        <!-- Buttons -->
-        <button type="submit" class="action-btn">Calculate</button>
-        <a href="{{ url_for('portfolio_return') }}" class="action-btn">Clear</a>
-        <a href="/" class="action-btn">Back to Home</a>
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-1">Data <span class="text-gray-400 font-normal">(comma-separated)</span></label>
+        <div id="method-hint" class="method-hint"></div>
+        <textarea name="data" id="data" rows="3" class="input-field mt-2" style="resize:vertical;" placeholder="Select a method above to see the expected format" required></textarea>
+      </div>
+
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-1">Average Inflation Rate (%)</label>
+        <input type="number" step="0.01" name="average_inflation" id="average_inflation"
+               value="{{ request.form.get('average_inflation', '') }}"
+               placeholder="e.g., 3.5" class="input-field" required min="0"/>
+      </div>
+
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-1">Monthly Inflation Rates (%) <span class="text-gray-400 font-normal">optional, comma-separated</span></label>
+        <textarea name="monthly_inflation" id="monthly_inflation" rows="2" class="input-field" style="resize:vertical;"
+                  placeholder="e.g., 0.3, 0.4, 0.2">{{ request.form.get('monthly_inflation', '') }}</textarea>
+      </div>
+
+      <button type="submit" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold transition-colors">
+        <i class="fas fa-calculator mr-2"></i>Calculate
+      </button>
     </form>
 
-    <!-- Results Section -->
-    {% if result %}
-    <div class="results">
-        <h3>Calculation Result</h3>
-        <p><strong>Method:</strong> {{ result.method|title }}</p>
-        <p><strong>Nominal Return:</strong> {{ result.nominal_return }}</p>
-        <p><strong>Real Return (Average Inflation):</strong> {{ result.real_return_avg }}</p>
-        <p><strong>Real Return (Time-Weighted Inflation):</strong> {{ result.real_return_tw }}</p>
+    <!-- Formula reference -->
+    <div class="mt-5 bg-indigo-50 rounded-xl p-4 text-xs text-indigo-700">
+      <p class="font-semibold mb-1">Key Formulas</p>
+      <p class="font-mono">TWR = [(1+r₁)×(1+r₂)×…×(1+rₙ)] − 1</p>
+      <p class="font-mono mt-1">Real Return ≈ Nominal − Inflation</p>
     </div>
-    
-<div class="mt-4 text-center">
-  <button onclick="investiqDownloadCSV('portfolio-return')" class="inline-flex items-center gap-2 px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-semibold text-sm transition-colors shadow">
-    <i class="fas fa-download"></i> Download Results (CSV)
-  </button>
-</div>
+  </div>
 
-{% endif %}
-</div>
+  <!-- Results Card -->
+  <div class="space-y-6">
+    {% if result %}
+    <div class="calc-card">
+      <h2 class="text-xl font-bold text-gray-800 mb-4"><i class="fas fa-chart-bar mr-2 text-indigo-500"></i>Results</h2>
+
+      <div class="grid grid-cols-1 gap-3 mb-4">
+        <div class="rounded-xl p-4 text-center" style="background:linear-gradient(135deg,#4f46e5,#7c3aed);">
+          <p class="text-indigo-200 text-xs mb-1">Nominal Return</p>
+          <p class="text-2xl font-bold text-white">{{ result.nominal_return }}</p>
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="bg-emerald-600 rounded-xl p-4 text-center">
+            <p class="text-emerald-100 text-xs mb-1">Real (Avg Inflation)</p>
+            <p class="text-lg font-bold text-white">{{ result.real_return_avg }}</p>
+          </div>
+          <div class="bg-blue-600 rounded-xl p-4 text-center">
+            <p class="text-blue-100 text-xs mb-1">Real (TW Inflation)</p>
+            <p class="text-lg font-bold text-white">{{ result.real_return_tw }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="result-row"><span class="text-gray-500 text-sm">Method</span><span class="font-semibold text-gray-800 text-sm">{{ result.method|title }}</span></div>
+      <div class="result-row"><span class="text-gray-500 text-sm">Nominal Return</span><span class="font-semibold text-indigo-700 text-sm">{{ result.nominal_return }}</span></div>
+      <div class="result-row"><span class="text-gray-500 text-sm">Real Return (Avg Inflation)</span><span class="font-semibold text-emerald-700 text-sm">{{ result.real_return_avg }}</span></div>
+      <div class="result-row"><span class="text-gray-500 text-sm">Real Return (TW Inflation)</span><span class="font-semibold text-blue-700 text-sm">{{ result.real_return_tw }}</span></div>
+
+      <div class="mt-5 flex gap-3 flex-wrap">
+        <a href="{{ url_for('portfolio_return') }}" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium text-sm flex items-center gap-2">
+          <i class="fas fa-redo"></i> Calculate Again
+        </a>
+        <button type="button" onclick="investiqDownloadCSV('portfolio-return')" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-medium text-sm flex items-center gap-2">
+          <i class="fas fa-download"></i> Download CSV
+        </button>
+      </div>
+    </div>
+    {% else %}
+    <div class="calc-card flex flex-col items-center justify-center text-center py-16 text-gray-400">
+      <i class="fas fa-briefcase text-5xl mb-4 text-indigo-200"></i>
+      <p class="text-lg font-semibold text-gray-500">Results will appear here</p>
+      <p class="text-sm mt-1">Fill in the parameters and click Calculate.</p>
+    </div>
+    {% endif %}
+
+    <!-- Method Guide -->
+    <div class="calc-card">
+      <button type="button" onclick="toggleSection('method-guide','guide-icon')" class="w-full text-left font-bold text-gray-800 flex justify-between items-center">
+        <span><i class="fas fa-book-open mr-2 text-indigo-500"></i>Method Guide</span>
+        <span id="guide-icon" class="text-gray-400">➕</span>
+      </button>
+      <div id="method-guide" class="hidden mt-4 space-y-3 text-sm text-gray-600">
+        <div class="bg-indigo-50 rounded-lg p-3"><strong>TWR</strong> — Time-Weighted Return. Input: periodic returns as decimals, e.g. <code>0.05, -0.02, 0.03</code></div>
+        <div class="bg-blue-50 rounded-lg p-3"><strong>MWR</strong> — Money-Weighted Return. Input: cash flows (negative = outflow), e.g. <code>-1000, 200, 250, 600</code></div>
+        <div class="bg-purple-50 rounded-lg p-3"><strong>Modified Dietz</strong> — Input: initial value, final value, cash flow, weight, e.g. <code>1000, 1500, 200, 0.5</code></div>
+        <div class="bg-green-50 rounded-lg p-3"><strong>Simple Dietz</strong> — Input: initial value, final value, cash flow, e.g. <code>1000, 1500, 200</code></div>
+        <div class="bg-yellow-50 rounded-lg p-3"><strong>IRR</strong> — Internal Rate of Return. Input: cash flows, e.g. <code>-1000, 200, 300, 500</code></div>
+        <div class="bg-orange-50 rounded-lg p-3"><strong>HPR</strong> — Holding Period Return. Input: initial price, final price, dividend, e.g. <code>100, 120, 5</code></div>
+        <div class="bg-red-50 rounded-lg p-3"><strong>Annualized</strong> — Input: total return, number of years, e.g. <code>0.1, 2</code></div>
+        <div class="bg-pink-50 rounded-lg p-3"><strong>Geometric / Arithmetic Mean</strong> — Input: periodic returns as decimals, e.g. <code>0.05, 0.03, -0.02</code></div>
+      </div>
+    </div>
+  </div>
+</main>
 
 <script>
-    function updatePlaceholder() {
-        const method = document.getElementById('method').value;
-        const examples = {
-            'twr': 'e.g., 0.05, -0.02, 0.03 (periodic returns as decimals)',
-            'mwr': 'e.g., -1000, 200, 250, 600 (initial outflow, then inflows)',
-            'modified_dietz': 'e.g., 1000, 1500, 200, 0.5 (initial value, final value, cash flow, weight)',
-            'simple_dietz': 'e.g., 1000, 1500, 200 (initial value, final value, cash flow)',
-            'irr': 'e.g., -1000, 200, 300, 500 (initial outflow, then inflows)',
-            'hpr': 'e.g., 100, 120, 5 (initial price, final price, dividend)',
-            'annualized': 'e.g., 0.1, 2 (total return, number of years)',
-            'geometric_mean': 'e.g., 0.05, 0.03, -0.02 (periodic returns as decimals)',
-            'arithmetic_mean': 'e.g., 0.05, 0.03, -0.02 (periodic returns as decimals)'
-        };
-        document.getElementById('data').placeholder = examples[method] || 'Select a method to see example input';
-    }
+const methodExamples = {
+    'twr': {hint:'Periodic returns as decimals', ex:'e.g. 0.05, -0.02, 0.03'},
+    'mwr': {hint:'Cash flows (negative = outflow, positive = inflow)', ex:'e.g. -1000, 200, 250, 600'},
+    'modified psa_dietz': {hint:'Initial value, Final value, Cash flow, Weight (0–1)', ex:'e.g. 1000, 1500, 200, 0.5'},
+    'simple_dietz': {hint:'Initial value, Final value, Cash flow', ex:'e.g. 1000, 1500, 200'},
+    'irr': {hint:'Cash flows (first is initial outflow, rest are inflows)', ex:'e.g. -1000, 200, 300, 500'},
+    'hpr': {hint:'Initial price, Final price, Dividend', ex:'e.g. 100, 120, 5'},
+    'annualized': {hint:'Total return (decimal), Number of years', ex:'e.g. 0.1, 2'},
+    'geometric_mean': {hint:'Periodic returns as decimals', ex:'e.g. 0.05, 0.03, -0.02'},
+    'arithmetic_mean': {hint:'Periodic returns as decimals', ex:'e.g. 0.05, 0.03, -0.02'},
+};
 
-    // Validate comma-separated input
-    function validateInput(inputId, errorMessage) {
-        const input = document.getElementById(inputId).value.trim();
-        if (input) {
-            const values = input.split(',').map(v => v.trim());
-            if (values.some(v => isNaN(v) || v === '')) {
-                alert(errorMessage);
-                return false;
-            }
-        }
-        return true;
+function updateHint() {
+    const method = document.getElementById('method').value;
+    const hintDiv = document.getElementById('method-hint');
+    const dataField = document.getElementById('data');
+    const info = methodExamples[method];
+    if (info) {
+        hintDiv.innerHTML = `<strong>${info.hint}</strong> — ${info.ex}`;
+        hintDiv.style.display = 'block';
+        dataField.placeholder = info.ex;
     }
+}
 
-    // Run on page load
-    window.addEventListener('load', updatePlaceholder);
-    // Run on method change
-    document.getElementById('method').addEventListener('change', updatePlaceholder);
-    // Validate on form submit
-    document.querySelector('form').addEventListener('submit', function(e) {
-        if (!validateInput('data', 'Data must be comma-separated numbers (e.g., 0.05, -0.02).')) {
-            e.preventDefault();
-        }
-        if (document.getElementById('monthly_inflation').value.trim() && 
-            !validateInput('monthly_inflation', 'Monthly inflation rates must be comma-separated numbers (e.g., 0.3, 0.4).')) {
-            e.preventDefault();
-        }
-    });
+function validateCSV(inputId, msg) {
+    const val = document.getElementById(inputId).value.trim();
+    if (val) {
+        const parts = val.split(',').map(v => v.trim());
+        if (parts.some(v => isNaN(v) || v === '')) { alert(msg); return false; }
+    }
+    return true;
+}
+
+window.addEventListener('load', updateHint);
+document.querySelector('form').addEventListener('submit', function(e) {
+    if (!validateCSV('data', 'Data must be comma-separated numbers (e.g., 0.05, -0.02).')) e.preventDefault();
+    if (document.getElementById('monthly_inflation').value.trim() &&
+        !validateCSV('monthly_inflation', 'Monthly inflation rates must be comma-separated numbers.')) e.preventDefault();
+});
 </script>
 {% endblock %}

@@ -331,6 +331,49 @@
 
   {% block scripts %}{% endblock %}
   <script>
+  /* Global stock lookup — fill form fields from /api/stocks/lookup */
+  if(!window.investiqLookupStock){
+    window.investiqLookupStock = async function(symbol, market, fieldMap, infoElId){
+      if(!symbol){alert('Enter a stock symbol first.');return;}
+      var infoEl = document.getElementById(infoElId||'stock-info-panel');
+      if(infoEl) infoEl.innerHTML='<span class="text-blue-500 text-xs"><i class="fas fa-spinner fa-spin"></i> Looking up…</span>';
+      function _set(sel, val){
+        var el = document.getElementById(sel)||document.querySelector('[name="'+sel+'"]');
+        if(el && val!=null){ el.value=val; el.dispatchEvent(new Event('input')); }
+      }
+      try{
+        var resp = await fetch('/api/stocks/lookup?symbol='+encodeURIComponent(symbol)+'&market='+(market||'global'));
+        var d = await resp.json();
+        if(d.error){if(infoEl) infoEl.innerHTML='<span class="text-red-500 text-xs">'+d.error+'</span>';return;}
+        if(fieldMap){
+          Object.entries(fieldMap).forEach(function(e){
+            var apiKey=e[0], elSel=e[1], val=d[apiKey];
+            if(val==null) return;
+            if(apiKey==='shares_outstanding') val=(val/1e6).toFixed(2);
+            else if(typeof val==='number') val=Number(val.toFixed(6));
+            _set(elSel, val);
+          });
+        }
+        if(infoEl){
+          var fmt=function(v,p){return v!=null?(p||'')+Number(v).toLocaleString(undefined,{maximumFractionDigits:4}):'N/A';};
+          var parts=[
+            d.name?'<span class="font-bold text-gray-800 text-xs">'+d.name+'</span>':null,
+            d.sector?'<span class="text-gray-500 text-xs">'+d.sector+'</span>':null,
+            '<span class="text-xs">Price: <b class="text-blue-700">'+fmt(d.current_price,(d.currency||'')+' ')+'</b></span>',
+            d.eps!=null?'<span class="text-xs">EPS: <b>'+fmt(d.eps)+'</b></span>':null,
+            d.pe_ratio!=null?'<span class="text-xs">P/E: <b>'+fmt(d.pe_ratio)+'</b></span>':null,
+            d.beta!=null?'<span class="text-xs">Beta: <b>'+fmt(d.beta)+'</b></span>':null,
+            d.shares_outstanding!=null?'<span class="text-xs">Shares: <b>'+(d.shares_outstanding/1e6).toFixed(2)+'M</b></span>':null,
+            d.dividend_yield!=null?'<span class="text-xs">Div Yield: <b>'+fmt(d.dividend_yield*100)+'%</b></span>':null,
+            d.book_value!=null?'<span class="text-xs">Book/Share: <b>'+fmt(d.book_value)+'</b></span>':null,
+          ].filter(Boolean);
+          infoEl.innerHTML='<div class="flex flex-wrap gap-3 items-center bg-white border border-blue-100 rounded-lg p-2">'+parts.join('')+'</div>';
+        }
+      }catch(e){
+        if(infoEl) infoEl.innerHTML='<span class="text-red-500 text-xs">Lookup failed. Check symbol and try again.</span>';
+      }
+    };
+  }
   (function(){
     if(window.investiqDownloadCSV) return;
     window.investiqDownloadCSV=function(fn){
