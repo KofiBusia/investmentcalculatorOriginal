@@ -555,7 +555,7 @@ window.investiqLookupStock = window.investiqLookupStock || (async function(symbo
     var resp=await fetch('/api/stocks/lookup?symbol='+encodeURIComponent(symbol)+'&market='+(market||'global'));
     var d=await resp.json();
     if(d.error){if(infoEl)infoEl.innerHTML='<span style="color:red;font-size:.8rem">'+d.error+'</span>';return;}
-    if(fieldMap)Object.entries(fieldMap).forEach(function(e){var ak=e[0],es=e[1],val=d[ak];if(val==null)return;if(ak==='shares_outstanding')val=(val/1e6).toFixed(2);else if(typeof val==='number')val=Number(val.toFixed(6));_set(es,val);});
+    if(fieldMap)Object.entries(fieldMap).forEach(function(e){var ak=e[0],es=e[1],val=d[ak];if(val==null||val==='')return;if(ak==='shares_outstanding')val=Math.round(Number(val));else if(typeof val==='number')val=Number(val.toFixed(6));_set(es,val);});
     if(infoEl){
       var fmt=function(v,p){return v!=null?(p||'')+Number(v).toLocaleString(undefined,{maximumFractionDigits:4}):'N/A';};
       var parts=[d.name?'<b style="font-size:.82rem">'+d.name+'</b>':null,'<span style="font-size:.78rem;color:#4b5563">'+(d.sector||'')+'</span>','<span style="font-size:.78rem">Price: <b style="color:#2563eb">'+fmt(d.current_price,(d.currency||'')+' ')+'</b></span>',d.eps!=null?'<span style="font-size:.78rem">EPS: <b>'+fmt(d.eps)+'</b></span>':null,d.pe_ratio!=null?'<span style="font-size:.78rem">P/E: <b>'+fmt(d.pe_ratio)+'</b></span>':null].filter(Boolean);

@@ -348,24 +348,26 @@
         if(fieldMap){
           Object.entries(fieldMap).forEach(function(e){
             var apiKey=e[0], elSel=e[1], val=d[apiKey];
-            if(val==null) return;
-            if(apiKey==='shares_outstanding') val=(val/1e6).toFixed(2);
+            if(val==null||val==='') return;
+            /* Pass shares as raw absolute integer — templates that want millions (e.g. DCF) use their own custom lookup */
+            if(apiKey==='shares_outstanding') val=Math.round(Number(val));
             else if(typeof val==='number') val=Number(val.toFixed(6));
             _set(elSel, val);
           });
         }
         if(infoEl){
-          var fmt=function(v,p){return v!=null?(p||'')+Number(v).toLocaleString(undefined,{maximumFractionDigits:4}):'N/A';};
+          var fmt=function(v,p){return v!=null&&v!==''?(p||'')+Number(v).toLocaleString(undefined,{maximumFractionDigits:4}):'N/A';};
+          var sharesM=d.shares_outstanding&&d.shares_outstanding!==''?(Number(d.shares_outstanding)/1e6).toFixed(2)+'M':null;
           var parts=[
             d.name?'<span class="font-bold text-gray-800 text-xs">'+d.name+'</span>':null,
             d.sector?'<span class="text-gray-500 text-xs">'+d.sector+'</span>':null,
             '<span class="text-xs">Price: <b class="text-blue-700">'+fmt(d.current_price,(d.currency||'')+' ')+'</b></span>',
-            d.eps!=null?'<span class="text-xs">EPS: <b>'+fmt(d.eps)+'</b></span>':null,
-            d.pe_ratio!=null?'<span class="text-xs">P/E: <b>'+fmt(d.pe_ratio)+'</b></span>':null,
-            d.beta!=null?'<span class="text-xs">Beta: <b>'+fmt(d.beta)+'</b></span>':null,
-            d.shares_outstanding!=null?'<span class="text-xs">Shares: <b>'+(d.shares_outstanding/1e6).toFixed(2)+'M</b></span>':null,
-            d.dividend_yield!=null?'<span class="text-xs">Div Yield: <b>'+fmt(d.dividend_yield*100)+'%</b></span>':null,
-            d.book_value!=null?'<span class="text-xs">Book/Share: <b>'+fmt(d.book_value)+'</b></span>':null,
+            d.eps!=null&&d.eps!==''?'<span class="text-xs">EPS: <b>'+fmt(d.eps)+'</b></span>':null,
+            d.pe_ratio!=null&&d.pe_ratio!==''?'<span class="text-xs">P/E: <b>'+fmt(d.pe_ratio)+'</b></span>':null,
+            d.beta!=null&&d.beta!==''?'<span class="text-xs">Beta: <b>'+fmt(d.beta)+'</b></span>':null,
+            sharesM?'<span class="text-xs">Shares: <b>'+sharesM+'</b></span>':null,
+            d.dividend_yield!=null&&d.dividend_yield!==''?'<span class="text-xs">Div Yield: <b>'+fmt(d.dividend_yield)+'%</b></span>':null,
+            d.book_value!=null&&d.book_value!==''?'<span class="text-xs">Book/Share: <b>'+fmt(d.book_value)+'</b></span>':null,
           ].filter(Boolean);
           infoEl.innerHTML='<div class="flex flex-wrap gap-3 items-center bg-white border border-blue-100 rounded-lg p-2">'+parts.join('')+'</div>';
         }
