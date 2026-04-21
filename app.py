@@ -292,6 +292,26 @@ class ContactMessage(db.Model):
     created_at   = db.Column(db.DateTime, default=datetime.utcnow)
 
 
+# --- EMPLOYERS' CORNER: CANDIDATE PROFILES ---
+class CandidateProfile(db.Model):
+    __tablename__    = 'candidate_profiles'
+    id               = db.Column(db.Integer, primary_key=True)
+    full_name        = db.Column(db.String(200), nullable=False)
+    email            = db.Column(db.String(200), nullable=False)
+    phone            = db.Column(db.String(50),  default='')
+    location         = db.Column(db.String(200), default='')
+    desired_role     = db.Column(db.String(200), default='')
+    desired_sector   = db.Column(db.String(100), default='')
+    current_title    = db.Column(db.String(200), default='')
+    skills_summary   = db.Column(db.String(500), default='')
+    profile_summary  = db.Column(db.Text,        default='')
+    linkedin         = db.Column(db.String(500), default='')
+    years_exp        = db.Column(db.String(30),  default='')
+    availability     = db.Column(db.String(50),  default='')
+    is_visible       = db.Column(db.Boolean,     default=True)
+    created_at       = db.Column(db.DateTime,    default=datetime.utcnow)
+
+
 # --- CREATE TABLES (runs on every import, idempotent) ---
 with app.app_context():
     try:
@@ -3685,8 +3705,10 @@ def job_apply(job_id):
 
 @app.route('/cv-builder', methods=['GET', 'POST'])
 def cv_builder():
+    jobs = JobListing.query.filter_by(is_active=True).order_by(JobListing.title).all()
     cv_data = None
     error = None
+    saved_to_corner = False
     if request.method == 'POST':
         try:
             cv_data = {
@@ -3702,6 +3724,10 @@ def cv_builder():
                 'awards': request.form.get('awards', '').strip(),
                 'memberships': request.form.get('memberships', '').strip(),
                 'template': request.form.get('template', 'professional'),
+                'desired_role':   request.form.get('desired_role', '').strip(),
+                'desired_sector': request.form.get('desired_sector', '').strip(),
+                'years_exp':      request.form.get('years_exp', '').strip(),
+                'availability':   request.form.get('availability', '').strip(),
                 'work_experiences': [],
                 'educations': [],
                 'certifications': [],
@@ -3773,10 +3799,48 @@ def cv_builder():
             if not cv_data['full_name'] or not cv_data['email']:
                 error = 'Full name and email are required.'
                 cv_data = None
+            elif request.form.get('employers_corner_consent'):
+                # Save/update candidate profile for Employers' Corner
+                try:
+                    current_title = cv_data['work_experiences'][0]['job_title'] if cv_data['work_experiences'] else ''
+                    existing = CandidateProfile.query.filter_by(email=cv_data['email']).first()
+                    if existing:
+                        existing.full_name       = cv_data['full_name']
+                        existing.phone           = cv_data['phone']
+                        existing.location        = cv_data['location']
+                        existing.desired_role    = cv_data['desired_role']
+                        existing.desired_sector  = cv_data['desired_sector']
+                        existing.current_title   = current_title
+                        existing.skills_summary  = cv_data['skills'][:500]
+                        existing.profile_summary = cv_data['summary']
+                        existing.linkedin        = cv_data['linkedin']
+                        existing.years_exp       = cv_data['years_exp']
+                        existing.availability    = cv_data['availability']
+                        existing.is_visible      = True
+                    else:
+                        db.session.add(CandidateProfile(
+                            full_name       = cv_data['full_name'],
+                            email           = cv_data['email'],
+                            phone           = cv_data['phone'],
+                            location        = cv_data['location'],
+                            desired_role    = cv_data['desired_role'],
+                            desired_sector  = cv_data['desired_sector'],
+                            current_title   = current_title,
+                            skills_summary  = cv_data['skills'][:500],
+                            profile_summary = cv_data['summary'],
+                            linkedin        = cv_data['linkedin'],
+                            years_exp       = cv_data['years_exp'],
+                            availability    = cv_data['availability'],
+                        ))
+                    db.session.commit()
+                    saved_to_corner = True
+                except Exception as db_err:
+                    logger.error(f'Employers Corner save error: {db_err}')
         except Exception as e:
             error = 'Error processing CV. Please check all fields.'
             logger.error(f'CV build error: {e}')
-    return render_template('hr_cv_builder.html', cv_data=cv_data, error=error)
+    return render_template('hr_cv_builder.html', cv_data=cv_data, error=error,
+                           jobs=jobs, saved_to_corner=saved_to_corner)
 
 
 @app.route('/cv-preview')
@@ -3845,6 +3909,43 @@ def referral_page():
     if request.method == 'POST':
         success = True
     return render_template('hr_referral.html', success=success)
+
+
+@app.route('/employers-corner')
+def employers_corner():
+    sector = request.args.get('sector', '').strip()
+    role_q = request.args.get('role',   '').strip()
+    avail  = request.args.get('avail',  '').strip()
+
+    q = CandidateProfile.query.filter_by(is_visible=True)
+    if sector:
+        q = q.filter(CandidateProfile.desired_sector == sector)
+    if role_q:
+        q = q.filter(CandidateProfile.desired_role.ilike(f'%{role_q}%'))
+    if avail:
+        q = q.filter(CandidateProfile.availability == avail)
+    candidates = q.order_by(CandidateProfile.created_at.desc()).all()
+
+    sectors = [r[0] for r in
+               db.session.query(CandidateProfile.desired_sector)
+               .filter(CandidateProfile.is_visible == True,
+                       CandidateProfile.desired_sector != '')
+               .distinct().order_by(CandidateProfile.desired_sector).all()]
+
+    availabilities = [r[0] for r in
+                      db.session.query(CandidateProfile.availability)
+                      .filter(CandidateProfile.is_visible == True,
+                              CandidateProfile.availability != '')
+                      .distinct().order_by(CandidateProfile.availability).all()]
+
+    return render_template('hr_employers_corner.html',
+                           candidates=candidates,
+                           sectors=sectors,
+                           availabilities=availabilities,
+                           current_sector=sector,
+                           current_role=role_q,
+                           current_avail=avail,
+                           total=len(candidates))
 
 
 # Admin HR routes

@@ -51,6 +51,7 @@
     <div class="flex gap-5 text-sm">
       <a href="/jobs" class="text-blue-200 hover:text-white">Jobs</a>
       <a href="/cv-builder" class="text-white font-semibold border-b-2 border-blue-300">CV Builder</a>
+      <a href="/employers-corner" class="text-blue-200 hover:text-white">Employers' Corner</a>
       <a href="/training" class="text-blue-200 hover:text-white">Training</a>
     </div>
   </div>
@@ -223,6 +224,98 @@
           <div>
             <label class="block text-xs font-semibold text-gray-500 mb-1">Professional Memberships</label>
             <input type="text" name="memberships" class="input-field" placeholder="CFA Institute, ICAG, CIMA" value="{{ cv_data.memberships if cv_data else '' }}"/>
+          </div>
+        </div>
+      </div>
+
+      <!-- EMPLOYERS' CORNER OPT-IN -->
+      <div class="card p-5" style="border:2px solid #fbbf24;background:linear-gradient(135deg,#fffbeb,#fff);">
+        <div class="flex items-center gap-3 mb-4">
+          <div style="width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#f59e0b,#d97706);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i class="fas fa-briefcase text-white text-sm"></i>
+          </div>
+          <div>
+            <p class="font-bold text-gray-800 text-sm">List Yourself in the Employers' Corner</p>
+            <p class="text-xs text-gray-500">Get discovered by companies hiring right now</p>
+          </div>
+        </div>
+
+        {% if saved_to_corner %}
+        <div class="flex items-center gap-2 bg-green-50 border border-green-200 text-green-700 rounded-lg px-3 py-2 mb-3 text-sm">
+          <i class="fas fa-check-circle"></i> Your profile has been saved to the Employers' Corner!
+          <a href="/employers-corner" class="underline font-semibold ml-1">View it</a>
+        </div>
+        {% endif %}
+
+        <label class="flex items-center gap-3 cursor-pointer mb-4 select-none">
+          <input type="checkbox" name="employers_corner_consent" id="ecConsent" value="1"
+                 class="w-5 h-5 rounded border-gray-300 text-yellow-500"
+                 {% if saved_to_corner %}checked{% endif %}
+                 onchange="document.getElementById('ecFields').style.display=this.checked?'block':'none'"/>
+          <span class="text-sm font-semibold text-gray-700">Yes, add my profile to the Employers' Corner so recruiters can find me</span>
+        </label>
+
+        <div id="ecFields" style="display:{% if cv_data and cv_data.desired_role %}block{% else %}none{% endif %};">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-semibold text-gray-500 mb-1">Role / Job Title I'm Looking For <span class="text-red-400">*</span></label>
+              <input type="text" name="desired_role" id="desiredRoleInput"
+                     list="job-titles-list"
+                     class="input-field" placeholder="e.g. Investment Analyst, Finance Manager…"
+                     value="{{ cv_data.desired_role if cv_data else '' }}"/>
+              <datalist id="job-titles-list">
+                {% for job in jobs %}
+                <option value="{{ job.title }}">{{ job.title }} — {{ job.company }}</option>
+                {% endfor %}
+                <option value="Investment Analyst">
+                <option value="Financial Analyst">
+                <option value="Portfolio Manager">
+                <option value="Risk Analyst">
+                <option value="Fund Manager">
+                <option value="Credit Analyst">
+                <option value="Equity Research Analyst">
+                <option value="Finance Manager">
+                <option value="Chief Financial Officer">
+                <option value="Accountant">
+                <option value="Auditor">
+                <option value="Banking Officer">
+                <option value="Relationship Manager">
+                <option value="Compliance Officer">
+                <option value="Insurance Underwriter">
+                <option value="Actuary">
+                <option value="FinTech Developer">
+                <option value="Data Analyst">
+                <option value="Economist">
+              </datalist>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-gray-500 mb-1">Sector / Industry</label>
+              <select name="desired_sector" class="input-field">
+                <option value="">— Select sector —</option>
+                {% set sectors = ['Finance & Investment','Banking & Financial Services','Accounting & Audit','Insurance','Risk Management','Economics & Research','FinTech & Technology','Legal & Compliance','HR & Administration','Sales & Marketing','Operations & Management','Other'] %}
+                {% for s in sectors %}
+                <option value="{{ s }}" {% if cv_data and cv_data.desired_sector == s %}selected{% endif %}>{{ s }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-gray-500 mb-1">Years of Experience</label>
+              <select name="years_exp" class="input-field">
+                <option value="">— Select —</option>
+                {% for y in ['0–1 year (Graduate)','1–3 years','3–5 years','5–10 years','10–15 years','15+ years'] %}
+                <option value="{{ y }}" {% if cv_data and cv_data.years_exp == y %}selected{% endif %}>{{ y }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-gray-500 mb-1">Availability</label>
+              <select name="availability" class="input-field">
+                <option value="">— Select —</option>
+                {% for a in ['Immediately','Within 2 weeks','Within 1 month','Within 3 months','Open to offers'] %}
+                <option value="{{ a }}" {% if cv_data and cv_data.availability == a %}selected{% endif %}>{{ a }}</option>
+                {% endfor %}
+              </select>
+            </div>
           </div>
         </div>
       </div>
