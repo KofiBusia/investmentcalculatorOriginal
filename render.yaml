@@ -16,6 +16,8 @@ services:
         value: 4334d7b0d850e8426d75728257271d46
       - key: PYTHON_VERSION
         value: 3.11.9
+      - key: FLASK_APP
+        value: app
 databases:
   - name: investment_insights
     plan: free

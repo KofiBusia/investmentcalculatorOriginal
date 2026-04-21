@@ -292,6 +292,13 @@ class ContactMessage(db.Model):
     created_at   = db.Column(db.DateTime, default=datetime.utcnow)
 
 
+# --- CREATE TABLES (runs on every import, idempotent) ---
+with app.app_context():
+    try:
+        db.create_all()
+    except Exception as _db_err:
+        logger.warning(f"db.create_all() skipped: {_db_err}")
+
 # --- DATACLASSES ---
 from dataclasses import dataclass
 
