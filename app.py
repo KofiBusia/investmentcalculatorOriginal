@@ -3011,49 +3011,66 @@ def api_stock_lookup():
         return jsonify({'error': 'No symbol'}), 400
 
     if market == 'gse':
+        # Step 1: live endpoint — always works, has price/change/volume
+        live_row = {}
         try:
-            # Detailed equity endpoint — has shares, eps, dps, sector
-            detail_r = http_requests.get(f'https://dev.kwayisi.org/apis/gse/equities/{symbol}', timeout=8)
-            if detail_r.status_code == 404:
-                return jsonify({'error': f'GSE stock "{symbol}" not found'}), 404
-            if not detail_r.ok:
-                raise Exception(f'Equity endpoint returned {detail_r.status_code}')
-            d = detail_r.json()
-            company = d.get('company') or {}
-            # Get traded volume from the live feed
-            traded_volume = ''
-            try:
-                live_r = http_requests.get('https://dev.kwayisi.org/apis/gse/live', timeout=6)
-                if live_r.ok:
-                    for s in live_r.json():
-                        if s.get('name', '').upper() == symbol:
-                            traded_volume = s.get('volume', '')
-                            break
-            except Exception:
-                pass
-            shares = d.get('shares', '')
-            price  = d.get('price', 0)
-            eps    = d.get('eps', '')
-            dps    = d.get('dps', '')
-            capital = d.get('capital', '')  # market cap
-            market_cap = capital if capital else (shares * price if shares and price else '')
-            pe_ratio = round(price / eps, 2) if eps and price else ''
-            return jsonify({
-                'symbol': symbol,
-                'name': company.get('name', d.get('name', symbol)),
-                'current_price': price,
-                'shares_outstanding': shares,
-                'traded_volume': traded_volume,
-                'market_cap': market_cap,
-                'pe_ratio': pe_ratio,
-                'eps': eps,
-                'dps': dps,
-                'sector': company.get('sector', company.get('industry', '')),
-                'currency': 'GHS',
-                'exchange': 'GSE',
-            })
-        except Exception as e:
-            return jsonify({'error': f'GSE lookup failed: {str(e)}'}), 500
+            live_r = http_requests.get('https://dev.kwayisi.org/apis/gse/live', timeout=6)
+            if live_r.ok:
+                for s in live_r.json():
+                    if s.get('name', '').upper() == symbol or s.get('code', '').upper() == symbol:
+                        live_row = s
+                        break
+        except Exception:
+            pass
+
+        # Step 2: detail endpoint — richer data but often slow; short timeout, fully optional
+        detail = {}
+        try:
+            dr = http_requests.get(
+                f'https://dev.kwayisi.org/apis/gse/equities/{symbol}',
+                timeout=4,
+            )
+            if dr.ok:
+                detail = dr.json()
+        except Exception:
+            pass
+
+        # Nothing found at all
+        if not live_row and not detail:
+            return jsonify({'error': f'GSE stock "{symbol}" not found on the exchange'}), 404
+
+        # Merge: live_row wins for real-time price/volume; detail wins for fundamentals
+        company    = (detail.get('company') or {})
+        price      = live_row.get('price') or detail.get('price') or 0
+        change     = live_row.get('change', '')
+        change_pct = live_row.get('change_percent', live_row.get('pct', ''))
+        volume     = live_row.get('volume', '')
+        shares     = detail.get('shares', '')
+        eps        = detail.get('eps', '')
+        dps        = detail.get('dps', '')
+        capital    = detail.get('capital', '')
+        market_cap = capital if capital else (round(shares * price, 2) if shares and price else '')
+        pe_ratio   = round(price / eps, 2) if eps and price else ''
+        name       = (company.get('name') or detail.get('name')
+                      or live_row.get('name') or symbol)
+        sector     = company.get('sector') or company.get('industry') or ''
+
+        return jsonify({
+            'symbol':            symbol,
+            'name':              name,
+            'current_price':     price,
+            'change':            change,
+            'change_pct':        change_pct,
+            'shares_outstanding': shares,
+            'traded_volume':     volume,
+            'market_cap':        market_cap,
+            'pe_ratio':          pe_ratio,
+            'eps':               eps,
+            'dps':               dps,
+            'sector':            sector,
+            'currency':          'GHS',
+            'exchange':          'GSE',
+        })
     else:
         try:
             import yfinance as yf
