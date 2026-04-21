@@ -2901,9 +2901,8 @@ def upload_calculator_data(calculator_key):
 # ================================================================
 
 GLOBAL_TICKERS = [
-    'AAPL','MSFT','GOOGL','AMZN','TSLA','META','NVDA','JPM','GS','BAC',
-    'BRK-B','V','MA','UNH','XOM','JNJ','PG','HD','NFLX','DIS',
-    'BABA','TSM','NVO','ASML','SAP','SIE.DE','BHP','RIO','TTE.PA','SHEL',
+    'AAPL','MSFT','GOOGL','AMZN','TSLA','META','NVDA',
+    'JPM','GS','BRK-B','V','XOM','JNJ','NFLX','TSM',
 ]
 
 _stock_cache = {'global': [], 'gse': [], 'ts': 0}
@@ -2911,10 +2910,10 @@ _stock_cache = {'global': [], 'gse': [], 'ts': 0}
 @app.route('/api/stocks/ticker')
 def api_stocks_ticker():
     """Return rolling ticker data for global + GSE stocks (cached 5 min)."""
-    import time, yfinance as yf
+    import time
     now = time.time()
-    if now - _stock_cache['ts'] < 300:
-        return jsonify(_stock_cache)
+    if now - _stock_cache['ts'] < 300 and (_stock_cache['global'] or _stock_cache['gse']):
+        return jsonify({'global': _stock_cache['global'], 'gse': _stock_cache['gse']})
 
     # GSE stocks
     gse_data = []
@@ -2923,8 +2922,8 @@ def api_stocks_ticker():
         if r.ok:
             for s in r.json():
                 gse_data.append({
-                    'symbol': s.get('name', s.get('code','')),
-                    'price': s.get('price', 0),
+                    'symbol': s.get('name', s.get('code', '')),
+                    'price':  s.get('price', 0),
                     'change': s.get('change', 0),
                     'change_pct': s.get('change_percent', s.get('pct', 0)),
                     'market': 'GSE',
@@ -2932,25 +2931,55 @@ def api_stocks_ticker():
     except Exception:
         pass
 
-    # Global stocks via yfinance
+    # Global stocks — single batch download (one HTTP request for all tickers)
     global_data = []
     try:
-        tickers = yf.Tickers(' '.join(GLOBAL_TICKERS))
-        for sym in GLOBAL_TICKERS:
-            try:
-                info = tickers.tickers[sym].fast_info
-                price = round(float(info.last_price), 2)
-                prev = round(float(info.previous_close), 2)
-                chg = round(price - prev, 2)
-                pct = round((chg / prev * 100), 2) if prev else 0
-                global_data.append({'symbol': sym, 'price': price, 'change': chg, 'change_pct': pct, 'market': 'GLOBAL'})
-            except Exception:
-                pass
+        import yfinance as yf, pandas as pd
+        raw = yf.download(
+            tickers=GLOBAL_TICKERS,
+            period='5d',
+            interval='1d',
+            progress=False,
+            threads=True,
+            auto_adjust=True,
+        )
+        if not raw.empty:
+            close = raw['Close']
+            # close is DataFrame[date x ticker] for multi-ticker downloads
+            close = close.dropna(how='all')
+            if len(close) >= 2:
+                last_row = close.iloc[-1]
+                prev_row = close.iloc[-2]
+            elif len(close) == 1:
+                last_row = close.iloc[-1]
+                prev_row = close.iloc[-1]
+            else:
+                last_row = prev_row = pd.Series(dtype=float)
+            for sym in GLOBAL_TICKERS:
+                try:
+                    price = float(last_row[sym])
+                    prev  = float(prev_row[sym])
+                    if pd.isna(price) or pd.isna(prev) or prev == 0:
+                        continue
+                    chg = round(price - prev, 2)
+                    pct = round(chg / prev * 100, 2)
+                    global_data.append({
+                        'symbol': sym,
+                        'price':  round(price, 2),
+                        'change': chg,
+                        'change_pct': pct,
+                        'market': 'GLOBAL',
+                    })
+                except Exception:
+                    pass
     except Exception:
         pass
 
-    _stock_cache.update({'global': global_data, 'gse': gse_data, 'ts': now})
-    return jsonify({'global': global_data, 'gse': gse_data})
+    # Only overwrite cache if we actually got data; otherwise serve stale
+    if global_data or gse_data:
+        _stock_cache.update({'global': global_data, 'gse': gse_data, 'ts': now})
+
+    return jsonify({'global': _stock_cache['global'], 'gse': _stock_cache['gse']})
 
 
 @app.route('/api/stocks/lookup')

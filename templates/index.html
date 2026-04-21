@@ -1519,19 +1519,27 @@
       ticker.addEventListener('mouseenter', () => paused = true);
       ticker.addEventListener('mouseleave', () => paused = false);
 
-      fetch('/api/stocks/ticker')
-        .then(r => r.json())
-        .then(data => {
-          const gse = (data.gse || []);
-          const global_ = (data.global || []);
-          // Interleave: a few GSE first, then global
-          const all = [...gse, ...global_];
-          buildTicker(all);
-        })
-        .catch(() => {
-          const el = document.getElementById('ticker-inner');
-          if (el) el.innerHTML = '<span style="color:#546e7a;font-size:.72rem;padding:0 20px;">Market data temporarily unavailable</span>';
-        });
+      function fetchTicker(retriesLeft) {
+        fetch('/api/stocks/ticker')
+          .then(r => { if (!r.ok) throw new Error('bad'); return r.json(); })
+          .then(data => {
+            const all = [...(data.gse || []), ...(data.global || [])];
+            if (all.length) {
+              buildTicker(all);
+            } else if (retriesLeft > 0) {
+              setTimeout(() => fetchTicker(retriesLeft - 1), 4000);
+            }
+          })
+          .catch(() => {
+            if (retriesLeft > 0) {
+              setTimeout(() => fetchTicker(retriesLeft - 1), 4000);
+            } else {
+              const el = document.getElementById('ticker-inner');
+              if (el) el.innerHTML = '<span style="color:#546e7a;font-size:.72rem;padding:0 20px;">Market data temporarily unavailable</span>';
+            }
+          });
+      }
+      fetchTicker(4);
     })();
     </script>
 
