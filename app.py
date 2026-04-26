@@ -6,6 +6,7 @@
 # --- STANDARD LIBRARY IMPORTS ---
 import json
 import logging
+import math
 import os
 from datetime import datetime
 from logging.handlers import RotatingFileHandler
@@ -1748,80 +1749,1107 @@ def faq():
 def bond_risk():
     return render_template('bond_risk.html', form_data=request.form or {}, result=None, error=None)
 
-@app.route('/portfolio-risk')
-@app.route('/portfolio_risks')
+# ──────────────────────────────────────────────────────────────────────────────
+# PORTFOLIO RISK (NPRA-compliant, multiple risk metrics)
+# ──────────────────────────────────────────────────────────────────────────────
+_PORT_RISK_METRICS = [
+    'Sharpe Ratio', 'Sortino Ratio', 'Maximum Drawdown',
+    'Information Ratio', 'Beta', "Treynor Ratio", "Jensen's Alpha",
+    'VaR (95%)', 'Correlation',
+]
+# Ghana-specific assumed annual returns and volatilities per asset class
+_ASSET_RETURNS = dict(gov=0.18, local_gov=0.16, equities=0.20, bank=0.16,
+                      corp=0.15, coll=0.14, alt=0.12, foreign=0.10)
+_ASSET_VOLS    = dict(gov=0.03, local_gov=0.04, equities=0.25, bank=0.02,
+                      corp=0.05, coll=0.08, alt=0.15, foreign=0.20)
+_GHANA_RF      = 0.16  # Ghana T-Bill proxy risk-free rate
+
+@app.route('/portfolio-risk', methods=['GET', 'POST'])
+@app.route('/portfolio_risks', methods=['GET', 'POST'])
 def portfolio_risks():
-    return render_template('portfolio_risks.html', result=None)
+    import math as _m
+    form_data = None
+    result    = None
+    npra_alerts = []
+    error       = None
 
-@app.route('/portfolio-return')
-@app.route('/portfolio_return')
+    if request.method == 'POST':
+        form_data = request.form
+        try:
+            gov   = float(form_data.get('gov_securities', 0))
+            lgs   = float(form_data.get('local_gov_securities', 0))
+            eq    = float(form_data.get('equities', 0))
+            bk    = float(form_data.get('bank_securities', 0))
+            corp  = float(form_data.get('corporate_debt', 0))
+            coll  = float(form_data.get('collective_schemes', 0))
+            alt   = float(form_data.get('alternatives', 0))
+            frn   = float(form_data.get('foreign', 0))
+            grn   = float(form_data.get('green_bonds', 0))
+            pv    = float(form_data.get('portfolio_value', 0))
+            mret  = float(form_data.get('market_return', 0)) / 100
+            mvol  = float(form_data.get('market_volatility', 0)) / 100
+            bret  = float(form_data.get('benchmark_return', 0)) / 100
+            bvol  = float(form_data.get('benchmark_volatility', 0)) / 100
+            dvol  = float(form_data.get('downside_volatility', 0)) / 100
+            peak  = float(form_data.get('peak_value', 0))
+            trough = float(form_data.get('trough_value', 0))
+            metric = form_data.get('risk_metric', 'Sharpe Ratio')
+
+            # NPRA compliance alerts
+            for name, (alloc, limit) in [
+                ('Government Securities', (gov, 75)),
+                ('Local Gov Securities', (lgs, 25)),
+                ('Equities', (eq, 20)),
+                ('Bank Securities', (bk, 35)),
+                ('Corporate Debt', (corp, 35)),
+                ('Collective Schemes', (coll, 15)),
+                ('Alternatives', (alt, 25)),
+                ('Foreign Assets', (frn, 5)),
+            ]:
+                t = 'warning' if alloc > limit else 'success'
+                npra_alerts.append({'type': t,
+                    'message': f'{name}: {alloc:.1f}% — NPRA limit {limit}% '
+                               f'({"EXCEEDED" if t == "warning" else "compliant"})'})
+
+            # Portfolio weights and expected return
+            w = dict(gov=gov/100, local_gov=lgs/100, equities=eq/100, bank=bk/100,
+                     corp=corp/100, coll=coll/100, alt=alt/100, foreign=frn/100)
+            Ep = sum(w[k] * _ASSET_RETURNS[k] for k in w)
+
+            # Portfolio volatility (diagonal covariance — zero inter-asset correlation)
+            var_p = sum((w[k] * _ASSET_VOLS[k])**2 for k in w)
+            sig_p = _m.sqrt(var_p) if var_p > 0 else 1e-9
+
+            if metric == 'Sharpe Ratio':
+                val  = (Ep - _GHANA_RF) / sig_p
+                desc = (f'(Rp={Ep:.2%} − Rf={_GHANA_RF:.2%}) / σp={sig_p:.2%} = {val:.4f}')
+                interp = 'Higher value = better risk-adjusted return. >1 is acceptable, >2 is good.'
+            elif metric == 'Sortino Ratio':
+                ds   = dvol if dvol > 0 else sig_p
+                val  = (Ep - _GHANA_RF) / ds
+                desc = f'(Rp − Rf) / Downside σ = {val:.4f}'
+                interp = 'Like Sharpe but penalises only downside volatility.'
+            elif metric == 'Maximum Drawdown':
+                val  = (peak - trough) / peak * 100 if peak > 0 else 0
+                desc = f'(Peak {peak:,.2f} − Trough {trough:,.2f}) / Peak = {val:.2f}%'
+                interp = 'Worst peak-to-trough decline. Lower is better.'
+            elif metric == 'Information Ratio':
+                te   = abs(sig_p - bvol) if bvol else sig_p
+                te   = te if te > 0 else 1e-9
+                val  = (Ep - bret) / te
+                desc = f'(Rp={Ep:.2%} − Rb={bret:.2%}) / Tracking Error={te:.4f} = {val:.4f}'
+                interp = 'Measures excess return per unit of active risk. >0.5 is good.'
+            elif metric == 'Beta':
+                val  = sig_p / mvol if mvol > 0 else 0
+                desc = f'σp={sig_p:.4f} / σm={mvol:.4f} = {val:.4f}'
+                interp = 'β=1 moves with market; β<1 lower risk; β>1 higher risk.'
+            elif metric == 'Treynor Ratio':
+                beta = sig_p / mvol if mvol > 0 else 1
+                val  = (Ep - _GHANA_RF) / beta if beta else 0
+                desc = f'(Rp − Rf) / β = ({Ep:.2%} − {_GHANA_RF:.2%}) / {beta:.4f} = {val:.4f}'
+                interp = 'Reward per unit of systematic risk.'
+            elif metric == "Jensen's Alpha":
+                beta  = sig_p / mvol if mvol > 0 else 1
+                capm  = _GHANA_RF + beta * (mret - _GHANA_RF)
+                val   = Ep - capm
+                desc  = f'α = Rp − [Rf + β(Rm−Rf)] = {Ep:.2%} − {capm:.2%} = {val:.4f}'
+                interp = 'Positive α = outperformance vs CAPM prediction.'
+            elif metric == 'VaR (95%)':
+                z    = 1.6449  # 95% one-tailed z-score
+                val  = pv * (Ep - z * sig_p)
+                desc = f'VaR = {pv:,.2f} × ({Ep:.2%} − 1.6449 × {sig_p:.2%}) = GHS {val:,.2f}'
+                interp = 'Maximum expected loss over one year at 95% confidence.'
+            elif metric == 'Correlation':
+                pair = form_data.get('correlation_pair', 'equities-foreign')
+                k1, k2 = pair.split('-')[0], pair.split('-')[-1]
+                v1 = _ASSET_VOLS.get(k1, _ASSET_VOLS.get('equities'))
+                v2 = _ASSET_VOLS.get(k2, _ASSET_VOLS.get('foreign'))
+                val  = 0.15  # assumed moderate positive correlation as proxy
+                desc = f'Estimated correlation between {k1} and {k2}: {val:.2f}'
+                interp = 'Values near -1 offer maximum diversification benefit.'
+            else:
+                val = 0; desc = 'Unknown metric.'; interp = ''
+
+            result = dict(metric=metric,
+                          value=f'{val:.4f}<br><small class="text-gray-500">{desc}</small>',
+                          description=interp)
+        except Exception as exc:
+            error = str(exc)
+
+    return render_template('portfolio_risks.html', result=result,
+                           form_data=form_data or {}, risk_metrics=_PORT_RISK_METRICS,
+                           npra_alerts=npra_alerts, error=error)
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# PORTFOLIO RETURN (9 globally-accepted methods, GIPS-aligned)
+# ──────────────────────────────────────────────────────────────────────────────
+def _irr(cash_flows, max_iter=1000, tol=1e-9):
+    """Newton-Raphson IRR. Raises ValueError if convergence fails."""
+    rate = 0.1
+    for _ in range(max_iter):
+        npv  = sum(cf / (1 + rate)**t for t, cf in enumerate(cash_flows))
+        dnpv = sum(-t * cf / (1 + rate)**(t + 1) for t, cf in enumerate(cash_flows))
+        if abs(dnpv) < 1e-12:
+            break
+        rate -= npv / dnpv
+        if abs(npv) < tol:
+            break
+    return rate
+
+@app.route('/portfolio-return', methods=['GET', 'POST'])
+@app.route('/portfolio_return', methods=['GET', 'POST'])
 def portfolio_return():
-    return render_template('portfolio_return.html')
+    import math as _m
+    result = None
+    error  = None
 
-@app.route('/volatility')
+    if request.method == 'POST':
+        try:
+            method    = request.form.get('method', 'twr')
+            raw       = request.form.get('data', '')
+            avg_infl  = float(request.form.get('average_inflation', 0)) / 100
+            mi_raw    = request.form.get('monthly_inflation', '').strip()
+            nums      = [float(x.strip()) for x in raw.split(',') if x.strip()]
+
+            if method == 'twr':
+                if len(nums) < 1:
+                    raise ValueError('Provide at least one sub-period return.')
+                nominal = 1.0
+                for r in nums:
+                    nominal *= (1 + r)
+                nominal -= 1
+            elif method == 'mwr':
+                if len(nums) < 2:
+                    raise ValueError('MWR needs at least 2 cash flows.')
+                nominal = _irr(nums)
+            elif method == 'modified psa_dietz':
+                if len(nums) != 4:
+                    raise ValueError('Modified Dietz: initial_value, final_value, cash_flow, weight (0–1)')
+                v0, v1, cf, w = nums
+                denom = v0 + cf * w
+                if abs(denom) < 1e-9:
+                    raise ValueError('Denominator is zero — check inputs.')
+                nominal = (v1 - v0 - cf) / denom
+            elif method == 'simple_dietz':
+                if len(nums) != 3:
+                    raise ValueError('Simple Dietz: initial_value, final_value, cash_flow')
+                v0, v1, cf = nums
+                denom = v0 + cf / 2
+                if abs(denom) < 1e-9:
+                    raise ValueError('Denominator is zero — check inputs.')
+                nominal = (v1 - v0 - cf) / denom
+            elif method == 'irr':
+                if len(nums) < 2:
+                    raise ValueError('IRR needs at least 2 cash flows.')
+                nominal = _irr(nums)
+            elif method == 'hpr':
+                if len(nums) != 3:
+                    raise ValueError('HPR: initial_price, final_price, dividend')
+                p0, p1, d = nums
+                if abs(p0) < 1e-9:
+                    raise ValueError('Initial price cannot be zero.')
+                nominal = (p1 - p0 + d) / p0
+            elif method == 'annualized':
+                if len(nums) != 2:
+                    raise ValueError('Annualized: total_return (decimal), number_of_years')
+                r_total, yrs = nums
+                if yrs <= 0:
+                    raise ValueError('Years must be positive.')
+                nominal = (1 + r_total) ** (1 / yrs) - 1
+            elif method == 'geometric_mean':
+                if not nums:
+                    raise ValueError('Provide at least one return.')
+                product = 1.0
+                for r in nums:
+                    product *= (1 + r)
+                nominal = product ** (1 / len(nums)) - 1
+            elif method == 'arithmetic_mean':
+                if not nums:
+                    raise ValueError('Provide at least one return.')
+                nominal = sum(nums) / len(nums)
+            else:
+                raise ValueError(f'Unknown method: {method}')
+
+            # Real return — Fisher equation: (1+Rn)/(1+Ri) − 1
+            real_avg = (1 + nominal) / (1 + avg_infl) - 1 if (1 + avg_infl) != 0 else 0
+
+            # Time-weighted inflation from monthly rates
+            if mi_raw:
+                mi_rates = [float(x.strip()) / 100 for x in mi_raw.split(',') if x.strip()]
+                tw_infl  = 1.0
+                for i in mi_rates:
+                    tw_infl *= (1 + i)
+                tw_infl = tw_infl ** (1 / len(mi_rates)) - 1 if mi_rates else avg_infl
+            else:
+                tw_infl = avg_infl
+            real_tw = (1 + nominal) / (1 + tw_infl) - 1 if (1 + tw_infl) != 0 else 0
+
+            result = dict(
+                method=method,
+                nominal_return=f'{nominal:.4%}',
+                real_return_avg=f'{real_avg:.4%}',
+                real_return_tw=f'{real_tw:.4%}',
+            )
+        except Exception as exc:
+            error = str(exc)
+
+    return render_template('portfolio_return.html', result=result, error=error)
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# PORTFOLIO VOLATILITY (Markowitz covariance matrix)
+# ──────────────────────────────────────────────────────────────────────────────
+@app.route('/volatility', methods=['GET', 'POST'])
 def volatility():
-    return render_template('volatility.html')
+    import math as _m
+    result    = None
+    error     = None
+    form_data = None
+
+    if request.method == 'POST':
+        form_data = request.form
+        try:
+            n = int(form_data.get('num_assets', 0))
+            if n < 1 or n > 10:
+                raise ValueError('Number of assets must be between 1 and 10.')
+            weights = [float(form_data.get(f'weight_{i}', 0)) for i in range(1, n + 1)]
+            if abs(sum(weights) - 1) > 0.05:
+                raise ValueError(f'Weights must sum to 1 (current sum: {sum(weights):.4f}).')
+            cov = [[float(form_data.get(f'cov_{i}_{j}', 0)) for j in range(1, n + 1)]
+                   for i in range(1, n + 1)]
+
+            # Portfolio variance: w^T * C * w
+            var_p = sum(weights[i] * weights[j] * cov[i][j]
+                        for i in range(n) for j in range(n))
+            if var_p < 0:
+                raise ValueError('Covariance matrix produces negative variance — check symmetry/PSD.')
+            vol_p = _m.sqrt(var_p)
+
+            rows = ['<table class="results-table"><tr><th>Asset</th><th>Weight</th>'
+                    '<th>Own Variance (cov_ii)</th><th>Contribution to Variance</th></tr>']
+            for i in range(n):
+                contrib = sum(weights[i] * weights[j] * cov[i][j] for j in range(n))
+                rows.append(f'<tr><td>Asset {i+1}</td><td>{weights[i]:.4f}</td>'
+                             f'<td>{cov[i][i]:.6f}</td><td>{contrib:.6f}</td></tr>')
+            rows.append('</table>')
+            rows.append(f'<p><strong>Portfolio Variance:</strong> {var_p:.6f}</p>')
+            rows.append(f'<p><strong>Portfolio Volatility (σ):</strong> {vol_p:.4%}</p>')
+            result = ''.join(rows)
+        except Exception as exc:
+            error = str(exc)
+
+    return render_template('volatility.html', result=result, error=error, form_data=form_data or {})
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# NON-PORTFOLIO RISK CALCULATOR (viewer page)
+# ──────────────────────────────────────────────────────────────────────────────
+_NP_RISK_METRICS = [
+    'Credit Spread', 'Expected Loss', 'Modified Duration',
+    'Price Change (Duration)', 'Bid-Ask Spread',
+]
 
 @app.route('/risk-calculator')
 @app.route('/risk_calculator')
 def risk_calculator():
-    return render_template('risk_calculator.html')
+    return render_template('risk_calculator.html', risk_metrics=_NP_RISK_METRICS,
+                           form_data={}, result=None, alerts=[])
 
-@app.route('/risk-assessment')
-@app.route('/risk_assessment')
+
+@app.route('/non-portfolio-risk', methods=['GET', 'POST'])
+def non_portfolio_risk_calc():
+    """Non-portfolio single-asset risk metrics."""
+    result    = None
+    error     = None
+    form_data = {}
+    alerts    = []
+
+    if request.method == 'POST':
+        form_data = request.form
+        try:
+            metric = form_data.get('risk_metric', 'Credit Spread')
+            corp_y  = float(form_data.get('corporate_yield', 0)) / 100
+            rf_y    = float(form_data.get('risk_free_yield', 0)) / 100
+            pd_pct  = float(form_data.get('probability_default', 0)) / 100
+            lgd_pct = float(form_data.get('loss_given_default', 0)) / 100
+            ead     = float(form_data.get('exposure_at_default', 0))
+            bp      = float(form_data.get('bond_price', 0))
+            mac_d   = float(form_data.get('macaulay_duration', 0))
+            ytm     = float(form_data.get('yield_to_maturity', 0)) / 100
+            comp    = float(form_data.get('compounding_periods', 1))
+            dy      = float(form_data.get('yield_change', 0)) / 100
+            bid     = float(form_data.get('bid_price', 0))
+            ask     = float(form_data.get('ask_price', 0))
+
+            if metric == 'Credit Spread':
+                val   = (corp_y - rf_y) * 10000  # in basis points
+                desc  = f'CS = Corp Yield − Risk-Free Yield = ({corp_y:.2%} − {rf_y:.2%}) = {val:.1f} bps'
+                interp = 'Credit spread above 200 bps signals elevated credit risk.'
+            elif metric == 'Expected Loss':
+                val   = pd_pct * lgd_pct * ead
+                desc  = f'EL = PD × LGD × EAD = {pd_pct:.2%} × {lgd_pct:.2%} × {ead:,.2f} = GHS {val:,.2f}'
+                interp = 'The expected monetary loss if the issuer defaults.'
+            elif metric == 'Modified Duration':
+                if comp <= 0:
+                    raise ValueError('Compounding periods must be positive.')
+                val   = mac_d / (1 + ytm / comp)
+                desc  = f'D_mod = D_mac / (1 + YTM/m) = {mac_d:.4f} / (1 + {ytm:.2%}/{comp:.0f}) = {val:.4f}'
+                interp = ('Modified Duration measures % price change per 1% yield move. '
+                          'Higher values mean greater interest-rate sensitivity.')
+            elif metric == 'Price Change (Duration)':
+                if comp <= 0:
+                    raise ValueError('Compounding periods must be positive.')
+                d_mod = mac_d / (1 + ytm / comp)
+                val   = -d_mod * dy * bp
+                pct   = -d_mod * dy
+                desc  = (f'ΔP ≈ −D_mod × Δy × P = −{d_mod:.4f} × {dy:.2%} × {bp:,.2f} = '
+                         f'GHS {val:,.2f} ({pct:.2%})')
+                interp = ('Estimated bond price change for the given yield shift. '
+                          'Negative Δy (rate drop) → price rise.')
+            elif metric == 'Bid-Ask Spread':
+                val   = ask - bid
+                pct   = val / bid * 100 if bid else 0
+                desc  = f'Spread = Ask − Bid = {ask:.4f} − {bid:.4f} = {val:.4f} ({pct:.2f}%)'
+                interp = 'Narrower spreads indicate greater liquidity.'
+            else:
+                val = 0; desc = ''; interp = ''
+
+            result = dict(metric=metric,
+                          value=f'{val:,.4f}<br><small class="text-gray-500">{desc}</small>',
+                          description=interp)
+        except Exception as exc:
+            error = str(exc)
+    else:
+        form_data = {}
+
+    return render_template('risk_calculator.html', risk_metrics=_NP_RISK_METRICS,
+                           form_data=form_data, result=result, alerts=alerts, error=error)
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# RISK ASSESSMENT (NPRA portfolio compliance + expected return/volatility)
+# ──────────────────────────────────────────────────────────────────────────────
+@app.route('/risk-assessment', methods=['GET', 'POST'])
+@app.route('/risk_assessment', methods=['GET', 'POST'])
 def risk_assessment():
-    return render_template('risk_assessment.html')
+    import math as _m
+    result      = None
+    form_data   = None
+    npra_alerts = []
+    error       = None
 
-@app.route('/portfolio-diversification')
-@app.route('/portfolio_diversification')
+    if request.method == 'POST':
+        form_data = request.form
+        try:
+            gov   = float(form_data.get('gov_securities', 0))
+            lgs   = float(form_data.get('local_gov_securities', 0))
+            eq    = float(form_data.get('equities', 0))
+            bk    = float(form_data.get('bank_securities', 0))
+            corp  = float(form_data.get('corporate_debt', 0))
+            coll  = float(form_data.get('collective_schemes', 0))
+            alt   = float(form_data.get('alternatives', 0))
+            frn   = float(form_data.get('foreign', 0))
+            pv    = float(form_data.get('portfolio_value', 0))
+
+            NPRA_LIMITS = [
+                ('Government Securities', gov, 75),
+                ('Local Gov Securities', lgs, 25),
+                ('Equities', eq, 20),
+                ('Bank Securities', bk, 35),
+                ('Corporate Debt', corp, 35),
+                ('Collective Schemes', coll, 15),
+                ('Alternatives', alt, 25),
+                ('Foreign Assets', frn, 5),
+            ]
+            for name, alloc, limit in NPRA_LIMITS:
+                t = 'warning' if alloc > limit else 'success'
+                npra_alerts.append({'type': t,
+                    'message': f'{name}: {alloc:.1f}% vs NPRA max {limit}% '
+                               f'— {"⚠ EXCEEDED" if t=="warning" else "✓ compliant"}'})
+
+            w = dict(gov=gov/100, local_gov=lgs/100, equities=eq/100, bank=bk/100,
+                     corp=corp/100, coll=coll/100, alt=alt/100, foreign=frn/100)
+            Ep  = sum(w[k] * _ASSET_RETURNS[k] for k in w)
+            var = sum((w[k] * _ASSET_VOLS[k])**2 for k in w)
+            sig = _m.sqrt(var) if var > 0 else 0
+
+            # 10% market stress test — equity + alternatives are most sensitive
+            stress_pct  = (w['equities'] * 0.10 + w['alt'] * 0.07 + w['foreign'] * 0.08)
+            stress_loss = round(pv * stress_pct, 2)
+
+            result = dict(
+                expected_return=round(Ep * 100, 2),
+                volatility=round(sig * 100, 2),
+                stress_loss=f'{stress_loss:,.2f}',
+            )
+        except Exception as exc:
+            error = str(exc)
+
+    return render_template('risk_assessment.html', result=result, form_data=form_data or {},
+                           npra_alerts=npra_alerts, error=error)
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# PORTFOLIO DIVERSIFICATION
+# ──────────────────────────────────────────────────────────────────────────────
+@app.route('/portfolio-diversification', methods=['GET', 'POST'])
+@app.route('/portfolio_diversification', methods=['GET', 'POST'])
 def portfolio_diversification():
-    return render_template('portfolio_diversification.html')
+    import math as _m
+    result    = None
+    error     = None
+    form_data = None
 
-@app.route('/expected-return')
-@app.route('/expected_return')
+    if request.method == 'POST':
+        form_data = request.form
+        try:
+            n = int(form_data.get('num_assets', 0))
+            if n < 1 or n > 10:
+                raise ValueError('Number of assets must be 1–10.')
+            weights = [float(form_data.get(f'weight_{i}', 0)) for i in range(1, n + 1)]
+            returns = [float(form_data.get(f'return_{i}', 0)) for i in range(1, n + 1)]
+            vols    = [float(form_data.get(f'volatility_{i}', 0)) for i in range(1, n + 1)]
+
+            if abs(sum(weights) - 1) > 0.05:
+                raise ValueError(f'Weights must sum to 1 (current: {sum(weights):.4f}).')
+
+            port_return = sum(weights[i] * returns[i] for i in range(n))
+            # Diagonal variance (zero cross-correlations simplification)
+            port_var    = sum((weights[i] * vols[i])**2 for i in range(n))
+            port_vol    = _m.sqrt(port_var) if port_var > 0 else 0
+
+            rows = ['<table class="results-table"><tr><th>Asset</th><th>Weight</th>'
+                    '<th>Expected Return (%)</th><th>Volatility (%)</th>'
+                    '<th>Weighted Return (%)</th></tr>']
+            for i in range(n):
+                rows.append(f'<tr><td>Asset {i+1}</td><td>{weights[i]:.4f}</td>'
+                             f'<td>{returns[i]:.2f}</td><td>{vols[i]:.2f}</td>'
+                             f'<td>{weights[i]*returns[i]:.4f}</td></tr>')
+            rows.append('</table>')
+            rows.append(f'<p><strong>Portfolio Expected Return:</strong> {port_return:.4f}%</p>')
+            rows.append(f'<p><strong>Portfolio Volatility (σ):</strong> {port_vol:.4f}%</p>')
+            rows.append(f'<p><strong>Sharpe-proxy (Rp/σp):</strong> '
+                        f'{port_return/port_vol:.4f}' if port_vol > 0 else '')
+            result = ''.join(rows)
+        except Exception as exc:
+            error = str(exc)
+
+    return render_template('portfolio_diversification.html', result=result, error=error,
+                           form_data=form_data or {})
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# EXPECTED RETURN (weighted sum, CAPM cross-check)
+# ──────────────────────────────────────────────────────────────────────────────
+@app.route('/expected-return', methods=['GET', 'POST'])
+@app.route('/expected_return', methods=['GET', 'POST'])
 def expected_return():
-    return render_template('expected_return.html')
+    result    = None
+    error     = None
+    form_data = None
 
-@app.route('/duration')
+    if request.method == 'POST':
+        form_data = request.form
+        try:
+            n = int(form_data.get('num_assets', 0))
+            if n < 1 or n > 10:
+                raise ValueError('Number of assets must be 1–10.')
+            weights = [float(form_data.get(f'weight_{i}', 0)) for i in range(1, n + 1)]
+            returns = [float(form_data.get(f'return_{i}', 0)) for i in range(1, n + 1)]
+
+            if abs(sum(weights) - 1) > 0.05:
+                raise ValueError(f'Weights must sum to 1 (current: {sum(weights):.4f}).')
+
+            Ep = sum(weights[i] * returns[i] for i in range(n))
+
+            rows = ['<table class="results-table"><tr><th>Asset</th><th>Weight</th>'
+                    '<th>Expected Return</th><th>Contribution</th></tr>']
+            for i in range(n):
+                rows.append(f'<tr><td>Asset {i+1}</td><td>{weights[i]:.4f}</td>'
+                             f'<td>{returns[i]:.4f}</td>'
+                             f'<td>{weights[i]*returns[i]:.6f}</td></tr>')
+            rows.append('</table>')
+            rows.append(f'<p><strong>Portfolio Expected Return:</strong> {Ep:.4f} '
+                        f'({Ep*100:.2f}%)</p>')
+            result = ''.join(rows)
+        except Exception as exc:
+            error = str(exc)
+
+    return render_template('expected_return.html', result=result, error=error,
+                           form_data=form_data or {})
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# BOND DURATION (Macaulay, Modified, Effective — CFA/ICMA standard)
+# ──────────────────────────────────────────────────────────────────────────────
+@app.route('/duration', methods=['GET', 'POST'])
 def duration():
-    return render_template('duration.html')
+    import math as _m
+    result = None
+    error  = None
 
-@app.route('/bonds')
+    if request.method == 'POST':
+        try:
+            n     = int(request.form.get('num_periods', 1))
+            cfs   = [float(request.form.get(f'cf_{i}', 0)) for i in range(1, n + 1)]
+            ytm   = float(request.form.get('yield', 0)) / 100      # annual
+            comp  = int(request.form.get('compounding', 1))
+            p0    = float(request.form.get('initial_price', 0))
+            p_dn  = float(request.form.get('price_drop', 0))        # yield −1%
+            p_up  = float(request.form.get('price_rise', 0))        # yield +1%
+
+            if any(cf < 0 for cf in cfs):
+                raise ValueError('Cash flows must be non-negative.')
+            if ytm < 0:
+                raise ValueError('YTM must be non-negative.')
+            if comp < 1:
+                raise ValueError('Compounding periods must be ≥ 1.')
+            if p0 <= 0:
+                raise ValueError('Initial bond price must be positive.')
+
+            r_per   = ytm / comp   # periodic yield
+            pv_cfs  = [cfs[t] / (1 + r_per)**(t + 1) for t in range(n)]
+            total_pv = sum(pv_cfs)
+            if total_pv <= 0:
+                raise ValueError('Sum of discounted cash flows is zero — check inputs.')
+
+            # Macaulay Duration (in years)
+            d_mac = sum((t + 1) * pv_cfs[t] for t in range(n)) / (total_pv * comp)
+            # Modified Duration: D_mac / (1 + y/m)
+            d_mod = d_mac / (1 + ytm / comp)
+            # Effective Duration: (P↓ − P↑) / (2 × P₀ × Δy) where Δy = 0.01
+            dy = 0.01
+            d_eff = (p_dn - p_up) / (2 * p0 * dy) if p0 > 0 else 0
+
+            result = dict(
+                macaulay_duration=round(d_mac, 4),
+                modified_duration=round(d_mod, 4),
+                effective_duration=round(d_eff, 4),
+            )
+        except Exception as exc:
+            error = str(exc)
+
+    return render_template('duration.html', result=result, error=error)
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# BONDS CALCULATOR (simple yield & maturity — Ghana fixed-income standard)
+# ──────────────────────────────────────────────────────────────────────────────
+@app.route('/bonds', methods=['GET', 'POST'])
 def bonds():
-    return render_template('bonds.html')
+    result = None
+    error  = None
 
-@app.route('/cds')
-def cds():
-    return render_template('cds.html')
+    if request.method == 'POST':
+        try:
+            principal    = float(request.form.get('principal', 0))
+            tenor        = float(request.form.get('tenor', 0))
+            rate         = float(request.form.get('rate', 0)) / 100      # annual coupon %
+            total_coupons = float(request.form.get('total_coupons', 0))
 
-@app.route('/dvm')
-def dvm():
-    return render_template('dvm.html')
+            if principal <= 0:
+                raise ValueError('Principal must be positive.')
+            if tenor <= 0:
+                raise ValueError('Tenor (days) must be positive.')
+            if rate < 0:
+                raise ValueError('Coupon rate cannot be negative.')
+            if total_coupons < 0:
+                raise ValueError('Total coupons cannot be negative.')
 
-@app.route('/intrinsic-value')
-@app.route('/intrinsic_value')
+            # Maturity amount = face value + total coupon income
+            maturity_amount = principal + total_coupons
+            # Flat/simple yield annualised: (total_coupons / principal) × (365 / tenor)
+            bond_yield = (total_coupons / principal) * (365 / tenor) * 100 if principal > 0 else 0
+            # Current yield (using annual coupon rate provided):
+            annual_coupon  = principal * rate
+            current_yield  = (annual_coupon / principal) * 100 if principal > 0 else rate * 100
+            # Price if par = 100: capital gain/loss = 0 since we assume par pricing
+            price_per_100  = 100.0   # par-priced bond
+
+            result = dict(
+                maturity_amount=round(maturity_amount, 2),
+                bond_yield=round(bond_yield, 4),
+                annual_coupon=round(annual_coupon, 2),
+                current_yield=round(current_yield, 4),
+                principal=principal,
+                tenor=int(tenor),
+                rate=rate * 100,
+            )
+        except Exception as exc:
+            error = str(exc)
+
+    return render_template('bonds.html', result=result, error=error)
+
+
+# Note: /cds is handled by cds_calculator() at line ~2369 (GET + POST, ISDA-standard).
+# The duplicate GET-only stub has been removed to prevent Flask endpoint conflict.
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# DIVIDEND VALUATION MODEL (Gordon Growth, Multi-Stage, No-Growth)
+# ──────────────────────────────────────────────────────────────────────────────
+@app.route('/dvm', methods=['GET', 'POST'])
+@app.route('/dvm-calculator', methods=['GET', 'POST'])
+def dvm_calculator():
+    results    = None
+    model_type = 'gordon_growth'
+    error      = None
+
+    if request.method == 'POST':
+        model_type = request.form.get('model_type', 'gordon_growth')
+        try:
+            r = float(request.form.get('r', 0)) / 100  # discount rate
+            if r <= 0:
+                raise ValueError('Discount rate must be positive.')
+
+            if model_type == 'gordon_growth':
+                d1 = float(request.form.get('d1', 0))
+                g  = float(request.form.get('g', 0)) / 100
+                if r <= g:
+                    raise ValueError('Discount rate must exceed growth rate (r > g).')
+                iv = d1 / (r - g)
+                results = dict(intrinsic_value=round(iv, 4),
+                               formula=f'P₀ = D₁/(r−g) = {d1}/({r:.4f}−{g:.4f}) = {iv:.4f}')
+
+            elif model_type == 'multi_stage':
+                periods  = int(request.form.get('periods', 1))
+                divs     = [float(request.form.get(f'dividend_{i}', 0))
+                            for i in range(1, periods + 1)]
+                g_term   = float(request.form.get('terminal_growth', 0)) / 100
+                if r <= g_term:
+                    raise ValueError('Discount rate must exceed terminal growth rate.')
+                pv_divs  = [d / (1 + r)**t for t, d in enumerate(divs, 1)]
+                last_div = divs[-1] if divs else 0
+                tv       = last_div * (1 + g_term) / (r - g_term)
+                pv_tv    = tv / (1 + r)**periods
+                iv       = sum(pv_divs) + pv_tv
+                results  = dict(intrinsic_value=round(iv, 4),
+                                pv_dividends=[round(p, 4) for p in pv_divs],
+                                terminal_value=round(tv, 4),
+                                pv_terminal=round(pv_tv, 4))
+
+            elif model_type == 'no_growth':
+                d = float(request.form.get('d', 0))
+                iv = d / r
+                results = dict(intrinsic_value=round(iv, 4),
+                               formula=f'P₀ = D/r = {d}/{r:.4f} = {iv:.4f}')
+            else:
+                raise ValueError(f'Unknown model: {model_type}')
+        except Exception as exc:
+            error = str(exc)
+
+    return render_template('dvm.html', results=results, model_type=model_type, error=error)
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# INTRINSIC VALUE — Full DCF (CAPM / WACC / Manual, 1-stage or 2-stage)
+# ──────────────────────────────────────────────────────────────────────────────
+@app.route('/intrinsic-value', methods=['GET', 'POST'])
+@app.route('/intrinsic_value', methods=['GET', 'POST'])
 def intrinsic_value():
-    return render_template('intrinsic_value.html', form=request.form or {}, result=None, error=None)
+    result = None
+    debug  = None
+    error  = None
+    form   = request.form if request.method == 'POST' else {}
 
+    if request.method == 'POST':
+        try:
+            import math as _m
+            num_y    = int(form.get('num_fcf_years', 3))
+            fcf_base = [float(form.get(f'fcf_{i}', 0)) for i in range(1, num_y + 1)]
+            growth_m = form.get('growth_model', 'single_stage')
+            term_m   = form.get('terminal_method', 'gordon_growth')
+            disc_m   = form.get('discount_rate_method', 'capm')
+
+            # ── Discount rate ──
+            rf   = float(form.get('risk_free_rate', 5)) / 100
+            rm   = float(form.get('market_return', 10)) / 100
+            beta = float(form.get('beta', 1.0))
+            ke   = rf + beta * (rm - rf)  # CAPM cost of equity
+
+            if disc_m == 'capm':
+                r = ke
+            elif disc_m == 'wacc':
+                we = float(form.get('equity_weight', 50)) / 100
+                wd = float(form.get('debt_weight', 50)) / 100
+                kd = float(form.get('cost_of_debt', 5)) / 100
+                tc = float(form.get('tax_rate', 30)) / 100
+                r  = we * ke + wd * kd * (1 - tc)
+            else:
+                r = float(form.get('manual_discount_rate', 10)) / 100
+
+            if r <= 0:
+                raise ValueError('Discount rate must be positive.')
+
+            # ── Projected FCFs ──
+            if growth_m == 'single_stage':
+                proj_fcfs = fcf_base[:]
+            else:
+                hg   = float(form.get('high_growth_rate', 10)) / 100
+                hy   = int(form.get('high_growth_years', 5))
+                base = fcf_base[-1] if fcf_base else 0
+                proj_fcfs = [base * (1 + hg)**t for t in range(1, hy + 1)]
+
+            n         = len(proj_fcfs)
+            pv_fcfs   = [cf / (1 + r)**t for t, cf in enumerate(proj_fcfs, 1)]
+            ev        = sum(pv_fcfs)
+            last_fcf  = proj_fcfs[-1] if proj_fcfs else 0
+
+            # ── Terminal value ──
+            if term_m == 'gordon_growth':
+                g_t = float(form.get('perpetual_growth_rate', 2)) / 100
+                if r <= g_t:
+                    raise ValueError('Discount rate must exceed perpetual growth rate.')
+                tv   = last_fcf * (1 + g_t) / (r - g_t)
+                tv_g = g_t; tv_x = None
+            else:
+                ex   = float(form.get('exit_multiple', 8))
+                tv   = last_fcf * ex
+                tv_g = None; tv_x = ex
+
+            pv_tv = tv / (1 + r)**n
+            ev   += pv_tv
+
+            debt  = float(form.get('total_debt', 0) or 0)
+            cash_ = float(form.get('cash_and_equivalents', 0) or 0)
+            shares = float(form.get('outstanding_shares', 1))
+            if shares <= 0:
+                raise ValueError('Shares outstanding must be positive.')
+
+            equity_val = ev - debt + cash_
+            result     = equity_val / shares
+
+            # ── Sensitivity grid (3×3) ──
+            if term_m == 'gordon_growth':
+                g_vals   = [round(g_t - 0.01, 4), round(g_t, 4), round(g_t + 0.01, 4)]
+                g_labels = [round(g * 100, 1) for g in g_vals]
+            else:
+                g_vals   = [ex - 1, ex, ex + 1]
+                g_labels = g_vals
+            r_vals   = [round(r - 0.01, 4), round(r, 4), round(r + 0.01, 4)]
+            r_labels = [round(rv * 100, 1) for rv in r_vals]
+            sens     = []
+            for gv in g_vals:
+                row = []
+                for rv in r_vals:
+                    try:
+                        if term_m == 'gordon_growth':
+                            if rv <= gv:
+                                row.append('N/A'); continue
+                            tv_s = last_fcf * (1 + gv) / (rv - gv)
+                        else:
+                            tv_s = last_fcf * gv
+                        ev_s = sum(cf / (1 + rv)**t for t, cf in enumerate(proj_fcfs, 1))
+                        ev_s += tv_s / (1 + rv)**n
+                        iv_s  = (ev_s - debt + cash_) / shares
+                        row.append(f'GHS {iv_s:,.2f}')
+                    except Exception:
+                        row.append('N/A')
+                sens.append(row)
+
+            debug = dict(enterprise_value=round(ev, 2), equity_value=round(equity_val, 2),
+                         discount_rate=r, terminal_method=term_m,
+                         terminal_growth_rate=tv_g, exit_multiple=tv_x,
+                         sensitivity=dict(g_rates=g_labels, r_rates=r_labels, values=sens))
+        except Exception as exc:
+            error = str(exc)
+
+    return render_template('intrinsic_value.html', form=form, result=result,
+                           debug=debug, error=error)
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# STATIC INFO PAGES
+# ──────────────────────────────────────────────────────────────────────────────
 @app.route('/valuation-methods')
 @app.route('/valuation_methods')
 def valuation_methods():
     return render_template('valuation_methods.html')
+
 
 @app.route('/multi-method-valuation')
 @app.route('/multi_method_valuation')
 def multi_method_valuation():
     return render_template('multi_method_valuation.html')
 
+
+# ──────────────────────────────────────────────────────────────────────────────
+# SPECIALIZED INDUSTRY MULTIPLES
+# ──────────────────────────────────────────────────────────────────────────────
+_SPEC_INPUT_FIELDS = {
+    'net_debt':       ['total_debt', 'cash'],
+    'net_debt_ebitda':['total_debt', 'cash', 'ebitda'],
+    'revenue_growth': ['current_revenue', 'prior_revenue'],
+    'eps_growth':     ['current_eps', 'prior_eps'],
+    'ltm_ebitda':     [],
+    'ntm_ebitda':     [],
+    'unlevered_pe':   ['ev', 'ebiat'],
+    'tev_ebitdar':    ['ev', 'ebitda', 'rent_expense'],
+    'ev_subscribers': ['ev', 'subscribers'],
+    'ev_boe':         ['ev', 'boe'],
+    'ev_square_foot': ['ev', 'square_footage'],
+    'ev_mau':         ['ev', 'mau'],
+    'p_ffo':          ['share_price', 'ffo_per_share'],
+    'p_tbv':          ['share_price', 'tangible_bvps'],
+}
+_SPEC_FIELD_LABELS = {
+    'total_debt':      {'label': 'Total Debt', 'placeholder': 'e.g., 500000000'},
+    'cash':            {'label': 'Cash & Equivalents', 'placeholder': 'e.g., 200000000'},
+    'ebitda':          {'label': 'EBITDA', 'placeholder': 'e.g., 200000000'},
+    'current_revenue': {'label': 'Current Revenue', 'placeholder': 'e.g., 1000000000'},
+    'prior_revenue':   {'label': 'Prior Revenue', 'placeholder': 'e.g., 900000000'},
+    'current_eps':     {'label': 'Current EPS', 'placeholder': 'e.g., 1.50'},
+    'prior_eps':       {'label': 'Prior EPS', 'placeholder': 'e.g., 1.20'},
+    'ev':              {'label': 'Enterprise Value', 'placeholder': 'e.g., 2000000000'},
+    'ebiat':           {'label': 'EBIAT', 'placeholder': 'e.g., 150000000'},
+    'rent_expense':    {'label': 'Rent Expense', 'placeholder': 'e.g., 50000000'},
+    'subscribers':     {'label': 'Subscribers', 'placeholder': 'e.g., 500000'},
+    'boe':             {'label': 'BOE (barrels)', 'placeholder': 'e.g., 10000000'},
+    'square_footage':  {'label': 'Square Footage', 'placeholder': 'e.g., 100000'},
+    'mau':             {'label': 'Monthly Active Users', 'placeholder': 'e.g., 5000000'},
+    'share_price':     {'label': 'Share Price', 'placeholder': 'e.g., 10.50'},
+    'ffo_per_share':   {'label': 'FFO per Share', 'placeholder': 'e.g., 1.20'},
+    'tangible_bvps':   {'label': 'Tangible BV per Share', 'placeholder': 'e.g., 8.00'},
+}
+_SPEC_TITLES = {
+    'net_debt': 'Net Debt', 'net_debt_ebitda': 'Net Debt/EBITDA',
+    'revenue_growth': 'Revenue Growth', 'eps_growth': 'EPS Growth',
+    'ltm_ebitda': 'LTM EBITDA', 'ntm_ebitda': 'NTM EBITDA',
+    'unlevered_pe': 'Unlevered P/E', 'tev_ebitdar': 'TEV/EBITDAR',
+    'ev_subscribers': 'EV/Subscribers', 'ev_boe': 'EV/BOE',
+    'ev_square_foot': 'EV/Sq Ft', 'ev_mau': 'EV/MAU',
+    'p_ffo': 'P/FFO', 'p_tbv': 'P/TBV',
+}
+
+
+def _calc_spec(formula, data):
+    """Calculate one period of a specialized industry multiple."""
+    if formula == 'net_debt':
+        return data['total_debt'] - data['cash']
+    elif formula == 'net_debt_ebitda':
+        return (data['total_debt'] - data['cash']) / data['ebitda']
+    elif formula == 'revenue_growth':
+        return (data['current_revenue'] - data['prior_revenue']) / data['prior_revenue'] * 100
+    elif formula == 'eps_growth':
+        return (data['current_eps'] - data['prior_eps']) / data['prior_eps'] * 100
+    elif formula == 'unlevered_pe':
+        return data['ev'] / data['ebiat']
+    elif formula == 'tev_ebitdar':
+        return data['ev'] / (data['ebitda'] + data['rent_expense'])
+    elif formula == 'ev_subscribers':
+        return data['ev'] / data['subscribers']
+    elif formula == 'ev_boe':
+        return data['ev'] / data['boe']
+    elif formula == 'ev_square_foot':
+        return data['ev'] / data['square_footage']
+    elif formula == 'ev_mau':
+        return data['ev'] / data['mau']
+    elif formula == 'p_ffo':
+        return data['share_price'] / data['ffo_per_share']
+    elif formula == 'p_tbv':
+        return data['share_price'] / data['tangible_bvps']
+    raise ValueError(f'Unknown formula: {formula}')
+
+
 @app.route('/specialized-industry-multiples')
 @app.route('/Specialized_Industry_Multiples')
 def specialized_industry_multiples():
-    return render_template('Specialized_Industry_Multiples.html')
+    return render_template('Specialized_Industry_Multiples.html',
+                           form_data={}, results=None, error=None,
+                           currency_symbol='GHS ',
+                           input_fields=_SPEC_INPUT_FIELDS,
+                           field_labels=_SPEC_FIELD_LABELS,
+                           formula_titles=_SPEC_TITLES)
+
+
+@app.route('/specialized', methods=['GET', 'POST'])
+def specialized_calc():
+    form_data = request.form if request.method == 'POST' else {}
+    results   = None
+    error     = None
+
+    if request.method == 'POST':
+        try:
+            formula    = form_data.get('formula', 'net_debt')
+            currency   = form_data.get('currency', 'GHS')
+            cur_sym    = {'GHS': 'GHS ', 'USD': '$', 'EUR': '€', 'GBP': '£'}.get(currency, 'GHS ')
+            num_p      = int(form_data.get('num_periods', 1))
+
+            if formula == 'ltm_ebitda':
+                qs = [float(form_data.get(f'ebitda_q{i}', 0)) for i in range(1, 5)]
+                ltm = sum(qs)
+                results = [{'period': 'LTM', 'result': ltm}]
+            elif formula == 'ntm_ebitda':
+                cfy  = float(form_data.get('current_fy_ebitda', 0))
+                nfy  = float(form_data.get('next_fy_ebitda', 0))
+                mr   = float(form_data.get('months_remaining', 6))
+                mp   = float(form_data.get('months_passed', 6))
+                ntm  = cfy * (mr / 12) + nfy * (mp / 12)
+                results = [{'period': 'NTM', 'result': ntm}]
+            else:
+                fields  = _SPEC_INPUT_FIELDS.get(formula, [])
+                results = []
+                for i in range(1, num_p + 1):
+                    data = {f: float(form_data.get(f'{f}_{i}', form_data.get(f, 0)))
+                            for f in fields}
+                    res  = _calc_spec(formula, data)
+                    row  = {'period': i, 'result': round(res, 4)}
+                    row.update({f: data[f] for f in fields})
+                    results.append(row)
+        except Exception as exc:
+            error = str(exc)
+            results = None
+
+    return render_template('Specialized_Industry_Multiples.html',
+                           form_data=form_data, results=results, error=error,
+                           currency_symbol=form_data.get('currency_symbol', 'GHS '),
+                           input_fields=_SPEC_INPUT_FIELDS,
+                           field_labels=_SPEC_FIELD_LABELS,
+                           formula_titles=_SPEC_TITLES)
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# VALUATION PERFORMANCE MULTIPLES
+# ──────────────────────────────────────────────────────────────────────────────
+_VP_INPUT_FIELDS = {
+    'ev':           ['market_cap', 'total_debt', 'preferred_stock', 'minority_interest', 'cash', 'non_operating_assets'],
+    'ev_ebitda':    ['market_cap', 'total_debt', 'preferred_stock', 'minority_interest', 'cash', 'non_operating_assets', 'ebitda'],
+    'ev_ebit':      ['market_cap', 'total_debt', 'preferred_stock', 'minority_interest', 'cash', 'non_operating_assets', 'ebit'],
+    'ev_sales':     ['market_cap', 'total_debt', 'preferred_stock', 'minority_interest', 'cash', 'non_operating_assets', 'revenue'],
+    'pe':           ['share_price', 'eps'],
+    'pb':           ['share_price', 'bvps'],
+    'peg':          ['share_price', 'eps', 'eps_growth'],
+    'ebitda_margin':['ebitda', 'revenue'],
+    'ebit_margin':  ['ebit', 'revenue'],
+    'net_margin':   ['net_income', 'revenue'],
+    'roe':          ['net_income', 'equity'],
+    'roa':          ['net_income', 'total_assets'],
+    'roic':         ['ebit', 'tax_rate', 'total_debt', 'equity', 'cash', 'non_operating_assets'],
+    'roa_fin':      ['net_income', 'avg_total_assets'],
+    'roe_fin':      ['net_income', 'avg_equity'],
+}
+_VP_TITLES = {
+    'ev': 'Enterprise Value', 'ev_ebitda': 'EV/EBITDA', 'ev_ebit': 'EV/EBIT',
+    'ev_sales': 'EV/Sales', 'pe': 'P/E', 'pb': 'P/B', 'peg': 'PEG',
+    'ebitda_margin': 'EBITDA Margin', 'ebit_margin': 'EBIT Margin',
+    'net_margin': 'Net Margin', 'roe': 'ROE', 'roa': 'ROA', 'roic': 'ROIC',
+    'roa_fin': 'ROA (Fin)', 'roe_fin': 'ROE (Fin)',
+}
+_VP_FIELD_LABELS = {
+    'market_cap':          {'label': 'Market Cap (GHS)',             'placeholder': 'e.g., 1000000000'},
+    'total_debt':          {'label': 'Total Debt (GHS)',             'placeholder': 'e.g., 500000000'},
+    'preferred_stock':     {'label': 'Preferred Stock (GHS)',        'placeholder': 'e.g., 0'},
+    'minority_interest':   {'label': 'Minority Interest (GHS)',      'placeholder': 'e.g., 0'},
+    'cash':                {'label': 'Cash & Equivalents (GHS)',     'placeholder': 'e.g., 200000000'},
+    'non_operating_assets':{'label': 'Non-Op Assets (GHS)',          'placeholder': 'e.g., 0'},
+    'ebitda':              {'label': 'EBITDA (GHS)',                 'placeholder': 'e.g., 200000000'},
+    'ebit':                {'label': 'EBIT (GHS)',                   'placeholder': 'e.g., 150000000'},
+    'revenue':             {'label': 'Revenue (GHS)',                'placeholder': 'e.g., 500000000'},
+    'net_income':          {'label': 'Net Income (GHS)',             'placeholder': 'e.g., 100000000'},
+    'equity':              {'label': "Shareholders' Equity (GHS)",   'placeholder': 'e.g., 800000000'},
+    'total_assets':        {'label': 'Total Assets (GHS)',           'placeholder': 'e.g., 2000000000'},
+    'avg_total_assets':    {'label': 'Avg Total Assets (GHS)',       'placeholder': 'e.g., 1900000000'},
+    'avg_equity':          {'label': 'Average Equity (GHS)',         'placeholder': 'e.g., 790000000'},
+    'share_price':         {'label': 'Share Price (GHS)',            'placeholder': 'e.g., 10.50'},
+    'eps':                 {'label': 'EPS (GHS)',                    'placeholder': 'e.g., 1.25'},
+    'bvps':                {'label': 'Book Value per Share (GHS)',   'placeholder': 'e.g., 5.00'},
+    'eps_growth':          {'label': 'EPS Growth Rate (%)',          'placeholder': 'e.g., 20'},
+    'tax_rate':            {'label': 'Tax Rate (%)',                 'placeholder': 'e.g., 25'},
+}
+
+
+def _calc_vp(formula, data):
+    """Calculate one year of a valuation/performance multiple."""
+    ev_val = (data.get('market_cap', 0) + data.get('total_debt', 0) +
+              data.get('preferred_stock', 0) + data.get('minority_interest', 0) -
+              data.get('cash', 0) - data.get('non_operating_assets', 0))
+    if formula == 'ev':
+        return ev_val
+    elif formula == 'ev_ebitda':
+        return ev_val / data['ebitda']
+    elif formula == 'ev_ebit':
+        return ev_val / data['ebit']
+    elif formula == 'ev_sales':
+        return ev_val / data['revenue']
+    elif formula == 'pe':
+        return data['share_price'] / data['eps']
+    elif formula == 'pb':
+        return data['share_price'] / data['bvps']
+    elif formula == 'peg':
+        pe = data['share_price'] / data['eps']
+        return pe / data['eps_growth']
+    elif formula == 'ebitda_margin':
+        return data['ebitda'] / data['revenue'] * 100
+    elif formula == 'ebit_margin':
+        return data['ebit'] / data['revenue'] * 100
+    elif formula == 'net_margin':
+        return data['net_income'] / data['revenue'] * 100
+    elif formula == 'roe':
+        return data['net_income'] / data['equity'] * 100
+    elif formula == 'roa':
+        return data['net_income'] / data['total_assets'] * 100
+    elif formula == 'roic':
+        nopat = data['ebit'] * (1 - data.get('tax_rate', 25) / 100)
+        ic    = (data['total_debt'] + data['equity'] - data.get('cash', 0) -
+                 data.get('non_operating_assets', 0))
+        return nopat / ic * 100 if ic else 0
+    elif formula == 'roa_fin':
+        return data['net_income'] / data['avg_total_assets'] * 100
+    elif formula == 'roe_fin':
+        return data['net_income'] / data['avg_equity'] * 100
+    raise ValueError(f'Unknown formula: {formula}')
+
 
 @app.route('/valuation-performance-multiples')
 @app.route('/Valuation_Performance_Multiples')
 def valuation_performance_multiples():
-    return render_template('Valuation_Performance_Multiples.html')
+    return render_template('Valuation_Performance_Multiples.html',
+                           results=None, error=None, average_result=0,
+                           unit='x', selected_formula='ev',
+                           formulaTitles=_VP_TITLES,
+                           inputFields=_VP_INPUT_FIELDS,
+                           fieldLabels=_VP_FIELD_LABELS)
+
+
+@app.route('/valuation-performance', methods=['GET', 'POST'])
+def valuation_performance_calc():
+    form_data       = request.form if request.method == 'POST' else {}
+    results         = None
+    error           = None
+    average_result  = 0
+    selected_formula = form_data.get('formula', 'ev')
+    # Determine unit
+    pct_formulas = {'ebitda_margin', 'ebit_margin', 'net_margin', 'roe', 'roa', 'roic',
+                    'roa_fin', 'roe_fin', 'peg'}
+    ghs_formulas = {'ev'}
+    unit = ('%' if selected_formula in pct_formulas else
+            'GHS' if selected_formula in ghs_formulas else 'x')
+
+    if request.method == 'POST':
+        try:
+            fields   = _VP_INPUT_FIELDS.get(selected_formula, [])
+            num_yrs  = int(form_data.get('num_years', 1))
+            results  = []
+            for yr in range(1, num_yrs + 1):
+                data = {f: float(form_data.get(f'{f}_{yr}', form_data.get(f, 0)))
+                        for f in fields}
+                res  = _calc_vp(selected_formula, data)
+                row  = {'year': yr, 'result': round(res, 4)}
+                row.update({f: data[f] for f in fields})
+                results.append(row)
+            average_result = sum(r['result'] for r in results) / len(results) if results else 0
+        except Exception as exc:
+            error = str(exc)
+            results = None
+
+    return render_template('Valuation_Performance_Multiples.html',
+                           results=results, error=error,
+                           average_result=round(average_result, 4),
+                           unit=unit, selected_formula=selected_formula,
+                           formulaTitles=_VP_TITLES,
+                           inputFields=_VP_INPUT_FIELDS,
+                           fieldLabels=_VP_FIELD_LABELS)
 
 # ================================================================
 # --- PUBLIC ARTICLES & VIDEOS ---
