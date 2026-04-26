@@ -4756,98 +4756,137 @@ def cv_builder():
     saved_to_corner = False
     if request.method == 'POST':
         try:
+            def _f(key): return request.form.get(key, '').strip()
             cv_data = {
-                'full_name': request.form.get('full_name', '').strip(),
-                'email': request.form.get('email', '').strip(),
-                'phone': request.form.get('phone', '').strip(),
-                'location': request.form.get('location', '').strip(),
-                'linkedin': request.form.get('linkedin', '').strip(),
-                'website': request.form.get('website', '').strip(),
-                'summary': request.form.get('summary', '').strip(),
-                'skills': request.form.get('skills', '').strip(),
-                'projects': request.form.get('projects', '').strip(),
-                'awards': request.form.get('awards', '').strip(),
-                'memberships': request.form.get('memberships', '').strip(),
-                'template': request.form.get('template', 'professional'),
-                'desired_role':   request.form.get('desired_role', '').strip(),
-                'desired_sector': request.form.get('desired_sector', '').strip(),
-                'years_exp':      request.form.get('years_exp', '').strip(),
-                'availability':   request.form.get('availability', '').strip(),
+                # Personal
+                'full_name':          _f('full_name'),
+                'headline':           _f('headline'),
+                'email':              _f('email'),
+                'phone':              _f('phone'),
+                'city':               _f('city'),
+                'state':              _f('state'),
+                'zip_code':           _f('zip_code'),
+                'country':            _f('country'),
+                'linkedin':           _f('linkedin'),
+                'github':             _f('github'),
+                'website':            _f('website'),
+                'nationality':        _f('nationality'),
+                'work_authorization': _f('work_authorization'),
+                # Backwards-compat location field
+                'location': ', '.join(filter(None, [_f('city'), _f('state'), _f('country')])),
+                # Summary & skills
+                'summary':          _f('summary'),
+                'technical_skills': _f('technical_skills'),
+                'soft_skills':      _f('soft_skills'),
+                'tools':            _f('tools'),
+                'skills':           _f('skills'),
+                # Additional sections (text)
+                'awards':           _f('awards'),
+                'memberships':      _f('memberships'),
+                'volunteer':        _f('volunteer'),
+                'publications':     _f('publications'),
+                'references_type':  _f('references_type') or 'on_request',
+                'references_text':  _f('references_text'),
+                'interests':        _f('interests'),
+                # Template
+                'template': _f('template') or 'professional',
+                # Employers' corner
+                'desired_role':   _f('desired_role'),
+                'desired_sector': _f('desired_sector'),
+                'years_exp':      _f('years_exp'),
+                'availability':   _f('availability'),
+                # Dynamic sections
                 'work_experiences': [],
-                'educations': [],
-                'certifications': [],
-                'languages': [],
+                'educations':       [],
+                'certifications':   [],
+                'training':         [],
+                'projects_list':    [],
+                'languages':        [],
             }
-            # Parse dynamic work experience entries
-            i = 0
-            while True:
+            # Work experience
+            for i in range(21):
                 title = request.form.get(f'work_experiences-{i}-job_title', '')
-                if not title and i > 0:
-                    break
+                if not title and i > 0: break
                 if title:
                     cv_data['work_experiences'].append({
-                        'job_title': title,
-                        'company': request.form.get(f'work_experiences-{i}-company', ''),
-                        'location': request.form.get(f'work_experiences-{i}-location', ''),
-                        'start_date': request.form.get(f'work_experiences-{i}-start_date', ''),
-                        'end_date': request.form.get(f'work_experiences-{i}-end_date', ''),
-                        'responsibilities': request.form.get(f'work_experiences-{i}-responsibilities', ''),
+                        'job_title':       title,
+                        'company':         _f(f'work_experiences-{i}-company'),
+                        'employment_type': _f(f'work_experiences-{i}-employment_type'),
+                        'industry':        _f(f'work_experiences-{i}-industry'),
+                        'location':        _f(f'work_experiences-{i}-location'),
+                        'team_size':       _f(f'work_experiences-{i}-team_size'),
+                        'start_date':      _f(f'work_experiences-{i}-start_date'),
+                        'end_date':        _f(f'work_experiences-{i}-end_date'),
+                        'responsibilities':_f(f'work_experiences-{i}-responsibilities'),
                     })
-                i += 1
-                if i > 20:
-                    break
-            # Parse education entries
-            i = 0
-            while True:
+            # Education
+            for i in range(11):
                 degree = request.form.get(f'educations-{i}-degree', '')
-                if not degree and i > 0:
-                    break
+                if not degree and i > 0: break
                 if degree:
                     cv_data['educations'].append({
-                        'degree': degree,
-                        'institution': request.form.get(f'educations-{i}-institution', ''),
-                        'end_date': request.form.get(f'educations-{i}-end_date', ''),
-                        'honors': request.form.get(f'educations-{i}-honors', ''),
+                        'degree':       degree,
+                        'field':        _f(f'educations-{i}-field'),
+                        'institution':  _f(f'educations-{i}-institution'),
+                        'edu_location': _f(f'educations-{i}-edu_location'),
+                        'start_date':   _f(f'educations-{i}-start_date'),
+                        'end_date':     _f(f'educations-{i}-end_date'),
+                        'gpa':          _f(f'educations-{i}-gpa'),
+                        'honors':       _f(f'educations-{i}-honors'),
+                        'thesis':       _f(f'educations-{i}-thesis'),
                     })
-                i += 1
-                if i > 10:
-                    break
-            # Parse certifications
-            i = 0
-            while True:
+            # Certifications
+            for i in range(15):
                 name = request.form.get(f'certifications-{i}-name', '')
-                if not name and i > 0:
-                    break
+                if not name and i > 0: break
                 if name:
                     cv_data['certifications'].append({
-                        'name': name,
-                        'organization': request.form.get(f'certifications-{i}-organization', ''),
-                        'year': request.form.get(f'certifications-{i}-year', ''),
+                        'name':          name,
+                        'organization':  _f(f'certifications-{i}-organization'),
+                        'issue_date':    _f(f'certifications-{i}-issue_date'),
+                        'expiry_date':   _f(f'certifications-{i}-expiry_date'),
+                        'credential_id': _f(f'certifications-{i}-credential_id'),
                     })
-                i += 1
-                if i > 10:
-                    break
-            # Parse languages
-            i = 0
-            while True:
+            # Professional training
+            for i in range(15):
+                tname = request.form.get(f'training-{i}-name', '')
+                if not tname and i > 0: break
+                if tname:
+                    cv_data['training'].append({
+                        'name':     tname,
+                        'provider': _f(f'training-{i}-provider'),
+                        'year':     _f(f'training-{i}-year'),
+                        'duration': _f(f'training-{i}-duration'),
+                    })
+            # Projects
+            for i in range(15):
+                ptitle = request.form.get(f'projects_list-{i}-title', '')
+                if not ptitle and i > 0: break
+                if ptitle:
+                    cv_data['projects_list'].append({
+                        'title':       ptitle,
+                        'role':        _f(f'projects_list-{i}-role'),
+                        'description': _f(f'projects_list-{i}-description'),
+                        'tech':        _f(f'projects_list-{i}-tech'),
+                        'duration':    _f(f'projects_list-{i}-duration'),
+                        'url':         _f(f'projects_list-{i}-url'),
+                    })
+            # Languages
+            for i in range(15):
                 lang = request.form.get(f'languages-{i}-language', '')
-                if not lang and i > 0:
-                    break
+                if not lang and i > 0: break
                 if lang:
                     cv_data['languages'].append({
-                        'language': lang,
-                        'proficiency': request.form.get(f'languages-{i}-proficiency', ''),
+                        'language':    lang,
+                        'proficiency': _f(f'languages-{i}-proficiency'),
                     })
-                i += 1
-                if i > 10:
-                    break
             if not cv_data['full_name'] or not cv_data['email']:
                 error = 'Full name and email are required.'
                 cv_data = None
             elif request.form.get('employers_corner_consent'):
-                # Save/update candidate profile for Employers' Corner
                 try:
                     current_title = cv_data['work_experiences'][0]['job_title'] if cv_data['work_experiences'] else ''
+                    all_skills = ', '.join(filter(None, [cv_data['technical_skills'], cv_data['skills']]))[:500]
                     existing = CandidateProfile.query.filter_by(email=cv_data['email']).first()
                     if existing:
                         existing.full_name       = cv_data['full_name']
@@ -4856,7 +4895,7 @@ def cv_builder():
                         existing.desired_role    = cv_data['desired_role']
                         existing.desired_sector  = cv_data['desired_sector']
                         existing.current_title   = current_title
-                        existing.skills_summary  = cv_data['skills'][:500]
+                        existing.skills_summary  = all_skills
                         existing.profile_summary = cv_data['summary']
                         existing.linkedin        = cv_data['linkedin']
                         existing.years_exp       = cv_data['years_exp']
@@ -4871,7 +4910,7 @@ def cv_builder():
                             desired_role    = cv_data['desired_role'],
                             desired_sector  = cv_data['desired_sector'],
                             current_title   = current_title,
-                            skills_summary  = cv_data['skills'][:500],
+                            skills_summary  = all_skills,
                             profile_summary = cv_data['summary'],
                             linkedin        = cv_data['linkedin'],
                             years_exp       = cv_data['years_exp'],

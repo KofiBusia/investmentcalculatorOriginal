@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>{{ cv.full_name }} — CV</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Georgia',serif;background:#f0faf5;color:#1a2e22;font-size:10.5pt;line-height:1.6;}
+.page{background:#fff;max-width:800px;margin:24px auto;box-shadow:0 4px 24px rgba(0,0,0,.1);}
+/* Top accent banner */
+.cv-banner{background:linear-gradient(135deg,#064e3b,#059669);padding:32px 44px 28px;color:#fff;}
+.cv-name{font-size:28pt;font-weight:700;letter-spacing:.01em;line-height:1.1;}
+.cv-headline{font-size:11pt;color:#6ee7b7;font-style:italic;margin-top:4px;font-weight:400;}
+.cv-contact-bar{display:flex;flex-wrap:wrap;gap:4px 16px;margin-top:10px;}
+.cv-contact-item{font-size:8.5pt;color:#a7f3d0;font-family:Arial,sans-serif;display:flex;align-items:center;gap:5px;}
+/* Body */
+.cv-body{display:grid;grid-template-columns:1fr 260px;gap:0;}
+.cv-main{padding:28px 32px;border-right:1px solid #d1fae5;}
+.cv-side{padding:24px 22px;background:#f0fdf4;}
+/* Section titles */
+.sec-title{font-size:7.5pt;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#059669;border-left:4px solid #059669;padding-left:8px;margin-bottom:9px;font-family:Arial,sans-serif;}
+.sec-title-side{font-size:7pt;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:#059669;margin-bottom:6px;font-family:Arial,sans-serif;}
+.cv-section{margin-bottom:16px;}
+.cv-section-side{margin-bottom:14px;}
+/* Summary */
+.cv-summary{font-size:9.5pt;color:#374151;line-height:1.7;text-align:justify;}
+/* Experience */
+.exp-block{margin-bottom:13px;padding-bottom:11px;border-bottom:1px dashed #d1fae5;}
+.exp-block:last-child{border-bottom:none;}
+.exp-hdr{display:flex;justify-content:space-between;align-items:flex-start;}
+.exp-title{font-size:10.5pt;font-weight:700;color:#064e3b;}
+.exp-date{font-size:8pt;color:#6b7280;white-space:nowrap;padding-left:6px;font-family:Arial,sans-serif;background:#ecfdf5;padding:.1rem .45rem;border-radius:10px;}
+.exp-company{font-size:9.5pt;font-style:italic;color:#059669;margin-bottom:2px;}
+.exp-meta{font-size:8pt;color:#9ca3af;font-family:Arial,sans-serif;margin-bottom:3px;}
+.exp-resp{font-size:9.5pt;color:#374151;line-height:1.6;white-space:pre-line;}
+/* Education */
+.edu-block{margin-bottom:10px;}
+.edu-degree{font-size:10.5pt;font-weight:700;color:#064e3b;}
+.edu-inst{font-size:9pt;font-style:italic;color:#059669;}
+.edu-meta{font-size:8pt;color:#9ca3af;font-family:Arial,sans-serif;}
+/* Side section items */
+.side-item{font-size:8.5pt;color:#374151;margin-bottom:4px;display:flex;align-items:flex-start;gap:5px;line-height:1.5;word-break:break-word;}
+.side-icon{color:#059669;flex-shrink:0;margin-top:1px;}
+/* Skill tags */
+.skill-tag{display:inline-block;background:#d1fae5;color:#064e3b;border-radius:12px;padding:.1rem .5rem;margin:.15rem .08rem;font-size:8pt;font-family:Arial,sans-serif;}
+/* Cert item */
+.cert-row{font-size:8.5pt;margin-bottom:5px;color:#374151;}
+.cert-name{font-weight:700;color:#064e3b;}
+/* Lang */
+.lang-row{display:flex;justify-content:space-between;font-size:8.5pt;margin-bottom:3px;}
+.lang-name{font-weight:700;color:#064e3b;}
+.lang-prof{color:#9ca3af;font-size:7.5pt;font-family:Arial,sans-serif;}
+/* Text sections */
+.text-block{font-size:9pt;color:#374151;white-space:pre-line;line-height:1.65;}
+/* Print */
+@media print{
+  body{background:#fff;}
+  .page{margin:0;box-shadow:none;max-width:none;}
+  @page{margin:0;size:A4;}
+}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- BANNER HEADER -->
+  <div class="cv-banner">
+    <div class="cv-name">{{ cv.full_name }}</div>
+    {% if cv.headline %}<div class="cv-headline">{{ cv.headline }}</div>{% endif %}
+    <div class="cv-contact-bar">
+      {% if cv.email %}<span class="cv-contact-item">✉ {{ cv.email }}</span>{% endif %}
+      {% if cv.phone %}<span class="cv-contact-item">✆ {{ cv.phone }}</span>{% endif %}
+      {% set loc_parts = [cv.city, cv.state, cv.country] | select | list %}
+      {% if loc_parts %}<span class="cv-contact-item">⌖ {{ loc_parts | join(', ') }}</span>{% endif %}
+      {% if cv.linkedin %}<span class="cv-contact-item">🔗 {{ cv.linkedin }}</span>{% endif %}
+      {% if cv.github %}<span class="cv-contact-item">⌥ {{ cv.github }}</span>{% endif %}
+      {% if cv.website %}<span class="cv-contact-item">🌐 {{ cv.website }}</span>{% endif %}
+      {% if cv.nationality %}<span class="cv-contact-item">🌍 {{ cv.nationality }}</span>{% endif %}
+      {% if cv.work_authorization %}<span class="cv-contact-item">✅ {{ cv.work_authorization }}</span>{% endif %}
+    </div>
+  </div>
+
+  <div class="cv-body">
+
+    <!-- MAIN COLUMN -->
+    <div class="cv-main">
+
+      {% if cv.summary %}
+      <div class="cv-section">
+        <div class="sec-title">Profile</div>
+        <p class="cv-summary">{{ cv.summary }}</p>
+      </div>
+      {% endif %}
+
+      {% if cv.work_experiences %}
+      <div class="cv-section">
+        <div class="sec-title">Professional Experience</div>
+        {% for w in cv.work_experiences %}
+        <div class="exp-block">
+          <div class="exp-hdr">
+            <div class="exp-title">{{ w.job_title }}</div>
+            {% if w.start_date or w.end_date %}<div class="exp-date">{% if w.start_date %}{{ w.start_date }}{% endif %}{% if w.end_date %} – {{ w.end_date }}{% endif %}</div>{% endif %}
+          </div>
+          <div class="exp-company">{{ w.company }}{% if w.location %}, {{ w.location }}{% endif %}</div>
+          {% set meta = [] %}
+          {% if w.employment_type %}{% set _ = meta.append(w.employment_type) %}{% endif %}
+          {% if w.industry %}{% set _ = meta.append(w.industry) %}{% endif %}
+          {% if w.team_size %}{% set _ = meta.append(w.team_size) %}{% endif %}
+          {% if meta %}<div class="exp-meta">{{ meta | join(' · ') }}</div>{% endif %}
+          {% if w.responsibilities %}<div class="exp-resp">{{ w.responsibilities }}</div>{% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      {% if cv.educations %}
+      <div class="cv-section">
+        <div class="sec-title">Education</div>
+        {% for e in cv.educations %}
+        <div class="edu-block">
+          <div class="exp-hdr">
+            <div class="edu-degree">{{ e.degree }}{% if e.field %}, {{ e.field }}{% endif %}</div>
+            {% if e.end_date %}<div class="exp-date">{{ e.end_date }}</div>{% endif %}
+          </div>
+          <div class="edu-inst">{{ e.institution }}{% if e.edu_location %}, {{ e.edu_location }}{% endif %}</div>
+          {% set emeta = [] %}
+          {% if e.gpa %}{% set _ = emeta.append(e.gpa) %}{% endif %}
+          {% if e.honors %}{% set _ = emeta.append(e.honors) %}{% endif %}
+          {% if emeta %}<div class="edu-meta">{{ emeta | join(' · ') }}</div>{% endif %}
+          {% if e.thesis %}<div class="edu-meta" style="font-style:italic;">Dissertation: {{ e.thesis }}</div>{% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      {% if cv.projects_list %}
+      <div class="cv-section">
+        <div class="sec-title">Key Projects</div>
+        {% for p in cv.projects_list %}
+        <div class="exp-block">
+          <div class="exp-hdr">
+            <div class="exp-title">{{ p.title }}</div>
+            {% if p.duration %}<div class="exp-date">{{ p.duration }}</div>{% endif %}
+          </div>
+          {% if p.role %}<div class="exp-company">{{ p.role }}</div>{% endif %}
+          {% if p.description %}<div class="exp-resp">{{ p.description }}</div>{% endif %}
+          {% if p.tech %}<div class="exp-meta" style="margin-top:2px;">Tech: {{ p.tech }}</div>{% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      {% if cv.awards %}
+      <div class="cv-section">
+        <div class="sec-title">Awards &amp; Achievements</div>
+        <div class="text-block">{{ cv.awards }}</div>
+      </div>
+      {% endif %}
+
+      {% if cv.volunteer %}
+      <div class="cv-section">
+        <div class="sec-title">Volunteer &amp; Community</div>
+        <div class="text-block">{{ cv.volunteer }}</div>
+      </div>
+      {% endif %}
+
+      {% if cv.publications %}
+      <div class="cv-section">
+        <div class="sec-title">Publications &amp; Research</div>
+        <div class="text-block">{{ cv.publications }}</div>
+      </div>
+      {% endif %}
+
+      <div class="cv-section">
+        <div class="sec-title">References</div>
+        {% if cv.references_type == 'listed' and cv.references_text %}
+        <div class="text-block">{{ cv.references_text }}</div>
+        {% else %}
+        <div style="font-size:9pt;color:#9ca3af;font-style:italic;">Available upon request.</div>
+        {% endif %}
+      </div>
+
+    </div>
+
+    <!-- SIDE COLUMN -->
+    <div class="cv-side">
+
+      {% set has_skills = cv.technical_skills or cv.soft_skills or cv.tools or cv.skills %}
+      {% if has_skills %}
+      <div class="cv-section-side">
+        <div class="sec-title-side">Skills &amp; Competencies</div>
+        {% if cv.technical_skills %}
+        <div style="font-size:7.5pt;color:#059669;margin-bottom:3px;font-weight:700;">TECHNICAL</div>
+        {% for sk in cv.technical_skills.split(',') %}<span class="skill-tag">{{ sk.strip() }}</span>{% endfor %}
+        <div style="margin-bottom:6px;"></div>
+        {% endif %}
+        {% if cv.tools %}
+        <div style="font-size:7.5pt;color:#059669;margin-bottom:3px;font-weight:700;">TOOLS</div>
+        {% for sk in cv.tools.split(',') %}<span class="skill-tag">{{ sk.strip() }}</span>{% endfor %}
+        <div style="margin-bottom:6px;"></div>
+        {% endif %}
+        {% if cv.soft_skills %}<div style="font-size:8pt;color:#374151;margin-bottom:4px;"><strong style="color:#059669;font-size:7.5pt;">SOFT SKILLS:</strong> {{ cv.soft_skills }}</div>{% endif %}
+        {% if cv.skills %}<div style="font-size:8pt;color:#374151;"><strong style="color:#059669;font-size:7.5pt;">INDUSTRY:</strong> {{ cv.skills }}</div>{% endif %}
+      </div>
+      {% endif %}
+
+      {% if cv.languages %}
+      <div class="cv-section-side">
+        <div class="sec-title-side">Languages</div>
+        {% for l in cv.languages %}
+        <div class="lang-row"><span class="lang-name">{{ l.language }}</span><span class="lang-prof">{{ l.proficiency }}</span></div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      {% if cv.certifications %}
+      <div class="cv-section-side">
+        <div class="sec-title-side">Certifications</div>
+        {% for c in cv.certifications %}
+        <div class="cert-row">
+          <div class="cert-name">{{ c.name }}</div>
+          {% if c.organization %}<div style="font-size:7.5pt;color:#9ca3af;">{{ c.organization }}{% if c.issue_date %} · {{ c.issue_date }}{% endif %}</div>{% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      {% if cv.training %}
+      <div class="cv-section-side">
+        <div class="sec-title-side">Training</div>
+        {% for t in cv.training %}
+        <div class="cert-row">
+          <div class="cert-name">{{ t.name }}</div>
+          {% if t.provider %}<div style="font-size:7.5pt;color:#9ca3af;">{{ t.provider }}{% if t.year %} · {{ t.year }}{% endif %}</div>{% endif %}
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      {% if cv.memberships %}
+      <div class="cv-section-side">
+        <div class="sec-title-side">Memberships</div>
+        <div style="font-size:8.5pt;color:#374151;line-height:1.6;">{{ cv.memberships }}</div>
+      </div>
+      {% endif %}
+
+      {% if cv.interests %}
+      <div class="cv-section-side">
+        <div class="sec-title-side">Interests</div>
+        <div style="font-size:8.5pt;color:#374151;">{{ cv.interests }}</div>
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+</body>
+</html>

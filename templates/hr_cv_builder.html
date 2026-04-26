@@ -7,50 +7,58 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
-  body{font-family:'Inter',sans-serif;background:#f8fafc;}
-  .hero-gradient{background:linear-gradient(135deg,#0f172a,#1e3a5f);}
-  .card{background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.07);border:1px solid #e2e8f0;}
-  .input-field{width:100%;padding:.6rem 1rem;border:1.5px solid #e2e8f0;border-radius:.5rem;font-size:.93rem;outline:none;transition:border .2s;background:#fff;}
-  .input-field:focus{border-color:#0f4c81;box-shadow:0 0 0 3px rgba(15,76,129,.1);}
-  .section-title{font-size:1rem;font-weight:700;color:#1e3a5f;display:flex;align-items:center;gap:.5rem;margin-bottom:1rem;}
-  .tab-btn{padding:.6rem 1.5rem;border-radius:8px;font-weight:600;font-size:.9rem;border:1.5px solid #e2e8f0;background:#fff;cursor:pointer;transition:all .15s;}
-  .tab-btn.active{background:#0f4c81;color:#fff;border-color:#0f4c81;}
-  .entry-block{background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:1.25rem;position:relative;margin-bottom:.75rem;}
-  .remove-btn{position:absolute;top:.75rem;right:.75rem;background:#fee2e2;color:#dc2626;border:none;border-radius:6px;padding:.25rem .6rem;cursor:pointer;font-size:.8rem;font-weight:600;}
-  .add-btn{display:inline-flex;align-items:center;gap:.4rem;padding:.5rem 1rem;border:1.5px dashed #94a3b8;border-radius:8px;color:#475569;font-size:.88rem;font-weight:600;cursor:pointer;background:none;transition:all .15s;}
-  .add-btn:hover{border-color:#0f4c81;color:#0f4c81;background:#eff6ff;}
-  .submit-btn{background:linear-gradient(135deg,#0f4c81,#1e3a5f);color:#fff;padding:.85rem 2rem;border-radius:12px;font-weight:700;font-size:1rem;border:none;cursor:pointer;width:100%;transition:all .2s;}
-  .submit-btn:hover{opacity:.9;transform:translateY(-1px);}
-  .template-card{border:2px solid #e2e8f0;border-radius:12px;padding:1rem;cursor:pointer;transition:all .2s;text-align:center;}
-  .template-card:hover,.template-card.selected{border-color:#0f4c81;background:#eff6ff;}
-  .template-card.selected{border-width:3px;}
-  /* CV Preview styles */
-  .cv-preview-frame{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:2rem;font-family:'Georgia',serif;max-height:680px;overflow-y:auto;}
-  .cv-preview-frame h1{font-size:1.8rem;font-weight:700;margin-bottom:.25rem;}
-  .cv-preview-frame .cv-contact{font-size:.82rem;color:#475569;margin-bottom:1rem;}
-  .cv-preview-frame h2{font-size:.92rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding-bottom:.25rem;margin:.75rem 0 .5rem;border-bottom-width:2px;border-bottom-style:solid;}
-  .cv-preview-frame .job-title-cv{font-weight:700;color:#1e293b;}
-  .cv-preview-frame .company-cv{font-style:italic;}
-  .cv-preview-frame .date-cv{font-size:.8rem;color:#64748b;}
-  /* Theme: professional */
-  .theme-professional h1{color:#1e3a5f;} .theme-professional h2{color:#0f4c81;border-color:#0f4c81;} .theme-professional .company-cv{color:#0f4c81;} .theme-professional .header-bar{border-bottom:3px solid #0f4c81;}
-  /* Theme: modern */
-  .theme-modern h1{color:#4c1d95;} .theme-modern h2{color:#7c3aed;border-color:#7c3aed;} .theme-modern .company-cv{color:#7c3aed;} .theme-modern .header-bar{border-bottom:3px solid #7c3aed;background:linear-gradient(90deg,#f5f3ff,#fff);padding:.75rem;border-radius:8px 8px 0 0;}
-  /* Theme: creative */
-  .theme-creative h1{color:#064e3b;} .theme-creative h2{color:#059669;border-color:#059669;} .theme-creative .company-cv{color:#059669;} .theme-creative .header-bar{border-left:5px solid #059669;padding-left:1rem;}
+body{font-family:'Inter',sans-serif;background:#f0f4f8;}
+.hero-gradient{background:linear-gradient(135deg,#0f172a,#1e3a5f);}
+.card{background:#fff;border-radius:14px;box-shadow:0 2px 16px rgba(0,0,0,.06);border:1px solid #e8edf2;}
+.input-field{width:100%;padding:.55rem .9rem;border:1.5px solid #dde3ec;border-radius:.5rem;font-size:.875rem;outline:none;transition:border .2s,box-shadow .2s;background:#fff;color:#1e293b;}
+.input-field:focus{border-color:#1e40af;box-shadow:0 0 0 3px rgba(30,64,175,.1);}
+.section-hdr{font-size:.95rem;font-weight:700;color:#1e3a5f;display:flex;align-items:center;gap:.5rem;margin-bottom:1rem;padding-bottom:.5rem;border-bottom:2px solid #e8edf2;}
+.entry-block{background:#f8fafc;border:1px solid #e8edf2;border-radius:10px;padding:1.1rem;position:relative;margin-bottom:.65rem;}
+.remove-btn{position:absolute;top:.6rem;right:.6rem;background:#fee2e2;color:#dc2626;border:none;border-radius:5px;padding:.2rem .55rem;cursor:pointer;font-size:.75rem;font-weight:700;}
+.add-btn{display:inline-flex;align-items:center;gap:.4rem;padding:.45rem .9rem;border:1.5px dashed #94a3b8;border-radius:7px;color:#475569;font-size:.82rem;font-weight:600;cursor:pointer;background:none;transition:all .15s;}
+.add-btn:hover{border-color:#1e40af;color:#1e40af;background:#eff6ff;}
+.submit-btn{background:linear-gradient(135deg,#1e40af,#1e3a5f);color:#fff;padding:.9rem 2rem;border-radius:12px;font-weight:700;font-size:1rem;border:none;cursor:pointer;width:100%;transition:all .2s;letter-spacing:.01em;}
+.submit-btn:hover{opacity:.93;transform:translateY(-1px);}
+.tpl-card{border:2px solid #e2e8f0;border-radius:11px;padding:.9rem .7rem;cursor:pointer;transition:all .2s;text-align:center;}
+.tpl-card:hover,.tpl-card.selected{border-color:#1e40af;background:#eff6ff;}
+.tpl-card.selected{border-width:3px;}
+.section-toggle{width:100%;text-align:left;background:none;border:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-weight:700;font-size:.95rem;color:#1e3a5f;padding:0;margin-bottom:0;}
+.section-toggle .toggle-icon{color:#94a3b8;font-size:1rem;transition:transform .2s;}
+.section-toggle.open .toggle-icon{transform:rotate(45deg);}
+.collapsible{display:none;margin-top:1rem;}
+.collapsible.open{display:block;}
+.badge{display:inline-block;font-size:.7rem;font-weight:700;padding:.15rem .5rem;border-radius:999px;margin-left:.5rem;}
+.badge-opt{background:#f1f5f9;color:#64748b;}
+.badge-new{background:#dcfce7;color:#16a34a;}
+/* CV Preview */
+.cv-preview-frame{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:1.5rem 1.75rem;font-family:'Georgia',serif;max-height:780px;overflow-y:auto;font-size:.82rem;line-height:1.55;color:#1e293b;}
+.cv-preview-frame h1{font-size:1.5rem;font-weight:700;margin:0 0 .15rem;}
+.cv-preview-frame .cv-headline{font-size:.9rem;font-weight:600;margin-bottom:.2rem;}
+.cv-preview-frame .cv-contact{font-size:.73rem;color:#475569;margin-bottom:.75rem;line-height:1.7;}
+.cv-preview-frame h2{font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;padding-bottom:.2rem;margin:.7rem 0 .4rem;border-bottom-style:solid;border-bottom-width:2px;}
+.cv-preview-frame .jt{font-weight:700;color:#1e293b;font-size:.83rem;}
+.cv-preview-frame .co{font-style:italic;font-size:.8rem;}
+.cv-preview-frame .dt{font-size:.73rem;color:#64748b;}
+.cv-preview-frame .sk-tag{display:inline-block;background:#f1f5f9;border-radius:4px;padding:.08rem .45rem;margin:.15rem .1rem;font-size:.76rem;}
+/* Themes */
+.theme-professional h1{color:#1e3a5f;}.theme-professional h2{color:#1e40af;border-color:#1e40af;}.theme-professional .co{color:#1e40af;}.theme-professional .hdr-bar{border-bottom:3px solid #1e40af;padding-bottom:.6rem;margin-bottom:.6rem;}
+.theme-modern h1{color:#4c1d95;}.theme-modern h2{color:#7c3aed;border-color:#7c3aed;}.theme-modern .co{color:#7c3aed;}.theme-modern .hdr-bar{background:linear-gradient(90deg,#f5f3ff,#fff);padding:.6rem .75rem;border-radius:8px 8px 0 0;border-bottom:3px solid #7c3aed;margin-bottom:.5rem;}
+.theme-creative h1{color:#064e3b;}.theme-creative h2{color:#059669;border-color:#059669;}.theme-creative .co{color:#059669;}.theme-creative .hdr-bar{border-left:4px solid #059669;padding-left:.9rem;margin-bottom:.6rem;}
+.theme-executive h1{color:#78350f;font-size:1.7rem;text-align:center;letter-spacing:.02em;}.theme-executive h2{color:#92400e;border-color:#d97706;}.theme-executive .co{color:#92400e;}.theme-executive .hdr-bar{text-align:center;border-bottom:2px solid #d97706;padding-bottom:.5rem;margin-bottom:.5rem;}
+.theme-minimal h1{color:#000;}.theme-minimal h2{color:#000;border-color:#000;border-bottom-width:1px;}.theme-minimal .co{color:#374151;}.theme-minimal .hdr-bar{border-bottom:1px solid #000;padding-bottom:.4rem;margin-bottom:.5rem;}
 </style>
 </head>
 <body>
 
 <!-- NAVBAR -->
-<nav class="hero-gradient text-white py-4 px-6 shadow-xl">
+<nav class="hero-gradient text-white py-3.5 px-5 shadow-xl">
   <div class="max-w-7xl mx-auto flex justify-between items-center">
     <a href="/" class="text-xl font-bold flex items-center gap-2">
       <i class="fas fa-chart-line text-blue-300"></i> Invest<span class="text-blue-300">IQ</span>
     </a>
     <div class="flex gap-5 text-sm">
       <a href="/jobs" class="text-blue-200 hover:text-white">Jobs</a>
-      <a href="/cv-builder" class="text-white font-semibold border-b-2 border-blue-300">CV Builder</a>
+      <a href="/cv-builder" class="text-white font-semibold border-b-2 border-blue-300 pb-0.5">CV Builder</a>
       <a href="/employers-corner" class="text-blue-200 hover:text-white">Employers' Corner</a>
       <a href="/training" class="text-blue-200 hover:text-white">Training</a>
     </div>
@@ -58,17 +66,23 @@
 </nav>
 
 <!-- HERO -->
-<div class="hero-gradient text-white py-10 px-4">
+<div class="hero-gradient text-white py-9 px-4">
   <div class="max-w-4xl mx-auto text-center">
-    <h1 class="text-3xl font-bold mb-2"><i class="fas fa-file-alt text-blue-300 mr-3"></i>Professional CV Builder</h1>
-    <p class="text-blue-200">Create a world-class CV in minutes — downloadable as PDF or HTML.</p>
+    <h1 class="text-3xl font-extrabold mb-2"><i class="fas fa-file-alt text-blue-300 mr-3"></i>World-Class CV Builder</h1>
+    <p class="text-blue-200 text-base">Globally accepted format · ATS-optimised · US &amp; European standards · Free PDF &amp; HTML download</p>
+    <div class="flex justify-center gap-6 mt-4 text-xs text-blue-300 font-semibold flex-wrap">
+      <span><i class="fas fa-check-circle mr-1"></i> CFA / GIPS standards</span>
+      <span><i class="fas fa-check-circle mr-1"></i> Harvard &amp; Oxford format</span>
+      <span><i class="fas fa-check-circle mr-1"></i> CEFR language levels</span>
+      <span><i class="fas fa-check-circle mr-1"></i> 5 premium templates</span>
+    </div>
   </div>
 </div>
 
 <main class="max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 xl:grid-cols-2 gap-8">
 
-  <!-- FORM SIDE -->
-  <div class="space-y-5">
+  <!-- ============================================================ FORM SIDE ============================================================ -->
+  <div class="space-y-4">
 
     {% if error %}
     <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm flex items-center gap-2">
@@ -76,159 +90,345 @@
     </div>
     {% endif %}
 
-    <form method="POST" id="cv-form" class="space-y-5">
+    <form method="POST" id="cv-form" class="space-y-4">
 
-      <!-- Template Selection -->
-      <div class="card p-6">
-        <p class="section-title"><i class="fas fa-palette text-blue-600"></i> Choose Template</p>
-        <div class="grid grid-cols-3 gap-3">
-          <label class="template-card selected" id="tpl-professional" onclick="selectTemplate('professional')">
+      <!-- ── SECTION 1: Template ── -->
+      <div class="card p-5">
+        <p class="section-hdr"><i class="fas fa-palette text-blue-700"></i> Choose Template</p>
+        <div class="grid grid-cols-5 gap-2">
+          <label class="tpl-card selected" id="tpl-professional" onclick="selectTemplate('professional')">
             <input type="radio" name="template" value="professional" checked class="hidden"/>
-            <div class="w-full h-16 bg-gradient-to-b from-blue-800 to-blue-600 rounded-lg mb-2 flex items-center justify-center">
-              <i class="fas fa-briefcase text-white text-xl"></i>
-            </div>
+            <div class="w-full h-12 bg-gradient-to-b from-blue-900 to-blue-600 rounded-lg mb-1.5 flex items-center justify-center"><i class="fas fa-briefcase text-white"></i></div>
             <p class="text-xs font-bold text-gray-700">Professional</p>
+            <p class="text-xs text-gray-400">Finance · Law · Banking</p>
           </label>
-          <label class="template-card" id="tpl-modern" onclick="selectTemplate('modern')">
+          <label class="tpl-card" id="tpl-modern" onclick="selectTemplate('modern')">
             <input type="radio" name="template" value="modern" class="hidden"/>
-            <div class="w-full h-16 bg-gradient-to-b from-purple-700 to-purple-500 rounded-lg mb-2 flex items-center justify-center">
-              <i class="fas fa-rocket text-white text-xl"></i>
-            </div>
+            <div class="w-full h-12 bg-gradient-to-b from-violet-700 to-violet-500 rounded-lg mb-1.5 flex items-center justify-center"><i class="fas fa-rocket text-white"></i></div>
             <p class="text-xs font-bold text-gray-700">Modern</p>
+            <p class="text-xs text-gray-400">Tech · Consulting</p>
           </label>
-          <label class="template-card" id="tpl-creative" onclick="selectTemplate('creative')">
+          <label class="tpl-card" id="tpl-creative" onclick="selectTemplate('creative')">
             <input type="radio" name="template" value="creative" class="hidden"/>
-            <div class="w-full h-16 bg-gradient-to-b from-emerald-700 to-emerald-500 rounded-lg mb-2 flex items-center justify-center">
-              <i class="fas fa-star text-white text-xl"></i>
-            </div>
+            <div class="w-full h-12 bg-gradient-to-b from-emerald-700 to-emerald-500 rounded-lg mb-1.5 flex items-center justify-center"><i class="fas fa-star text-white"></i></div>
             <p class="text-xs font-bold text-gray-700">Creative</p>
+            <p class="text-xs text-gray-400">Marketing · Design</p>
+          </label>
+          <label class="tpl-card" id="tpl-executive" onclick="selectTemplate('executive')">
+            <input type="radio" name="template" value="executive" class="hidden"/>
+            <div class="w-full h-12 bg-gradient-to-b from-amber-700 to-amber-500 rounded-lg mb-1.5 flex items-center justify-center"><i class="fas fa-crown text-white"></i></div>
+            <p class="text-xs font-bold text-gray-700">Executive</p>
+            <p class="text-xs text-gray-400">C-Suite · Directors</p>
+          </label>
+          <label class="tpl-card" id="tpl-minimal" onclick="selectTemplate('minimal')">
+            <input type="radio" name="template" value="minimal" class="hidden"/>
+            <div class="w-full h-12 bg-gradient-to-b from-gray-700 to-gray-500 rounded-lg mb-1.5 flex items-center justify-center"><i class="fas fa-align-left text-white"></i></div>
+            <p class="text-xs font-bold text-gray-700">Minimal / ATS</p>
+            <p class="text-xs text-gray-400">Max ATS score</p>
           </label>
         </div>
       </div>
 
-      <!-- Personal Info -->
-      <div class="card p-6">
-        <p class="section-title"><i class="fas fa-user text-blue-600"></i> Personal Information</p>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <!-- ── SECTION 2: Personal Information ── -->
+      <div class="card p-5">
+        <p class="section-hdr"><i class="fas fa-user text-blue-700"></i> Personal Information</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
-            <label class="block text-xs font-semibold text-gray-500 mb-1">Full Name *</label>
-            <input type="text" name="full_name" required class="input-field" placeholder="Kofi Mensah" value="{{ cv_data.full_name if cv_data else '' }}"/>
+            <label class="block text-xs font-semibold text-gray-500 mb-1">Full Name <span class="text-red-400">*</span></label>
+            <input type="text" name="full_name" required class="input-field" placeholder="e.g. Kofi Mensah" value="{{ cv_data.full_name if cv_data else '' }}"/>
           </div>
           <div>
-            <label class="block text-xs font-semibold text-gray-500 mb-1">Email Address *</label>
+            <label class="block text-xs font-semibold text-gray-500 mb-1">Professional Title / Headline</label>
+            <input type="text" name="headline" class="input-field" placeholder="e.g. Senior Investment Analyst | CFA" value="{{ cv_data.headline if cv_data else '' }}"/>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-500 mb-1">Email Address <span class="text-red-400">*</span></label>
             <input type="email" name="email" required class="input-field" placeholder="kofi@example.com" value="{{ cv_data.email if cv_data else '' }}"/>
           </div>
           <div>
-            <label class="block text-xs font-semibold text-gray-500 mb-1">Phone Number</label>
-            <input type="tel" name="phone" class="input-field" placeholder="+233 XX XXX XXXX" value="{{ cv_data.phone if cv_data else '' }}"/>
+            <label class="block text-xs font-semibold text-gray-500 mb-1">Phone (with country code)</label>
+            <input type="tel" name="phone" class="input-field" placeholder="+1 (555) 000-0000" value="{{ cv_data.phone if cv_data else '' }}"/>
           </div>
           <div>
-            <label class="block text-xs font-semibold text-gray-500 mb-1">Location (City, Country)</label>
-            <input type="text" name="location" class="input-field" placeholder="Accra, Ghana" value="{{ cv_data.location if cv_data else '' }}"/>
+            <label class="block text-xs font-semibold text-gray-500 mb-1">City</label>
+            <input type="text" name="city" class="input-field" placeholder="New York" value="{{ cv_data.city if cv_data else '' }}"/>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-500 mb-1">State / Province</label>
+            <input type="text" name="state" class="input-field" placeholder="NY" value="{{ cv_data.state if cv_data else '' }}"/>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-500 mb-1">Postal / ZIP Code</label>
+            <input type="text" name="zip_code" class="input-field" placeholder="10001" value="{{ cv_data.zip_code if cv_data else '' }}"/>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-500 mb-1">Country</label>
+            <input type="text" name="country" class="input-field" placeholder="United States" value="{{ cv_data.country if cv_data else '' }}"/>
           </div>
           <div>
             <label class="block text-xs font-semibold text-gray-500 mb-1">LinkedIn URL</label>
             <input type="url" name="linkedin" class="input-field" placeholder="linkedin.com/in/yourname" value="{{ cv_data.linkedin if cv_data else '' }}"/>
           </div>
           <div>
-            <label class="block text-xs font-semibold text-gray-500 mb-1">Website / Portfolio</label>
-            <input type="url" name="website" class="input-field" placeholder="yourwebsite.com" value="{{ cv_data.website if cv_data else '' }}"/>
+            <label class="block text-xs font-semibold text-gray-500 mb-1">GitHub / Portfolio URL</label>
+            <input type="url" name="github" class="input-field" placeholder="github.com/yourname" value="{{ cv_data.github if cv_data else '' }}"/>
           </div>
-        </div>
-        <div class="mt-4">
-          <label class="block text-xs font-semibold text-gray-500 mb-1">Professional Summary</label>
-          <textarea name="summary" rows="4" class="input-field" placeholder="A seasoned finance professional with 8+ years of experience in investment analysis, portfolio management, and risk assessment...">{{ cv_data.summary if cv_data else '' }}</textarea>
-        </div>
-        <div class="mt-4">
-          <label class="block text-xs font-semibold text-gray-500 mb-1">Key Skills (comma-separated)</label>
-          <input type="text" name="skills" class="input-field" placeholder="Financial Modelling, DCF Analysis, Portfolio Management, CFA, Python, Excel" value="{{ cv_data.skills if cv_data else '' }}"/>
+          <div>
+            <label class="block text-xs font-semibold text-gray-500 mb-1">Personal Website</label>
+            <input type="url" name="website" class="input-field" placeholder="www.yoursite.com" value="{{ cv_data.website if cv_data else '' }}"/>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-500 mb-1">Nationality <span class="badge badge-opt">Optional</span></label>
+            <input type="text" name="nationality" class="input-field" placeholder="British / Ghanaian / American" value="{{ cv_data.nationality if cv_data else '' }}"/>
+          </div>
+          <div class="md:col-span-2">
+            <label class="block text-xs font-semibold text-gray-500 mb-1">Work Authorisation / Visa Status <span class="badge badge-opt">Optional — recommended for international applications</span></label>
+            <select name="work_authorization" class="input-field">
+              <option value="">— Select —</option>
+              {% for wa in ['Citizen / Permanent Resident','Authorised to work — no sponsorship required','Requires visa sponsorship','EU / EEA citizen','UK settled status','Open work permit','Student work permit','Other'] %}
+              <option value="{{ wa }}" {% if cv_data and cv_data.work_authorization == wa %}selected{% endif %}>{{ wa }}</option>
+              {% endfor %}
+            </select>
+          </div>
         </div>
       </div>
 
-      <!-- Work Experience -->
-      <div class="card p-6">
-        <p class="section-title"><i class="fas fa-briefcase text-blue-600"></i> Work Experience</p>
+      <!-- ── SECTION 3: Professional Summary ── -->
+      <div class="card p-5">
+        <p class="section-hdr"><i class="fas fa-align-left text-blue-700"></i> Professional Summary</p>
+        <textarea name="summary" rows="4" class="input-field" placeholder="A results-driven finance professional with 8+ years of experience in investment analysis, portfolio management, and risk assessment across US and European capital markets. CFA Charterholder with a track record of generating alpha and managing multi-asset portfolios exceeding $500M AUM.">{{ cv_data.summary if cv_data else '' }}</textarea>
+        <p class="text-xs text-gray-400 mt-1.5"><i class="fas fa-lightbulb text-amber-400 mr-1"></i>Tip: 3–5 sentences. Lead with your years of experience, area of expertise, and 1–2 measurable achievements.</p>
+      </div>
+
+      <!-- ── SECTION 4: Skills & Competencies ── -->
+      <div class="card p-5">
+        <p class="section-hdr"><i class="fas fa-tools text-blue-700"></i> Skills &amp; Competencies</p>
+        <div class="space-y-3">
+          <div>
+            <label class="block text-xs font-semibold text-gray-500 mb-1">Technical / Hard Skills <span class="text-gray-400 font-normal">(comma-separated)</span></label>
+            <input type="text" name="technical_skills" class="input-field" placeholder="Financial Modelling, DCF Valuation, LBO Analysis, Excel VBA, Bloomberg Terminal, Python, SQL" value="{{ cv_data.technical_skills if cv_data else '' }}"/>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-500 mb-1">Soft Skills <span class="text-gray-400 font-normal">(comma-separated)</span></label>
+            <input type="text" name="soft_skills" class="input-field" placeholder="Leadership, Cross-functional collaboration, Stakeholder management, Presentation, Analytical thinking" value="{{ cv_data.soft_skills if cv_data else '' }}"/>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-500 mb-1">Tools &amp; Technologies <span class="text-gray-400 font-normal">(comma-separated)</span></label>
+            <input type="text" name="tools" class="input-field" placeholder="Bloomberg, Reuters Eikon, FactSet, Morningstar, Capital IQ, Power BI, Tableau, SAP, Salesforce" value="{{ cv_data.tools if cv_data else '' }}"/>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-500 mb-1">Industry Expertise <span class="text-gray-400 font-normal">(comma-separated)</span></label>
+            <input type="text" name="skills" class="input-field" placeholder="Asset Management, Private Equity, Fixed Income, FX Trading, Risk Management, ESG Investing" value="{{ cv_data.skills if cv_data else '' }}"/>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── SECTION 5: Work Experience ── -->
+      <div class="card p-5">
+        <p class="section-hdr"><i class="fas fa-briefcase text-blue-700"></i> Work Experience</p>
         <div id="work-entries">
           <div class="entry-block" data-index="0">
             <button type="button" class="remove-btn" onclick="removeEntry(this,'work-entries')"><i class="fas fa-times"></i></button>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div><label class="block text-xs font-semibold text-gray-500 mb-1">Job Title *</label>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+              <div><label class="block text-xs font-semibold text-gray-500 mb-1">Job Title <span class="text-red-400">*</span></label>
                 <input type="text" name="work_experiences-0-job_title" class="input-field" placeholder="Senior Investment Analyst" required/></div>
-              <div><label class="block text-xs font-semibold text-gray-500 mb-1">Company *</label>
-                <input type="text" name="work_experiences-0-company" class="input-field" placeholder="Ghana Commercial Bank" required/></div>
-              <div><label class="block text-xs font-semibold text-gray-500 mb-1">Location</label>
-                <input type="text" name="work_experiences-0-location" class="input-field" placeholder="Accra, Ghana"/></div>
-              <div class="grid grid-cols-2 gap-2">
-                <div><label class="block text-xs font-semibold text-gray-500 mb-1">Start Date</label>
-                  <input type="text" name="work_experiences-0-start_date" class="input-field" placeholder="01/2020"/></div>
-                <div><label class="block text-xs font-semibold text-gray-500 mb-1">End Date</label>
-                  <input type="text" name="work_experiences-0-end_date" class="input-field" placeholder="Present"/></div>
-              </div>
+              <div><label class="block text-xs font-semibold text-gray-500 mb-1">Company / Organisation <span class="text-red-400">*</span></label>
+                <input type="text" name="work_experiences-0-company" class="input-field" placeholder="BlackRock" required/></div>
+              <div><label class="block text-xs font-semibold text-gray-500 mb-1">Employment Type</label>
+                <select name="work_experiences-0-employment_type" class="input-field">
+                  <option value="">— Select —</option>
+                  <option>Full-time</option><option>Part-time</option><option>Contract</option>
+                  <option>Freelance / Consulting</option><option>Internship</option><option>Apprenticeship</option><option>Secondment</option>
+                </select></div>
+              <div><label class="block text-xs font-semibold text-gray-500 mb-1">Industry / Sector</label>
+                <input type="text" name="work_experiences-0-industry" class="input-field" placeholder="Asset Management" /></div>
+              <div><label class="block text-xs font-semibold text-gray-500 mb-1">Location (City, Country)</label>
+                <input type="text" name="work_experiences-0-location" class="input-field" placeholder="New York, USA"/></div>
+              <div><label class="block text-xs font-semibold text-gray-500 mb-1">Team / Reports Size <span class="badge badge-opt">Optional</span></label>
+                <input type="text" name="work_experiences-0-team_size" class="input-field" placeholder="e.g. Managed team of 8 analysts"/></div>
+              <div><label class="block text-xs font-semibold text-gray-500 mb-1">Start Date</label>
+                <input type="text" name="work_experiences-0-start_date" class="input-field" placeholder="Jan 2020"/></div>
+              <div><label class="block text-xs font-semibold text-gray-500 mb-1">End Date</label>
+                <input type="text" name="work_experiences-0-end_date" class="input-field" placeholder="Present"/></div>
             </div>
-            <div class="mt-3">
-              <label class="block text-xs font-semibold text-gray-500 mb-1">Key Responsibilities & Achievements</label>
-              <textarea name="work_experiences-0-responsibilities" rows="3" class="input-field" placeholder="• Led a team of 5 analysts to deliver DCF valuations for 20+ listed companies&#10;• Increased portfolio returns by 18% YoY through systematic rebalancing"></textarea>
+            <div class="mt-2.5">
+              <label class="block text-xs font-semibold text-gray-500 mb-1">Key Responsibilities &amp; Achievements</label>
+              <textarea name="work_experiences-0-responsibilities" rows="4" class="input-field" placeholder="• Led a team of 8 analysts in delivering DCF and LBO valuations for 25+ listed companies&#10;• Increased portfolio Sharpe ratio from 0.82 to 1.34 through systematic factor rebalancing&#10;• Spearheaded ESG integration framework adopted across $2.4B AUM"></textarea>
             </div>
           </div>
         </div>
-        <button type="button" class="add-btn mt-2" onclick="addWorkEntry()"><i class="fas fa-plus"></i> Add Experience</button>
+        <button type="button" class="add-btn mt-1" onclick="addWorkEntry()"><i class="fas fa-plus"></i> Add Another Role</button>
       </div>
 
-      <!-- Education -->
-      <div class="card p-6">
-        <p class="section-title"><i class="fas fa-graduation-cap text-blue-600"></i> Education</p>
+      <!-- ── SECTION 6: Education ── -->
+      <div class="card p-5">
+        <p class="section-hdr"><i class="fas fa-graduation-cap text-blue-700"></i> Education</p>
         <div id="edu-entries">
           <div class="entry-block" data-index="0">
             <button type="button" class="remove-btn" onclick="removeEntry(this,'edu-entries')"><i class="fas fa-times"></i></button>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div><label class="block text-xs font-semibold text-gray-500 mb-1">Degree / Certificate *</label>
-                <input type="text" name="educations-0-degree" class="input-field" placeholder="BSc Finance" required/></div>
-              <div><label class="block text-xs font-semibold text-gray-500 mb-1">Institution *</label>
-                <input type="text" name="educations-0-institution" class="input-field" placeholder="University of Ghana" required/></div>
-              <div><label class="block text-xs font-semibold text-gray-500 mb-1">Graduation Year</label>
-                <input type="text" name="educations-0-end_date" class="input-field" placeholder="06/2018"/></div>
-              <div><label class="block text-xs font-semibold text-gray-500 mb-1">Honors / Awards (Optional)</label>
-                <input type="text" name="educations-0-honors" class="input-field" placeholder="First Class Honours"/></div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+              <div><label class="block text-xs font-semibold text-gray-500 mb-1">Degree Type <span class="text-red-400">*</span></label>
+                <select name="educations-0-degree" class="input-field" required>
+                  <option value="">— Select —</option>
+                  <option>Doctor of Philosophy (PhD)</option><option>Doctor of Business Administration (DBA)</option>
+                  <option>Master of Business Administration (MBA)</option><option>Master of Science (MSc)</option>
+                  <option>Master of Arts (MA)</option><option>Master of Finance (MFin)</option>
+                  <option>Bachelor of Science (BSc)</option><option>Bachelor of Arts (BA)</option>
+                  <option>Bachelor of Commerce (BCom)</option><option>Bachelor of Laws (LLB)</option>
+                  <option>Bachelor of Engineering (BEng)</option>
+                  <option>Postgraduate Diploma (PGDip)</option><option>Postgraduate Certificate (PGCert)</option>
+                  <option>Higher National Diploma (HND)</option><option>Diploma</option>
+                  <option>Associate Degree</option><option>Foundation Degree</option><option>Certificate</option>
+                </select></div>
+              <div><label class="block text-xs font-semibold text-gray-500 mb-1">Field of Study / Major <span class="text-red-400">*</span></label>
+                <input type="text" name="educations-0-field" class="input-field" placeholder="Finance &amp; Investment Management" required/></div>
+              <div class="md:col-span-2"><label class="block text-xs font-semibold text-gray-500 mb-1">Institution / University Name <span class="text-red-400">*</span></label>
+                <input type="text" name="educations-0-institution" class="input-field" placeholder="London School of Economics" required/></div>
+              <div><label class="block text-xs font-semibold text-gray-500 mb-1">Institution Location (City, Country)</label>
+                <input type="text" name="educations-0-edu_location" class="input-field" placeholder="London, UK"/></div>
+              <div><label class="block text-xs font-semibold text-gray-500 mb-1">Graduation Date</label>
+                <input type="text" name="educations-0-end_date" class="input-field" placeholder="Jun 2018"/></div>
+              <div><label class="block text-xs font-semibold text-gray-500 mb-1">GPA / Grade / Classification <span class="badge badge-opt">Optional</span></label>
+                <input type="text" name="educations-0-gpa" class="input-field" placeholder="3.9/4.0 · First Class · Distinction · Cum Laude"/></div>
+              <div><label class="block text-xs font-semibold text-gray-500 mb-1">Honours / Awards <span class="badge badge-opt">Optional</span></label>
+                <input type="text" name="educations-0-honors" class="input-field" placeholder="Dean's List · Scholarship Award"/></div>
+              <div class="md:col-span-2"><label class="block text-xs font-semibold text-gray-500 mb-1">Dissertation / Thesis Title <span class="badge badge-opt">Optional</span></label>
+                <input type="text" name="educations-0-thesis" class="input-field" placeholder="The Impact of ESG Factors on Equity Risk Premiums in Emerging Markets"/></div>
             </div>
           </div>
         </div>
-        <button type="button" class="add-btn mt-2" onclick="addEduEntry()"><i class="fas fa-plus"></i> Add Education</button>
+        <button type="button" class="add-btn mt-1" onclick="addEduEntry()"><i class="fas fa-plus"></i> Add Another Qualification</button>
       </div>
 
-      <!-- Certifications -->
-      <div class="card p-6">
-        <p class="section-title"><i class="fas fa-certificate text-blue-600"></i> Certifications</p>
-        <div id="cert-entries"></div>
-        <button type="button" class="add-btn" onclick="addCertEntry()"><i class="fas fa-plus"></i> Add Certification</button>
+      <!-- ── SECTION 7: Certifications ── -->
+      <div class="card p-5">
+        <button type="button" class="section-toggle" onclick="toggleSection('sec-certs','ico-certs',this)">
+          <span class="flex items-center gap-2"><i class="fas fa-certificate text-blue-700"></i> Certifications &amp; Professional Qualifications</span>
+          <span id="ico-certs" class="toggle-icon">＋</span>
+        </button>
+        <div id="sec-certs" class="collapsible">
+          <div id="cert-entries"></div>
+          <button type="button" class="add-btn mt-1" onclick="addCertEntry()"><i class="fas fa-plus"></i> Add Certification</button>
+          <p class="text-xs text-gray-400 mt-2"><i class="fas fa-lightbulb text-amber-400 mr-1"></i>Examples: CFA Charterholder, ACCA, FRM, CIMA, CPA, PRM, CFP, PRINCE2, AWS Certified</p>
+        </div>
       </div>
 
-      <!-- Languages -->
-      <div class="card p-6">
-        <p class="section-title"><i class="fas fa-language text-blue-600"></i> Languages</p>
-        <div id="lang-entries"></div>
-        <button type="button" class="add-btn" onclick="addLangEntry()"><i class="fas fa-plus"></i> Add Language</button>
+      <!-- ── SECTION 8: Professional Training ── -->
+      <div class="card p-5">
+        <button type="button" class="section-toggle" onclick="toggleSection('sec-training','ico-training',this)">
+          <span class="flex items-center gap-2"><i class="fas fa-chalkboard-teacher text-blue-700"></i> Professional Training &amp; Courses <span class="badge badge-new">NEW</span></span>
+          <span id="ico-training" class="toggle-icon">＋</span>
+        </button>
+        <div id="sec-training" class="collapsible">
+          <div id="training-entries"></div>
+          <button type="button" class="add-btn mt-1" onclick="addTrainingEntry()"><i class="fas fa-plus"></i> Add Training / Course</button>
+        </div>
       </div>
 
-      <!-- Additional Info -->
-      <div class="card p-6">
-        <p class="section-title"><i class="fas fa-plus-circle text-blue-600"></i> Additional Sections</p>
-        <div class="space-y-4">
-          <div>
-            <label class="block text-xs font-semibold text-gray-500 mb-1">Projects & Portfolio</label>
-            <textarea name="projects" rows="3" class="input-field" placeholder="• Built a DCF model that identified 3 undervalued stocks on the GSE&#10;• Developed a Python-based risk scoring system for SME lending">{{ cv_data.projects if cv_data else '' }}</textarea>
+      <!-- ── SECTION 9: Projects ── -->
+      <div class="card p-5">
+        <button type="button" class="section-toggle" onclick="toggleSection('sec-projects','ico-projects',this)">
+          <span class="flex items-center gap-2"><i class="fas fa-project-diagram text-blue-700"></i> Key Projects &amp; Portfolio <span class="badge badge-new">NEW</span></span>
+          <span id="ico-projects" class="toggle-icon">＋</span>
+        </button>
+        <div id="sec-projects" class="collapsible">
+          <div id="project-entries"></div>
+          <button type="button" class="add-btn mt-1" onclick="addProjectEntry()"><i class="fas fa-plus"></i> Add Project</button>
+        </div>
+      </div>
+
+      <!-- ── SECTION 10: Languages ── -->
+      <div class="card p-5">
+        <button type="button" class="section-toggle" onclick="toggleSection('sec-langs','ico-langs',this)">
+          <span class="flex items-center gap-2"><i class="fas fa-language text-blue-700"></i> Languages</span>
+          <span id="ico-langs" class="toggle-icon">＋</span>
+        </button>
+        <div id="sec-langs" class="collapsible">
+          <div id="lang-entries"></div>
+          <button type="button" class="add-btn mt-1" onclick="addLangEntry()"><i class="fas fa-plus"></i> Add Language</button>
+          <p class="text-xs text-gray-400 mt-2"><i class="fas fa-info-circle text-blue-400 mr-1"></i>CEFR levels: A1 (Beginner) → A2 → B1 (Intermediate) → B2 (Upper-Intermediate) → C1 (Advanced) → C2 (Mastery) → Native</p>
+        </div>
+      </div>
+
+      <!-- ── SECTION 11: Awards & Honors ── -->
+      <div class="card p-5">
+        <button type="button" class="section-toggle" onclick="toggleSection('sec-awards','ico-awards',this)">
+          <span class="flex items-center gap-2"><i class="fas fa-trophy text-blue-700"></i> Awards, Honours &amp; Achievements</span>
+          <span id="ico-awards" class="toggle-icon">＋</span>
+        </button>
+        <div id="sec-awards" class="collapsible">
+          <textarea name="awards" rows="3" class="input-field" placeholder="• CFA Institute Research Challenge 2023 — National Finalist&#10;• Best Analyst Award — Stanbic Bank, 2022&#10;• Dean's Excellence Award — Wharton School, 2019&#10;• Forbes 30 Under 30 Finance — 2021">{{ cv_data.awards if cv_data else '' }}</textarea>
+        </div>
+      </div>
+
+      <!-- ── SECTION 12: Volunteer Experience ── -->
+      <div class="card p-5">
+        <button type="button" class="section-toggle" onclick="toggleSection('sec-volunteer','ico-volunteer',this)">
+          <span class="flex items-center gap-2"><i class="fas fa-hands-helping text-blue-700"></i> Volunteer Experience &amp; Community Involvement <span class="badge badge-new">NEW</span></span>
+          <span id="ico-volunteer" class="toggle-icon">＋</span>
+        </button>
+        <div id="sec-volunteer" class="collapsible">
+          <textarea name="volunteer" rows="3" class="input-field" placeholder="• Financial Literacy Mentor — Junior Achievement Africa (2021–Present)&#10;• Pro Bono CFO — GreenStart NGO, Accra (6 months, 2020)&#10;• Board Member — CFA Society Ghana (2022–Present)">{{ cv_data.volunteer if cv_data else '' }}</textarea>
+        </div>
+      </div>
+
+      <!-- ── SECTION 13: Publications & Research ── -->
+      <div class="card p-5">
+        <button type="button" class="section-toggle" onclick="toggleSection('sec-pubs','ico-pubs',this)">
+          <span class="flex items-center gap-2"><i class="fas fa-book-open text-blue-700"></i> Publications, Research &amp; Speaking Engagements <span class="badge badge-new">NEW</span></span>
+          <span id="ico-pubs" class="toggle-icon">＋</span>
+        </button>
+        <div id="sec-pubs" class="collapsible">
+          <textarea name="publications" rows="3" class="input-field" placeholder="• 'Frontier Markets Risk Premium Decomposition' — Journal of Finance, 2023&#10;• Keynote Speaker — African Capital Markets Conference, Nairobi 2022&#10;• Co-author: 'ESG Integration in Emerging Market Portfolios' — CFA Institute Working Paper, 2021">{{ cv_data.publications if cv_data else '' }}</textarea>
+        </div>
+      </div>
+
+      <!-- ── SECTION 14: Professional Memberships ── -->
+      <div class="card p-5">
+        <button type="button" class="section-toggle" onclick="toggleSection('sec-members','ico-members',this)">
+          <span class="flex items-center gap-2"><i class="fas fa-users text-blue-700"></i> Professional Memberships &amp; Affiliations</span>
+          <span id="ico-members" class="toggle-icon">＋</span>
+        </button>
+        <div id="sec-members" class="collapsible">
+          <textarea name="memberships" rows="2" class="input-field" placeholder="CFA Institute (Charterholder) · ICAG (Associate) · CIMA (Fellow) · CFA Society Ghana (Board Member) · ACCA (Member)">{{ cv_data.memberships if cv_data else '' }}</textarea>
+        </div>
+      </div>
+
+      <!-- ── SECTION 15: References ── -->
+      <div class="card p-5">
+        <button type="button" class="section-toggle" onclick="toggleSection('sec-refs','ico-refs',this)">
+          <span class="flex items-center gap-2"><i class="fas fa-address-book text-blue-700"></i> References</span>
+          <span id="ico-refs" class="toggle-icon">＋</span>
+        </button>
+        <div id="sec-refs" class="collapsible">
+          <div class="mb-3">
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="radio" name="references_type" value="on_request" checked onchange="toggleRefs(this)"/>
+              <span class="text-sm font-semibold text-gray-700">Available upon request</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer mt-2">
+              <input type="radio" name="references_type" value="listed" onchange="toggleRefs(this)"/>
+              <span class="text-sm font-semibold text-gray-700">List references now</span>
+            </label>
           </div>
-          <div>
-            <label class="block text-xs font-semibold text-gray-500 mb-1">Awards & Achievements</label>
-            <textarea name="awards" rows="2" class="input-field" placeholder="• CFA Institute Research Challenge 2022 — Top 5 Finalist&#10;• Best Analyst Award, XYZ Bank 2021">{{ cv_data.awards if cv_data else '' }}</textarea>
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-gray-500 mb-1">Professional Memberships</label>
-            <input type="text" name="memberships" class="input-field" placeholder="CFA Institute, ICAG, CIMA" value="{{ cv_data.memberships if cv_data else '' }}"/>
+          <div id="ref-detail" style="display:none;">
+            <textarea name="references_text" rows="4" class="input-field" placeholder="Dr. Jane Smith — Head of Research, Goldman Sachs | jane.smith@gs.com | +1 212 000 0000&#10;Mr. John Osei — Partner, McKinsey &amp; Company | j.osei@mckinsey.com | +44 20 0000 0000">{{ cv_data.references_text if cv_data else '' }}</textarea>
           </div>
         </div>
       </div>
 
-      <!-- EMPLOYERS' CORNER OPT-IN -->
+      <!-- ── SECTION 16: Interests ── -->
+      <div class="card p-5">
+        <button type="button" class="section-toggle" onclick="toggleSection('sec-interests','ico-interests',this)">
+          <span class="flex items-center gap-2"><i class="fas fa-heart text-blue-700"></i> Interests &amp; Hobbies <span class="badge badge-opt">Optional</span></span>
+          <span id="ico-interests" class="toggle-icon">＋</span>
+        </button>
+        <div id="sec-interests" class="collapsible">
+          <input type="text" name="interests" class="input-field" placeholder="Investment research, Algorithmic trading, Chess, Endurance running, African capital markets advocacy" value="{{ cv_data.interests if cv_data else '' }}"/>
+        </div>
+      </div>
+
+      <!-- ── EMPLOYERS' CORNER OPT-IN ── -->
       <div class="card p-5" style="border:2px solid #fbbf24;background:linear-gradient(135deg,#fffbeb,#fff);">
         <div class="flex items-center gap-3 mb-4">
           <div style="width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,#f59e0b,#d97706);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
@@ -236,64 +436,37 @@
           </div>
           <div>
             <p class="font-bold text-gray-800 text-sm">List Yourself in the Employers' Corner</p>
-            <p class="text-xs text-gray-500">Get discovered by companies hiring right now</p>
+            <p class="text-xs text-gray-500">Get discovered by top companies and recruiters hiring right now</p>
           </div>
         </div>
-
         {% if saved_to_corner %}
         <div class="flex items-center gap-2 bg-green-50 border border-green-200 text-green-700 rounded-lg px-3 py-2 mb-3 text-sm">
           <i class="fas fa-check-circle"></i> Your profile has been saved to the Employers' Corner!
           <a href="/employers-corner" class="underline font-semibold ml-1">View it</a>
         </div>
         {% endif %}
-
         <label class="flex items-center gap-3 cursor-pointer mb-4 select-none">
           <input type="checkbox" name="employers_corner_consent" id="ecConsent" value="1"
                  class="w-5 h-5 rounded border-gray-300 text-yellow-500"
                  {% if saved_to_corner %}checked{% endif %}
                  onchange="document.getElementById('ecFields').style.display=this.checked?'block':'none'"/>
-          <span class="text-sm font-semibold text-gray-700">Yes, add my profile to the Employers' Corner so recruiters can find me</span>
+          <span class="text-sm font-semibold text-gray-700">Yes, add my profile so recruiters can find me</span>
         </label>
-
         <div id="ecFields" style="display:{% if cv_data and cv_data.desired_role %}block{% else %}none{% endif %};">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
               <label class="block text-xs font-semibold text-gray-500 mb-1">Role / Job Title I'm Looking For <span class="text-red-400">*</span></label>
-              <input type="text" name="desired_role" id="desiredRoleInput"
-                     list="job-titles-list"
-                     class="input-field" placeholder="e.g. Investment Analyst, Finance Manager…"
-                     value="{{ cv_data.desired_role if cv_data else '' }}"/>
+              <input type="text" name="desired_role" list="job-titles-list" class="input-field" placeholder="e.g. Portfolio Manager, CFO…" value="{{ cv_data.desired_role if cv_data else '' }}"/>
               <datalist id="job-titles-list">
-                {% for job in jobs %}
-                <option value="{{ job.title }}">{{ job.title }} — {{ job.company }}</option>
-                {% endfor %}
-                <option value="Investment Analyst">
-                <option value="Financial Analyst">
-                <option value="Portfolio Manager">
-                <option value="Risk Analyst">
-                <option value="Fund Manager">
-                <option value="Credit Analyst">
-                <option value="Equity Research Analyst">
-                <option value="Finance Manager">
-                <option value="Chief Financial Officer">
-                <option value="Accountant">
-                <option value="Auditor">
-                <option value="Banking Officer">
-                <option value="Relationship Manager">
-                <option value="Compliance Officer">
-                <option value="Insurance Underwriter">
-                <option value="Actuary">
-                <option value="FinTech Developer">
-                <option value="Data Analyst">
-                <option value="Economist">
+                {% for job in jobs %}<option value="{{ job.title }}">{{ job.title }} — {{ job.company }}</option>{% endfor %}
+                {% for jt in ['Investment Analyst','Financial Analyst','Portfolio Manager','Fund Manager','Risk Analyst','Credit Analyst','Equity Research Analyst','Fixed Income Analyst','Quantitative Analyst','Compliance Officer','Chief Financial Officer','Finance Director','Finance Manager','Treasury Manager','FP&A Manager','Accountant (Chartered)','Auditor','Actuary','Insurance Underwriter','Banking Officer','Relationship Manager','FinTech Developer','Data Analyst / Scientist','Economist','ESG Analyst'] %}<option value="{{ jt }}">{% endfor %}
               </datalist>
             </div>
             <div>
               <label class="block text-xs font-semibold text-gray-500 mb-1">Sector / Industry</label>
               <select name="desired_sector" class="input-field">
-                <option value="">— Select sector —</option>
-                {% set sectors = ['Finance & Investment','Banking & Financial Services','Accounting & Audit','Insurance','Risk Management','Economics & Research','FinTech & Technology','Legal & Compliance','HR & Administration','Sales & Marketing','Operations & Management','Other'] %}
-                {% for s in sectors %}
+                <option value="">— Select —</option>
+                {% for s in ['Finance & Investment','Asset Management','Private Equity & VC','Investment Banking','Banking & Financial Services','Accounting & Audit','Insurance & Reinsurance','Risk Management','Pension & Retirement','Economics & Research','FinTech & Technology','ESG & Sustainable Finance','Legal & Compliance','HR & Talent','Sales & Business Development','Operations & Management','Consulting','Other'] %}
                 <option value="{{ s }}" {% if cv_data and cv_data.desired_sector == s %}selected{% endif %}>{{ s }}</option>
                 {% endfor %}
               </select>
@@ -302,7 +475,7 @@
               <label class="block text-xs font-semibold text-gray-500 mb-1">Years of Experience</label>
               <select name="years_exp" class="input-field">
                 <option value="">— Select —</option>
-                {% for y in ['0–1 year (Graduate)','1–3 years','3–5 years','5–10 years','10–15 years','15+ years'] %}
+                {% for y in ['0–1 year (Graduate / Entry-level)','1–3 years','3–5 years','5–10 years','10–15 years','15–20 years','20+ years (Senior Executive)'] %}
                 <option value="{{ y }}" {% if cv_data and cv_data.years_exp == y %}selected{% endif %}>{{ y }}</option>
                 {% endfor %}
               </select>
@@ -311,7 +484,7 @@
               <label class="block text-xs font-semibold text-gray-500 mb-1">Availability</label>
               <select name="availability" class="input-field">
                 <option value="">— Select —</option>
-                {% for a in ['Immediately','Within 2 weeks','Within 1 month','Within 3 months','Open to offers'] %}
+                {% for a in ['Immediately available','Within 1 week','Within 2 weeks','Within 1 month','Within 3 months','Open to offers (not urgently seeking)'] %}
                 <option value="{{ a }}" {% if cv_data and cv_data.availability == a %}selected{% endif %}>{{ a }}</option>
                 {% endfor %}
               </select>
@@ -320,364 +493,439 @@
         </div>
       </div>
 
-      <button type="submit" class="submit-btn"><i class="fas fa-check-circle mr-2"></i> Save &amp; Finalise CV</button>
+      <button type="submit" class="submit-btn"><i class="fas fa-check-circle mr-2"></i> Generate My World-Class CV</button>
     </form>
   </div>
 
-  <!-- PREVIEW / DOWNLOAD SIDE -->
-  <div class="xl:sticky xl:top-6 space-y-5" style="align-self:start;">
-    <div class="card p-5">
+  <!-- ============================================================ PREVIEW SIDE ============================================================ -->
+  <div class="xl:sticky xl:top-6 space-y-4" style="align-self:start;">
+    <div class="card p-4">
       <div class="flex justify-between items-center mb-3">
-        <h2 class="text-base font-bold text-gray-800 flex items-center gap-2">
-          <i class="fas fa-eye text-blue-600"></i> Live CV Preview
-          <span id="preview-badge" class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-semibold">Updates as you type</span>
+        <h2 class="text-sm font-bold text-gray-800 flex items-center gap-2">
+          <i class="fas fa-eye text-blue-700"></i> Live Preview
+          <span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-semibold">Updates as you type</span>
         </h2>
         <div class="flex gap-2">
-          <button onclick="downloadHTML()" class="bg-blue-900 hover:bg-blue-800 text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1">
-            <i class="fas fa-download"></i> HTML
+          <button onclick="downloadHTML()" class="bg-blue-900 hover:bg-blue-800 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1">
+            <i class="fas fa-code"></i> HTML
           </button>
-          <button onclick="printCV()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-1">
-            <i class="fas fa-print"></i> PDF
+          <button onclick="printCV()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1">
+            <i class="fas fa-file-pdf"></i> PDF
           </button>
         </div>
       </div>
+      <!-- Preview frame -->
       <div class="cv-preview-frame theme-professional" id="cv-content">
-        <div class="header-bar" style="padding-bottom:.75rem;margin-bottom:.75rem;">
-          <h1 id="pv-name" style="font-size:1.6rem;">Your Name</h1>
-          <div class="cv-contact" id="pv-contact" style="color:#475569;font-size:.82rem;"></div>
+        <div class="hdr-bar">
+          <h1 id="pv-name">Your Name</h1>
+          <div class="cv-headline" id="pv-headline" style="display:none;"></div>
+          <div class="cv-contact" id="pv-contact"></div>
         </div>
-        <div id="pv-summary-sec" style="display:none;">
-          <h2>Professional Summary</h2>
-          <p id="pv-summary" style="font-size:.87rem;color:#374151;line-height:1.6;"></p>
-        </div>
-        <div id="pv-work-sec" style="display:none;">
-          <h2>Work Experience</h2>
-          <div id="pv-work"></div>
-        </div>
-        <div id="pv-edu-sec" style="display:none;">
-          <h2>Education</h2>
-          <div id="pv-edu"></div>
-        </div>
-        <div id="pv-cert-sec" style="display:none;">
-          <h2>Certifications</h2>
-          <div id="pv-cert"></div>
-        </div>
-        <div id="pv-skills-sec" style="display:none;">
-          <h2>Skills</h2>
-          <div id="pv-skills" style="font-size:.85rem;color:#374151;"></div>
-        </div>
-        <div id="pv-lang-sec" style="display:none;">
-          <h2>Languages</h2>
-          <div id="pv-lang" style="font-size:.85rem;color:#374151;"></div>
-        </div>
-        <div id="pv-projects-sec" style="display:none;">
-          <h2>Projects &amp; Portfolio</h2>
-          <div id="pv-projects" style="font-size:.82rem;color:#374151;white-space:pre-line;"></div>
-        </div>
-        <div id="pv-awards-sec" style="display:none;">
-          <h2>Awards &amp; Achievements</h2>
-          <div id="pv-awards" style="font-size:.82rem;color:#374151;white-space:pre-line;"></div>
-        </div>
-        <div id="pv-memberships-sec" style="display:none;">
-          <h2>Professional Memberships</h2>
-          <div id="pv-memberships" style="font-size:.85rem;color:#374151;"></div>
-        </div>
+        <div id="pv-summary-sec" style="display:none;"><h2>Professional Summary</h2><p id="pv-summary" style="font-size:.8rem;color:#374151;line-height:1.6;"></p></div>
+        <div id="pv-skills-sec" style="display:none;"><h2>Skills &amp; Competencies</h2><div id="pv-skills"></div></div>
+        <div id="pv-work-sec" style="display:none;"><h2>Work Experience</h2><div id="pv-work"></div></div>
+        <div id="pv-edu-sec" style="display:none;"><h2>Education</h2><div id="pv-edu"></div></div>
+        <div id="pv-cert-sec" style="display:none;"><h2>Certifications</h2><div id="pv-cert"></div></div>
+        <div id="pv-training-sec" style="display:none;"><h2>Professional Training</h2><div id="pv-training"></div></div>
+        <div id="pv-projects-sec" style="display:none;"><h2>Projects &amp; Portfolio</h2><div id="pv-projects"></div></div>
+        <div id="pv-lang-sec" style="display:none;"><h2>Languages</h2><div id="pv-lang"></div></div>
+        <div id="pv-awards-sec" style="display:none;"><h2>Awards &amp; Achievements</h2><div id="pv-awards" style="white-space:pre-line;font-size:.8rem;"></div></div>
+        <div id="pv-volunteer-sec" style="display:none;"><h2>Volunteer &amp; Community</h2><div id="pv-volunteer" style="white-space:pre-line;font-size:.8rem;"></div></div>
+        <div id="pv-pubs-sec" style="display:none;"><h2>Publications &amp; Research</h2><div id="pv-pubs" style="white-space:pre-line;font-size:.8rem;"></div></div>
+        <div id="pv-members-sec" style="display:none;"><h2>Professional Memberships</h2><div id="pv-members" style="font-size:.8rem;"></div></div>
+        <div id="pv-refs-sec" style="display:none;"><h2>References</h2><div id="pv-refs" style="font-size:.8rem;"></div></div>
+        <div id="pv-interests-sec" style="display:none;"><h2>Interests</h2><div id="pv-interests" style="font-size:.8rem;"></div></div>
       </div>
-      <p class="text-xs text-gray-400 mt-2 text-center"><i class="fas fa-info-circle mr-1"></i> Use "PDF" for best quality — set margins to Minimum in print dialog.</p>
+      <p class="text-xs text-gray-400 mt-2 text-center"><i class="fas fa-info-circle mr-1"></i> For best PDF quality: click PDF → set margins to Minimum → Save as PDF.</p>
     </div>
 
-    <!-- Benefits (always visible) -->
-    <div class="card p-5">
-      <h3 class="font-bold text-gray-800 mb-3 text-sm">Why InvestIQ CV Builder?</h3>
-      <div class="space-y-2.5">
-        <div class="flex items-center gap-3">
-          <div class="w-7 h-7 bg-blue-100 rounded-lg flex items-center justify-center flex-shrink-0">
-            <i class="fas fa-bolt text-blue-600 text-xs"></i>
-          </div>
-          <p class="text-xs text-gray-600">Live preview — see changes instantly as you type</p>
-        </div>
-        <div class="flex items-center gap-3">
-          <div class="w-7 h-7 bg-green-100 rounded-lg flex items-center justify-center flex-shrink-0">
-            <i class="fas fa-download text-green-600 text-xs"></i>
-          </div>
-          <p class="text-xs text-gray-600">Free PDF & HTML download — no watermarks, no sign-up</p>
-        </div>
-        <div class="flex items-center gap-3">
-          <div class="w-7 h-7 bg-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
-            <i class="fas fa-globe text-purple-600 text-xs"></i>
-          </div>
-          <p class="text-xs text-gray-600">Globally accepted format — works for any industry</p>
-        </div>
+    <div class="card p-4">
+      <h3 class="font-bold text-gray-800 mb-3 text-sm flex items-center gap-2"><i class="fas fa-star text-amber-400"></i> Why InvestIQ CV Builder?</h3>
+      <div class="grid grid-cols-2 gap-2 text-xs text-gray-600">
+        <div class="flex items-start gap-2"><i class="fas fa-check text-green-500 mt-0.5 flex-shrink-0"></i><span>Harvard &amp; Oxford accepted format</span></div>
+        <div class="flex items-start gap-2"><i class="fas fa-check text-green-500 mt-0.5 flex-shrink-0"></i><span>ATS-optimised for US &amp; EU job markets</span></div>
+        <div class="flex items-start gap-2"><i class="fas fa-check text-green-500 mt-0.5 flex-shrink-0"></i><span>CEFR language proficiency levels</span></div>
+        <div class="flex items-start gap-2"><i class="fas fa-check text-green-500 mt-0.5 flex-shrink-0"></i><span>5 premium templates for every industry</span></div>
+        <div class="flex items-start gap-2"><i class="fas fa-check text-green-500 mt-0.5 flex-shrink-0"></i><span>Live preview — see changes in real time</span></div>
+        <div class="flex items-start gap-2"><i class="fas fa-check text-green-500 mt-0.5 flex-shrink-0"></i><span>Free PDF &amp; HTML — no watermarks</span></div>
       </div>
     </div>
   </div>
 </main>
 
 <footer class="bg-gray-900 text-white py-6 px-4 text-center mt-8">
-  <p class="text-gray-400 text-sm">© 2026 InvestIQ Talent Hub — Professional CV Builder</p>
+  <p class="text-gray-400 text-sm">© 2026 InvestIQ Talent Hub · Professional CV Builder · Globally Accepted US &amp; European Format</p>
 </footer>
 
 <script>
-// ─── Template selection + live theme switch ───────────────────────────────
+// ─── Helpers ──────────────────────────────────────────────────────────────
 var currentTemplate = 'professional';
-function selectTemplate(name) {
-  ['professional','modern','creative'].forEach(t => {
-    var card = document.getElementById('tpl-'+t);
-    if(card){ card.classList.remove('selected'); card.querySelector('input').checked=false; }
+function fv(name){ var el=document.querySelector('[name="'+name+'"]'); return el?el.value.trim():''; }
+function show(id,v){ var e=document.getElementById(id); if(e) e.style.display=v?'':'none'; }
+function set(id,h){ var e=document.getElementById(id); if(e) e.innerHTML=h; }
+function setText(id,t){ var e=document.getElementById(id); if(e) e.textContent=t; }
+
+// ─── Template selection ────────────────────────────────────────────────────
+function selectTemplate(name){
+  ['professional','modern','creative','executive','minimal'].forEach(function(t){
+    var c=document.getElementById('tpl-'+t);
+    if(c){c.classList.remove('selected');c.querySelector('input').checked=false;}
   });
-  var sel = document.getElementById('tpl-'+name);
-  if(sel){ sel.classList.add('selected'); sel.querySelector('input').checked=true; }
-  currentTemplate = name;
-  var frame = document.getElementById('cv-content');
-  frame.className = 'cv-preview-frame theme-'+name;
+  var sel=document.getElementById('tpl-'+name);
+  if(sel){sel.classList.add('selected');sel.querySelector('input').checked=true;}
+  currentTemplate=name;
+  document.getElementById('cv-content').className='cv-preview-frame theme-'+name;
   updatePreview();
 }
 
-// ─── Live preview engine ──────────────────────────────────────────────────
-function fv(name){ var el=document.querySelector('[name="'+name+'"]'); return el ? el.value.trim() : ''; }
-function show(secId, content){ var s=document.getElementById(secId); if(s) s.style.display=content?'':'none'; }
-function set(id, html){ var el=document.getElementById(id); if(el) el.innerHTML=html; }
-function setText(id, txt){ var el=document.getElementById(id); if(el) el.textContent=txt; }
+// ─── Collapsible sections ─────────────────────────────────────────────────
+function toggleSection(secId, icoId, btn){
+  var sec=document.getElementById(secId);
+  var open=sec.classList.toggle('open');
+  document.getElementById(icoId).textContent=open?'－':'＋';
+  if(btn) btn.classList.toggle('open',open);
+}
+function toggleRefs(radio){
+  document.getElementById('ref-detail').style.display = (radio.value==='listed')?'block':'none';
+}
 
+// ─── Skill tags ────────────────────────────────────────────────────────────
+function skillTags(csv){
+  if(!csv) return '';
+  return csv.split(',').map(function(s){return s.trim();}).filter(Boolean)
+    .map(function(s){return '<span class="sk-tag">'+s+'</span>';}).join('');
+}
+
+// ─── Live preview ─────────────────────────────────────────────────────────
 function updatePreview(){
-  // Name & contact
-  var name=fv('full_name')||'Your Name';
-  setText('pv-name', name);
+  // Header
+  var name=fv('full_name')||'Your Name'; setText('pv-name',name);
+  var hl=fv('headline'); set('pv-headline',hl); show('pv-headline',hl);
   var parts=[];
-  if(fv('email')) parts.push(fv('email'));
-  if(fv('phone')) parts.push(fv('phone'));
-  if(fv('location')) parts.push(fv('location'));
+  ['email','phone'].forEach(function(f){if(fv(f))parts.push(fv(f));});
+  var loc=[fv('city'),fv('state'),fv('country')].filter(Boolean).join(', ');
+  if(loc) parts.push(loc);
   if(fv('linkedin')) parts.push(fv('linkedin'));
+  if(fv('github')) parts.push(fv('github'));
   if(fv('website')) parts.push(fv('website'));
   set('pv-contact', parts.join(' &nbsp;|&nbsp; '));
 
   // Summary
-  var sum=fv('summary');
-  setText('pv-summary', sum);
-  show('pv-summary-sec', sum);
+  var sum=fv('summary'); setText('pv-summary',sum); show('pv-summary-sec',sum);
 
   // Skills
-  var sk=fv('skills');
-  set('pv-skills', sk ? sk.split(',').map(s=>`<span style="display:inline-block;background:#f1f5f9;border-radius:4px;padding:.1rem .5rem;margin:.2rem .15rem;font-size:.8rem;">${s.trim()}</span>`).join('') : '');
-  show('pv-skills-sec', sk);
-
-  // Projects / Awards / Memberships
-  var proj=fv('projects'); setText('pv-projects', proj); show('pv-projects-sec', proj);
-  var aw=fv('awards'); setText('pv-awards', aw); show('pv-awards-sec', aw);
-  var mem=fv('memberships'); setText('pv-memberships', mem); show('pv-memberships-sec', mem);
+  var sk='';
+  var ts=fv('technical_skills'); if(ts) sk+='<div style="margin-bottom:.2rem;"><span style="font-size:.72rem;font-weight:700;text-transform:uppercase;color:#64748b;letter-spacing:.04em;">Technical: </span>'+skillTags(ts)+'</div>';
+  var ss=fv('soft_skills'); if(ss) sk+='<div style="margin-bottom:.2rem;"><span style="font-size:.72rem;font-weight:700;text-transform:uppercase;color:#64748b;letter-spacing:.04em;">Soft Skills: </span>'+skillTags(ss)+'</div>';
+  var tl=fv('tools'); if(tl) sk+='<div style="margin-bottom:.2rem;"><span style="font-size:.72rem;font-weight:700;text-transform:uppercase;color:#64748b;letter-spacing:.04em;">Tools: </span>'+skillTags(tl)+'</div>';
+  var ie=fv('skills'); if(ie) sk+='<div><span style="font-size:.72rem;font-weight:700;text-transform:uppercase;color:#64748b;letter-spacing:.04em;">Industry: </span>'+skillTags(ie)+'</div>';
+  set('pv-skills',sk); show('pv-skills-sec',sk);
 
   // Work Experience
-  var workHtml=''; var hasWork=false;
-  document.querySelectorAll('#work-entries .entry-block').forEach(function(block){
-    var idx=block.dataset.index;
-    var jt=block.querySelector('[name$="-job_title"]')?.value.trim();
-    var co=block.querySelector('[name$="-company"]')?.value.trim();
-    var loc=block.querySelector('[name$="-location"]')?.value.trim();
-    var sd=block.querySelector('[name$="-start_date"]')?.value.trim();
-    var ed=block.querySelector('[name$="-end_date"]')?.value.trim();
-    var resp=block.querySelector('[name$="-responsibilities"]')?.value.trim();
-    if(jt||co){
-      hasWork=true;
-      workHtml+=`<div style="margin-bottom:.7rem;">
-        ${jt?`<div class="job-title-cv">${jt}</div>`:''}
-        ${co?`<div class="company-cv">${co}${loc?', '+loc:''}</div>`:''}
-        ${(sd||ed)?`<div class="date-cv">${sd||''}${ed?' — '+ed:''}</div>`:''}
-        ${resp?`<div style="font-size:.82rem;color:#374151;margin-top:.2rem;white-space:pre-line;">${resp}</div>`:''}
-      </div>`;
+  var wHtml=''; var hasW=false;
+  document.querySelectorAll('#work-entries .entry-block').forEach(function(b){
+    var jt=b.querySelector('[name$="-job_title"]')?.value.trim();
+    var co=b.querySelector('[name$="-company"]')?.value.trim();
+    var et=b.querySelector('[name$="-employment_type"]')?.value.trim();
+    var loc2=b.querySelector('[name$="-location"]')?.value.trim();
+    var sd=b.querySelector('[name$="-start_date"]')?.value.trim();
+    var ed=b.querySelector('[name$="-end_date"]')?.value.trim();
+    var resp=b.querySelector('[name$="-responsibilities"]')?.value.trim();
+    if(jt||co){hasW=true;
+      wHtml+='<div style="margin-bottom:.6rem;">'+(jt?'<div class="jt">'+jt+'</div>':'')
+        +(co?'<div class="co">'+co+(et?' · <span style="font-size:.72rem;">'+et+'</span>':'')+(loc2?', '+loc2:'')+'</div>':'')
+        +((sd||ed)?'<div class="dt">'+(sd||'')+((sd&&ed)?' – ':'')+((ed&&!sd)?'– ':'')+((ed&&sd)?ed:(ed||''))+'</div>':'')
+        +(resp?'<div style="font-size:.78rem;color:#374151;white-space:pre-line;margin-top:.15rem;">'+resp+'</div>':'')+'</div>';
     }
   });
-  set('pv-work', workHtml); show('pv-work-sec', hasWork);
+  set('pv-work',wHtml); show('pv-work-sec',hasW);
 
   // Education
-  var eduHtml=''; var hasEdu=false;
-  document.querySelectorAll('#edu-entries .entry-block').forEach(function(block){
-    var deg=block.querySelector('[name$="-degree"]')?.value.trim();
-    var inst=block.querySelector('[name$="-institution"]')?.value.trim();
-    var yr=block.querySelector('[name$="-end_date"]')?.value.trim();
-    var hon=block.querySelector('[name$="-honors"]')?.value.trim();
-    if(deg||inst){
-      hasEdu=true;
-      eduHtml+=`<div style="margin-bottom:.4rem;">
-        ${deg?`<div class="job-title-cv">${deg}</div>`:''}
-        ${inst?`<div class="company-cv">${inst}</div>`:''}
-        ${(yr||hon)?`<div class="date-cv">${yr||''}${(yr&&hon)?' — ':''}${hon||''}</div>`:''}
-      </div>`;
+  var eHtml=''; var hasE=false;
+  document.querySelectorAll('#edu-entries .entry-block').forEach(function(b){
+    var deg=b.querySelector('[name$="-degree"]')?.value.trim();
+    var field=b.querySelector('[name$="-field"]')?.value.trim();
+    var inst=b.querySelector('[name$="-institution"]')?.value.trim();
+    var yr=b.querySelector('[name$="-end_date"]')?.value.trim();
+    var gpa=b.querySelector('[name$="-gpa"]')?.value.trim();
+    var hon=b.querySelector('[name$="-honors"]')?.value.trim();
+    var th=b.querySelector('[name$="-thesis"]')?.value.trim();
+    if(deg||inst){hasE=true;
+      var degFull=[deg,field].filter(Boolean).join(', ');
+      eHtml+='<div style="margin-bottom:.45rem;">'+(degFull?'<div class="jt">'+degFull+'</div>':'')
+        +(inst?'<div class="co">'+inst+'</div>':'')
+        +((yr||gpa||hon)?'<div class="dt">'+[yr,gpa,hon].filter(Boolean).join(' · ')+'</div>':'')
+        +(th?'<div style="font-size:.75rem;font-style:italic;color:#64748b;margin-top:.1rem;">Thesis: '+th+'</div>':'')+'</div>';
     }
   });
-  set('pv-edu', eduHtml); show('pv-edu-sec', hasEdu);
+  set('pv-edu',eHtml); show('pv-edu-sec',hasE);
 
   // Certifications
-  var certHtml=''; var hasCert=false;
-  document.querySelectorAll('#cert-entries .entry-block').forEach(function(block){
-    var nm=block.querySelector('[name$="-name"]')?.value.trim();
-    var org=block.querySelector('[name$="-organization"]')?.value.trim();
-    var yr=block.querySelector('[name$="-year"]')?.value.trim();
-    if(nm){
-      hasCert=true;
-      certHtml+=`<div style="font-size:.85rem;color:#374151;margin-bottom:.2rem;"><strong>${nm}</strong>${org?' — '+org:''}${yr?' ('+yr+')':''}</div>`;
+  var cHtml=''; var hasC=false;
+  document.querySelectorAll('#cert-entries .entry-block').forEach(function(b){
+    var nm=b.querySelector('[name$="-name"]')?.value.trim();
+    var org=b.querySelector('[name$="-organization"]')?.value.trim();
+    var iss=b.querySelector('[name$="-issue_date"]')?.value.trim();
+    var exp=b.querySelector('[name$="-expiry_date"]')?.value.trim();
+    if(nm){hasC=true; cHtml+='<div style="font-size:.8rem;margin-bottom:.2rem;"><strong>'+nm+'</strong>'+(org?' — '+org:'')+(iss?' ('+iss+(exp?', expires '+exp:'')+')'+(exp&&!iss?' (expires '+exp+')':''):'')+'</div>';}
+  });
+  set('pv-cert',cHtml); show('pv-cert-sec',hasC);
+
+  // Training
+  var trHtml=''; var hasTr=false;
+  document.querySelectorAll('#training-entries .entry-block').forEach(function(b){
+    var nm=b.querySelector('[name$="-name"]')?.value.trim();
+    var prov=b.querySelector('[name$="-provider"]')?.value.trim();
+    var yr=b.querySelector('[name$="-year"]')?.value.trim();
+    if(nm){hasTr=true; trHtml+='<div style="font-size:.8rem;margin-bottom:.2rem;"><strong>'+nm+'</strong>'+(prov?' — '+prov:'')+(yr?' ('+yr+')'  :'')+'</div>';}
+  });
+  set('pv-training',trHtml); show('pv-training-sec',hasTr);
+
+  // Projects
+  var prHtml=''; var hasPr=false;
+  document.querySelectorAll('#project-entries .entry-block').forEach(function(b){
+    var ti=b.querySelector('[name$="-title"]')?.value.trim();
+    var rl=b.querySelector('[name$="-role"]')?.value.trim();
+    var desc=b.querySelector('[name$="-description"]')?.value.trim();
+    var tech=b.querySelector('[name$="-tech"]')?.value.trim();
+    if(ti){hasPr=true;
+      prHtml+='<div style="margin-bottom:.45rem;"><div class="jt">'+ti+(rl?' <span style="font-weight:400;font-size:.75rem;">— '+rl+'</span>':'')+'</div>'
+        +(desc?'<div style="font-size:.78rem;color:#374151;white-space:pre-line;">'+desc+'</div>':'')
+        +(tech?'<div style="font-size:.73rem;color:#64748b;">Tech: '+tech+'</div>':'')+'</div>';
     }
   });
-  set('pv-cert', certHtml); show('pv-cert-sec', hasCert);
+  set('pv-projects',prHtml); show('pv-projects-sec',hasPr);
 
   // Languages
-  var langHtml=''; var hasLang=false;
-  document.querySelectorAll('#lang-entries .entry-block').forEach(function(block){
-    var lang=block.querySelector('[name$="-language"]')?.value.trim();
-    var prof=block.querySelector('[name$="-proficiency"]')?.value.trim();
-    if(lang){ hasLang=true; langHtml+=(langHtml?', ':'')+lang+(prof?' ('+prof+')':''); }
+  var lHtml=''; var hasL=false;
+  document.querySelectorAll('#lang-entries .entry-block').forEach(function(b){
+    var lang=b.querySelector('[name$="-language"]')?.value.trim();
+    var prof=b.querySelector('[name$="-proficiency"]')?.value.trim();
+    if(lang){hasL=true; lHtml+=(lHtml?'&nbsp;&nbsp;·&nbsp;&nbsp;':'')+lang+(prof?' <span style="font-size:.73rem;color:#64748b;">('+prof+')</span>':'');}
   });
-  set('pv-lang', langHtml); show('pv-lang-sec', hasLang);
+  set('pv-lang',lHtml); show('pv-lang-sec',hasL);
+
+  // Other sections
+  var aw=fv('awards'); set('pv-awards',aw); show('pv-awards-sec',aw);
+  var vo=fv('volunteer'); set('pv-volunteer',vo); show('pv-volunteer-sec',vo);
+  var pb=fv('publications'); set('pv-pubs',pb); show('pv-pubs-sec',pb);
+  var mb=fv('memberships'); setText('pv-members',mb); show('pv-members-sec',mb);
+  var rf=document.querySelector('[name="references_type"]:checked')?.value;
+  if(rf==='listed'){ var rt=fv('references_text'); set('pv-refs',rt?'<span style="white-space:pre-line;">'+rt+'</span>':''); show('pv-refs-sec',rt); }
+  else{ set('pv-refs','Available upon request'); show('pv-refs-sec',true); }
+  var intr=fv('interests'); setText('pv-interests',intr); show('pv-interests-sec',intr);
 }
 
-// Attach live listeners to form
-document.addEventListener('DOMContentLoaded', function(){
-  var form = document.getElementById('cv-form');
-  form.addEventListener('input', updatePreview);
-  form.addEventListener('change', updatePreview);
-  updatePreview();
-
-  // Patch addWorkEntry / addEduEntry etc. to also trigger preview
-  var origAddWork = window.addWorkEntry;
-  var origAddEdu = window.addEduEntry;
-  var origAddCert = window.addCertEntry;
-  var origAddLang = window.addLangEntry;
-  window.addWorkEntry = function(){ origAddWork(); setTimeout(updatePreview,50); };
-  window.addEduEntry = function(){ origAddEdu(); setTimeout(updatePreview,50); };
-  window.addCertEntry = function(){ origAddCert(); setTimeout(updatePreview,50); };
-  window.addLangEntry = function(){ origAddLang(); setTimeout(updatePreview,50); };
-});
-
-// Work experience counter
-var workCount = 1;
-function addWorkEntry() {
-  var idx = workCount++;
-  var html = `<div class="entry-block" data-index="${idx}">
+// ─── Dynamic entry adders ─────────────────────────────────────────────────
+var workCount=1;
+function addWorkEntry(){
+  var i=workCount++;
+  document.getElementById('work-entries').insertAdjacentHTML('beforeend',`
+  <div class="entry-block" data-index="${i}">
     <button type="button" class="remove-btn" onclick="removeEntry(this,'work-entries')"><i class="fas fa-times"></i></button>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
       <div><label class="block text-xs font-semibold text-gray-500 mb-1">Job Title</label>
-        <input type="text" name="work_experiences-${idx}-job_title" class="input-field" placeholder="Financial Analyst"/></div>
-      <div><label class="block text-xs font-semibold text-gray-500 mb-1">Company</label>
-        <input type="text" name="work_experiences-${idx}-company" class="input-field" placeholder="Investment Bank"/></div>
+        <input type="text" name="work_experiences-${i}-job_title" class="input-field" placeholder="Financial Analyst"/></div>
+      <div><label class="block text-xs font-semibold text-gray-500 mb-1">Company / Organisation</label>
+        <input type="text" name="work_experiences-${i}-company" class="input-field" placeholder="Investment Bank"/></div>
+      <div><label class="block text-xs font-semibold text-gray-500 mb-1">Employment Type</label>
+        <select name="work_experiences-${i}-employment_type" class="input-field">
+          <option value="">— Select —</option>
+          <option>Full-time</option><option>Part-time</option><option>Contract</option>
+          <option>Freelance / Consulting</option><option>Internship</option><option>Apprenticeship</option>
+        </select></div>
+      <div><label class="block text-xs font-semibold text-gray-500 mb-1">Industry / Sector</label>
+        <input type="text" name="work_experiences-${i}-industry" class="input-field" placeholder="Asset Management"/></div>
       <div><label class="block text-xs font-semibold text-gray-500 mb-1">Location</label>
-        <input type="text" name="work_experiences-${idx}-location" class="input-field" placeholder="Lagos, Nigeria"/></div>
-      <div class="grid grid-cols-2 gap-2">
-        <div><label class="block text-xs font-semibold text-gray-500 mb-1">Start</label>
-          <input type="text" name="work_experiences-${idx}-start_date" class="input-field" placeholder="MM/YYYY"/></div>
-        <div><label class="block text-xs font-semibold text-gray-500 mb-1">End</label>
-          <input type="text" name="work_experiences-${idx}-end_date" class="input-field" placeholder="Present"/></div>
-      </div>
+        <input type="text" name="work_experiences-${i}-location" class="input-field" placeholder="London, UK"/></div>
+      <div><label class="block text-xs font-semibold text-gray-500 mb-1">Team / Reports Size</label>
+        <input type="text" name="work_experiences-${i}-team_size" class="input-field" placeholder="Managed team of 5"/></div>
+      <div><label class="block text-xs font-semibold text-gray-500 mb-1">Start Date</label>
+        <input type="text" name="work_experiences-${i}-start_date" class="input-field" placeholder="Jan 2018"/></div>
+      <div><label class="block text-xs font-semibold text-gray-500 mb-1">End Date</label>
+        <input type="text" name="work_experiences-${i}-end_date" class="input-field" placeholder="Dec 2019"/></div>
     </div>
-    <div class="mt-3">
-      <label class="block text-xs font-semibold text-gray-500 mb-1">Responsibilities</label>
-      <textarea name="work_experiences-${idx}-responsibilities" rows="3" class="input-field" placeholder="• Key achievement or responsibility"></textarea>
-    </div>
-  </div>`;
-  document.getElementById('work-entries').insertAdjacentHTML('beforeend',html);
+    <div class="mt-2.5"><label class="block text-xs font-semibold text-gray-500 mb-1">Key Responsibilities &amp; Achievements</label>
+      <textarea name="work_experiences-${i}-responsibilities" rows="4" class="input-field" placeholder="• Key achievement with measurable result"></textarea></div>
+  </div>`);
+  setTimeout(updatePreview,50);
 }
 
-var eduCount = 1;
+var eduCount=1;
 function addEduEntry(){
-  var idx = eduCount++;
-  var html = `<div class="entry-block" data-index="${idx}">
+  var i=eduCount++;
+  document.getElementById('edu-entries').insertAdjacentHTML('beforeend',`
+  <div class="entry-block" data-index="${i}">
     <button type="button" class="remove-btn" onclick="removeEntry(this,'edu-entries')"><i class="fas fa-times"></i></button>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-      <div><label class="block text-xs font-semibold text-gray-500 mb-1">Degree</label>
-        <input type="text" name="educations-${idx}-degree" class="input-field" placeholder="MBA Finance"/></div>
-      <div><label class="block text-xs font-semibold text-gray-500 mb-1">Institution</label>
-        <input type="text" name="educations-${idx}-institution" class="input-field" placeholder="GIMPA"/></div>
-      <div><label class="block text-xs font-semibold text-gray-500 mb-1">Year</label>
-        <input type="text" name="educations-${idx}-end_date" class="input-field" placeholder="06/2022"/></div>
-      <div><label class="block text-xs font-semibold text-gray-500 mb-1">Honours</label>
-        <input type="text" name="educations-${idx}-honors" class="input-field" placeholder="Distinction"/></div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+      <div><label class="block text-xs font-semibold text-gray-500 mb-1">Degree Type</label>
+        <select name="educations-${i}-degree" class="input-field">
+          <option value="">— Select —</option>
+          <option>Doctor of Philosophy (PhD)</option><option>Master of Business Administration (MBA)</option>
+          <option>Master of Science (MSc)</option><option>Master of Arts (MA)</option>
+          <option>Bachelor of Science (BSc)</option><option>Bachelor of Arts (BA)</option>
+          <option>Bachelor of Commerce (BCom)</option><option>Postgraduate Diploma (PGDip)</option>
+          <option>Higher National Diploma (HND)</option><option>Diploma</option><option>Certificate</option>
+        </select></div>
+      <div><label class="block text-xs font-semibold text-gray-500 mb-1">Field of Study / Major</label>
+        <input type="text" name="educations-${i}-field" class="input-field" placeholder="Finance"/></div>
+      <div class="md:col-span-2"><label class="block text-xs font-semibold text-gray-500 mb-1">Institution Name</label>
+        <input type="text" name="educations-${i}-institution" class="input-field" placeholder="University of Oxford"/></div>
+      <div><label class="block text-xs font-semibold text-gray-500 mb-1">Institution Location</label>
+        <input type="text" name="educations-${i}-edu_location" class="input-field" placeholder="Oxford, UK"/></div>
+      <div><label class="block text-xs font-semibold text-gray-500 mb-1">Graduation Date</label>
+        <input type="text" name="educations-${i}-end_date" class="input-field" placeholder="Jun 2020"/></div>
+      <div><label class="block text-xs font-semibold text-gray-500 mb-1">GPA / Grade</label>
+        <input type="text" name="educations-${i}-gpa" class="input-field" placeholder="3.8/4.0 · Distinction"/></div>
+      <div><label class="block text-xs font-semibold text-gray-500 mb-1">Honours / Awards</label>
+        <input type="text" name="educations-${i}-honors" class="input-field" placeholder="Dean's List"/></div>
+      <div class="md:col-span-2"><label class="block text-xs font-semibold text-gray-500 mb-1">Dissertation / Thesis Title</label>
+        <input type="text" name="educations-${i}-thesis" class="input-field" placeholder="Thesis title (if applicable)"/></div>
     </div>
-  </div>`;
-  document.getElementById('edu-entries').insertAdjacentHTML('beforeend',html);
+  </div>`);
+  setTimeout(updatePreview,50);
 }
 
-var certCount = 0;
+var certCount=0;
 function addCertEntry(){
-  var idx = certCount++;
-  var html = `<div class="entry-block" data-index="${idx}" style="margin-bottom:.5rem">
+  var i=certCount++;
+  document.getElementById('cert-entries').insertAdjacentHTML('beforeend',`
+  <div class="entry-block" data-index="${i}">
     <button type="button" class="remove-btn" onclick="removeEntry(this,'cert-entries')"><i class="fas fa-times"></i></button>
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-      <div><label class="block text-xs font-semibold text-gray-500 mb-1">Certification</label>
-        <input type="text" name="certifications-${idx}-name" class="input-field" placeholder="CFA Level III"/></div>
-      <div><label class="block text-xs font-semibold text-gray-500 mb-1">Issuing Body</label>
-        <input type="text" name="certifications-${idx}-organization" class="input-field" placeholder="CFA Institute"/></div>
-      <div><label class="block text-xs font-semibold text-gray-500 mb-1">Year</label>
-        <input type="text" name="certifications-${idx}-year" class="input-field" placeholder="2023"/></div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+      <div class="md:col-span-2"><label class="block text-xs font-semibold text-gray-500 mb-1">Certification / Qualification Name</label>
+        <input type="text" name="certifications-${i}-name" class="input-field" placeholder="CFA Charterholder · ACCA · FRM Part II"/></div>
+      <div><label class="block text-xs font-semibold text-gray-500 mb-1">Issuing Organisation</label>
+        <input type="text" name="certifications-${i}-organization" class="input-field" placeholder="CFA Institute"/></div>
+      <div><label class="block text-xs font-semibold text-gray-500 mb-1">Issue Date</label>
+        <input type="text" name="certifications-${i}-issue_date" class="input-field" placeholder="Jun 2022"/></div>
+      <div><label class="block text-xs font-semibold text-gray-500 mb-1">Expiry Date (if applicable)</label>
+        <input type="text" name="certifications-${i}-expiry_date" class="input-field" placeholder="No expiry · Dec 2025"/></div>
+      <div><label class="block text-xs font-semibold text-gray-500 mb-1">Credential ID (Optional)</label>
+        <input type="text" name="certifications-${i}-credential_id" class="input-field" placeholder="1234567890"/></div>
     </div>
-  </div>`;
-  document.getElementById('cert-entries').insertAdjacentHTML('beforeend',html);
+  </div>`);
+  setTimeout(updatePreview,50);
 }
 
-var langCount = 0;
+var trainCount=0;
+function addTrainingEntry(){
+  var i=trainCount++;
+  document.getElementById('training-entries').insertAdjacentHTML('beforeend',`
+  <div class="entry-block" data-index="${i}">
+    <button type="button" class="remove-btn" onclick="removeEntry(this,'training-entries')"><i class="fas fa-times"></i></button>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+      <div class="md:col-span-2"><label class="block text-xs font-semibold text-gray-500 mb-1">Course / Training Name</label>
+        <input type="text" name="training-${i}-name" class="input-field" placeholder="Advanced Financial Modelling · Machine Learning for Finance"/></div>
+      <div><label class="block text-xs font-semibold text-gray-500 mb-1">Provider / Institution</label>
+        <input type="text" name="training-${i}-provider" class="input-field" placeholder="Coursera · Wall Street Prep · LinkedIn Learning"/></div>
+      <div><label class="block text-xs font-semibold text-gray-500 mb-1">Year</label>
+        <input type="text" name="training-${i}-year" class="input-field" placeholder="2023"/></div>
+      <div><label class="block text-xs font-semibold text-gray-500 mb-1">Duration</label>
+        <input type="text" name="training-${i}-duration" class="input-field" placeholder="40 hours · 3 months"/></div>
+    </div>
+  </div>`);
+  setTimeout(updatePreview,50);
+}
+
+var projCount=0;
+function addProjectEntry(){
+  var i=projCount++;
+  document.getElementById('project-entries').insertAdjacentHTML('beforeend',`
+  <div class="entry-block" data-index="${i}">
+    <button type="button" class="remove-btn" onclick="removeEntry(this,'project-entries')"><i class="fas fa-times"></i></button>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+      <div><label class="block text-xs font-semibold text-gray-500 mb-1">Project Title</label>
+        <input type="text" name="projects_list-${i}-title" class="input-field" placeholder="Algorithmic Trading Bot — GSE Equities"/></div>
+      <div><label class="block text-xs font-semibold text-gray-500 mb-1">Your Role</label>
+        <input type="text" name="projects_list-${i}-role" class="input-field" placeholder="Lead Developer · Solo Project"/></div>
+      <div class="md:col-span-2"><label class="block text-xs font-semibold text-gray-500 mb-1">Description &amp; Impact</label>
+        <textarea name="projects_list-${i}-description" rows="2" class="input-field" placeholder="Built a momentum-based trading algorithm that achieved 23% annual return on backtesting (2019–2023)"></textarea></div>
+      <div><label class="block text-xs font-semibold text-gray-500 mb-1">Technologies / Methods</label>
+        <input type="text" name="projects_list-${i}-tech" class="input-field" placeholder="Python, Pandas, scikit-learn, Bloomberg API"/></div>
+      <div><label class="block text-xs font-semibold text-gray-500 mb-1">Duration / Year</label>
+        <input type="text" name="projects_list-${i}-duration" class="input-field" placeholder="Jan 2023 — Present"/></div>
+      <div class="md:col-span-2"><label class="block text-xs font-semibold text-gray-500 mb-1">Project URL (Optional)</label>
+        <input type="url" name="projects_list-${i}-url" class="input-field" placeholder="github.com/yourname/project"/></div>
+    </div>
+  </div>`);
+  setTimeout(updatePreview,50);
+}
+
+var langCount=0;
 function addLangEntry(){
-  var idx = langCount++;
-  var html = `<div class="entry-block" data-index="${idx}" style="margin-bottom:.5rem">
+  var i=langCount++;
+  document.getElementById('lang-entries').insertAdjacentHTML('beforeend',`
+  <div class="entry-block" data-index="${i}">
     <button type="button" class="remove-btn" onclick="removeEntry(this,'lang-entries')"><i class="fas fa-times"></i></button>
-    <div class="grid grid-cols-2 gap-3">
+    <div class="grid grid-cols-2 gap-2.5">
       <div><label class="block text-xs font-semibold text-gray-500 mb-1">Language</label>
-        <input type="text" name="languages-${idx}-language" class="input-field" placeholder="English"/></div>
-      <div><label class="block text-xs font-semibold text-gray-500 mb-1">Proficiency</label>
-        <select name="languages-${idx}-proficiency" class="input-field">
-          <option>Native</option><option>Fluent</option><option>Advanced</option><option>Intermediate</option><option>Basic</option>
+        <input type="text" name="languages-${i}-language" class="input-field" placeholder="English"/></div>
+      <div><label class="block text-xs font-semibold text-gray-500 mb-1">Proficiency Level</label>
+        <select name="languages-${i}-proficiency" class="input-field">
+          <option>Native / Bilingual</option>
+          <option>C2 — Mastery (near-native)</option>
+          <option>C1 — Advanced</option>
+          <option>B2 — Upper-Intermediate</option>
+          <option>B1 — Intermediate</option>
+          <option>A2 — Elementary</option>
+          <option>A1 — Beginner</option>
         </select></div>
     </div>
-  </div>`;
-  document.getElementById('lang-entries').insertAdjacentHTML('beforeend',html);
+  </div>`);
+  setTimeout(updatePreview,50);
 }
 
-function removeEntry(btn, containerId){
-  var block = btn.closest('.entry-block');
-  var container = document.getElementById(containerId);
-  if(container.querySelectorAll('.entry-block').length > 1){ block.remove(); setTimeout(updatePreview,50); }
-  else alert('At least one entry is required.');
+function removeEntry(btn, cid){
+  var block=btn.closest('.entry-block');
+  var cont=document.getElementById(cid);
+  var required=['work-entries','edu-entries'];
+  if(required.includes(cid) && cont.querySelectorAll('.entry-block').length<=1){
+    alert('At least one entry is required.'); return;
+  }
+  block.remove(); setTimeout(updatePreview,50);
 }
 
-// ─── Theme colour maps ────────────────────────────────────────────────────
+// ─── Print / Download ────────────────────────────────────────────────────
 var THEME_CSS = {
-  professional: 'h1{color:#1e3a5f;} h2{color:#0f4c81;border-bottom:2px solid #0f4c81;} .company-cv{color:#0f4c81;} .header-bar{border-bottom:3px solid #0f4c81;}',
-  modern:       'h1{color:#4c1d95;} h2{color:#7c3aed;border-bottom:2px solid #7c3aed;} .company-cv{color:#7c3aed;} .header-bar{background:linear-gradient(90deg,#f5f3ff,#fff);padding:.75rem;border-radius:8px 8px 0 0;}',
-  creative:     'h1{color:#064e3b;} h2{color:#059669;border-bottom:2px solid #059669;} .company-cv{color:#059669;} .header-bar{border-left:5px solid #059669;padding-left:1rem;}'
+  professional:'h1{color:#1e3a5f;}h2{color:#1e40af;border-bottom:2px solid #1e40af;}.co{color:#1e40af;}.hdr-bar{border-bottom:3px solid #1e40af;padding-bottom:.5rem;margin-bottom:.6rem;}',
+  modern:      'h1{color:#4c1d95;}h2{color:#7c3aed;border-bottom:2px solid #7c3aed;}.co{color:#7c3aed;}.hdr-bar{background:linear-gradient(90deg,#f5f3ff,#fff);padding:.5rem .75rem;border-radius:6px 6px 0 0;border-bottom:3px solid #7c3aed;margin-bottom:.5rem;}',
+  creative:    'h1{color:#064e3b;}h2{color:#059669;border-bottom:2px solid #059669;}.co{color:#059669;}.hdr-bar{border-left:4px solid #059669;padding-left:.9rem;margin-bottom:.6rem;}',
+  executive:   'h1{color:#78350f;font-size:1.8rem;text-align:center;letter-spacing:.03em;}h2{color:#92400e;border-bottom:2px solid #d97706;}.co{color:#92400e;}.hdr-bar{text-align:center;border-bottom:2px solid #d97706;padding-bottom:.5rem;margin-bottom:.6rem;}.cv-headline{text-align:center;}.cv-contact{text-align:center;}',
+  minimal:     'h1{color:#000;}h2{color:#000;border-bottom:1px solid #000;}.co{color:#374151;}.hdr-bar{border-bottom:1px solid #000;padding-bottom:.4rem;margin-bottom:.5rem;}'
 };
-
-function buildPrintStyle(tpl){
-  return `body{font-family:Georgia,serif;max-width:700px;margin:20px auto;padding:20px;color:#1e293b;line-height:1.6;font-size:10pt;}
-  h1{font-size:1.7rem;font-weight:700;margin-bottom:.2rem;}
-  .cv-contact{font-size:.8rem;color:#475569;margin-bottom:.8rem;}
-  h2{font-size:.85rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding-bottom:.15rem;margin:.6rem 0 .3rem;border-bottom-style:solid;}
-  .job-title-cv{font-weight:700;color:#1e293b;}.company-cv{font-style:italic;}.date-cv{font-size:.75rem;color:#64748b;}
-  @media print{body{margin:0;padding:15px;} @page{margin:12mm;}}
-  ${THEME_CSS[tpl]||THEME_CSS.professional}`;
+function buildCSS(tpl){
+  return `body{font-family:${tpl==='minimal'?'Arial,sans-serif':'Georgia,serif'};max-width:700px;margin:20px auto;padding:20px;color:#1e293b;line-height:1.6;font-size:10.5pt;}
+h1{font-size:1.6rem;font-weight:700;margin:0 0 .15rem;}
+.cv-headline{font-size:.9rem;font-weight:600;margin-bottom:.1rem;}
+.cv-contact{font-size:.78rem;color:#475569;margin-bottom:.75rem;}
+h2{font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.07em;padding-bottom:.15rem;margin:.65rem 0 .35rem;border-bottom-style:solid;}
+.jt{font-weight:700;color:#1e293b;font-size:.87rem;}.co{font-style:italic;font-size:.83rem;}.dt{font-size:.75rem;color:#64748b;}
+.sk-tag{display:inline-block;background:#f1f5f9;border-radius:3px;padding:.06rem .4rem;margin:.12rem .08rem;font-size:.77rem;}
+@media print{body{margin:0;padding:12px;}@page{margin:12mm;size:A4;}}
+${THEME_CSS[tpl]||THEME_CSS.professional}`;
 }
-
 function downloadHTML(){
-  var cvHtml = document.getElementById('cv-content').innerHTML;
-  var fullHtml = `<!DOCTYPE html><html><head><meta charset="UTF-8">
-  <style>body{font-family:Georgia,serif;max-width:750px;margin:40px auto;padding:30px;color:#1e293b;line-height:1.6;}
-  h1{font-size:2rem;font-weight:700;margin-bottom:.2rem;}
-  .cv-contact{font-size:.85rem;color:#475569;margin-bottom:1rem;}
-  h2{font-size:1rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding-bottom:.25rem;margin:.75rem 0 .5rem;border-bottom-style:solid;}
-  .job-title-cv{font-weight:700;color:#1e293b;}.company-cv{font-style:italic;}.date-cv{font-size:.8rem;color:#64748b;}
-  ${THEME_CSS[currentTemplate]||THEME_CSS.professional}
-  </style></head><body>${cvHtml}</body></html>`;
-  var blob = new Blob([fullHtml],{type:'text/html'});
-  var a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  var fname = (document.querySelector('[name="full_name"]')?.value.trim().replace(/\s+/g,'_')||'my')+`_cv_${currentTemplate}.html`;
-  a.download = fname;
+  var cvHtml=document.getElementById('cv-content').innerHTML;
+  var fname=(fv('full_name').replace(/\s+/g,'_')||'my')+'_cv_'+currentTemplate+'.html';
+  var blob=new Blob(['<!DOCTYPE html><html><head><meta charset="UTF-8"><style>'+buildCSS(currentTemplate)+'</style></head><body class="theme-'+currentTemplate+'">'+cvHtml+'</body></html>'],{type:'text/html'});
+  var a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=fname;
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
 }
-
 function printCV(){
-  var cvHtml = document.getElementById('cv-content').innerHTML;
-  var win = window.open('','_blank');
-  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>CV</title>
-  <style>${buildPrintStyle(currentTemplate)}</style></head><body>${cvHtml}</body></html>`);
-  win.document.close();
-  win.onload = function(){ win.print(); win.close(); };
+  var cvHtml=document.getElementById('cv-content').innerHTML;
+  var win=window.open('','_blank');
+  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>CV — '+fv('full_name')+'</title><style>'+buildCSS(currentTemplate)+'</style></head><body>'+cvHtml+'</body></html>');
+  win.document.close(); win.onload=function(){win.print();win.close();};
 }
+
+// ─── Boot ─────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded',function(){
+  var form=document.getElementById('cv-form');
+  form.addEventListener('input',updatePreview);
+  form.addEventListener('change',updatePreview);
+  updatePreview();
+});
 </script>
 </body>
 </html>
