@@ -2997,7 +2997,8 @@ def videos():
 # ================================================================
 # --- ADMIN SECTION ---
 # ================================================================
-ADMIN_PASSWORD = os.getenv('ADMIN_PASSWORD', 'investiq2026admin')
+ADMIN_PASSWORD       = os.getenv('ADMIN_PASSWORD',       'investiq2026admin')
+SUPER_ADMIN_PASSWORD = os.getenv('SUPER_ADMIN_PASSWORD', 'SuperAdmin@2026!')
 
 
 def admin_required(f):
@@ -5614,6 +5615,189 @@ def admin_training():
         return redirect(url_for('admin_login'))
     bookings = TrainingBooking.query.order_by(TrainingBooking.created_at.desc()).all()
     return render_template('hr_admin_training.html', bookings=bookings)
+
+
+# ============================================================
+# SUPER ADMIN — Training CSV + Linked Candidates CSV
+# ============================================================
+
+def _super_admin_required():
+    """Return redirect if super admin not logged in, else None."""
+    if not session.get('super_admin_logged_in'):
+        return redirect(url_for('super_admin_login'))
+    return None
+
+
+@app.route('/super-admin/login', methods=['GET', 'POST'])
+def super_admin_login():
+    error = None
+    if request.method == 'POST':
+        pw = request.form.get('password', '')
+        if pw == SUPER_ADMIN_PASSWORD:
+            session['super_admin_logged_in'] = True
+            session.permanent = True
+            return redirect(url_for('super_admin_dashboard'))
+        error = 'Incorrect password.'
+    return render_template('hr_super_admin_login.html', error=error)
+
+
+@app.route('/super-admin/logout')
+def super_admin_logout():
+    session.pop('super_admin_logged_in', None)
+    return redirect(url_for('super_admin_login'))
+
+
+@app.route('/super-admin')
+def super_admin_dashboard():
+    redir = _super_admin_required()
+    if redir:
+        return redir
+
+    training_count  = TrainingBooking.query.count()
+    employer_count  = EmployerAccount.query.count()
+    candidate_count = CandidateProfile.query.count()
+
+    # Candidates with at least one shortlist or inquiry
+    linked_ids = set(
+        [r[0] for r in db.session.query(EmployerShortlist.candidate_id).distinct().all()] +
+        [r[0] for r in db.session.query(EmployerInquiry.candidate_id).distinct().all()]
+    )
+    linked_count = len(linked_ids)
+
+    return render_template('hr_super_admin.html',
+                           training_count=training_count,
+                           employer_count=employer_count,
+                           candidate_count=candidate_count,
+                           linked_count=linked_count)
+
+
+@app.route('/super-admin/training-csv')
+def super_admin_training_csv():
+    redir = _super_admin_required()
+    if redir:
+        return redir
+
+    import csv, io
+    bookings = TrainingBooking.query.order_by(TrainingBooking.created_at.desc()).all()
+
+    buf = io.StringIO()
+    writer = csv.writer(buf)
+    writer.writerow([
+        'ID', 'Booking Type', 'Full Name', 'Email', 'Phone',
+        'Organisation', 'No. of Participants', 'Training Program',
+        'Preferred Date / Format', 'Additional Notes', 'Status', 'Submitted At'
+    ])
+    for b in bookings:
+        writer.writerow([
+            b.id,
+            b.booking_type.title(),
+            b.full_name,
+            b.email,
+            b.phone or '',
+            b.organization or '',
+            b.participants or 1,
+            b.category or '',
+            b.preferred_date or '',
+            (b.notes or '').replace('\n', ' '),
+            b.status or 'Pending',
+            b.created_at.strftime('%Y-%m-%d %H:%M') if b.created_at else '',
+        ])
+
+    output = buf.getvalue()
+    return (
+        output,
+        200,
+        {
+            'Content-Type': 'text/csv; charset=utf-8',
+            'Content-Disposition': 'attachment; filename="training_schedules.csv"',
+        }
+    )
+
+
+@app.route('/super-admin/linked-candidates-csv')
+def super_admin_linked_candidates_csv():
+    redir = _super_admin_required()
+    if redir:
+        return redir
+
+    import csv, io
+
+    # All candidates with at least one shortlist or inquiry
+    shortlisted_ids = {r[0] for r in db.session.query(EmployerShortlist.candidate_id).distinct().all()}
+    inquired_ids    = {r[0] for r in db.session.query(EmployerInquiry.candidate_id).distinct().all()}
+    linked_ids      = shortlisted_ids | inquired_ids
+
+    candidates = CandidateProfile.query.filter(CandidateProfile.id.in_(linked_ids)).all()
+
+    # Build employer name lookups
+    def shortlisting_companies(cid):
+        rows = (db.session.query(EmployerAccount.company_name)
+                .join(EmployerShortlist, EmployerShortlist.employer_id == EmployerAccount.id)
+                .filter(EmployerShortlist.candidate_id == cid)
+                .all())
+        return '; '.join(r[0] for r in rows)
+
+    def inquiring_companies(cid):
+        rows = (db.session.query(EmployerInquiry.employer_company)
+                .filter(EmployerInquiry.candidate_id == cid,
+                        EmployerInquiry.employer_company != '')
+                .all())
+        return '; '.join(r[0] for r in rows)
+
+    def latest_activity(cid):
+        sl = (EmployerShortlist.query
+              .filter_by(candidate_id=cid)
+              .order_by(EmployerShortlist.created_at.desc())
+              .first())
+        inq = (EmployerInquiry.query
+               .filter_by(candidate_id=cid)
+               .order_by(EmployerInquiry.created_at.desc())
+               .first())
+        dates = [d for d in [
+            sl.created_at  if sl  else None,
+            inq.created_at if inq else None,
+        ] if d]
+        return max(dates).strftime('%Y-%m-%d %H:%M') if dates else ''
+
+    buf = io.StringIO()
+    writer = csv.writer(buf)
+    writer.writerow([
+        'ID', 'Full Name', 'Email', 'Phone', 'Location',
+        'Current Title', 'Desired Role', 'Sector',
+        'Years Experience', 'Availability', 'Skills Summary',
+        'Profile Visible', 'Profile Created',
+        'Shortlisted By (Companies)', 'Inquired By (Companies)',
+        'Latest Employer Activity'
+    ])
+    for c in candidates:
+        writer.writerow([
+            c.id,
+            c.full_name,
+            c.email,
+            c.phone or '',
+            c.location or '',
+            c.current_title or '',
+            c.desired_role or '',
+            c.desired_sector or '',
+            c.years_exp or '',
+            c.availability or '',
+            (c.skills_summary or '').replace('\n', ' '),
+            'Yes' if c.is_visible else 'No',
+            c.created_at.strftime('%Y-%m-%d') if c.created_at else '',
+            shortlisting_companies(c.id),
+            inquiring_companies(c.id),
+            latest_activity(c.id),
+        ])
+
+    output = buf.getvalue()
+    return (
+        output,
+        200,
+        {
+            'Content-Type': 'text/csv; charset=utf-8',
+            'Content-Disposition': 'attachment; filename="candidates_linked_to_employers.csv"',
+        }
+    )
 
 
 # ============================================================
