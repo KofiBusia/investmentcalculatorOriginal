@@ -83,6 +83,10 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#0f172a;color:#e2e8f0;mi
   <!-- STATS -->
   <div class="stats">
     <div class="stat blue">
+      <div class="stat-num">{{ total_signups }}</div>
+      <div class="stat-label">Total Unique Signups</div>
+    </div>
+    <div class="stat amber">
       <div class="stat-num">{{ training_count }}</div>
       <div class="stat-label">Training Bookings</div>
     </div>
@@ -91,17 +95,21 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#0f172a;color:#e2e8f0;mi
       <div class="stat-label">Candidates Linked to Employers</div>
     </div>
     <div class="stat violet">
+      <div class="stat-num">{{ referral_count }}</div>
+      <div class="stat-label">Referrers</div>
+    </div>
+    <div class="stat" style="border-color:#0891b2;">
+      <div class="stat-num">{{ successful_refs }}</div>
+      <div class="stat-label">Successful Referrals</div>
+    </div>
+    <div class="stat" style="border-color:#be185d;">
       <div class="stat-num">{{ employer_count }}</div>
       <div class="stat-label">Registered Employers</div>
-    </div>
-    <div class="stat amber">
-      <div class="stat-num">{{ candidate_count }}</div>
-      <div class="stat-label">Total CV Profiles</div>
     </div>
   </div>
 
   <!-- EXPORTS -->
-  <div class="exports">
+  <div class="exports" style="grid-template-columns:1fr 1fr;">
 
     <!-- TRAINING SCHEDULES -->
     <div class="export-card">
@@ -165,6 +173,66 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#0f172a;color:#e2e8f0;mi
         </ul>
         <a href="/super-admin/linked-candidates-csv" class="download-btn blue">
           <i class="fas fa-file-csv"></i> Download candidates_linked_to_employers.csv
+        </a>
+      </div>
+    </div>
+
+    <!-- REFERRALS -->
+    <div class="export-card">
+      <div class="export-head">
+        <div class="export-icon" style="background:linear-gradient(135deg,#d97706,#f59e0b);"><i class="fas fa-share-nodes"></i></div>
+        <div class="export-title">
+          Referrals &amp; Discounts
+          <span class="badge-count">{{ successful_refs }}</span>
+        </div>
+        <div class="export-sub">One row per referrer. Shows successful referral count, compounding 10% discount earned, and list of people referred.</div>
+      </div>
+      <div class="export-body">
+        <ul class="col-list">
+          <li class="highlight">Referrer Name</li>
+          <li class="highlight">Referrer Email</li>
+          <li class="highlight">Referral Code</li>
+          <li class="highlight">Successful Referrals</li>
+          <li>Pending Referrals</li>
+          <li class="highlight">Cumulative Discount % <span style="font-size:7.5pt;color:#475569;">(10% compounding)</span></li>
+          <li class="highlight">Effective Price Factor <span style="font-size:7.5pt;color:#475569;">(0.9ⁿ)</span></li>
+          <li>Referred People (Name — Email)</li>
+          <li>Last Referral Date</li>
+        </ul>
+        <div style="background:#1a2535;border-radius:8px;padding:10px 12px;font-size:8.5pt;color:#64748b;margin-bottom:14px;">
+          <i class="fas fa-calculator" style="margin-right:5px;color:#d97706;"></i>
+          <strong style="color:#94a3b8;">Discount formula:</strong> Price &times; 0.9<sup>n</sup> — so 3 referrals = 72.9% of original price (27.1% total off).
+        </div>
+        <a href="/super-admin/referrals-csv" class="download-btn" style="background:linear-gradient(135deg,#b45309,#d97706);color:#fff;">
+          <i class="fas fa-file-csv"></i> Download referrals.csv
+        </a>
+      </div>
+    </div>
+
+    <!-- ALL SIGNUPS -->
+    <div class="export-card">
+      <div class="export-head">
+        <div class="export-icon" style="background:linear-gradient(135deg,#be185d,#db2777);"><i class="fas fa-users"></i></div>
+        <div class="export-title">
+          All Platform Signups
+          <span class="badge-count">{{ total_signups }}</span>
+        </div>
+        <div class="export-sub">Every person who has signed up across all touchpoints — site users, employers, CV candidates, training bookers, and job applicants — deduplicated by email.</div>
+      </div>
+      <div class="export-body">
+        <ul class="col-list">
+          <li class="highlight">Source <span style="font-size:7.5pt;color:#475569;">(Site User / Employer / Candidate / Training / Job Applicant)</span></li>
+          <li class="highlight">Full Name</li>
+          <li class="highlight">Email</li>
+          <li>Phone</li>
+          <li class="highlight">Signed Up At</li>
+        </ul>
+        <div style="background:#1a2535;border-radius:8px;padding:10px 12px;font-size:8.5pt;color:#64748b;margin-bottom:14px;">
+          <i class="fas fa-circle-info" style="margin-right:5px;color:#db2777;"></i>
+          Deduplicated by email — if someone appears in multiple sources the Source column shows all (e.g. <em>Training Booking / Employer</em>). Sorted by earliest signup date.
+        </div>
+        <a href="/super-admin/all-signups-csv" class="download-btn" style="background:linear-gradient(135deg,#9d174d,#be185d);color:#fff;">
+          <i class="fas fa-file-csv"></i> Download all_signups.csv
         </a>
       </div>
     </div>

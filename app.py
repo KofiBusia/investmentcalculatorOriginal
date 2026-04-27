@@ -151,10 +151,12 @@ class TrainingBooking(db.Model):
     organization    = db.Column(db.String(200), default='')
     participants    = db.Column(db.Integer, default=1)
     category        = db.Column(db.String(100), default='')
-    preferred_date  = db.Column(db.String(100), default='')
-    notes           = db.Column(db.Text, default='')
-    status          = db.Column(db.String(50), default='Pending')
-    created_at      = db.Column(db.DateTime, default=datetime.utcnow)
+    preferred_date      = db.Column(db.String(100), default='')
+    notes               = db.Column(db.Text, default='')
+    other_program       = db.Column(db.String(200), default='')   # when category == 'Other'
+    referral_code_used  = db.Column(db.String(20),  default='')   # code entered at booking
+    status              = db.Column(db.String(50), default='Pending')
+    created_at          = db.Column(db.DateTime, default=datetime.utcnow)
 
 
 # --- DATABASE MODELS ---
@@ -397,6 +399,20 @@ class EmployerInquiry(db.Model):
     message              = db.Column(db.Text,        default='')
     created_at           = db.Column(db.DateTime,    default=datetime.utcnow)
     candidate            = db.relationship('CandidateProfile', backref='inquiries', lazy=True)
+
+
+class Referral(db.Model):
+    __tablename__    = 'referrals'
+    id               = db.Column(db.Integer, primary_key=True)
+    referrer_name    = db.Column(db.String(200), default='')
+    referrer_email   = db.Column(db.String(200), nullable=False, index=True)
+    referral_code    = db.Column(db.String(20),  nullable=False, index=True)
+    referred_name    = db.Column(db.String(200), default='')
+    referred_email   = db.Column(db.String(200), default='')
+    booking_id       = db.Column(db.Integer, db.ForeignKey('training_bookings.id'), nullable=True)
+    status           = db.Column(db.String(20),  default='Pending')   # Pending / Successful
+    created_at       = db.Column(db.DateTime, default=datetime.utcnow)
+    booking          = db.relationship('TrainingBooking', backref='referral_record', lazy=True)
 
 
 def _validate_company_name(name):
@@ -5055,26 +5071,71 @@ def cv_preview():
 @app.route('/training', methods=['GET', 'POST'])
 def training_page():
     error = None
-    success = False
-    booking_type = request.form.get('booking_type', 'individual')
+    import hashlib as _hashlib
+
+    def _referral_code_for(email):
+        """Generate a consistent 8-char uppercase referral code from an email."""
+        return _hashlib.md5(email.strip().lower().encode()).hexdigest()[:8].upper()
+
+    success        = False
+    my_referral_code = None
+    booking_type   = request.form.get('booking_type', 'individual')
+
     if request.method == 'POST':
         try:
+            cat           = request.form.get('category', '').strip()
+            other_prog    = request.form.get('other_program', '').strip()
+            ref_code_used = request.form.get('referral_code', '').strip().upper()
+
             booking = TrainingBooking(
                 booking_type=booking_type,
                 full_name=request.form.get('full_name', '').strip(),
-                email=request.form.get('email', '').strip(),
+                email=request.form.get('email', '').strip().lower(),
                 phone=request.form.get('phone', '').strip(),
                 organization=request.form.get('organization', '').strip(),
                 participants=int(request.form.get('participants', 1) or 1),
-                category=request.form.get('category', '').strip(),
+                category=cat if cat != 'Other' else f'Other: {other_prog}',
+                other_program=other_prog,
                 preferred_date=request.form.get('preferred_date', '').strip(),
                 notes=request.form.get('notes', '').strip(),
+                referral_code_used=ref_code_used,
             )
             if not booking.full_name or not booking.email:
                 error = 'Full name and email are required.'
             else:
                 db.session.add(booking)
+                db.session.flush()   # get booking.id before commit
+
+                # Process referral code if provided
+                if ref_code_used:
+                    # Find an existing referral record to identify the referrer
+                    existing = Referral.query.filter_by(referral_code=ref_code_used).first()
+                    if existing:
+                        new_ref = Referral(
+                            referrer_name=existing.referrer_name,
+                            referrer_email=existing.referrer_email,
+                            referral_code=ref_code_used,
+                            referred_name=booking.full_name,
+                            referred_email=booking.email,
+                            booking_id=booking.id,
+                            status='Successful',
+                        )
+                        db.session.add(new_ref)
+                    # else: unrecognised code — silently ignore
+
+                # Create a "seed" referral record for this booker if none exists
+                my_code = _referral_code_for(booking.email)
+                if not Referral.query.filter_by(referral_code=my_code).first():
+                    db.session.add(Referral(
+                        referrer_name=booking.full_name,
+                        referrer_email=booking.email,
+                        referral_code=my_code,
+                        status='Pending',  # seed record — no referee yet
+                    ))
+
                 db.session.commit()
+                my_referral_code = my_code
+
                 send_email_safe(
                     f'New Training Booking: {booking.category}',
                     [app.config['ADMIN_EMAIL']],
@@ -5088,6 +5149,7 @@ def training_page():
 <tr><td><b>Participants:</b></td><td>{booking.participants}</td></tr>
 <tr><td><b>Program:</b></td><td>{booking.category}</td></tr>
 <tr><td><b>Preferred Date:</b></td><td>{booking.preferred_date or "Flexible"}</td></tr>
+<tr><td><b>Referral Code Used:</b></td><td>{ref_code_used or "None"}</td></tr>
 <tr><td><b>Notes:</b></td><td>{booking.notes or "None"}</td></tr>
 </table>'''
                 )
@@ -5095,7 +5157,8 @@ def training_page():
         except Exception as e:
             error = 'Booking failed. Please try again.'
             logger.error(f'Training booking error: {e}')
-    return render_template('hr_training.html', error=error, success=success, booking_type=booking_type)
+    return render_template('hr_training.html', error=error, success=success,
+                           booking_type=booking_type, my_referral_code=my_referral_code)
 
 
 @app.route('/referral', methods=['GET', 'POST'])
@@ -5657,18 +5720,32 @@ def super_admin_dashboard():
     employer_count  = EmployerAccount.query.count()
     candidate_count = CandidateProfile.query.count()
 
-    # Candidates with at least one shortlist or inquiry
     linked_ids = set(
         [r[0] for r in db.session.query(EmployerShortlist.candidate_id).distinct().all()] +
         [r[0] for r in db.session.query(EmployerInquiry.candidate_id).distinct().all()]
     )
     linked_count = len(linked_ids)
 
+    referral_count  = db.session.query(Referral.referrer_email).distinct().count()
+    successful_refs = Referral.query.filter_by(status='Successful').count()
+
+    # All signups (deduplicated by email)
+    all_emails = set()
+    for u in SiteUser.query.with_entities(SiteUser.email).all():          all_emails.add(u[0].strip().lower())
+    for e in EmployerAccount.query.with_entities(EmployerAccount.email).all(): all_emails.add(e[0].strip().lower())
+    for c in CandidateProfile.query.with_entities(CandidateProfile.email).all(): all_emails.add(c[0].strip().lower())
+    for b in TrainingBooking.query.with_entities(TrainingBooking.email).all(): all_emails.add(b[0].strip().lower())
+    for a in JobApplication.query.with_entities(JobApplication.email).all(): all_emails.add(a[0].strip().lower())
+    total_signups = len(all_emails)
+
     return render_template('hr_super_admin.html',
                            training_count=training_count,
                            employer_count=employer_count,
                            candidate_count=candidate_count,
-                           linked_count=linked_count)
+                           linked_count=linked_count,
+                           referral_count=referral_count,
+                           successful_refs=successful_refs,
+                           total_signups=total_signups)
 
 
 @app.route('/super-admin/training-csv')
@@ -5796,6 +5873,125 @@ def super_admin_linked_candidates_csv():
         {
             'Content-Type': 'text/csv; charset=utf-8',
             'Content-Disposition': 'attachment; filename="candidates_linked_to_employers.csv"',
+        }
+    )
+
+
+@app.route('/super-admin/referrals-csv')
+def super_admin_referrals_csv():
+    redir = _super_admin_required()
+    if redir:
+        return redir
+
+    import csv, io
+
+    # Aggregate per referrer_email
+    referrers = db.session.query(Referral.referrer_email).distinct().all()
+
+    buf = io.StringIO()
+    writer = csv.writer(buf)
+    writer.writerow([
+        'Referrer Name', 'Referrer Email', 'Referral Code',
+        'Successful Referrals', 'Pending Referrals',
+        'Cumulative Discount %', 'Effective Price Factor',
+        'Referred People (Name — Email)', 'Last Referral Date',
+    ])
+
+    for (email,) in referrers:
+        rows = Referral.query.filter_by(referrer_email=email).all()
+        if not rows:
+            continue
+        referrer_name = rows[0].referrer_name or ''
+        referral_code = rows[0].referral_code or ''
+        successful    = [r for r in rows if r.status == 'Successful']
+        pending       = [r for r in rows if r.status == 'Pending']
+        n             = len(successful)
+        # Compound discount: each successful referral = 10% off remaining price
+        price_factor  = round(0.9 ** n, 6)
+        discount_pct  = round((1 - price_factor) * 100, 2)
+        referred_list = '; '.join(
+            f"{r.referred_name} — {r.referred_email}"
+            for r in successful if r.referred_name or r.referred_email
+        )
+        dates = [r.created_at for r in successful if r.created_at]
+        last_date = max(dates).strftime('%Y-%m-%d') if dates else ''
+        writer.writerow([
+            referrer_name, email, referral_code,
+            n, len(pending),
+            f'{discount_pct}%', price_factor,
+            referred_list, last_date,
+        ])
+
+    output = buf.getvalue()
+    return (
+        output, 200,
+        {
+            'Content-Type': 'text/csv; charset=utf-8',
+            'Content-Disposition': 'attachment; filename="referrals.csv"',
+        }
+    )
+
+
+@app.route('/super-admin/all-signups-csv')
+def super_admin_all_signups_csv():
+    redir = _super_admin_required()
+    if redir:
+        return redir
+
+    import csv, io
+
+    # Collect from all 5 sources; deduplicate by email (keep earliest)
+    seen   = {}   # email -> row dict
+
+    def add(source, name, email, phone, signed_up):
+        key = (email or '').strip().lower()
+        if not key:
+            return
+        if key not in seen:
+            seen[key] = {
+                'source': source, 'name': name, 'email': email,
+                'phone': phone or '', 'signed_up': signed_up,
+            }
+        else:
+            # Add source if seen from multiple places
+            if source not in seen[key]['source']:
+                seen[key]['source'] += f' / {source}'
+
+    for u in SiteUser.query.order_by(SiteUser.created_at).all():
+        add('Site User', u.full_name, u.email, u.phone,
+            u.created_at.strftime('%Y-%m-%d %H:%M') if u.created_at else '')
+
+    for e in EmployerAccount.query.order_by(EmployerAccount.created_at).all():
+        add('Employer', f'{e.company_name} ({e.contact_name})', e.email, e.phone,
+            e.created_at.strftime('%Y-%m-%d %H:%M') if e.created_at else '')
+
+    for c in CandidateProfile.query.order_by(CandidateProfile.created_at).all():
+        add('Candidate (CV)', c.full_name, c.email, c.phone,
+            c.created_at.strftime('%Y-%m-%d') if c.created_at else '')
+
+    for b in TrainingBooking.query.order_by(TrainingBooking.created_at).all():
+        add('Training Booking', b.full_name, b.email, b.phone,
+            b.created_at.strftime('%Y-%m-%d %H:%M') if b.created_at else '')
+
+    for a in JobApplication.query.order_by(JobApplication.created_at).all():
+        add('Job Applicant', a.full_name, a.email, a.phone,
+            a.created_at.strftime('%Y-%m-%d %H:%M') if a.created_at else '')
+
+    # Sort by signup date
+    rows = sorted(seen.values(), key=lambda r: r['signed_up'])
+
+    buf = io.StringIO()
+    writer = csv.writer(buf)
+    writer.writerow(['Source', 'Full Name', 'Email', 'Phone', 'Signed Up At'])
+    for r in rows:
+        writer.writerow([r['source'], r['name'], r['email'], r['phone'], r['signed_up']])
+
+    output = buf.getvalue()
+    return (
+        output, 200,
+        {
+            'Content-Type': 'text/csv; charset=utf-8',
+            'Content-Disposition': 'attachment; filename="all_signups.csv"',
         }
     )
 
