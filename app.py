@@ -1789,6 +1789,10 @@ def target_price():
 def about():
     return render_template('about.html')
 
+@app.route('/privacy')
+def privacy():
+    return render_template('privacy.html')
+
 @app.route('/contact', methods=['GET', 'POST'])
 def contact():
     success = False
@@ -5994,6 +5998,237 @@ def super_admin_all_signups_csv():
             'Content-Disposition': 'attachment; filename="all_signups.csv"',
         }
     )
+
+
+# ============================================================
+# MOBILE JSON API  (consumed by InvestIQ Mobile app)
+# ============================================================
+import hashlib as _hashlib_api, secrets as _secrets_api
+
+def _mobile_token(user):
+    raw = f"{user.id}:{user.email}:{SUPER_ADMIN_PASSWORD}"
+    return _hashlib_api.sha256(raw.encode()).hexdigest()
+
+def _auth_from_request():
+    """Return SiteUser or None from Authorization: Bearer <token> header."""
+    hdr = request.headers.get('Authorization', '')
+    if not hdr.startswith('Bearer '):
+        return None
+    token = hdr[7:]
+    for u in SiteUser.query.all():
+        if _mobile_token(u) == token:
+            return u
+    return None
+
+def _j(data, status=200):
+    import json as _j_json
+    return app.response_class(_j_json.dumps(data), status=status,
+                              mimetype='application/json')
+
+@app.route('/api/auth/register', methods=['POST'])
+def api_auth_register():
+    data = request.get_json() or {}
+    full_name = (data.get('full_name') or '').strip()
+    email     = (data.get('email') or '').strip().lower()
+    password  = data.get('password', '')
+    if not full_name or not email or not password:
+        return _j({'ok': False, 'error': 'Name, email and password are required.'}, 400)
+    if len(password) < 6:
+        return _j({'ok': False, 'error': 'Password must be at least 6 characters.'}, 400)
+    if SiteUser.query.filter(db.func.lower(SiteUser.email) == email).first():
+        return _j({'ok': False, 'error': 'An account with this email already exists.'}, 409)
+    u = SiteUser(full_name=full_name, email=email)
+    u.set_password(password)
+    db.session.add(u)
+    db.session.commit()
+    return _j({'ok': True, 'token': _mobile_token(u),
+               'user': {'id': u.id, 'full_name': u.full_name, 'email': u.email}})
+
+@app.route('/api/auth/login', methods=['POST'])
+def api_auth_login():
+    data     = request.get_json() or {}
+    email    = (data.get('email') or '').strip().lower()
+    password = data.get('password', '')
+    u = SiteUser.query.filter(db.func.lower(SiteUser.email) == email).first()
+    if not u or not u.check_password(password):
+        return _j({'ok': False, 'error': 'Invalid email or password.'}, 401)
+    return _j({'ok': True, 'token': _mobile_token(u),
+               'user': {'id': u.id, 'full_name': u.full_name, 'email': u.email}})
+
+@app.route('/api/auth/me', methods=['GET'])
+def api_auth_me():
+    u = _auth_from_request()
+    if not u:
+        return _j({'ok': False, 'error': 'Unauthenticated.'}, 401)
+    return _j({'ok': True, 'user': {'id': u.id, 'full_name': u.full_name, 'email': u.email}})
+
+@app.route('/api/jobs', methods=['GET'])
+def api_jobs():
+    jobs = JobListing.query.filter_by(is_active=True).order_by(JobListing.created_at.desc()).all()
+    return _j({'ok': True, 'jobs': [{
+        'id': j.id, 'title': j.title, 'company': j.company,
+        'location': j.location, 'job_type': j.job_type, 'sector': j.sector,
+        'description': j.description, 'requirements': j.requirements,
+        'salary_range': j.salary_range,
+        'posted': j.created_at.strftime('%d %b %Y') if j.created_at else '',
+    } for j in jobs]})
+
+@app.route('/api/jobs/<int:job_id>/apply', methods=['POST'])
+def api_apply_job(job_id):
+    job  = JobListing.query.filter_by(id=job_id, is_active=True).first()
+    if not job:
+        return _j({'ok': False, 'error': 'Job not found.'}, 404)
+    data = request.get_json() or {}
+    if not data.get('full_name') or not data.get('email'):
+        return _j({'ok': False, 'error': 'Name and email are required.'}, 400)
+    app_obj = JobApplication(
+        job_id=job_id,
+        full_name=data.get('full_name', '').strip(),
+        email=data.get('email', '').strip().lower(),
+        phone=data.get('phone', '').strip(),
+        cover_letter=data.get('cover_letter', '').strip(),
+    )
+    db.session.add(app_obj)
+    db.session.commit()
+    return _j({'ok': True, 'message': 'Application submitted successfully!'})
+
+@app.route('/api/candidates', methods=['GET'])
+def api_candidates():
+    sector = request.args.get('sector', '')
+    exp    = request.args.get('exp', '')
+    avail  = request.args.get('avail', '')
+    q = CandidateProfile.query.filter_by(is_visible=True)
+    if sector: q = q.filter(CandidateProfile.desired_sector == sector)
+    if exp:    q = q.filter(CandidateProfile.years_exp == exp)
+    if avail:  q = q.filter(CandidateProfile.availability == avail)
+    cands = q.order_by(CandidateProfile.created_at.desc()).limit(100).all()
+    return _j({'ok': True, 'candidates': [{
+        'id': c.id, 'full_name': c.full_name,
+        'current_title': c.current_title, 'desired_role': c.desired_role,
+        'desired_sector': c.desired_sector, 'years_exp': c.years_exp,
+        'availability': c.availability, 'location': c.location,
+        'skills_summary': c.skills_summary, 'profile_summary': c.profile_summary,
+        'linkedin': c.linkedin,
+        'initials': ''.join(w[0].upper() for w in (c.full_name or 'U').split()[:2]),
+    } for c in cands]})
+
+@app.route('/api/candidates/<int:cid>/inquire', methods=['POST'])
+def api_candidate_inquire(cid):
+    c = CandidateProfile.query.filter_by(id=cid, is_visible=True).first()
+    if not c:
+        return _j({'ok': False, 'error': 'Candidate not found.'}, 404)
+    data = request.get_json() or {}
+    if not data.get('employer_name') or not data.get('employer_email'):
+        return _j({'ok': False, 'error': 'Your name and email are required.'}, 400)
+    inq = EmployerInquiry(
+        candidate_id=cid,
+        employer_name=data.get('employer_name', '').strip(),
+        employer_email=data.get('employer_email', '').strip(),
+        employer_company=data.get('employer_company', '').strip(),
+        employer_phone=data.get('employer_phone', '').strip(),
+        inquiry_type=data.get('inquiry_type', 'Interview Request'),
+        role_offering=data.get('role_offering', '').strip(),
+        message=data.get('message', '').strip(),
+    )
+    db.session.add(inq)
+    db.session.commit()
+    return _j({'ok': True, 'message': f'Inquiry sent to {c.full_name}.'})
+
+@app.route('/api/training/programs', methods=['GET'])
+def api_training_programs():
+    programs = [
+        {'category': 'Finance', 'title': 'Financial Modelling & DCF', 'duration': '3 Days'},
+        {'category': 'Finance', 'title': 'CFA Exam Preparation', 'duration': '12 Weeks'},
+        {'category': 'Finance', 'title': 'Investment Banking', 'duration': '5 Days'},
+        {'category': 'Finance', 'title': 'Risk Management', 'duration': '2 Days'},
+        {'category': 'Finance', 'title': 'Portfolio Management', 'duration': '3 Days'},
+        {'category': 'Finance', 'title': 'ACCA / ICAG Coaching', 'duration': 'Ongoing'},
+        {'category': 'Technology', 'title': 'Python for Finance', 'duration': '4 Days'},
+        {'category': 'Technology', 'title': 'SQL & Data Analytics', 'duration': '3 Days'},
+        {'category': 'Technology', 'title': 'Machine Learning', 'duration': '5 Days'},
+        {'category': 'Technology', 'title': 'Cloud Computing (AWS/Azure)', 'duration': '4 Days'},
+        {'category': 'Technology', 'title': 'Cybersecurity Essentials', 'duration': '3 Days'},
+        {'category': 'Healthcare', 'title': 'Clinical Research Methods', 'duration': '5 Days'},
+        {'category': 'Healthcare', 'title': 'Healthcare Management', 'duration': '3 Days'},
+        {'category': 'Legal', 'title': 'Corporate Law Fundamentals', 'duration': '3 Days'},
+        {'category': 'Legal', 'title': 'GDPR & Data Privacy', 'duration': '1 Day'},
+        {'category': 'HR', 'title': 'HR Management Professional', 'duration': '3 Days'},
+        {'category': 'HR', 'title': 'Leadership & Management', 'duration': '3 Days'},
+        {'category': 'Engineering', 'title': 'Project Management (PMP/PRINCE2)', 'duration': '5 Days'},
+        {'category': 'Engineering', 'title': 'Lean Six Sigma', 'duration': '5 Days'},
+        {'category': 'Marketing', 'title': 'Digital Marketing', 'duration': '3 Days'},
+        {'category': 'Business', 'title': 'Business Strategy & Innovation', 'duration': '3 Days'},
+        {'category': 'Business', 'title': 'Entrepreneurship & Startups', 'duration': '2 Days'},
+        {'category': 'Other', 'title': 'Custom / Other', 'duration': 'Flexible'},
+    ]
+    return _j({'ok': True, 'programs': programs})
+
+@app.route('/api/training/book', methods=['POST'])
+def api_training_book():
+    data = request.get_json() or {}
+    if not data.get('full_name') or not data.get('email'):
+        return _j({'ok': False, 'error': 'Name and email are required.'}, 400)
+    import hashlib as _h
+    def _code(email): return _h.md5(email.strip().lower().encode()).hexdigest()[:8].upper()
+
+    b = TrainingBooking(
+        booking_type=data.get('booking_type', 'individual'),
+        full_name=data.get('full_name', '').strip(),
+        email=data.get('email', '').strip().lower(),
+        phone=data.get('phone', '').strip(),
+        organization=data.get('organization', '').strip(),
+        participants=int(data.get('participants', 1) or 1),
+        category=data.get('category', '').strip(),
+        other_program=data.get('other_program', '').strip(),
+        preferred_date=data.get('preferred_date', '').strip(),
+        notes=data.get('notes', '').strip(),
+        referral_code_used=(data.get('referral_code') or '').strip().upper(),
+    )
+    db.session.add(b)
+    db.session.flush()
+
+    ref_used = b.referral_code_used
+    if ref_used:
+        existing = Referral.query.filter_by(referral_code=ref_used).first()
+        if existing:
+            db.session.add(Referral(
+                referrer_name=existing.referrer_name, referrer_email=existing.referrer_email,
+                referral_code=ref_used, referred_name=b.full_name, referred_email=b.email,
+                booking_id=b.id, status='Successful',
+            ))
+    my_code = _code(b.email)
+    if not Referral.query.filter_by(referral_code=my_code).first():
+        db.session.add(Referral(referrer_name=b.full_name, referrer_email=b.email,
+                                referral_code=my_code, status='Pending'))
+    db.session.commit()
+    return _j({'ok': True, 'message': 'Booking submitted! We\'ll contact you within 24 hours.',
+               'referral_code': my_code})
+
+@app.route('/api/cv/submit', methods=['POST'])
+def api_cv_submit():
+    data = request.get_json() or {}
+    if not data.get('full_name') or not data.get('email'):
+        return _j({'ok': False, 'error': 'Full name and email are required.'}, 400)
+    # Upsert candidate profile
+    email = data.get('email', '').strip().lower()
+    c = CandidateProfile.query.filter(db.func.lower(CandidateProfile.email) == email).first()
+    if not c:
+        c = CandidateProfile(email=email, full_name=data.get('full_name', '').strip())
+        db.session.add(c)
+    c.full_name      = data.get('full_name', c.full_name).strip()
+    c.phone          = data.get('phone', c.phone or '')
+    c.location       = data.get('location', c.location or '')
+    c.current_title  = data.get('current_title', c.current_title or '')
+    c.desired_role   = data.get('desired_role', c.desired_role or '')
+    c.desired_sector = data.get('desired_sector', c.desired_sector or '')
+    c.years_exp      = data.get('years_exp', c.years_exp or '')
+    c.availability   = data.get('availability', c.availability or '')
+    c.skills_summary = data.get('skills_summary', c.skills_summary or '')
+    c.profile_summary= data.get('profile_summary', c.profile_summary or '')
+    c.linkedin       = data.get('linkedin', c.linkedin or '')
+    c.is_visible     = bool(data.get('opt_in', True))
+    db.session.commit()
+    return _j({'ok': True, 'message': 'Profile saved and visible to employers!'})
 
 
 # ============================================================
