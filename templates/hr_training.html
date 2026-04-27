@@ -79,6 +79,7 @@
       <button class="cat-btn" onclick="filterCourses('Marketing',this)">Marketing &amp; Sales</button>
       <button class="cat-btn" onclick="filterCourses('Education',this)">Education</button>
       <button class="cat-btn" onclick="filterCourses('Business',this)">Business &amp; Strategy</button>
+      <button class="cat-btn" onclick="filterCourses('Other',this)">Other</button>
     </div>
   </div>
 
@@ -117,6 +118,7 @@
       ('fas fa-chalkboard-teacher','Curriculum Development','Education','3 Days','#dcfce7','#065f46','Learning outcomes, instructional design, and assessment.'),
       ('fas fa-globe','Business Strategy & Innovation','Business','3 Days','#ede9fe','#5b21b6','Competitive analysis, business models, and growth strategy.'),
       ('fas fa-box','Entrepreneurship & Startups','Business','2 Days','#fef9c3','#92400e','Lean startup, MVP, fundraising, and scaling a business.'),
+      ('fas fa-plus-circle','Other / Not Listed','Other','Flexible','#f1f5f9','#475569','Can\'t find your program? Tell us what you need and we\'ll tailor a training solution for you.'),
     ] %}
     {% for icon, title, cat, duration, bg, color, desc in courses %}
     <div class="course-card" data-cat="{{ cat }}" onclick="selectCourse('{{ title }}',this)">
@@ -225,7 +227,12 @@
               <option>Entrepreneurship &amp; Startups</option>
             </optgroup>
             <option>Custom Corporate Training</option>
+            <option value="Other">Other (please specify below)</option>
           </select>
+        </div>
+        <div id="other-program-field" style="display:none;">
+          <label class="block text-xs font-semibold text-gray-500 mb-1">Please specify your training need *</label>
+          <input type="text" name="other_program" id="other-program-input" class="input-field" placeholder="e.g. Supply Chain Management, Public Speaking, Accounting Software…"/>
         </div>
         <div>
           <label class="block text-xs font-semibold text-gray-500 mb-1">Preferred Date / Format</label>
@@ -293,10 +300,28 @@ function selectCourse(title, el) {
   document.querySelectorAll('.course-card').forEach(c => c.classList.remove('selected'));
   el.classList.add('selected');
   var sel = document.getElementById('category-select');
+  var matched = false;
   for(var i=0;i<sel.options.length;i++){
-    if(sel.options[i].text === title){ sel.selectedIndex = i; break; }
+    if(sel.options[i].text === title || sel.options[i].value === title){
+      sel.selectedIndex = i; matched = true; break;
+    }
   }
+  // If "Other / Not Listed" card was clicked, select the Other option
+  if (!matched || title === 'Other / Not Listed') {
+    for(var j=0;j<sel.options.length;j++){
+      if(sel.options[j].value === 'Other'){ sel.selectedIndex = j; break; }
+    }
+  }
+  toggleOtherField();
   document.getElementById('booking-section').scrollIntoView({behavior:'smooth'});
+}
+function toggleOtherField() {
+  var sel = document.getElementById('category-select');
+  var field = document.getElementById('other-program-field');
+  var inp   = document.getElementById('other-program-input');
+  var isOther = sel.value === 'Other';
+  field.style.display = isOther ? '' : 'none';
+  inp.required = isOther;
 }
 function filterCourses(cat, btn) {
   document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
@@ -307,6 +332,7 @@ function filterCourses(cat, btn) {
 }
 document.addEventListener('DOMContentLoaded', function(){
   setType('{{ booking_type }}');
+  document.getElementById('category-select').addEventListener('change', toggleOtherField);
 });
 </script>
 </body>
