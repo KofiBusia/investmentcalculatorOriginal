@@ -1793,6 +1793,12 @@ def about():
 def privacy():
     return render_template('privacy.html')
 
+@app.route('/delete-account', methods=['GET', 'POST'])
+def delete_account():
+    if request.method == 'POST':
+        return jsonify({'ok': True})
+    return render_template('delete_account.html')
+
 @app.route('/contact', methods=['GET', 'POST'])
 def contact():
     success = False

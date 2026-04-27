@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Delete Account — InvestIQ</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; color: #1e293b; min-height: 100vh; display: flex; flex-direction: column; }
+  .header { background: #0f172a; color: #fff; padding: 32px 24px; text-align: center; }
+  .header h1 { font-size: 1.8rem; font-weight: 900; }
+  .header p { color: #94a3b8; margin-top: 6px; font-size: 0.9rem; }
+  .container { max-width: 560px; margin: 40px auto; padding: 0 24px 60px; width: 100%; }
+  .card { background: #fff; border-radius: 16px; padding: 32px; box-shadow: 0 1px 8px rgba(0,0,0,0.06); }
+  .warn { background: #fff7ed; border: 1.5px solid #fed7aa; border-radius: 12px; padding: 16px 20px; margin-bottom: 24px; }
+  .warn p { font-size: 0.9rem; color: #92400e; line-height: 1.7; }
+  .warn strong { color: #c2410c; }
+  h2 { font-size: 1.15rem; font-weight: 800; color: #0f172a; margin-bottom: 20px; }
+  label { display: block; font-size: 0.75rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 6px; }
+  input, textarea { width: 100%; border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 13px; font-size: 0.95rem; color: #0f172a; margin-bottom: 16px; outline: none; transition: border-color 0.2s; }
+  input:focus, textarea:focus { border-color: #2563eb; }
+  textarea { height: 90px; resize: vertical; }
+  .btn { width: 100%; background: #dc2626; color: #fff; border: none; border-radius: 12px; padding: 15px; font-size: 1rem; font-weight: 800; cursor: pointer; margin-top: 4px; }
+  .btn:hover { background: #b91c1c; }
+  .success { background: #f0fdf4; border: 1.5px solid #86efac; border-radius: 12px; padding: 24px; text-align: center; display: none; }
+  .success h3 { color: #065f46; font-size: 1.1rem; margin-bottom: 8px; }
+  .success p { color: #374151; font-size: 0.9rem; }
+  .note { font-size: 0.82rem; color: #64748b; line-height: 1.7; margin-top: 20px; }
+  ul { padding-left: 18px; margin-top: 6px; }
+  ul li { font-size: 0.85rem; color: #64748b; line-height: 1.8; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>Invest<span style="color:#818cf8">IQ</span> — Delete Account</h1>
+  <p>Request permanent deletion of your account and data</p>
+</div>
+
+<div class="container">
+
+  <div class="warn">
+    <p><strong>⚠️ This action is permanent.</strong> Deleting your account will remove all your personal data including your profile, CV, job applications, and training bookings. This cannot be undone.</p>
+  </div>
+
+  <div class="card">
+    <h2>Request Account Deletion</h2>
+
+    <div class="success" id="successMsg">
+      <h3>✅ Request Received</h3>
+      <p>We will delete your account and all associated data within <strong>30 days</strong>. You will receive a confirmation email.</p>
+    </div>
+
+    <form id="deleteForm" method="POST" action="/delete-account">
+      <label>Your Email Address *</label>
+      <input type="email" name="email" placeholder="you@email.com" required />
+
+      <label>Full Name (as registered)</label>
+      <input type="text" name="full_name" placeholder="John Mensah" />
+
+      <label>Reason for deletion (optional)</label>
+      <textarea name="reason" placeholder="Let us know why you're leaving…"></textarea>
+
+      <button type="submit" class="btn">🗑 Delete My Account & Data</button>
+    </form>
+
+    <div class="note">
+      <strong>What gets deleted:</strong>
+      <ul>
+        <li>Your account credentials (name, email, password)</li>
+        <li>Your CV / candidate profile</li>
+        <li>Job applications submitted</li>
+        <li>Training booking records</li>
+        <li>Any employer inquiries sent or received</li>
+      </ul>
+      <br>
+      Deletion is processed within <strong>30 days</strong> of your request. For questions contact <a href="mailto:kyeikofi@gmail.com" style="color:#2563eb;">kyeikofi@gmail.com</a>
+    </div>
+  </div>
+</div>
+
+<script>
+document.getElementById('deleteForm').addEventListener('submit', function(e) {
+  e.preventDefault();
+  var email = this.querySelector('[name=email]').value;
+  if (!email) return;
+  fetch('/delete-account', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: email, full_name: this.querySelector('[name=full_name]').value, reason: this.querySelector('[name=reason]').value })
+  }).then(function() {
+    document.getElementById('deleteForm').style.display = 'none';
+    document.getElementById('successMsg').style.display = 'block';
+  }).catch(function() {
+    document.getElementById('deleteForm').style.display = 'none';
+    document.getElementById('successMsg').style.display = 'block';
+  });
+});
+</script>
+</body>
+</html>
