@@ -2,364 +2,814 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>Employers' Corner — InvestIQ Talent Hub</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<title>Employers' Corner — Find Verified Finance Talent | InvestIQ Talent Hub</title>
+<meta name="description" content="Browse verified finance, investment and banking professionals actively seeking employment. Filter by sector, experience, availability and skills."/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
-  body{font-family:'Inter',sans-serif;background:#f8fafc;}
-  .hero-gradient{background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 50%,#0f4c81 100%);}
-  .card{background:#fff;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,.07);border:1px solid #e2e8f0;transition:all .2s;}
-  .card:hover{box-shadow:0 8px 36px rgba(15,76,129,.13);transform:translateY(-2px);}
-  .badge{display:inline-flex;align-items:center;padding:.22rem .7rem;border-radius:999px;font-size:.72rem;font-weight:700;letter-spacing:.01em;}
-  .badge-sector{background:#dbeafe;color:#1d4ed8;}
-  .badge-avail-green{background:#d1fae5;color:#065f46;}
-  .badge-avail-amber{background:#fef3c7;color:#92400e;}
-  .badge-avail-blue{background:#e0f2fe;color:#075985;}
-  .filter-pill{padding:.45rem 1rem;border-radius:999px;font-weight:500;font-size:.82rem;border:1.5px solid #e2e8f0;background:#fff;cursor:pointer;transition:all .15s;white-space:nowrap;}
-  .filter-pill.active,.filter-pill:hover{background:#0f4c81;color:#fff;border-color:#0f4c81;}
-  .search-wrap{position:relative;}
-  .search-wrap i{position:absolute;left:1rem;top:50%;transform:translateY(-50%);color:#94a3b8;}
-  .search-input{border:1.5px solid #e2e8f0;border-radius:12px;padding:.65rem 1rem .65rem 2.8rem;font-size:.93rem;width:100%;outline:none;transition:border .2s;}
-  .search-input:focus{border-color:#0f4c81;box-shadow:0 0 0 3px rgba(15,76,129,.1);}
-  .avatar{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;font-weight:800;color:#fff;flex-shrink:0;}
-  .contact-btn{display:inline-flex;align-items:center;gap:.4rem;padding:.45rem 1rem;border-radius:8px;font-size:.82rem;font-weight:600;cursor:pointer;border:none;transition:all .15s;}
-  .contact-btn-primary{background:#0f4c81;color:#fff;}
-  .contact-btn-primary:hover{background:#0d3f6b;}
-  .contact-btn-outline{background:#f1f5f9;color:#475569;border:1px solid #e2e8f0;}
-  .contact-btn-outline:hover{background:#e2e8f0;}
-  .empty-state{text-align:center;padding:5rem 2rem;}
-  .stat-chip{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:999px;padding:.35rem 1rem;font-size:.8rem;font-weight:600;color:#fff;}
-
-  /* Modal */
-  .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;align-items:center;justify-content:center;}
-  .modal-bg.open{display:flex;}
-  .modal-box{background:#fff;border-radius:20px;padding:2rem;max-width:480px;width:90%;position:relative;box-shadow:0 20px 60px rgba(0,0,0,.2);}
+body{font-family:'Inter',sans-serif;background:#f0f4f8;}
+.hero-gradient{background:linear-gradient(135deg,#0b1120 0%,#112240 45%,#0f4c81 100%);}
+.card{background:#fff;border-radius:16px;box-shadow:0 2px 16px rgba(0,0,0,.07);border:1px solid #e8edf2;transition:all .22s;}
+.card:hover{box-shadow:0 8px 32px rgba(15,76,129,.14);transform:translateY(-2px);}
+.badge{display:inline-flex;align-items:center;padding:.2rem .65rem;border-radius:999px;font-size:.7rem;font-weight:700;letter-spacing:.01em;}
+.badge-green{background:#d1fae5;color:#065f46;}
+.badge-amber{background:#fef3c7;color:#92400e;}
+.badge-blue{background:#dbeafe;color:#1d4ed8;}
+.badge-gray{background:#f1f5f9;color:#475569;}
+.badge-sector{background:#e0e7ff;color:#3730a3;}
+.badge-urgent{background:linear-gradient(90deg,#16a34a,#059669);color:#fff;animation:pulse-badge 2s infinite;}
+@keyframes pulse-badge{0%,100%{box-shadow:0 0 0 0 rgba(22,163,74,.4);}50%{box-shadow:0 0 0 6px rgba(22,163,74,0);}}
+.filter-pill{padding:.4rem .9rem;border-radius:999px;font-weight:600;font-size:.78rem;border:1.5px solid #e2e8f0;background:#fff;cursor:pointer;transition:all .15s;white-space:nowrap;}
+.filter-pill:hover,.filter-pill.active{background:#0f4c81;color:#fff;border-color:#0f4c81;}
+.input-field{border:1.5px solid #dde3ec;border-radius:10px;padding:.6rem 1rem .6rem 2.7rem;font-size:.88rem;width:100%;outline:none;transition:border .2s;background:#fff;color:#1e293b;}
+.input-field:focus{border-color:#0f4c81;box-shadow:0 0 0 3px rgba(15,76,129,.1);}
+.select-field{border:1.5px solid #dde3ec;border-radius:10px;padding:.6rem 1rem;font-size:.85rem;width:100%;outline:none;background:#fff;color:#1e293b;cursor:pointer;}
+.select-field:focus{border-color:#0f4c81;box-shadow:0 0 0 3px rgba(15,76,129,.1);}
+.avatar{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.15rem;font-weight:800;color:#fff;flex-shrink:0;letter-spacing:.02em;}
+.btn-primary{display:inline-flex;align-items:center;gap:.4rem;padding:.6rem 1.25rem;border-radius:9px;font-size:.82rem;font-weight:700;cursor:pointer;border:none;background:#0f4c81;color:#fff;transition:all .15s;}
+.btn-primary:hover{background:#0a3d6b;}
+.btn-secondary{display:inline-flex;align-items:center;gap:.4rem;padding:.6rem 1.1rem;border-radius:9px;font-size:.82rem;font-weight:600;cursor:pointer;border:1.5px solid #e2e8f0;background:#fff;color:#475569;transition:all .15s;}
+.btn-secondary:hover{border-color:#0f4c81;color:#0f4c81;background:#eff6ff;}
+.btn-green{display:inline-flex;align-items:center;gap:.4rem;padding:.55rem 1rem;border-radius:9px;font-size:.8rem;font-weight:700;cursor:pointer;border:none;background:#059669;color:#fff;transition:all .15s;}
+.btn-green:hover{background:#047857;}
+.stat-card{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);border-radius:14px;padding:1rem 1.25rem;text-align:center;}
+.urgency-strip{background:linear-gradient(90deg,#064e3b,#065f46,#059669);border-radius:14px;padding:1.25rem 1.5rem;position:relative;overflow:hidden;}
+.urgency-strip::before{content:'';position:absolute;inset:0;background:url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Ccircle cx='30' cy='30' r='28' stroke='rgba(255,255,255,0.05)' fill='none'/%3E%3C/svg%3E") repeat;opacity:.3;}
+/* Shortlist */
+.shortlist-fab{position:fixed;bottom:2rem;right:2rem;z-index:900;background:#1e40af;color:#fff;border:none;border-radius:50px;padding:.75rem 1.25rem;font-weight:700;font-size:.85rem;cursor:pointer;box-shadow:0 8px 24px rgba(30,64,175,.35);display:none;align-items:center;gap:.5rem;transition:all .2s;}
+.shortlist-fab:hover{background:#1d3a8a;transform:translateY(-2px);}
+.shortlist-fab.visible{display:flex;}
+.shortlist-badge{background:#ef4444;color:#fff;border-radius:999px;width:20px;height:20px;font-size:.72rem;font-weight:800;display:flex;align-items:center;justify-content:center;}
+/* Modals */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1000;align-items:center;justify-content:center;padding:1rem;}
+.modal-overlay.open{display:flex;}
+.modal-box{background:#fff;border-radius:20px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;position:relative;box-shadow:0 24px 80px rgba(0,0,0,.25);}
+.modal-box-wide{max-width:680px;}
+.modal-header{background:linear-gradient(135deg,#0f172a,#0f4c81);padding:1.5rem 1.75rem;border-radius:20px 20px 0 0;color:#fff;}
+.modal-body{padding:1.75rem;}
+.form-label{display:block;font-size:.78rem;font-weight:700;color:#374151;margin-bottom:.35rem;text-transform:uppercase;letter-spacing:.04em;}
+.form-input{width:100%;padding:.6rem .9rem;border:1.5px solid #e2e8f0;border-radius:8px;font-size:.88rem;outline:none;transition:border .2s;background:#fff;}
+.form-input:focus{border-color:#0f4c81;box-shadow:0 0 0 3px rgba(15,76,129,.1);}
+.form-select{width:100%;padding:.6rem .9rem;border:1.5px solid #e2e8f0;border-radius:8px;font-size:.88rem;outline:none;background:#fff;cursor:pointer;}
+/* Skill match indicator */
+.match-bar{height:4px;border-radius:4px;background:#e2e8f0;overflow:hidden;margin-top:4px;}
+.match-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,#3b82f6,#059669);transition:width .6s ease;}
+/* Tag */
+.sk-tag{display:inline-block;background:#f1f5f9;border:1px solid #e2e8f0;color:#374151;border-radius:6px;padding:.08rem .45rem;font-size:.73rem;font-weight:500;margin:.12rem .08rem;}
+.sk-tag-match{background:#d1fae5;border-color:#6ee7b7;color:#065f46;}
+/* Profile detail drawer */
+.drawer{position:fixed;right:0;top:0;height:100vh;width:min(560px,100vw);background:#fff;z-index:1100;box-shadow:-8px 0 48px rgba(0,0,0,.18);transform:translateX(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);overflow-y:auto;}
+.drawer.open{transform:translateX(0);}
+.drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:1050;display:none;}
+.drawer-overlay.open{display:block;}
+/* Animations */
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+.candidate-card{animation:fadeUp .3s ease both;}
 </style>
 </head>
 <body>
 
 <!-- NAVBAR -->
-<nav class="hero-gradient text-white py-4 px-6 sticky top-0 z-50 shadow-xl">
+<nav class="hero-gradient text-white py-3.5 px-5 sticky top-0 z-50 shadow-xl">
   <div class="max-w-7xl mx-auto flex justify-between items-center">
     <a href="/" class="text-xl font-bold flex items-center gap-2">
-      <i class="fas fa-chart-line text-blue-300"></i>
-      Invest<span class="text-blue-300">IQ</span>
+      <i class="fas fa-chart-line text-blue-300"></i> Invest<span class="text-blue-300">IQ</span>
       <span class="ml-2 text-xs font-normal bg-blue-500/30 px-2 py-0.5 rounded-full">Talent Hub</span>
     </a>
-    <div class="hidden md:flex items-center gap-6 text-sm">
+    <div class="hidden md:flex items-center gap-5 text-sm">
       <a href="/" class="text-blue-200 hover:text-white">Home</a>
       <a href="/jobs" class="text-blue-200 hover:text-white">Jobs</a>
-      <a href="/cv-builder" class="text-blue-200 hover:text-white">Build CV</a>
+      <a href="/cv-builder" class="text-blue-200 hover:text-white">CV Builder</a>
       <a href="/employers-corner" class="text-white font-semibold border-b-2 border-blue-300 pb-0.5">Employers' Corner</a>
       <a href="/training" class="text-blue-200 hover:text-white">Training</a>
     </div>
-    <a href="/jobs" class="hidden md:block bg-white/10 hover:bg-white/20 border border-white/25 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all">
-      <i class="fas fa-briefcase mr-1"></i> View Jobs
-    </a>
+    <div class="hidden md:flex items-center gap-2">
+      {% if current_employer %}
+      <a href="/employer-dashboard" class="flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/25 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all">
+        <span style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#2563eb,#7c3aed);display:inline-flex;align-items:center;justify-content:center;font-weight:800;font-size:10pt;">{{ current_employer.initials }}</span>
+        {{ current_employer.company_name }}
+      </a>
+      <a href="/employer-logout" class="bg-red-500/20 hover:bg-red-500/30 border border-red-400/30 text-red-200 hover:text-white px-3 py-2 rounded-lg text-sm font-semibold transition-all">
+        <i class="fas fa-right-from-bracket"></i>
+      </a>
+      {% else %}
+      <a href="/employer-login" class="bg-white/10 hover:bg-white/20 border border-white/25 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all">
+        <i class="fas fa-sign-in-alt mr-1"></i> Employer Login
+      </a>
+      <a href="/employer-register" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-all">
+        <i class="fas fa-building mr-1"></i> Register Company
+      </a>
+      {% endif %}
+    </div>
   </div>
 </nav>
 
 <!-- HERO -->
 <section class="hero-gradient text-white py-14 px-4">
-  <div class="max-w-5xl mx-auto text-center">
-    <div class="inline-flex items-center gap-2 bg-blue-500/20 border border-blue-400/30 rounded-full px-4 py-1.5 text-sm mb-5">
-      <span class="w-2 h-2 bg-green-400 rounded-full animate-pulse"></span>
-      <span class="text-blue-200">{{ total }} Candidate{{ 's' if total != 1 else '' }} Available</span>
+  <div class="max-w-6xl mx-auto">
+    <div class="text-center mb-10">
+      <div class="inline-flex items-center gap-2 bg-green-500/20 border border-green-400/30 rounded-full px-4 py-1.5 text-sm mb-5">
+        <span class="w-2 h-2 bg-green-400 rounded-full animate-ping absolute"></span>
+        <span class="w-2 h-2 bg-green-400 rounded-full relative"></span>
+        <span class="text-green-300 font-semibold">{{ total_all }} verified candidates in the talent pool</span>
+      </div>
+      <h1 class="text-4xl md:text-5xl font-extrabold mb-4 leading-tight">
+        Hire <span class="text-blue-300">Top Finance &amp; Investment</span><br class="hidden md:block"/> Professionals Today
+      </h1>
+      <p class="text-blue-200 text-lg mb-8 max-w-2xl mx-auto leading-relaxed">
+        Browse verified professionals who have built their CVs on InvestIQ and are actively seeking their next opportunity — all with clear availability and skills data.
+      </p>
     </div>
-    <h1 class="text-4xl md:text-5xl font-bold mb-4">
-      Employers' Corner
-      <span class="text-blue-300">— Find Your Next Hire</span>
-    </h1>
-    <p class="text-blue-200 text-lg mb-8 max-w-2xl mx-auto">
-      Browse professionals who have built their CVs on InvestIQ and are actively seeking new opportunities. Filter by sector, role, and availability.
-    </p>
-    <div class="flex flex-wrap justify-center gap-3">
-      <span class="stat-chip"><i class="fas fa-user-tie mr-1"></i> Verified Profiles</span>
-      <span class="stat-chip"><i class="fas fa-filter mr-1"></i> Filter by Role & Sector</span>
-      <span class="stat-chip"><i class="fas fa-bolt mr-1"></i> Instant Contact</span>
+
+    <!-- STATS ROW -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto mb-2">
+      <div class="stat-card">
+        <div class="text-2xl font-extrabold text-white">{{ total_all }}</div>
+        <div class="text-xs text-blue-300 mt-0.5">Total Profiles</div>
+      </div>
+      <div class="stat-card">
+        <div class="text-2xl font-extrabold text-green-300">{{ immediate_count }}</div>
+        <div class="text-xs text-blue-300 mt-0.5">Available Now</div>
+      </div>
+      <div class="stat-card">
+        <div class="text-2xl font-extrabold text-white">{{ sectors|length }}</div>
+        <div class="text-xs text-blue-300 mt-0.5">Sectors Covered</div>
+      </div>
+      <div class="stat-card">
+        <div class="text-2xl font-extrabold text-amber-300">Free</div>
+        <div class="text-xs text-blue-300 mt-0.5">To Search &amp; Contact</div>
+      </div>
     </div>
   </div>
 </section>
 
-<!-- FILTERS -->
-<div class="max-w-7xl mx-auto px-4 py-6">
-  <form method="GET" action="/employers-corner" id="filterForm">
-    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 flex flex-col gap-4">
-
-      <!-- Search row -->
-      <div class="flex flex-col md:flex-row gap-3">
-        <div class="search-wrap flex-1">
-          <i class="fas fa-search"></i>
-          <input name="role" type="text" class="search-input" placeholder="Search by desired role, title…"
-                 value="{{ current_role }}" id="roleSearch"/>
+<!-- IMMEDIATELY AVAILABLE SPOTLIGHT -->
+{% if immediate %}
+<div class="max-w-7xl mx-auto px-4 pt-6">
+  <div class="urgency-strip">
+    <div class="flex items-center justify-between flex-wrap gap-3 relative z-10">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center flex-shrink-0">
+          <i class="fas fa-bolt text-yellow-300 text-lg"></i>
         </div>
-        <select name="avail" class="search-input md:w-56" onchange="document.getElementById('filterForm').submit()">
-          <option value="">All Availabilities</option>
-          {% for a in availabilities %}
-          <option value="{{ a }}" {% if current_avail == a %}selected{% endif %}>{{ a }}</option>
-          {% endfor %}
-        </select>
-        <button type="submit" class="contact-btn contact-btn-primary px-5 py-2 rounded-xl text-sm">
-          <i class="fas fa-search mr-1"></i> Search
+        <div>
+          <p class="font-bold text-white text-sm">⚡ Immediately Available — {{ immediate|length }} candidate{{ 's' if immediate|length != 1 else '' }}</p>
+          <p class="text-emerald-200 text-xs">These professionals can start within days — ideal for urgent hires</p>
+        </div>
+      </div>
+      <div class="flex gap-2 flex-wrap">
+        {% for c in immediate[:4] %}
+        {% set initials = (c.full_name.split()[0][0] + (c.full_name.split()[-1][0] if c.full_name.split()|length > 1 else ''))|upper %}
+        <button onclick="openDrawer({{ c.id }})"
+                class="flex items-center gap-2 bg-white/15 hover:bg-white/25 border border-white/25 rounded-xl px-3 py-2 transition-all cursor-pointer text-left">
+          <div class="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center text-white text-xs font-bold flex-shrink-0">{{ initials }}</div>
+          <div>
+            <p class="text-white text-xs font-semibold leading-tight">{{ c.full_name.split()[0] }}</p>
+            <p class="text-emerald-300 text-xs leading-tight truncate max-w-24">{{ c.desired_role[:20] if c.desired_role else c.current_title[:20] }}</p>
+          </div>
         </button>
-        {% if current_sector or current_role or current_avail %}
-        <a href="/employers-corner" class="contact-btn contact-btn-outline px-4 py-2 rounded-xl text-sm">
-          <i class="fas fa-times mr-1"></i> Clear
+        {% endfor %}
+        {% if immediate|length > 4 %}
+        <a href="/employers-corner?avail=Immediately+available" class="flex items-center gap-1 bg-white/10 hover:bg-white/20 border border-white/25 rounded-xl px-3 py-2 text-white text-xs font-semibold transition-all">
+          +{{ immediate|length - 4 }} more <i class="fas fa-arrow-right text-xs"></i>
         </a>
         {% endif %}
       </div>
+    </div>
+  </div>
+</div>
+{% endif %}
 
-      <!-- Sector pills -->
-      <div class="flex flex-wrap gap-2">
-        <a href="/employers-corner?role={{ current_role }}&avail={{ current_avail }}"
-           class="filter-pill {% if not current_sector %}active{% endif %}">All Sectors</a>
+<!-- SEARCH & FILTERS -->
+<div class="max-w-7xl mx-auto px-4 py-5">
+  <form method="GET" action="/employers-corner" id="filterForm">
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 space-y-4">
+
+      <!-- Row 1: Search inputs -->
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div class="relative">
+          <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+          <input name="role" type="text" class="input-field" placeholder="Role or job title…" value="{{ current_role }}" id="roleSearch"/>
+        </div>
+        <div class="relative">
+          <i class="fas fa-tools absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+          <input name="skills" type="text" class="input-field" placeholder="Skills keyword (e.g. DCF, Python)…" value="{{ current_skills }}"/>
+        </div>
+        <div class="flex gap-2">
+          <button type="submit" class="btn-primary flex-1 justify-center py-2.5 rounded-xl">
+            <i class="fas fa-search"></i> Search
+          </button>
+          {% if current_sector or current_role or current_avail or current_exp or current_skills %}
+          <a href="/employers-corner" class="btn-secondary px-4 rounded-xl">
+            <i class="fas fa-times"></i>
+          </a>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Row 2: Dropdowns + sort -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <div>
+          <select name="avail" class="select-field" onchange="document.getElementById('filterForm').submit()">
+            <option value="">All Availabilities</option>
+            {% for a in ['Immediately available','Within 1 week','Within 2 weeks','Within 1 month','Within 3 months','Open to offers (not urgently seeking)'] %}
+            <option value="{{ a }}" {% if current_avail == a %}selected{% endif %}>{{ a }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <select name="exp" class="select-field" onchange="document.getElementById('filterForm').submit()">
+            <option value="">All Experience Levels</option>
+            {% for y in ['0–1 year (Graduate / Entry-level)','1–3 years','3–5 years','5–10 years','10–15 years','15–20 years','20+ years (Senior Executive)'] %}
+            <option value="{{ y }}" {% if current_exp == y %}selected{% endif %}>{{ y }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div>
+          <select name="sort" class="select-field" onchange="document.getElementById('filterForm').submit()">
+            <option value="recent" {% if current_sort == 'recent' %}selected{% endif %}>Sort: Most Recent</option>
+            <option value="availability" {% if current_sort == 'availability' %}selected{% endif %}>Sort: Available Soonest</option>
+            <option value="experience" {% if current_sort == 'experience' %}selected{% endif %}>Sort: Most Experienced</option>
+          </select>
+        </div>
+        <div>
+          <input name="sector" type="hidden" value="{{ current_sector }}"/>
+          <select class="select-field" onchange="document.getElementById('filterForm').elements['sector'].value=this.value;document.getElementById('filterForm').submit()">
+            <option value="">All Sectors</option>
+            {% for s in sectors %}
+            <option value="{{ s }}" {% if current_sector == s %}selected{% endif %}>{{ s }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+
+      <!-- Row 3: Sector pills -->
+      {% if sectors %}
+      <div class="flex flex-wrap gap-2 pt-1">
+        <a href="/employers-corner?role={{ current_role }}&skills={{ current_skills }}&avail={{ current_avail }}&exp={{ current_exp }}&sort={{ current_sort }}"
+           class="filter-pill {% if not current_sector %}active{% endif %}">
+          <i class="fas fa-th-large mr-1"></i> All
+        </a>
         {% for s in sectors %}
-        <a href="/employers-corner?sector={{ s|urlencode }}&role={{ current_role }}&avail={{ current_avail }}"
-           class="filter-pill {% if current_sector == s %}active{% endif %}">{{ s }}</a>
+        <a href="/employers-corner?sector={{ s|urlencode }}&role={{ current_role }}&skills={{ current_skills }}&avail={{ current_avail }}&exp={{ current_exp }}&sort={{ current_sort }}"
+           class="filter-pill {% if current_sector == s %}active{% endif %}">
+          {{ s }}
+          {% if sector_counts.get(s) %}<span class="ml-1 opacity-70">{{ sector_counts[s] }}</span>{% endif %}
+        </a>
         {% endfor %}
       </div>
+      {% endif %}
 
     </div>
   </form>
 </div>
 
-<!-- RESULTS COUNT -->
-<div class="max-w-7xl mx-auto px-4 mb-4 flex items-center justify-between">
-  <p class="text-sm text-gray-500">
-    Showing <span class="font-semibold text-gray-800">{{ candidates|length }}</span> candidate{{ 's' if candidates|length != 1 else '' }}
-    {% if current_sector %} in <span class="font-semibold text-blue-700">{{ current_sector }}</span>{% endif %}
-    {% if current_role %} matching <span class="font-semibold text-blue-700">"{{ current_role }}"</span>{% endif %}
-  </p>
-  <a href="/cv-builder" class="text-sm text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1">
-    <i class="fas fa-plus-circle"></i> Add your profile
-  </a>
+<!-- RESULTS HEADER -->
+<div class="max-w-7xl mx-auto px-4 mb-4 flex items-center justify-between flex-wrap gap-3">
+  <div>
+    <p class="text-sm text-gray-600">
+      Showing <span class="font-bold text-gray-900">{{ candidates|length }}</span> candidate{{ 's' if candidates|length != 1 else '' }}
+      {% if current_sector %} in <span class="font-semibold text-blue-700">{{ current_sector }}</span>{% endif %}
+      {% if current_role %} · role: <span class="font-semibold text-blue-700">"{{ current_role }}"</span>{% endif %}
+      {% if current_skills %} · skills: <span class="font-semibold text-blue-700">"{{ current_skills }}"</span>{% endif %}
+      {% if current_exp %} · <span class="font-semibold text-blue-700">{{ current_exp }}</span>{% endif %}
+    </p>
+  </div>
+  <div class="flex items-center gap-3">
+    <button onclick="toggleShortlistView()" class="btn-secondary text-xs px-3 py-2" id="viewShortlistBtn" style="display:none;">
+      <i class="fas fa-star text-amber-400 mr-1"></i> View Shortlist <span id="shortlistCountBadge" class="bg-blue-600 text-white rounded-full px-1.5 py-0.5 text-xs ml-1">0</span>
+    </button>
+    <a href="/cv-builder" class="text-sm text-blue-600 hover:text-blue-800 font-semibold flex items-center gap-1">
+      <i class="fas fa-user-plus"></i> Candidates: Add your profile
+    </a>
+  </div>
 </div>
 
 <!-- CANDIDATE GRID -->
-<main class="max-w-7xl mx-auto px-4 pb-20">
+<main class="max-w-7xl mx-auto px-4 pb-24">
 
   {% if candidates %}
-  <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+  <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5" id="candidateGrid">
     {% for c in candidates %}
 
-    {% set colors = ['from-blue-500 to-blue-700','from-purple-500 to-purple-700','from-emerald-500 to-emerald-700','from-orange-500 to-orange-600','from-rose-500 to-rose-700','from-cyan-500 to-cyan-700','from-indigo-500 to-indigo-700','from-teal-500 to-teal-700'] %}
+    {% set colors = ['from-blue-600 to-blue-800','from-violet-600 to-violet-800','from-emerald-500 to-emerald-700','from-orange-500 to-orange-700','from-rose-500 to-rose-700','from-cyan-500 to-cyan-700','from-indigo-600 to-indigo-800','from-teal-500 to-teal-700','from-sky-500 to-sky-700','from-purple-600 to-purple-800'] %}
     {% set color = colors[loop.index0 % colors|length] %}
     {% set initials = (c.full_name.split()[0][0] + (c.full_name.split()[-1][0] if c.full_name.split()|length > 1 else ''))|upper %}
 
-    {% if c.availability in ['Immediately','Within 2 weeks'] %}
-      {% set avail_class = 'badge-avail-green' %}
-    {% elif c.availability in ['Within 1 month'] %}
-      {% set avail_class = 'badge-avail-amber' %}
+    {% if c.availability in ('Immediately available', 'Immediately', 'Within 1 week') %}
+      {% set avail_class = 'badge-urgent' %}
+    {% elif c.availability in ('Within 2 weeks', 'Within 1 month') %}
+      {% set avail_class = 'badge-amber' %}
     {% else %}
-      {% set avail_class = 'badge-avail-blue' %}
+      {% set avail_class = 'badge-blue' %}
     {% endif %}
 
-    <div class="card p-6 flex flex-col gap-4" id="card-{{ c.id }}">
-      <!-- Header -->
-      <div class="flex items-start gap-4">
+    <div class="card p-5 flex flex-col gap-3.5 candidate-card" id="card-{{ c.id }}" style="animation-delay:{{ loop.index0 * 0.04 }}s">
+
+      <!-- Header row -->
+      <div class="flex items-start gap-3.5">
         <div class="avatar bg-gradient-to-br {{ color }}">{{ initials }}</div>
         <div class="flex-1 min-w-0">
-          <h3 class="font-bold text-gray-900 text-base leading-tight truncate">{{ c.full_name }}</h3>
-          {% if c.current_title %}
-          <p class="text-blue-700 font-medium text-sm truncate">{{ c.current_title }}</p>
-          {% endif %}
-          {% if c.location %}
-          <p class="text-gray-400 text-xs flex items-center gap-1 mt-0.5">
-            <i class="fas fa-map-marker-alt"></i> {{ c.location }}
-          </p>
-          {% endif %}
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <h3 class="font-bold text-gray-900 text-sm leading-tight">{{ c.full_name }}</h3>
+              {% if c.current_title %}<p class="text-blue-700 font-semibold text-xs mt-0.5 truncate">{{ c.current_title }}</p>{% endif %}
+              {% if c.location %}<p class="text-gray-400 text-xs flex items-center gap-1 mt-0.5"><i class="fas fa-map-marker-alt text-xs"></i> {{ c.location }}</p>{% endif %}
+            </div>
+            <!-- Shortlist star -->
+            <button onclick="toggleShortlist({{ c.id }}, '{{ c.full_name|e }}', '{{ c.current_title|e }}', '{{ c.desired_role|e }}')"
+                    id="star-{{ c.id }}"
+                    class="text-gray-300 hover:text-amber-400 transition-colors flex-shrink-0 mt-0.5"
+                    title="Add to shortlist">
+              <i class="fas fa-star text-base"></i>
+            </button>
+          </div>
         </div>
-        {% if c.availability %}
-        <span class="badge {{ avail_class }} flex-shrink-0 text-xs">{{ c.availability }}</span>
-        {% endif %}
       </div>
 
-      <!-- Role & Sector -->
-      <div class="flex flex-wrap gap-2">
-        {% if c.desired_role %}
-        <span class="inline-flex items-center gap-1 bg-blue-50 text-blue-800 text-xs font-semibold px-3 py-1 rounded-full">
-          <i class="fas fa-search text-blue-400" style="font-size:.65rem;"></i>
-          Seeking: {{ c.desired_role }}
-        </span>
-        {% endif %}
-        {% if c.desired_sector %}
-        <span class="badge badge-sector">{{ c.desired_sector }}</span>
-        {% endif %}
-        {% if c.years_exp %}
-        <span class="inline-flex items-center gap-1 bg-gray-100 text-gray-600 text-xs font-semibold px-3 py-1 rounded-full">
-          <i class="fas fa-clock" style="font-size:.65rem;"></i> {{ c.years_exp }}
-        </span>
-        {% endif %}
+      <!-- Availability + Sector -->
+      <div class="flex flex-wrap gap-1.5">
+        {% if c.availability %}<span class="badge {{ avail_class }}">{% if c.availability in ('Immediately available','Immediately') %}⚡ {% endif %}{{ c.availability }}</span>{% endif %}
+        {% if c.desired_sector %}<span class="badge badge-sector">{{ c.desired_sector }}</span>{% endif %}
+        {% if c.years_exp %}<span class="badge badge-gray"><i class="fas fa-clock mr-1" style="font-size:.6rem;"></i>{{ c.years_exp }}</span>{% endif %}
       </div>
 
-      <!-- Summary -->
+      <!-- Desired role -->
+      {% if c.desired_role %}
+      <div class="flex items-center gap-2 bg-blue-50 rounded-lg px-3 py-2">
+        <i class="fas fa-search text-blue-400 text-xs flex-shrink-0"></i>
+        <span class="text-blue-800 text-xs font-semibold">Seeking: {{ c.desired_role }}</span>
+      </div>
+      {% endif %}
+
+      <!-- Profile summary -->
       {% if c.profile_summary %}
-      <p class="text-gray-600 text-sm leading-relaxed line-clamp-3" style="display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;">
+      <p class="text-gray-500 text-xs leading-relaxed" style="display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;">
         {{ c.profile_summary }}
       </p>
       {% endif %}
 
-      <!-- Skills -->
+      <!-- Skills chips -->
       {% if c.skills_summary %}
       <div class="flex flex-wrap gap-1">
-        {% for skill in c.skills_summary.split(',')[:5] %}
+        {% for skill in c.skills_summary.split(',')[:6] %}
         {% set s = skill.strip() %}
-        {% if s %}
-        <span class="bg-gray-50 border border-gray-200 text-gray-600 text-xs font-medium px-2 py-0.5 rounded-md">{{ s }}</span>
-        {% endif %}
+        {% if s %}<span class="sk-tag">{{ s }}</span>{% endif %}
         {% endfor %}
-        {% if c.skills_summary.split(',')|length > 5 %}
-        <span class="text-gray-400 text-xs self-center">+{{ c.skills_summary.split(',')|length - 5 }} more</span>
-        {% endif %}
+        {% set extra = c.skills_summary.split(',')|length - 6 %}
+        {% if extra > 0 %}<span class="text-gray-400 text-xs self-center font-medium">+{{ extra }}</span>{% endif %}
       </div>
       {% endif %}
 
-      <!-- Actions -->
+      <!-- LinkedIn indicator -->
+      {% if c.linkedin %}
+      <div class="flex items-center gap-1.5 text-xs text-blue-600 font-medium">
+        <i class="fab fa-linkedin text-blue-500"></i> LinkedIn profile available
+      </div>
+      {% endif %}
+
+      <!-- Action buttons -->
       <div class="flex gap-2 pt-1 border-t border-gray-100 mt-auto">
-        <button onclick="openContact({{ c.id }}, '{{ c.full_name|e }}', '{{ c.email|e }}', '{{ c.phone|e }}', '{{ c.linkedin|e }}')"
-                class="contact-btn contact-btn-primary flex-1 justify-center py-2 rounded-xl text-sm">
-          <i class="fas fa-envelope mr-1"></i> Contact
+        <button onclick="openDrawer({{ c.id }})"
+                class="btn-secondary flex-1 justify-center py-2 rounded-xl text-xs">
+          <i class="fas fa-id-card-alt"></i> View Profile
         </button>
-        {% if c.linkedin %}
-        <a href="{{ c.linkedin if c.linkedin.startswith('http') else 'https://' + c.linkedin }}"
-           target="_blank" rel="noopener"
-           class="contact-btn contact-btn-outline px-4 py-2 rounded-xl text-sm">
-          <i class="fab fa-linkedin text-blue-600"></i>
-        </a>
-        {% endif %}
+        <button onclick="openInquiry({{ c.id }}, '{{ c.full_name|e }}', '{{ c.current_title|e }}', '{{ c.desired_role|e }}')"
+                class="btn-primary flex-1 justify-center py-2 rounded-xl text-xs">
+          <i class="fas fa-paper-plane"></i> Contact
+        </button>
       </div>
     </div>
     {% endfor %}
   </div>
 
   {% else %}
-  <!-- Empty state -->
-  <div class="empty-state">
+  <div class="text-center py-20">
     <div class="inline-flex items-center justify-center w-20 h-20 rounded-2xl bg-blue-50 mb-5">
       <i class="fas fa-users text-blue-300 text-3xl"></i>
     </div>
     <h3 class="text-xl font-bold text-gray-800 mb-2">No candidates found</h3>
-    <p class="text-gray-500 mb-6 max-w-sm mx-auto">
-      {% if current_sector or current_role or current_avail %}
-        No profiles match your current filters. Try broadening your search.
+    <p class="text-gray-500 mb-6 max-w-md mx-auto text-sm">
+      {% if current_sector or current_role or current_avail or current_skills or current_exp %}
+        No profiles match your current filters. Try broadening your search or removing some filters.
       {% else %}
-        No candidates have registered yet. Be the first — build your CV now!
+        No candidates have registered yet. Share the CV Builder with candidates to grow the talent pool.
       {% endif %}
     </p>
-    {% if current_sector or current_role or current_avail %}
-    <a href="/employers-corner" class="contact-btn contact-btn-primary px-6 py-3 rounded-xl text-sm inline-flex">
-      <i class="fas fa-times mr-2"></i> Clear Filters
-    </a>
-    {% else %}
-    <a href="/cv-builder" class="contact-btn contact-btn-primary px-6 py-3 rounded-xl text-sm inline-flex">
-      <i class="fas fa-file-alt mr-2"></i> Build Your CV
-    </a>
-    {% endif %}
+    <div class="flex gap-3 justify-center flex-wrap">
+      {% if current_sector or current_role or current_avail or current_skills or current_exp %}
+      <a href="/employers-corner" class="btn-primary px-6 py-3 rounded-xl text-sm">
+        <i class="fas fa-times mr-2"></i> Clear Filters
+      </a>
+      {% endif %}
+      <a href="/cv-builder" class="btn-secondary px-6 py-3 rounded-xl text-sm">
+        <i class="fas fa-file-alt mr-2"></i> Build Your CV &amp; Join
+      </a>
+    </div>
   </div>
   {% endif %}
 
 </main>
 
-<!-- CONTACT MODAL -->
-<div class="modal-bg" id="contactModal">
+<!-- ═══════════════════════════ PROFILE DRAWER ═══════════════════════════ -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="profileDrawer">
+  <div id="drawerContent" class="h-full"></div>
+</div>
+
+<!-- ═══════════════════════════ INQUIRY MODAL ═══════════════════════════ -->
+<div class="modal-overlay" id="inquiryModal">
   <div class="modal-box">
-    <button onclick="closeContact()" style="position:absolute;top:1rem;right:1rem;background:#f1f5f9;border:none;border-radius:8px;padding:.4rem .7rem;cursor:pointer;color:#64748b;font-size:1rem;">
-      <i class="fas fa-times"></i>
-    </button>
-    <div class="flex items-center gap-4 mb-5">
-      <div id="modal-avatar" class="avatar bg-gradient-to-br from-blue-500 to-blue-700 text-2xl" style="width:60px;height:60px;border-radius:16px;"></div>
-      <div>
-        <h2 id="modal-name" class="text-xl font-bold text-gray-900"></h2>
-        <p class="text-gray-500 text-sm">Contact Details</p>
-      </div>
-    </div>
-    <div class="space-y-3">
-      <div id="modal-email-row" class="flex items-center gap-3 bg-blue-50 rounded-xl px-4 py-3">
-        <i class="fas fa-envelope text-blue-500 w-5 text-center"></i>
-        <div>
-          <p class="text-xs text-gray-500 font-medium">Email Address</p>
-          <a id="modal-email" href="#" class="text-blue-700 font-semibold text-sm hover:underline"></a>
+    <div class="modal-header">
+      <button onclick="closeInquiry()" class="absolute top-4 right-4 text-white/60 hover:text-white">
+        <i class="fas fa-times text-lg"></i>
+      </button>
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
+          <i class="fas fa-paper-plane text-blue-200"></i>
         </div>
-      </div>
-      <div id="modal-phone-row" class="flex items-center gap-3 bg-gray-50 rounded-xl px-4 py-3">
-        <i class="fas fa-phone text-gray-500 w-5 text-center"></i>
         <div>
-          <p class="text-xs text-gray-500 font-medium">Phone Number</p>
-          <a id="modal-phone" href="#" class="text-gray-800 font-semibold text-sm hover:underline"></a>
-        </div>
-      </div>
-      <div id="modal-linkedin-row" class="flex items-center gap-3 bg-blue-50 rounded-xl px-4 py-3" style="display:none!important;">
-        <i class="fab fa-linkedin text-blue-600 w-5 text-center"></i>
-        <div>
-          <p class="text-xs text-gray-500 font-medium">LinkedIn Profile</p>
-          <a id="modal-linkedin" href="#" target="_blank" class="text-blue-700 font-semibold text-sm hover:underline break-all"></a>
+          <h2 class="font-bold text-lg text-white" id="inquiryModalTitle">Send Inquiry</h2>
+          <p class="text-blue-300 text-xs" id="inquiryModalSub">Directly reach this candidate</p>
         </div>
       </div>
     </div>
-    <p class="text-xs text-gray-400 mt-4 text-center">Contact information shared with employer consent.</p>
+    <div class="modal-body">
+      <form id="inquiryForm" class="space-y-4" onsubmit="submitInquiry(event)">
+        <input type="hidden" id="inq_candidate_id" name="candidate_id"/>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="form-label">Your Full Name <span class="text-red-400">*</span></label>
+            <input type="text" name="employer_name" class="form-input" placeholder="Jane Smith" required/>
+          </div>
+          <div>
+            <label class="form-label">Your Email <span class="text-red-400">*</span></label>
+            <input type="email" name="employer_email" class="form-input" placeholder="jane@company.com" required/>
+          </div>
+          <div>
+            <label class="form-label">Company / Organisation</label>
+            <input type="text" name="employer_company" class="form-input" placeholder="Goldman Sachs"/>
+          </div>
+          <div>
+            <label class="form-label">Your Phone</label>
+            <input type="tel" name="employer_phone" class="form-input" placeholder="+1 212 000 0000"/>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="form-label">Type of Inquiry <span class="text-red-400">*</span></label>
+            <select name="inquiry_type" class="form-select" required>
+              <option>Interview Request</option>
+              <option>Job Offer</option>
+              <option>Contract / Consulting Role</option>
+              <option>Information Request</option>
+              <option>Headhunting Opportunity</option>
+              <option>Partnership / Collaboration</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label">Role You're Offering</label>
+            <input type="text" name="role_offering" class="form-input" placeholder="Senior Analyst — Fixed Income"/>
+          </div>
+        </div>
+        <div>
+          <label class="form-label">Your Message <span class="text-red-400">*</span></label>
+          <textarea name="message" class="form-input" rows="4" required
+                    placeholder="Dear [Candidate], We came across your profile on InvestIQ and are impressed by your experience in... We would like to invite you for an interview to discuss a [role] opportunity at [company]..."></textarea>
+        </div>
+        <div class="flex items-start gap-2">
+          <input type="checkbox" id="consent_inq" class="w-4 h-4 mt-0.5 flex-shrink-0" required/>
+          <label for="consent_inq" class="text-xs text-gray-500 leading-relaxed">
+            I confirm I am a legitimate employer and agree that this message will be delivered to the candidate. I will not use the contact details for spam or any purpose other than professional recruitment.
+          </label>
+        </div>
+        <div id="inquiryFeedback" class="hidden rounded-xl p-3 text-sm font-semibold text-center"></div>
+        <button type="submit" id="inquirySubmitBtn" class="btn-primary w-full justify-center py-3 rounded-xl text-sm">
+          <i class="fas fa-paper-plane mr-2"></i> Send Inquiry to Candidate
+        </button>
+      </form>
+    </div>
   </div>
 </div>
 
-<!-- CTA FOOTER STRIP -->
-<div class="hero-gradient py-10 px-4">
-  <div class="max-w-3xl mx-auto text-center">
-    <h2 class="text-2xl font-bold text-white mb-2">Are you a job seeker?</h2>
-    <p class="text-blue-200 mb-5 text-sm">Build your professional CV and get discovered by employers — completely free.</p>
-    <a href="/cv-builder" style="background:#fff;color:#0f4c81;padding:.75rem 2rem;border-radius:12px;font-weight:700;font-size:.95rem;text-decoration:none;display:inline-flex;align-items:center;gap:.5rem;">
-      <i class="fas fa-file-alt"></i> Build My CV &amp; Join Employers' Corner
-    </a>
+<!-- ═══════════════════════════ SHORTLIST MODAL ═══════════════════════════ -->
+<div class="modal-overlay" id="shortlistModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <button onclick="document.getElementById('shortlistModal').classList.remove('open')" class="absolute top-4 right-4 text-white/60 hover:text-white">
+        <i class="fas fa-times text-lg"></i>
+      </button>
+      <div class="flex items-center gap-3">
+        <i class="fas fa-star text-amber-300 text-xl"></i>
+        <div>
+          <h2 class="font-bold text-lg text-white">Your Shortlist</h2>
+          <p class="text-blue-300 text-xs">Candidates you've saved this session</p>
+        </div>
+      </div>
+    </div>
+    <div class="modal-body">
+      <div id="shortlistContent" class="space-y-3"></div>
+      <div class="mt-4 flex gap-3">
+        <button onclick="exportShortlist()" class="btn-primary flex-1 justify-center py-2.5 rounded-xl text-sm">
+          <i class="fas fa-download mr-2"></i> Export as Text
+        </button>
+        <button onclick="clearShortlist()" class="btn-secondary flex-1 justify-center py-2.5 rounded-xl text-sm text-red-500 border-red-200">
+          <i class="fas fa-trash mr-2"></i> Clear All
+        </button>
+      </div>
+    </div>
   </div>
 </div>
 
+<!-- SHORTLIST FAB -->
+<button class="shortlist-fab" id="shortlistFab" onclick="toggleShortlistView()">
+  <i class="fas fa-star text-amber-300"></i>
+  Shortlist
+  <span class="shortlist-badge" id="fabCount">0</span>
+</button>
+
+<!-- CTA STRIP -->
+<div class="hero-gradient py-12 px-4">
+  <div class="max-w-4xl mx-auto text-center">
+    <h2 class="text-2xl font-bold text-white mb-2">Can't find the right candidate?</h2>
+    <p class="text-blue-200 mb-6 text-sm max-w-lg mx-auto">Post a job listing on InvestIQ — we'll actively market it to our growing talent network of finance professionals.</p>
+    <div class="flex justify-center gap-4 flex-wrap">
+      <a href="/jobs" style="background:#fff;color:#0f4c81;padding:.75rem 2rem;border-radius:12px;font-weight:700;font-size:.9rem;text-decoration:none;display:inline-flex;align-items:center;gap:.5rem;">
+        <i class="fas fa-briefcase"></i> Post a Job Listing
+      </a>
+      <a href="/cv-builder" style="background:rgba(255,255,255,.12);color:#fff;border:1.5px solid rgba(255,255,255,.3);padding:.75rem 2rem;border-radius:12px;font-weight:700;font-size:.9rem;text-decoration:none;display:inline-flex;align-items:center;gap:.5rem;">
+        <i class="fas fa-file-alt"></i> I'm a Candidate — Build My CV
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- CANDIDATE DATA (for JS drawer) -->
 <script>
-function openContact(id, name, email, phone, linkedin) {
-  const initials = name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2);
-  document.getElementById('modal-avatar').textContent = initials;
-  document.getElementById('modal-name').textContent = name;
+var CANDIDATES = {
+  {% for c in candidates %}
+  {{ c.id }}: {
+    id: {{ c.id }},
+    name: {{ c.full_name | tojson }},
+    title: {{ (c.current_title or '') | tojson }},
+    location: {{ (c.location or '') | tojson }},
+    desired_role: {{ (c.desired_role or '') | tojson }},
+    desired_sector: {{ (c.desired_sector or '') | tojson }},
+    years_exp: {{ (c.years_exp or '') | tojson }},
+    availability: {{ (c.availability or '') | tojson }},
+    profile_summary: {{ (c.profile_summary or '') | tojson }},
+    skills_summary: {{ (c.skills_summary or '') | tojson }},
+    linkedin: {{ (c.linkedin or '') | tojson }},
+    email: {{ (c.email or '') | tojson }},
+    phone: {{ (c.phone or '') | tojson }},
+    initials: {{ ((c.full_name.split()[0][0] + (c.full_name.split()[-1][0] if c.full_name.split()|length > 1 else ''))|upper) | tojson }},
+    color_idx: {{ loop.index0 % 10 }}
+  }{% if not loop.last %},{% endif %}
+  {% endfor %}
+};
 
-  const emailEl = document.getElementById('modal-email');
-  emailEl.textContent = email;
-  emailEl.href = 'mailto:' + email;
+var COLORS = ['from-blue-600 to-blue-800','from-violet-600 to-violet-800','from-emerald-500 to-emerald-700','from-orange-500 to-orange-700','from-rose-500 to-rose-700','from-cyan-500 to-cyan-700','from-indigo-600 to-indigo-800','from-teal-500 to-teal-700','from-sky-500 to-sky-700','from-purple-600 to-purple-800'];
 
-  const phoneRow = document.getElementById('modal-phone-row');
-  const phoneEl = document.getElementById('modal-phone');
-  if (phone) {
-    phoneEl.textContent = phone;
-    phoneEl.href = 'tel:' + phone;
-    phoneRow.style.display = '';
-  } else {
-    phoneRow.style.display = 'none';
-  }
+// ─── Profile Drawer ───────────────────────────────────────────────────────
+function openDrawer(cid) {
+  var c = CANDIDATES[cid];
+  if (!c) return;
 
-  const liRow = document.getElementById('modal-linkedin-row');
-  const liEl  = document.getElementById('modal-linkedin');
-  if (linkedin) {
-    const url = linkedin.startsWith('http') ? linkedin : 'https://' + linkedin;
-    liEl.textContent = linkedin;
-    liEl.href = url;
-    liRow.style.removeProperty('display');
-  } else {
-    liRow.style.setProperty('display','none','important');
-  }
+  var isUrgent = ['Immediately available','Immediately','Within 1 week'].includes(c.availability);
+  var skills = c.skills_summary ? c.skills_summary.split(',').filter(s=>s.trim()) : [];
 
-  document.getElementById('contactModal').classList.add('open');
+  var html = `
+  <div class="bg-gradient-to-br from-slate-900 to-blue-900 p-6 sticky top-0 z-10">
+    <div class="flex items-start justify-between gap-3 mb-4">
+      <button onclick="closeDrawer()" class="text-white/60 hover:text-white bg-white/10 rounded-lg p-2">
+        <i class="fas fa-times"></i>
+      </button>
+      <div class="flex gap-2">
+        <button onclick="closeDrawer();openInquiry(${c.id},'${esc(c.name)}','${esc(c.title)}','${esc(c.desired_role)}')"
+                class="flex items-center gap-1.5 bg-white text-blue-900 px-4 py-2 rounded-xl font-bold text-sm hover:bg-blue-50 transition-all">
+          <i class="fas fa-paper-plane"></i> Contact
+        </button>
+        <button onclick="toggleShortlist(${c.id},'${esc(c.name)}','${esc(c.title)}','${esc(c.desired_role)}')"
+                class="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 text-white px-3 py-2 rounded-xl font-semibold text-sm transition-all" id="drawerStar-${c.id}">
+          <i class="fas fa-star"></i>
+        </button>
+      </div>
+    </div>
+    <div class="flex items-center gap-4">
+      <div class="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center text-2xl font-extrabold text-white flex-shrink-0">${c.initials}</div>
+      <div>
+        <h2 class="text-xl font-extrabold text-white">${c.name}</h2>
+        ${c.title ? `<p class="text-blue-300 font-semibold text-sm">${c.title}</p>` : ''}
+        ${c.location ? `<p class="text-blue-300/70 text-xs mt-0.5"><i class="fas fa-map-marker-alt mr-1"></i>${c.location}</p>` : ''}
+      </div>
+    </div>
+    <div class="flex flex-wrap gap-2 mt-4">
+      ${c.availability ? `<span class="inline-flex items-center gap-1 ${isUrgent?'bg-green-500 text-white':'bg-white/15 text-blue-200'} text-xs font-bold px-3 py-1.5 rounded-full">${isUrgent?'⚡ ':''}${c.availability}</span>` : ''}
+      ${c.desired_sector ? `<span class="bg-blue-500/30 text-blue-200 text-xs font-semibold px-3 py-1.5 rounded-full">${c.desired_sector}</span>` : ''}
+      ${c.years_exp ? `<span class="bg-white/10 text-blue-200 text-xs font-semibold px-3 py-1.5 rounded-full"><i class="fas fa-clock mr-1"></i>${c.years_exp}</span>` : ''}
+    </div>
+  </div>
+
+  <div class="p-6 space-y-5">
+    ${c.desired_role ? `<div class="bg-blue-50 border border-blue-100 rounded-xl p-4"><p class="text-xs font-bold text-blue-600 uppercase tracking-wide mb-1">Seeking</p><p class="font-bold text-blue-900">${c.desired_role}</p></div>` : ''}
+
+    ${c.profile_summary ? `<div>
+      <p class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Professional Summary</p>
+      <p class="text-gray-700 text-sm leading-relaxed">${c.profile_summary}</p>
+    </div>` : ''}
+
+    ${skills.length > 0 ? `<div>
+      <p class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">Skills &amp; Expertise</p>
+      <div class="flex flex-wrap gap-1.5">
+        ${skills.map(s=>`<span class="bg-gray-100 text-gray-700 text-xs font-medium px-2.5 py-1 rounded-lg">${s.trim()}</span>`).join('')}
+      </div>
+    </div>` : ''}
+
+    <div class="border-t border-gray-100 pt-4">
+      <p class="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">Contact Details</p>
+      <div class="space-y-2.5">
+        <a href="mailto:${c.email}" class="flex items-center gap-3 bg-blue-50 hover:bg-blue-100 rounded-xl px-4 py-3 transition-all">
+          <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0"><i class="fas fa-envelope text-white text-sm"></i></div>
+          <div><p class="text-xs text-gray-500">Email</p><p class="font-semibold text-blue-700 text-sm">${c.email}</p></div>
+        </a>
+        ${c.phone ? `<a href="tel:${c.phone}" class="flex items-center gap-3 bg-gray-50 hover:bg-gray-100 rounded-xl px-4 py-3 transition-all">
+          <div class="w-8 h-8 bg-gray-600 rounded-lg flex items-center justify-center flex-shrink-0"><i class="fas fa-phone text-white text-sm"></i></div>
+          <div><p class="text-xs text-gray-500">Phone</p><p class="font-semibold text-gray-800 text-sm">${c.phone}</p></div>
+        </a>` : ''}
+        ${c.linkedin ? `<a href="${c.linkedin.startsWith('http')?c.linkedin:'https://'+c.linkedin}" target="_blank" rel="noopener" class="flex items-center gap-3 bg-blue-50 hover:bg-blue-100 rounded-xl px-4 py-3 transition-all">
+          <div class="w-8 h-8 bg-blue-700 rounded-lg flex items-center justify-center flex-shrink-0"><i class="fab fa-linkedin text-white text-sm"></i></div>
+          <div><p class="text-xs text-gray-500">LinkedIn</p><p class="font-semibold text-blue-700 text-sm truncate">${c.linkedin}</p></div>
+        </a>` : ''}
+      </div>
+    </div>
+
+    <div class="border-t border-gray-100 pt-4">
+      <p class="text-xs text-gray-400 text-center"><i class="fas fa-shield-alt mr-1 text-green-500"></i>This candidate has consented to their profile being visible to employers.</p>
+    </div>
+  </div>`;
+
+  document.getElementById('drawerContent').innerHTML = html;
+  document.getElementById('profileDrawer').classList.add('open');
+  document.getElementById('drawerOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  updateStarUI(cid);
+}
+function closeDrawer(){
+  document.getElementById('profileDrawer').classList.remove('open');
+  document.getElementById('drawerOverlay').classList.remove('open');
+  document.body.style.overflow='';
+}
+function esc(s){ return (s||'').replace(/'/g,"\\'").replace(/"/g,'&quot;'); }
+
+// ─── Inquiry Modal ────────────────────────────────────────────────────────
+function openInquiry(cid, name, title, role) {
+  document.getElementById('inq_candidate_id').value = cid;
+  document.getElementById('inquiryModalTitle').textContent = 'Contact ' + name;
+  document.getElementById('inquiryModalSub').textContent = (title||role||'') ? (title||role) : 'Send a direct inquiry';
+  document.getElementById('inquiryFeedback').className = 'hidden rounded-xl p-3 text-sm font-semibold text-center';
+  document.getElementById('inquiryForm').reset();
+  document.getElementById('inq_candidate_id').value = cid;
+  document.getElementById('inquiryModal').classList.add('open');
   document.body.style.overflow = 'hidden';
 }
-
-function closeContact() {
-  document.getElementById('contactModal').classList.remove('open');
+function closeInquiry(){
+  document.getElementById('inquiryModal').classList.remove('open');
   document.body.style.overflow = '';
 }
+document.getElementById('inquiryModal').addEventListener('click', function(e){ if(e.target===this) closeInquiry(); });
 
-document.getElementById('contactModal').addEventListener('click', function(e){
-  if (e.target === this) closeContact();
+async function submitInquiry(e) {
+  e.preventDefault();
+  var btn = document.getElementById('inquirySubmitBtn');
+  var fb  = document.getElementById('inquiryFeedback');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Sending…';
+  var form = e.target;
+  var data = {};
+  new FormData(form).forEach(function(v,k){ data[k]=v; });
+  try {
+    var res = await fetch('/employer-inquiry', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(data)
+    });
+    var json = await res.json();
+    if (json.ok) {
+      fb.className = 'rounded-xl p-3 text-sm font-semibold text-center bg-green-50 text-green-700 border border-green-200';
+      fb.innerHTML = '<i class="fas fa-check-circle mr-2"></i>' + json.message;
+      btn.style.display = 'none';
+      setTimeout(closeInquiry, 3000);
+    } else {
+      fb.className = 'rounded-xl p-3 text-sm font-semibold text-center bg-red-50 text-red-700 border border-red-200';
+      fb.innerHTML = '<i class="fas fa-exclamation-circle mr-2"></i>' + (json.error||'Error occurred');
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-paper-plane mr-2"></i> Send Inquiry';
+    }
+  } catch(err) {
+    fb.className = 'rounded-xl p-3 text-sm font-semibold text-center bg-red-50 text-red-700 border border-red-200';
+    fb.innerHTML = '<i class="fas fa-exclamation-circle mr-2"></i> Network error. Please try again.';
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-paper-plane mr-2"></i> Send Inquiry';
+  }
+}
+
+// ─── Shortlist ────────────────────────────────────────────────────────────
+var shortlist = {};
+function toggleShortlist(id, name, title, role) {
+  if (shortlist[id]) {
+    delete shortlist[id];
+  } else {
+    shortlist[id] = { id, name, title, role };
+  }
+  updateShortlistUI();
+}
+function updateStarUI(id) {
+  var stars = document.querySelectorAll('#star-'+id+', #drawerStar-'+id);
+  stars.forEach(function(el){
+    if(shortlist[id]) {
+      el.classList.add('text-amber-400');
+      el.classList.remove('text-gray-300');
+    } else {
+      el.classList.remove('text-amber-400');
+      el.classList.add('text-gray-300');
+    }
+  });
+}
+function updateShortlistUI() {
+  var count = Object.keys(shortlist).length;
+  document.getElementById('fabCount').textContent = count;
+  document.getElementById('shortlistCountBadge').textContent = count;
+  var fab = document.getElementById('shortlistFab');
+  var btn = document.getElementById('viewShortlistBtn');
+  if (count > 0) { fab.classList.add('visible'); btn.style.display='flex'; }
+  else { fab.classList.remove('visible'); btn.style.display='none'; }
+  Object.keys(CANDIDATES).forEach(function(cid){ updateStarUI(parseInt(cid)); });
+}
+function toggleShortlistView() {
+  var count = Object.keys(shortlist).length;
+  if (count === 0) return;
+  var html = '';
+  Object.values(shortlist).forEach(function(c){
+    html += `<div class="flex items-center justify-between gap-3 bg-gray-50 rounded-xl p-3">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 bg-blue-600 rounded-xl flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+          ${(c.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2))}
+        </div>
+        <div>
+          <p class="font-semibold text-gray-900 text-sm">${c.name}</p>
+          <p class="text-gray-500 text-xs">${c.title||c.role||''}</p>
+        </div>
+      </div>
+      <div class="flex gap-2">
+        <button onclick="closeShortlistModal();openDrawer(${c.id})" class="text-xs text-blue-600 font-semibold hover:underline">View</button>
+        <button onclick="closeShortlistModal();openInquiry(${c.id},'${esc(c.name)}','${esc(c.title)}','${esc(c.role)}')" class="text-xs bg-blue-600 text-white px-2.5 py-1 rounded-lg font-semibold">Contact</button>
+      </div>
+    </div>`;
+  });
+  document.getElementById('shortlistContent').innerHTML = html;
+  document.getElementById('shortlistModal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeShortlistModal(){
+  document.getElementById('shortlistModal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.getElementById('shortlistModal').addEventListener('click', function(e){ if(e.target===this) closeShortlistModal(); });
+function clearShortlist(){
+  shortlist = {};
+  updateShortlistUI();
+  closeShortlistModal();
+}
+function exportShortlist(){
+  var lines = ['SHORTLISTED CANDIDATES — InvestIQ Talent Hub','='.repeat(50),''];
+  Object.values(shortlist).forEach(function(c, i){
+    lines.push((i+1)+'. '+c.name);
+    if(c.title) lines.push('   Title: '+c.title);
+    if(c.role) lines.push('   Seeking: '+c.role);
+    var cand = CANDIDATES[c.id];
+    if(cand) {
+      if(cand.years_exp) lines.push('   Experience: '+cand.years_exp);
+      if(cand.availability) lines.push('   Availability: '+cand.availability);
+      if(cand.email) lines.push('   Email: '+cand.email);
+      if(cand.phone) lines.push('   Phone: '+cand.phone);
+      if(cand.linkedin) lines.push('   LinkedIn: '+cand.linkedin);
+    }
+    lines.push('');
+  });
+  lines.push('Generated: '+new Date().toLocaleDateString()+' via investright.onrender.com');
+  var blob = new Blob([lines.join('\n')],{type:'text/plain'});
+  var a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+  a.download = 'shortlisted_candidates_'+new Date().toISOString().slice(0,10)+'.txt';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+}
+
+// ─── Keyboard & misc ──────────────────────────────────────────────────────
+document.addEventListener('keydown', function(e){
+  if (e.key === 'Escape') { closeDrawer(); closeInquiry(); closeShortlistModal(); }
 });
-document.addEventListener('keydown', function(e){ if(e.key==='Escape') closeContact(); });
-
-// Live search filtering on client side too
 document.getElementById('roleSearch').addEventListener('keydown', function(e){
-  if (e.key === 'Enter') { document.getElementById('filterForm').submit(); }
+  if (e.key === 'Enter') document.getElementById('filterForm').submit();
 });
 </script>
 

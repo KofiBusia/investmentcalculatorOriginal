@@ -312,6 +312,116 @@ class CandidateProfile(db.Model):
     is_visible       = db.Column(db.Boolean,     default=True)
     created_at       = db.Column(db.DateTime,    default=datetime.utcnow)
 
+    @property
+    def skills_list(self):
+        return [s.strip() for s in (self.skills_summary or '').split(',') if s.strip()]
+
+    @property
+    def availability_urgency(self):
+        """Return 0 (most urgent) to 5 for sorting."""
+        order = {
+            'Immediately available': 0,
+            'Immediately': 0,
+            'Within 1 week': 1,
+            'Within 2 weeks': 2,
+            'Within 1 month': 3,
+            'Within 3 months': 4,
+        }
+        return order.get(self.availability, 5)
+
+    @property
+    def inquiry_count(self):
+        return len(self.inquiries) if hasattr(self, 'inquiries') else 0
+
+
+class EmployerAccount(db.Model):
+    __tablename__    = 'employer_accounts'
+    id               = db.Column(db.Integer, primary_key=True)
+    company_name     = db.Column(db.String(200), nullable=False, unique=True)
+    contact_name     = db.Column(db.String(200), nullable=False)
+    email            = db.Column(db.String(200), nullable=False, unique=True)
+    password_hash    = db.Column(db.String(256), nullable=False)
+    phone            = db.Column(db.String(50),  default='')
+    industry         = db.Column(db.String(100), default='')
+    company_size     = db.Column(db.String(50),  default='')
+    website          = db.Column(db.String(500), default='')
+    hiring_for       = db.Column(db.String(300), default='')
+    is_verified      = db.Column(db.Boolean, default=False)
+    is_active        = db.Column(db.Boolean, default=True)
+    created_at       = db.Column(db.DateTime, default=datetime.utcnow)
+    shortlists       = db.relationship('EmployerShortlist', backref='employer', lazy=True, cascade='all, delete-orphan')
+    sent_inquiries   = db.relationship('EmployerInquiry', backref='employer_account', lazy=True, foreign_keys='EmployerInquiry.employer_account_id')
+
+    def set_password(self, pw):
+        self.password_hash = generate_password_hash(pw)
+
+    def check_password(self, pw):
+        return check_password_hash(self.password_hash, pw)
+
+    @property
+    def initials(self):
+        words = self.company_name.split()
+        return (words[0][0] + (words[1][0] if len(words) > 1 else '')).upper()
+
+    @property
+    def shortlist_count(self):
+        return len(self.shortlists)
+
+    @property
+    def inquiry_count(self):
+        return len(self.sent_inquiries)
+
+
+class EmployerShortlist(db.Model):
+    __tablename__  = 'employer_shortlists'
+    id             = db.Column(db.Integer, primary_key=True)
+    employer_id    = db.Column(db.Integer, db.ForeignKey('employer_accounts.id'), nullable=False)
+    candidate_id   = db.Column(db.Integer, db.ForeignKey('candidate_profiles.id'), nullable=False)
+    notes          = db.Column(db.String(500), default='')
+    stage          = db.Column(db.String(50),  default='Saved')  # Saved, Contacted, Interviewing, Offer, Hired
+    created_at     = db.Column(db.DateTime, default=datetime.utcnow)
+    candidate      = db.relationship('CandidateProfile', backref='shortlisted_by', lazy=True)
+
+
+class EmployerInquiry(db.Model):
+    __tablename__        = 'employer_inquiries'
+    id                   = db.Column(db.Integer, primary_key=True)
+    candidate_id         = db.Column(db.Integer, db.ForeignKey('candidate_profiles.id'), nullable=False)
+    employer_account_id  = db.Column(db.Integer, db.ForeignKey('employer_accounts.id'), nullable=True)
+    employer_company     = db.Column(db.String(200), default='')
+    employer_name        = db.Column(db.String(200), nullable=False)
+    employer_email       = db.Column(db.String(200), nullable=False)
+    employer_phone       = db.Column(db.String(50),  default='')
+    inquiry_type         = db.Column(db.String(80),  default='Interview Request')
+    role_offering        = db.Column(db.String(200), default='')
+    message              = db.Column(db.Text,        default='')
+    created_at           = db.Column(db.DateTime,    default=datetime.utcnow)
+    candidate            = db.relationship('CandidateProfile', backref='inquiries', lazy=True)
+
+
+def _validate_company_name(name):
+    """Return (ok: bool, error: str). Enforces real registered company name."""
+    import re
+    name = (name or '').strip()
+    _BANNED = {
+        'company','test','abc','n/a','na','none','null','business','firm',
+        'corp','inc','llc','ltd','enterprise','enterprises','organization',
+        'organisation','my company','your company','example','demo',
+        'placeholder','company name','employer','hr','unknown','anonymous',
+        'private','acme','foo','bar','baz','xyz','123','000',
+    }
+    if len(name) < 3:
+        return False, 'Company name must be at least 3 characters.'
+    if name.lower() in _BANNED:
+        return False, f'"{name}" is not a valid registered company name. Please enter your official company name exactly as registered.'
+    if re.match(r'^\d+$', name):
+        return False, 'Company name cannot be numbers only.'
+    if not re.match(r"^[A-Za-z0-9&\-\.\(\)\s']+$", name):
+        return False, 'Company name contains invalid characters. Only letters, numbers, spaces, &, -, . and () are allowed.'
+    if len(name) > 200:
+        return False, 'Company name is too long (max 200 characters).'
+    return True, ''
+
 
 # --- CREATE TABLES (runs on every import, idempotent) ---
 with app.app_context():
@@ -4885,7 +4995,7 @@ def cv_builder():
                 cv_data = None
             elif request.form.get('employers_corner_consent'):
                 try:
-                    current_title = cv_data['work_experiences'][0]['job_title'] if cv_data['work_experiences'] else ''
+                    current_title = (cv_data['work_experiences'][0]['job_title'] if cv_data['work_experiences'] else cv_data.get('headline', ''))
                     all_skills = ', '.join(filter(None, [cv_data['technical_skills'], cv_data['skills']]))[:500]
                     existing = CandidateProfile.query.filter_by(email=cv_data['email']).first()
                     if existing:
@@ -4997,18 +5107,42 @@ def referral_page():
 
 @app.route('/employers-corner')
 def employers_corner():
-    sector = request.args.get('sector', '').strip()
-    role_q = request.args.get('role',   '').strip()
-    avail  = request.args.get('avail',  '').strip()
+    sector    = request.args.get('sector',    '').strip()
+    role_q    = request.args.get('role',      '').strip()
+    skills_kw = request.args.get('skills',    '').strip()
+    avail     = request.args.get('avail',     '').strip()
+    exp_filter= request.args.get('exp',       '').strip()
+    sort_by   = request.args.get('sort',      'recent')
 
     q = CandidateProfile.query.filter_by(is_visible=True)
     if sector:
         q = q.filter(CandidateProfile.desired_sector == sector)
     if role_q:
         q = q.filter(CandidateProfile.desired_role.ilike(f'%{role_q}%'))
+    if skills_kw:
+        q = q.filter(CandidateProfile.skills_summary.ilike(f'%{skills_kw}%'))
     if avail:
         q = q.filter(CandidateProfile.availability == avail)
+    if exp_filter:
+        q = q.filter(CandidateProfile.years_exp == exp_filter)
+
     candidates = q.order_by(CandidateProfile.created_at.desc()).all()
+
+    # Apply Python-side sort
+    if sort_by == 'availability':
+        candidates = sorted(candidates, key=lambda c: c.availability_urgency)
+    elif sort_by == 'experience':
+        exp_order = {
+            '20+ years (Senior Executive)': 0, '15–20 years': 1, '10–15 years': 2,
+            '5–10 years': 3, '3–5 years': 4, '1–3 years': 5,
+            '0–1 year (Graduate / Entry-level)': 6,
+        }
+        candidates = sorted(candidates, key=lambda c: exp_order.get(c.years_exp, 9))
+    # 'recent' = default db order (already applied)
+
+    # Stats
+    immediate = [c for c in candidates if c.availability in ('Immediately available', 'Immediately', 'Within 1 week')]
+    total_all  = CandidateProfile.query.filter_by(is_visible=True).count()
 
     sectors = [r[0] for r in
                db.session.query(CandidateProfile.desired_sector)
@@ -5016,20 +5150,393 @@ def employers_corner():
                        CandidateProfile.desired_sector != '')
                .distinct().order_by(CandidateProfile.desired_sector).all()]
 
+    exp_levels = [r[0] for r in
+                  db.session.query(CandidateProfile.years_exp)
+                  .filter(CandidateProfile.is_visible == True,
+                          CandidateProfile.years_exp != '')
+                  .distinct().order_by(CandidateProfile.years_exp).all()]
+
     availabilities = [r[0] for r in
                       db.session.query(CandidateProfile.availability)
                       .filter(CandidateProfile.is_visible == True,
                               CandidateProfile.availability != '')
                       .distinct().order_by(CandidateProfile.availability).all()]
 
+    # Sector distribution for stats
+    sector_counts = {}
+    for s in sectors:
+        sector_counts[s] = CandidateProfile.query.filter_by(is_visible=True, desired_sector=s).count()
+
     return render_template('hr_employers_corner.html',
                            candidates=candidates,
+                           immediate=immediate,
                            sectors=sectors,
+                           exp_levels=exp_levels,
                            availabilities=availabilities,
+                           sector_counts=sector_counts,
                            current_sector=sector,
                            current_role=role_q,
+                           current_skills=skills_kw,
                            current_avail=avail,
-                           total=len(candidates))
+                           current_exp=exp_filter,
+                           current_sort=sort_by,
+                           total=len(candidates),
+                           total_all=total_all,
+                           immediate_count=len(immediate),
+                           current_employer=_current_employer())
+
+
+@app.route('/candidate/<int:cid>')
+def candidate_detail(cid):
+    c = CandidateProfile.query.filter_by(id=cid, is_visible=True).first_or_404()
+    return render_template('hr_candidate_detail.html', c=c)
+
+
+@app.route('/employer-inquiry', methods=['POST'])
+def employer_inquiry():
+    import json as _json
+    try:
+        data = request.get_json() or request.form
+        cid  = int(data.get('candidate_id', 0))
+        c    = CandidateProfile.query.filter_by(id=cid, is_visible=True).first()
+        if not c:
+            return _json.dumps({'ok': False, 'error': 'Candidate not found'}), 404
+
+        emp_acct = _current_employer()
+        inq = EmployerInquiry(
+            candidate_id        = cid,
+            employer_account_id = emp_acct.id if emp_acct else None,
+            employer_company    = (emp_acct.company_name if emp_acct else str(data.get('employer_company', ''))).strip(),
+            employer_name       = (emp_acct.contact_name if emp_acct else str(data.get('employer_name', ''))).strip(),
+            employer_email      = (emp_acct.email if emp_acct else str(data.get('employer_email', ''))).strip(),
+            employer_phone      = (emp_acct.phone if emp_acct else str(data.get('employer_phone', ''))).strip(),
+            inquiry_type        = str(data.get('inquiry_type', 'Interview Request')).strip(),
+            role_offering       = str(data.get('role_offering', '')).strip(),
+            message             = str(data.get('message', '')).strip(),
+        )
+        if not inq.employer_name or not inq.employer_email:
+            return _json.dumps({'ok': False, 'error': 'Name and email are required'}), 400
+
+        db.session.add(inq)
+        db.session.commit()
+
+        # Email to candidate
+        send_email_safe(
+            f'New {inq.inquiry_type} from {inq.employer_company or inq.employer_name} — InvestIQ Talent Hub',
+            [c.email],
+            f'''<div style="font-family:Arial,sans-serif;max-width:580px;margin:0 auto;padding:20px;">
+<div style="background:linear-gradient(135deg,#0f172a,#1e3a5f);padding:24px;border-radius:12px 12px 0 0;">
+  <h1 style="color:#fff;font-size:20px;margin:0;">InvestIQ Talent Hub</h1>
+  <p style="color:#93c5fd;margin:4px 0 0;font-size:13px;">You have a new employer inquiry</p>
+</div>
+<div style="background:#fff;border:1px solid #e2e8f0;border-top:none;padding:28px;border-radius:0 0 12px 12px;">
+  <h2 style="color:#1e3a5f;font-size:18px;margin:0 0 16px;">Hello {c.full_name},</h2>
+  <p style="color:#374151;font-size:14px;line-height:1.6;">An employer has expressed interest in your profile on the InvestIQ Employers' Corner. Here are their details:</p>
+  <table style="width:100%;border-collapse:collapse;margin:18px 0;font-size:14px;">
+    <tr><td style="padding:10px;background:#f8fafc;font-weight:700;color:#1e3a5f;border-radius:6px 0 0 0;width:38%;">Inquiry Type</td><td style="padding:10px;background:#f0f9ff;color:#0369a1;font-weight:700;border-radius:0 6px 0 0;">{inq.inquiry_type}</td></tr>
+    <tr><td style="padding:10px;background:#f8fafc;font-weight:700;color:#1e3a5f;">Company</td><td style="padding:10px;">{inq.employer_company or '—'}</td></tr>
+    <tr><td style="padding:10px;background:#f8fafc;font-weight:700;color:#1e3a5f;">Contact Person</td><td style="padding:10px;">{inq.employer_name}</td></tr>
+    <tr><td style="padding:10px;background:#f8fafc;font-weight:700;color:#1e3a5f;">Email</td><td style="padding:10px;"><a href="mailto:{inq.employer_email}" style="color:#1d4ed8;">{inq.employer_email}</a></td></tr>
+    <tr><td style="padding:10px;background:#f8fafc;font-weight:700;color:#1e3a5f;">Phone</td><td style="padding:10px;">{inq.employer_phone or '—'}</td></tr>
+    <tr><td style="padding:10px;background:#f8fafc;font-weight:700;color:#1e3a5f;">Role Offered</td><td style="padding:10px;font-weight:600;color:#059669;">{inq.role_offering or '—'}</td></tr>
+  </table>
+  <div style="background:#f0f9ff;border-left:4px solid #0f4c81;padding:14px 18px;border-radius:0 8px 8px 0;margin-bottom:20px;">
+    <p style="font-weight:700;color:#1e3a5f;margin:0 0 6px;font-size:13px;">MESSAGE FROM EMPLOYER:</p>
+    <p style="color:#374151;font-size:14px;line-height:1.65;margin:0;">{inq.message}</p>
+  </div>
+  <p style="color:#374151;font-size:13px;">To respond, simply reply to this email or contact the employer directly using the details above.</p>
+  <p style="color:#94a3b8;font-size:12px;margin-top:20px;">This message was sent via InvestIQ Talent Hub. To remove your profile, visit <a href="https://investright.onrender.com/cv-builder" style="color:#1d4ed8;">your CV Builder</a>.</p>
+</div></div>'''
+        )
+
+        # Confirmation to employer
+        send_email_safe(
+            f'Your inquiry to {c.full_name} has been sent — InvestIQ',
+            [inq.employer_email],
+            f'''<div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:20px;">
+<div style="background:linear-gradient(135deg,#0f172a,#1e3a5f);padding:24px;border-radius:12px 12px 0 0;">
+  <h1 style="color:#fff;font-size:20px;margin:0;">InvestIQ Talent Hub</h1>
+</div>
+<div style="background:#fff;border:1px solid #e2e8f0;border-top:none;padding:28px;border-radius:0 0 12px 12px;">
+  <p style="color:#374151;font-size:14px;">Hi {inq.employer_name}, your {inq.inquiry_type} to <strong>{c.full_name}</strong> has been delivered successfully. They will respond to you directly at <strong>{inq.employer_email}</strong>.</p>
+  <p style="color:#94a3b8;font-size:12px;margin-top:16px;">Powered by InvestIQ Talent Hub — investright.onrender.com</p>
+</div></div>'''
+        )
+
+        return _json.dumps({'ok': True, 'message': f'Inquiry sent to {c.full_name} successfully!'}), 200, {'Content-Type': 'application/json'}
+    except Exception as e:
+        logger.error(f'Employer inquiry error: {e}')
+        return _json.dumps({'ok': False, 'error': 'An error occurred. Please try again.'}), 500, {'Content-Type': 'application/json'}
+
+
+# ─── EMPLOYER ACCOUNT ROUTES ──────────────────────────────────────────────
+
+def _current_employer():
+    """Return logged-in EmployerAccount or None."""
+    eid = session.get('employer_id')
+    if eid:
+        return EmployerAccount.query.filter_by(id=eid, is_active=True).first()
+    return None
+
+
+@app.route('/employer-register', methods=['GET', 'POST'])
+def employer_register():
+    emp = _current_employer()
+    if emp:
+        return redirect(url_for('employer_dashboard'))
+    error = None
+    form_data = {}
+    if request.method == 'POST':
+        form_data = {k: request.form.get(k, '').strip() for k in request.form}
+        company_name  = form_data.get('company_name', '')
+        contact_name  = form_data.get('contact_name', '')
+        email         = form_data.get('email', '')
+        password      = form_data.get('password', '')
+        confirm_pw    = form_data.get('confirm_password', '')
+        phone         = form_data.get('phone', '')
+        industry      = form_data.get('industry', '')
+        company_size  = form_data.get('company_size', '')
+        website       = form_data.get('website', '')
+        hiring_for    = form_data.get('hiring_for', '')
+
+        # Company name strict validation
+        ok, err = _validate_company_name(company_name)
+        if not ok:
+            error = err
+        elif not contact_name or len(contact_name) < 2:
+            error = 'Please enter your full name (contact person).'
+        elif not email or '@' not in email:
+            error = 'A valid work email address is required.'
+        elif len(password) < 8:
+            error = 'Password must be at least 8 characters.'
+        elif password != confirm_pw:
+            error = 'Passwords do not match.'
+        elif EmployerAccount.query.filter_by(email=email).first():
+            error = 'An account with this email already exists. Please log in.'
+        elif EmployerAccount.query.filter(
+                db.func.lower(EmployerAccount.company_name) == company_name.lower()
+             ).first():
+            error = f'A company named "{company_name}" is already registered. If this is your company, please log in or contact support.'
+        else:
+            try:
+                acct = EmployerAccount(
+                    company_name = company_name,
+                    contact_name = contact_name,
+                    email        = email,
+                    phone        = phone,
+                    industry     = industry,
+                    company_size = company_size,
+                    website      = website,
+                    hiring_for   = hiring_for,
+                )
+                acct.set_password(password)
+                db.session.add(acct)
+                db.session.commit()
+                session['employer_id'] = acct.id
+                # Welcome email
+                send_email_safe(
+                    f'Welcome to InvestIQ Employers\' Corner — {company_name}',
+                    [email],
+                    f'''<div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;">
+<div style="background:linear-gradient(135deg,#0f172a,#0f4c81);padding:28px;border-radius:12px 12px 0 0;">
+  <h1 style="color:#fff;font-size:22px;margin:0;">Welcome to InvestIQ Talent Hub</h1>
+  <p style="color:#93c5fd;margin:5px 0 0;font-size:13px;">Your employer account is active</p>
+</div>
+<div style="background:#fff;border:1px solid #e2e8f0;border-top:none;padding:28px;border-radius:0 0 12px 12px;">
+  <p style="color:#374151;font-size:15px;margin-bottom:16px;">Hi {contact_name},</p>
+  <p style="color:#374151;font-size:14px;line-height:1.7;margin-bottom:16px;">
+    <strong>{company_name}</strong> is now registered on the InvestIQ Employers\' Corner. You can now:
+  </p>
+  <ul style="color:#374151;font-size:14px;line-height:2;padding-left:20px;">
+    <li>Browse and search verified finance &amp; investment professionals</li>
+    <li>Save candidates to your persistent shortlist</li>
+    <li>Send direct interview requests and job offers</li>
+    <li>Track your full inquiry history</li>
+    <li>Post job listings visible to all candidates</li>
+  </ul>
+  <a href="https://investright.onrender.com/employer-dashboard" style="display:inline-block;background:#0f4c81;color:#fff;padding:12px 24px;border-radius:10px;font-weight:700;text-decoration:none;margin-top:16px;">
+    Go to Your Dashboard →
+  </a>
+  <p style="color:#94a3b8;font-size:12px;margin-top:20px;">InvestIQ Talent Hub · investright.onrender.com</p>
+</div></div>'''
+                )
+                # Admin notification
+                send_email_safe(
+                    f'New Employer Registered: {company_name}',
+                    [app.config['ADMIN_EMAIL']],
+                    f'<p>New employer account: <strong>{company_name}</strong> | {contact_name} | {email} | {industry} | Size: {company_size}</p>'
+                )
+                return redirect(url_for('employer_dashboard'))
+            except Exception as e:
+                db.session.rollback()
+                logger.error(f'Employer register error: {e}')
+                error = 'Registration failed. Please try again.'
+    return render_template('hr_employer_register.html', error=error, form_data=form_data)
+
+
+@app.route('/employer-login', methods=['GET', 'POST'])
+def employer_login():
+    emp = _current_employer()
+    if emp:
+        return redirect(url_for('employer_dashboard'))
+    error = None
+    if request.method == 'POST':
+        email    = request.form.get('email', '').strip()
+        password = request.form.get('password', '')
+        acct = EmployerAccount.query.filter_by(email=email, is_active=True).first()
+        if acct and acct.check_password(password):
+            session['employer_id'] = acct.id
+            next_url = request.args.get('next') or url_for('employer_dashboard')
+            return redirect(next_url)
+        else:
+            error = 'Invalid email or password. Please try again.'
+    return render_template('hr_employer_login.html', error=error)
+
+
+@app.route('/employer-logout')
+def employer_logout():
+    session.pop('employer_id', None)
+    return redirect(url_for('employers_corner'))
+
+
+@app.route('/employer-dashboard')
+def employer_dashboard():
+    emp = _current_employer()
+    if not emp:
+        return redirect(url_for('employer_login') + '?next=/employer-dashboard')
+
+    # Persistent shortlist with candidate objects
+    shortlist_entries = (EmployerShortlist.query
+                         .filter_by(employer_id=emp.id)
+                         .order_by(EmployerShortlist.created_at.desc())
+                         .all())
+
+    # Recent inquiries
+    recent_inquiries = (EmployerInquiry.query
+                        .filter_by(employer_account_id=emp.id)
+                        .order_by(EmployerInquiry.created_at.desc())
+                        .limit(20).all())
+
+    # Recommended candidates — match employer's industry to candidate sector
+    rec_q = CandidateProfile.query.filter_by(is_visible=True)
+    if emp.industry:
+        rec_q = rec_q.filter(CandidateProfile.desired_sector.ilike(f'%{emp.industry.split()[0]}%'))
+    recommended = sorted(rec_q.limit(50).all(), key=lambda c: c.availability_urgency)[:12]
+
+    # Stats
+    total_candidates = CandidateProfile.query.filter_by(is_visible=True).count()
+    immediate_count  = CandidateProfile.query.filter(
+        CandidateProfile.is_visible == True,
+        CandidateProfile.availability.in_(['Immediately available', 'Immediately', 'Within 1 week'])
+    ).count()
+
+    import json as _json
+    cands_for_modal = CandidateProfile.query.filter_by(is_visible=True).all()
+    candidates_json = _json.dumps({
+        c.id: {'name': c.full_name, 'role': c.current_title or c.desired_sector or ''}
+        for c in cands_for_modal
+    })
+
+    return render_template('hr_employer_dashboard.html',
+                           emp=emp,
+                           shortlist_entries=shortlist_entries,
+                           recent_inquiries=recent_inquiries,
+                           recommended=recommended,
+                           total_candidates=total_candidates,
+                           immediate_count=immediate_count,
+                           candidates_json=candidates_json)
+
+
+@app.route('/employer-shortlist/toggle', methods=['POST'])
+def employer_shortlist_toggle():
+    import json as _json
+    emp = _current_employer()
+    if not emp:
+        return _json.dumps({'ok': False, 'error': 'Login required'}), 401, {'Content-Type': 'application/json'}
+    cid = int(request.get_json().get('candidate_id', 0))
+    c = CandidateProfile.query.filter_by(id=cid, is_visible=True).first()
+    if not c:
+        return _json.dumps({'ok': False, 'error': 'Candidate not found'}), 404, {'Content-Type': 'application/json'}
+    existing = EmployerShortlist.query.filter_by(employer_id=emp.id, candidate_id=cid).first()
+    if existing:
+        db.session.delete(existing)
+        db.session.commit()
+        return _json.dumps({'ok': True, 'action': 'removed', 'count': emp.shortlist_count}), 200, {'Content-Type': 'application/json'}
+    else:
+        db.session.add(EmployerShortlist(employer_id=emp.id, candidate_id=cid))
+        db.session.commit()
+        return _json.dumps({'ok': True, 'action': 'added', 'count': emp.shortlist_count}), 200, {'Content-Type': 'application/json'}
+
+
+@app.route('/employer-shortlist/stage', methods=['POST'])
+def employer_shortlist_stage():
+    import json as _json
+    emp = _current_employer()
+    if not emp:
+        return _json.dumps({'ok': False}), 401, {'Content-Type': 'application/json'}
+    data = request.get_json() or {}
+    # Accept either shortlist_id (from dashboard) or candidate_id (legacy)
+    sl_id = int(data.get('shortlist_id', 0))
+    if sl_id:
+        entry = EmployerShortlist.query.filter_by(id=sl_id, employer_id=emp.id).first()
+    else:
+        entry = EmployerShortlist.query.filter_by(
+            employer_id=emp.id, candidate_id=int(data.get('candidate_id', 0))
+        ).first()
+    if entry:
+        entry.stage = data.get('stage', 'Saved')
+        db.session.commit()
+    return _json.dumps({'ok': True}), 200, {'Content-Type': 'application/json'}
+
+
+@app.route('/employer-shortlist/remove', methods=['POST'])
+def employer_shortlist_remove():
+    import json as _json
+    emp = _current_employer()
+    if not emp:
+        return _json.dumps({'ok': False}), 401, {'Content-Type': 'application/json'}
+    data = request.get_json() or {}
+    sl_id = int(data.get('shortlist_id', 0))
+    entry = EmployerShortlist.query.filter_by(id=sl_id, employer_id=emp.id).first()
+    if entry:
+        db.session.delete(entry)
+        db.session.commit()
+    return _json.dumps({'ok': True}), 200, {'Content-Type': 'application/json'}
+
+
+@app.route('/employer-profile', methods=['GET', 'POST'])
+def employer_profile():
+    emp = _current_employer()
+    if not emp:
+        return redirect(url_for('employer_login'))
+    error = success = None
+    if request.method == 'POST':
+        action = request.form.get('action')
+        if action == 'update_profile':
+            # company_name is read-only — never updated here
+            emp.contact_name = request.form.get('contact_name', emp.contact_name).strip() or emp.contact_name
+            emp.phone        = request.form.get('phone', '').strip()
+            emp.industry     = request.form.get('industry', '').strip()
+            emp.company_size = request.form.get('company_size', '').strip()
+            emp.website      = request.form.get('website', '').strip()
+            emp.hiring_for   = request.form.get('hiring_for', '').strip()
+            db.session.commit()
+            success = 'Profile updated successfully.'
+        elif action == 'change_password':
+            current_pw = request.form.get('current_password', '')
+            new_pw     = request.form.get('new_password', '')
+            confirm_pw = request.form.get('confirm_password', '')
+            if not emp.check_password(current_pw):
+                error = 'Current password is incorrect.'
+            elif len(new_pw) < 8:
+                error = 'New password must be at least 8 characters.'
+            elif new_pw != confirm_pw:
+                error = 'Passwords do not match.'
+            else:
+                emp.set_password(new_pw)
+                db.session.commit()
+                success = 'Password changed successfully.'
+    return render_template('hr_employer_profile.html', emp=emp, error=error, success=success)
 
 
 # Admin HR routes

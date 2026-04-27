@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Create Employer Account — InvestIQ Talent Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+body{font-family:'Inter',sans-serif;background:linear-gradient(135deg,#0b1120 0%,#112240 50%,#0f4c81 100%);min-height:100vh;}
+.card{background:#fff;border-radius:20px;box-shadow:0 24px 80px rgba(0,0,0,.28);}
+.input-field{width:100%;padding:.65rem 1rem;border:1.5px solid #e2e8f0;border-radius:9px;font-size:.88rem;outline:none;transition:all .2s;background:#fff;color:#1e293b;}
+.input-field:focus{border-color:#1e40af;box-shadow:0 0 0 3px rgba(30,64,175,.1);}
+.input-field.error{border-color:#ef4444;box-shadow:0 0 0 3px rgba(239,68,68,.1);}
+.input-field.valid{border-color:#10b981;}
+.form-label{display:block;font-size:.75rem;font-weight:700;color:#374151;margin-bottom:.35rem;text-transform:uppercase;letter-spacing:.05em;}
+.btn-primary{background:linear-gradient(135deg,#1e40af,#0f172a);color:#fff;padding:.85rem 2rem;border-radius:12px;font-weight:700;font-size:1rem;border:none;cursor:pointer;width:100%;transition:all .2s;}
+.btn-primary:hover{opacity:.93;transform:translateY(-1px);}
+.btn-primary:disabled{opacity:.6;cursor:not-allowed;transform:none;}
+.step-dot{width:8px;height:8px;border-radius:50%;background:#e2e8f0;transition:all .3s;}
+.step-dot.active{background:#1e40af;transform:scale(1.4);}
+.step-dot.done{background:#10b981;}
+.pw-strength{height:4px;border-radius:4px;background:#e2e8f0;overflow:hidden;margin-top:5px;}
+.pw-strength-bar{height:100%;border-radius:4px;transition:all .4s;}
+.company-hint{font-size:.75rem;margin-top:.35rem;display:none;}
+</style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+<!-- NAVBAR -->
+<nav class="py-4 px-6">
+  <div class="max-w-6xl mx-auto flex justify-between items-center">
+    <a href="/" class="text-xl font-bold text-white flex items-center gap-2">
+      <i class="fas fa-chart-line text-blue-300"></i> Invest<span class="text-blue-300">IQ</span>
+    </a>
+    <a href="/employer-login" class="text-blue-200 hover:text-white text-sm font-semibold transition-colors">
+      Already have an account? <span class="text-white underline">Sign in →</span>
+    </a>
+  </div>
+</nav>
+
+<main class="flex-1 flex items-center justify-center px-4 py-8">
+  <div class="w-full max-w-2xl">
+
+    <!-- Header -->
+    <div class="text-center mb-8">
+      <div class="inline-flex items-center gap-2 bg-blue-500/20 border border-blue-400/30 rounded-full px-4 py-1.5 text-sm mb-4">
+        <i class="fas fa-shield-alt text-blue-300"></i>
+        <span class="text-blue-200 font-semibold">Verified Employer Registration</span>
+      </div>
+      <h1 class="text-3xl font-extrabold text-white mb-2">Create Your Employer Account</h1>
+      <p class="text-blue-200 text-sm max-w-md mx-auto">Join hundreds of companies hiring verified finance &amp; investment professionals through InvestIQ.</p>
+    </div>
+
+    <!-- Progress dots -->
+    <div class="flex items-center justify-center gap-3 mb-8">
+      <div class="step-dot active" id="dot1"></div>
+      <div class="h-px w-12 bg-white/20"></div>
+      <div class="step-dot" id="dot2"></div>
+      <div class="h-px w-12 bg-white/20"></div>
+      <div class="step-dot" id="dot3"></div>
+    </div>
+
+    <div class="card p-8 md:p-10">
+
+      {% if error %}
+      <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl mb-6 text-sm flex items-start gap-2">
+        <i class="fas fa-exclamation-circle mt-0.5 flex-shrink-0"></i>
+        <div>{{ error }}</div>
+      </div>
+      {% endif %}
+
+      <form method="POST" id="regForm" class="space-y-0" novalidate>
+
+        <!-- STEP 1: Company Identity -->
+        <div id="step1" class="space-y-5">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
+              <i class="fas fa-building text-blue-700"></i>
+            </div>
+            <div>
+              <h2 class="font-bold text-gray-900">Company Identity</h2>
+              <p class="text-xs text-gray-500">Your company's official registered name — this cannot be changed later without verification.</p>
+            </div>
+          </div>
+
+          <div>
+            <label class="form-label">Registered Company Name <span class="text-red-500">*</span></label>
+            <div class="relative">
+              <input type="text" name="company_name" id="company_name" class="input-field pr-10"
+                     placeholder="e.g. Stanbic Bank Ghana Limited"
+                     value="{{ form_data.get('company_name', '') }}" required
+                     oninput="validateCompanyName(this)" autocomplete="organization"/>
+              <span id="company_icon" class="absolute right-3 top-1/2 -translate-y-1/2 text-lg hidden"></span>
+            </div>
+            <div id="company_hint" class="company-hint text-gray-500">
+              <i class="fas fa-info-circle mr-1"></i> Enter your full, official registered company name exactly as it appears on your business registration documents.
+            </div>
+            <div id="company_error" class="company-hint text-red-500"></div>
+            <div id="company_ok" class="company-hint text-green-600"><i class="fas fa-check-circle mr-1"></i> Looks like a valid company name.</div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="form-label">Your Industry / Sector <span class="text-red-500">*</span></label>
+              <select name="industry" class="input-field" required>
+                <option value="">— Select industry —</option>
+                {% for ind in ['Finance & Investment','Asset Management','Private Equity & VC','Investment Banking','Banking & Financial Services','Insurance & Reinsurance','Accounting & Audit','Risk Management','FinTech & Technology','ESG & Sustainable Finance','Legal & Compliance','Consulting','Economics & Research','Pension & Retirement','HR & Talent','Other'] %}
+                <option value="{{ ind }}" {% if form_data.get('industry') == ind %}selected{% endif %}>{{ ind }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div>
+              <label class="form-label">Company Size</label>
+              <select name="company_size" class="input-field">
+                <option value="">— Select size —</option>
+                {% for sz in ['1–10 employees','11–50 employees','51–200 employees','201–500 employees','501–1,000 employees','1,000–5,000 employees','5,000+ employees'] %}
+                <option value="{{ sz }}" {% if form_data.get('company_size') == sz %}selected{% endif %}>{{ sz }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="form-label">Company Website <span class="text-gray-400 font-normal normal-case">(optional)</span></label>
+              <input type="url" name="website" class="input-field" placeholder="https://www.yourcompany.com"
+                     value="{{ form_data.get('website', '') }}"/>
+            </div>
+            <div>
+              <label class="form-label">Types of Roles Hiring For <span class="text-gray-400 font-normal normal-case">(optional)</span></label>
+              <input type="text" name="hiring_for" class="input-field" placeholder="e.g. Analysts, Risk Managers, CFOs"
+                     value="{{ form_data.get('hiring_for', '') }}"/>
+            </div>
+          </div>
+
+          <div class="flex justify-end pt-2">
+            <button type="button" onclick="goStep(2)" class="bg-blue-800 hover:bg-blue-700 text-white px-7 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center gap-2">
+              Next <i class="fas fa-arrow-right"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- STEP 2: Contact Person -->
+        <div id="step2" class="space-y-5 hidden">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center flex-shrink-0">
+              <i class="fas fa-user-tie text-indigo-700"></i>
+            </div>
+            <div>
+              <h2 class="font-bold text-gray-900">Contact Person</h2>
+              <p class="text-xs text-gray-500">The person managing this employer account.</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="form-label">Your Full Name <span class="text-red-500">*</span></label>
+              <input type="text" name="contact_name" class="input-field" placeholder="Jane Mensah"
+                     value="{{ form_data.get('contact_name', '') }}" required autocomplete="name"/>
+            </div>
+            <div>
+              <label class="form-label">Work Phone <span class="text-gray-400 font-normal normal-case">(optional)</span></label>
+              <input type="tel" name="phone" class="input-field" placeholder="+233 XX XXX XXXX"
+                     value="{{ form_data.get('phone', '') }}" autocomplete="tel"/>
+            </div>
+          </div>
+
+          <div class="flex justify-between pt-2">
+            <button type="button" onclick="goStep(1)" class="text-gray-500 hover:text-gray-700 font-semibold text-sm flex items-center gap-2">
+              <i class="fas fa-arrow-left"></i> Back
+            </button>
+            <button type="button" onclick="goStep(3)" class="bg-blue-800 hover:bg-blue-700 text-white px-7 py-2.5 rounded-xl font-bold text-sm transition-all flex items-center gap-2">
+              Next <i class="fas fa-arrow-right"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- STEP 3: Account Credentials -->
+        <div id="step3" class="space-y-5 hidden">
+          <div class="flex items-center gap-3 mb-6">
+            <div class="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center flex-shrink-0">
+              <i class="fas fa-lock text-emerald-700"></i>
+            </div>
+            <div>
+              <h2 class="font-bold text-gray-900">Secure Your Account</h2>
+              <p class="text-xs text-gray-500">Use your work email. Your password must be at least 8 characters.</p>
+            </div>
+          </div>
+
+          <div>
+            <label class="form-label">Work Email Address <span class="text-red-500">*</span></label>
+            <input type="email" name="email" class="input-field" placeholder="you@yourcompany.com"
+                   value="{{ form_data.get('email', '') }}" required autocomplete="email"/>
+          </div>
+
+          <div>
+            <label class="form-label">Password <span class="text-red-500">*</span></label>
+            <div class="relative">
+              <input type="password" name="password" id="password_field" class="input-field pr-10"
+                     placeholder="Min. 8 characters" required autocomplete="new-password"
+                     oninput="checkPwStrength(this.value)"/>
+              <button type="button" onclick="togglePw('password_field','eyePw')" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                <i class="fas fa-eye text-sm" id="eyePw"></i>
+              </button>
+            </div>
+            <div class="pw-strength mt-1.5">
+              <div class="pw-strength-bar" id="pwBar" style="width:0%;background:#e2e8f0;"></div>
+            </div>
+            <p class="text-xs text-gray-400 mt-1" id="pwHint">Password strength: —</p>
+          </div>
+
+          <div>
+            <label class="form-label">Confirm Password <span class="text-red-500">*</span></label>
+            <div class="relative">
+              <input type="password" name="confirm_password" id="confirm_field" class="input-field pr-10"
+                     placeholder="Repeat your password" required autocomplete="new-password"/>
+              <button type="button" onclick="togglePw('confirm_field','eyeConf')" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                <i class="fas fa-eye text-sm" id="eyeConf"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Terms -->
+          <div class="bg-gray-50 rounded-xl p-4 text-xs text-gray-600 leading-relaxed">
+            <label class="flex items-start gap-3 cursor-pointer">
+              <input type="checkbox" id="termsCheck" class="w-4 h-4 mt-0.5 flex-shrink-0 rounded" required/>
+              <span>
+                I confirm that I am an authorised representative of the registered company entered above,
+                and that I will use this platform solely for legitimate professional recruitment purposes.
+                I agree to InvestIQ's terms of service and commit to treating all candidate data with respect and confidentiality.
+              </span>
+            </label>
+          </div>
+
+          <div class="flex justify-between pt-2 items-center">
+            <button type="button" onclick="goStep(2)" class="text-gray-500 hover:text-gray-700 font-semibold text-sm flex items-center gap-2">
+              <i class="fas fa-arrow-left"></i> Back
+            </button>
+            <button type="submit" id="submitBtn" class="btn-primary" style="width:auto;padding:.75rem 2.5rem;">
+              <i class="fas fa-check-circle mr-2"></i> Create Employer Account
+            </button>
+          </div>
+        </div>
+
+      </form>
+
+      <!-- Benefits strip -->
+      <div class="mt-8 pt-6 border-t border-gray-100 grid grid-cols-3 gap-4 text-center">
+        <div><div class="text-2xl mb-1">🔍</div><p class="text-xs text-gray-500 font-semibold">Search &amp; Filter Talent</p></div>
+        <div><div class="text-2xl mb-1">⭐</div><p class="text-xs text-gray-500 font-semibold">Persistent Shortlists</p></div>
+        <div><div class="text-2xl mb-1">📩</div><p class="text-xs text-gray-500 font-semibold">Direct Candidate Contact</p></div>
+      </div>
+    </div>
+
+    <p class="text-center text-blue-300 text-xs mt-5">
+      By registering, your company name will be publicly displayed when you contact candidates.
+    </p>
+  </div>
+</main>
+
+<script>
+// ─── Multi-step navigation ────────────────────────────────────────────────
+var currentStep = 1;
+function goStep(n) {
+  // Validate before advancing
+  if (n > currentStep) {
+    if (currentStep === 1) {
+      var cn = document.getElementById('company_name').value.trim();
+      var err = clientValidateCompany(cn);
+      if (err) { showCompanyError(err); return; }
+      var ind = document.querySelector('[name="industry"]').value;
+      if (!ind) { alert('Please select your industry/sector.'); return; }
+    }
+    if (currentStep === 2) {
+      var cn2 = document.querySelector('[name="contact_name"]').value.trim();
+      if (!cn2 || cn2.length < 2) { alert('Please enter your full name.'); return; }
+    }
+  }
+  document.getElementById('step'+currentStep).classList.add('hidden');
+  document.getElementById('step'+n).classList.remove('hidden');
+  // Dots
+  for (var i=1;i<=3;i++){
+    var d=document.getElementById('dot'+i);
+    d.className='step-dot'+(i<n?' done':i===n?' active':'');
+  }
+  currentStep = n;
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ─── Company name client-side validation ──────────────────────────────────
+var BANNED = ['company','test','abc','n/a','na','none','null','business','firm',
+              'corp','inc','llc','ltd','enterprise','enterprises','organization',
+              'organisation','my company','your company','example','demo',
+              'placeholder','company name','employer','hr','unknown','anonymous'];
+function clientValidateCompany(v) {
+  if (!v || v.length < 3) return 'Company name must be at least 3 characters.';
+  if (BANNED.includes(v.toLowerCase())) return '"' + v + '" is not a valid registered company name. Please enter your official registered name.';
+  if (/^\d+$/.test(v)) return 'Company name cannot be numbers only.';
+  if (!/^[A-Za-z0-9&\-\.\(\)\s']+$/.test(v)) return 'Company name contains invalid characters.';
+  return '';
+}
+function showCompanyError(msg) {
+  document.getElementById('company_hint').style.display='none';
+  document.getElementById('company_ok').style.display='none';
+  var e=document.getElementById('company_error');
+  e.textContent=msg; e.style.display='block';
+  document.getElementById('company_name').classList.add('error');
+  document.getElementById('company_icon').textContent='❌'; document.getElementById('company_icon').classList.remove('hidden');
+}
+function validateCompanyName(input) {
+  var v=input.value.trim();
+  var hint=document.getElementById('company_hint');
+  var err=document.getElementById('company_error');
+  var ok=document.getElementById('company_ok');
+  var icon=document.getElementById('company_icon');
+  hint.style.display='block'; err.style.display='none'; ok.style.display='none';
+  input.classList.remove('error','valid');
+  icon.classList.add('hidden');
+  if (!v) return;
+  var msg=clientValidateCompany(v);
+  if (msg) {
+    hint.style.display='none'; err.textContent=msg; err.style.display='block';
+    input.classList.add('error'); icon.textContent='❌'; icon.classList.remove('hidden');
+  } else {
+    hint.style.display='none'; ok.style.display='block';
+    input.classList.add('valid'); icon.textContent='✅'; icon.classList.remove('hidden');
+  }
+}
+// Show hint on focus
+document.getElementById('company_name').addEventListener('focus',function(){
+  if(!this.value) document.getElementById('company_hint').style.display='block';
+});
+
+// ─── Password strength ────────────────────────────────────────────────────
+function checkPwStrength(v) {
+  var score=0;
+  if(v.length>=8) score++;
+  if(v.length>=12) score++;
+  if(/[A-Z]/.test(v)) score++;
+  if(/[0-9]/.test(v)) score++;
+  if(/[^A-Za-z0-9]/.test(v)) score++;
+  var labels=['','Weak','Fair','Good','Strong','Very Strong'];
+  var colors=['#e2e8f0','#ef4444','#f59e0b','#3b82f6','#10b981','#059669'];
+  var bar=document.getElementById('pwBar');
+  bar.style.width=(score/5*100)+'%';
+  bar.style.background=colors[score];
+  document.getElementById('pwHint').textContent='Password strength: '+(labels[score]||'—');
+  document.getElementById('pwHint').style.color=colors[score];
+}
+function togglePw(fieldId, iconId) {
+  var f=document.getElementById(fieldId);
+  var i=document.getElementById(iconId);
+  if(f.type==='password'){ f.type='text'; i.className='fas fa-eye-slash text-sm'; }
+  else { f.type='password'; i.className='fas fa-eye text-sm'; }
+}
+
+// ─── Form submit validation ───────────────────────────────────────────────
+document.getElementById('regForm').addEventListener('submit', function(e) {
+  var pw=document.getElementById('password_field').value;
+  var conf=document.getElementById('confirm_field').value;
+  var terms=document.getElementById('termsCheck').checked;
+  if(pw.length<8){ e.preventDefault(); alert('Password must be at least 8 characters.'); return; }
+  if(pw!==conf){ e.preventDefault(); alert('Passwords do not match. Please re-enter.'); return; }
+  if(!terms){ e.preventDefault(); alert('You must agree to the terms before registering.'); return; }
+  var cn=document.getElementById('company_name').value.trim();
+  var msg=clientValidateCompany(cn);
+  if(msg){ e.preventDefault(); goStep(1); showCompanyError(msg); return; }
+  var btn=document.getElementById('submitBtn');
+  btn.disabled=true; btn.innerHTML='<i class="fas fa-spinner fa-spin mr-2"></i> Creating account…';
+});
+</script>
+</body>
+</html>
