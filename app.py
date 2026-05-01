@@ -6378,6 +6378,47 @@ def api_cv_submit():
     return _j({'ok': True, 'message': 'Profile saved and visible to employers!'})
 
 
+@app.route('/api/mentorship/apply', methods=['POST'])
+def api_mentorship_apply():
+    data = request.get_json() or {}
+    if not data.get('full_name') or not data.get('email'):
+        return _j({'ok': False, 'error': 'Full name and email are required.'}, 400)
+    if not data.get('interest_area'):
+        return _j({'ok': False, 'error': 'Please select an area of interest.'}, 400)
+    app_rec = MentorshipApplication(
+        full_name    = data.get('full_name', '').strip(),
+        email        = data.get('email', '').strip().lower(),
+        phone        = data.get('phone', ''),
+        institution  = data.get('institution', ''),
+        program      = data.get('program', ''),
+        year_of_study= data.get('year_of_study', ''),
+        interest_area= data.get('interest_area', ''),
+        availability = data.get('availability', ''),
+        why_mentorship= data.get('why_mentorship', ''),
+        linkedin     = data.get('linkedin', ''),
+        status       = 'pending',
+    )
+    db.session.add(app_rec)
+    db.session.commit()
+    return _j({'ok': True, 'message': 'Application submitted. We will be in touch within 5 business days.'})
+
+
+@app.route('/api/survey/submit', methods=['POST'])
+def api_survey_submit():
+    data = request.get_json() or {}
+    rec = CVSurveyResponse(
+        full_name           = data.get('full_name', ''),
+        email               = data.get('email', '').strip().lower(),
+        yin_member          = data.get('yin_member', 'no').capitalize(),
+        stock_pitch         = data.get('stock_pitch', 'no').capitalize(),
+        want_internship     = data.get('want_internship', 'no').capitalize(),
+        want_national_service= data.get('want_national_service', 'no').capitalize(),
+    )
+    db.session.add(rec)
+    db.session.commit()
+    return _j({'ok': True, 'message': 'Survey responses recorded. Thank you!'})
+
+
 # ============================================================
 # DATABASE INITIALIZATION
 # ============================================================
