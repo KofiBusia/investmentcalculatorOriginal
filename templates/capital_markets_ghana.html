@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Capital Markets Hub — Ghana | InvestIQ</title>
+  <meta name="description" content="Comprehensive guide to Ghana's capital markets: SEC licensing, BOG banking licenses, GAX listing requirements, NPRA pensions — fees, steps, and regulations all in one place."/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            ghana: { green: '#006B3F', gold: '#FCD116', red: '#CE1126', black: '#000000' },
+            primary: '#4f46e5', dark: '#1e293b', success: '#10b981', warning: '#f59e0b', danger: '#ef4444', info: '#0ea5e9',
+          },
+          fontFamily: { sans: ['Inter','sans-serif'], display: ['Montserrat','sans-serif'] }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family:'Inter',sans-serif; background:linear-gradient(135deg,#f0f4f8 0%,#e6e9ff 100%); min-height:100vh; }
+    .ghana-hero { background:linear-gradient(135deg,#003d23 0%,#006B3F 40%,#004d2c 100%); }
+    .ghana-bar { height:6px; background:linear-gradient(90deg,#006B3F 33.3%,#FCD116 33.3%,#FCD116 66.6%,#CE1126 66.6%); }
+    .tab-btn { padding:10px 18px; border-radius:8px; font-weight:600; font-size:.85rem; cursor:pointer; transition:all .2s; border:2px solid transparent; white-space:nowrap; }
+    .tab-btn.active { background:#006B3F; color:#fff; border-color:#006B3F; }
+    .tab-btn:not(.active) { background:#fff; color:#374151; border-color:#e2e8f0; }
+    .tab-btn:not(.active):hover { border-color:#006B3F; color:#006B3F; }
+    .tab-panel { display:none; }
+    .tab-panel.active { display:block; }
+    .card { background:rgba(255,255,255,.93); backdrop-filter:blur(10px); border-radius:16px; box-shadow:0 8px 24px rgba(0,0,0,.08); }
+    .step-num { width:36px; height:36px; border-radius:50%; background:#006B3F; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:.85rem; flex-shrink:0; }
+    .fee-tag { display:inline-flex; align-items:center; gap:4px; background:#fef3c7; color:#92400e; border:1px solid #fde68a; border-radius:6px; padding:3px 10px; font-size:.78rem; font-weight:700; }
+    .law-ref { display:inline-flex; align-items:center; gap:5px; background:#eff6ff; color:#1e40af; border:1px solid #bfdbfe; border-radius:6px; padding:4px 10px; font-size:.78rem; font-weight:600; }
+    .req-item { border-left:3px solid #006B3F; padding:10px 14px; background:#f0fdf4; border-radius:0 8px 8px 0; margin-bottom:8px; font-size:.88rem; }
+    .section-title { font-family:'Montserrat',sans-serif; font-size:1.35rem; font-weight:800; color:#1e293b; margin-bottom:4px; }
+    .badge-green { background:#dcfce7; color:#065f46; border-radius:20px; padding:3px 12px; font-size:.76rem; font-weight:700; }
+    .badge-gold { background:#fef9c3; color:#78350f; border-radius:20px; padding:3px 12px; font-size:.76rem; font-weight:700; }
+    .badge-red { background:#fee2e2; color:#991b1b; border-radius:20px; padding:3px 12px; font-size:.76rem; font-weight:700; }
+    .divider { border:none; border-top:1.5px solid #e2e8f0; margin:20px 0; }
+    .sticky-tabs { position:sticky; top:0; z-index:40; background:rgba(255,255,255,.97); backdrop-filter:blur(12px); box-shadow:0 2px 10px rgba(0,0,0,.08); }
+    .toc-link { display:block; padding:6px 10px; border-radius:6px; font-size:.83rem; color:#475569; transition:all .15s; }
+    .toc-link:hover { background:#f0fdf4; color:#006B3F; }
+    table { width:100%; border-collapse:collapse; }
+    th { background:#f8fafc; padding:10px 14px; text-align:left; font-size:.82rem; font-weight:700; color:#1e293b; border-bottom:2px solid #e2e8f0; }
+    td { padding:9px 14px; font-size:.83rem; color:#374151; border-bottom:1px solid #f1f5f9; }
+    tr:hover td { background:#f8fafc; }
+    .disclaimer-box { background:linear-gradient(135deg,#fff7ed,#fef3c7); border:2px solid #fde68a; border-radius:14px; padding:20px 24px; }
+  </style>
+</head>
+<body class="text-gray-800">
+
+<!-- GHANA COLOUR BAR -->
+<div class="ghana-bar"></div>
+
+<!-- HEADER -->
+<header class="ghana-hero text-white py-10 px-4">
+  <div class="max-w-6xl mx-auto">
+    <nav class="flex justify-between items-center mb-8 flex-wrap gap-4">
+      <a href="/" class="flex items-center gap-2 text-white text-xl font-bold" style="font-family:'Montserrat',sans-serif;">
+        <i class="fas fa-chart-line text-green-300"></i> Invest<span class="text-green-300">IQ</span>
+      </a>
+      <div class="flex items-center gap-5 text-sm flex-wrap">
+        <a href="/" class="text-green-200 hover:text-white transition-colors">Home</a>
+        <a href="/#calculators" class="text-green-200 hover:text-white transition-colors">Calculators</a>
+        <a href="/jobs" class="text-green-200 hover:text-white transition-colors">Jobs</a>
+        <a href="/training" class="text-green-200 hover:text-white transition-colors">Training</a>
+        <a href="/contact" class="text-green-200 hover:text-white transition-colors">Contact</a>
+      </div>
+    </nav>
+    <div class="flex items-start gap-5">
+      <div class="text-4xl mt-1">🇬🇭</div>
+      <div>
+        <div class="flex flex-wrap gap-2 mb-3">
+          <span class="badge-green">SEC Ghana</span>
+          <span class="badge-gold">Bank of Ghana</span>
+          <span class="badge-red">NPRA</span>
+          <span style="background:rgba(255,255,255,.15);color:#fff;border-radius:20px;padding:3px 12px;font-size:.76rem;font-weight:700;">GSE · GAX</span>
+        </div>
+        <h1 class="text-4xl md:text-5xl font-black mb-3" style="font-family:'Montserrat',sans-serif;">
+          Capital Markets Hub<br/><span class="text-yellow-300">Ghana</span>
+        </h1>
+        <p class="text-green-100 text-base md:text-lg max-w-2xl leading-relaxed">
+          The complete one-stop reference for establishing and operating in Ghana's capital and money markets — licensing, listing, fees, steps, and regulatory citations.
+        </p>
+        <div class="flex flex-wrap gap-3 mt-5">
+          <span class="bg-white/15 px-3 py-1.5 rounded-full text-sm"><i class="fas fa-gavel mr-1"></i> Act 929 · Act 930 · Act 766</span>
+          <span class="bg-white/15 px-3 py-1.5 rounded-full text-sm"><i class="fas fa-sync mr-1"></i> Updated 2025</span>
+          <span class="bg-white/15 px-3 py-1.5 rounded-full text-sm"><i class="fas fa-shield-alt mr-1"></i> Regulatory Reference Only</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- STICKY TABS -->
+<div class="sticky-tabs border-b border-gray-200">
+  <div class="max-w-6xl mx-auto px-4">
+    <div class="flex gap-2 py-3 overflow-x-auto">
+      <button class="tab-btn active" onclick="showTab('overview')" id="btn-overview"><i class="fas fa-map mr-1.5"></i>Overview</button>
+      <button class="tab-btn" onclick="showTab('sec')" id="btn-sec"><i class="fas fa-landmark mr-1.5"></i>SEC Licenses</button>
+      <button class="tab-btn" onclick="showTab('gax')" id="btn-gax"><i class="fas fa-chart-line mr-1.5"></i>GAX Listing</button>
+      <button class="tab-btn" onclick="showTab('bog')" id="btn-bog"><i class="fas fa-university mr-1.5"></i>BOG Banking</button>
+      <button class="tab-btn" onclick="showTab('npra')" id="btn-npra"><i class="fas fa-piggy-bank mr-1.5"></i>NPRA Pensions</button>
+      <button class="tab-btn" onclick="showTab('fees')" id="btn-fees"><i class="fas fa-coins mr-1.5"></i>Fees Summary</button>
+    </div>
+  </div>
+</div>
+
+<main class="max-w-6xl mx-auto px-4 py-8">
+
+  <!-- ============================================================ OVERVIEW ============================================================ -->
+  <div id="tab-overview" class="tab-panel active">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+      <div class="card p-6 border-t-4 border-green-600">
+        <div class="text-3xl mb-3">🏛️</div>
+        <h3 class="font-black text-lg mb-2" style="font-family:'Montserrat',sans-serif;">Securities &amp; Exchange Commission</h3>
+        <p class="text-gray-500 text-sm mb-3">Regulates capital markets, investment firms, fund managers, broker-dealers, and collective investment schemes.</p>
+        <span class="law-ref"><i class="fas fa-book"></i> Securities Industry Act, 2016 (Act 929)</span>
+        <button onclick="showTab('sec')" class="mt-4 w-full py-2 bg-green-700 hover:bg-green-800 text-white rounded-lg font-semibold text-sm transition-colors">View SEC Licenses →</button>
+      </div>
+      <div class="card p-6 border-t-4 border-yellow-400">
+        <div class="text-3xl mb-3">🏦</div>
+        <h3 class="font-black text-lg mb-2" style="font-family:'Montserrat',sans-serif;">Bank of Ghana</h3>
+        <p class="text-gray-500 text-sm mb-3">Regulates banks, savings &amp; loans, finance houses, microfinance institutions, and microcredit companies.</p>
+        <span class="law-ref"><i class="fas fa-book"></i> BSDI Act, 2016 (Act 930)</span>
+        <button onclick="showTab('bog')" class="mt-4 w-full py-2 bg-yellow-500 hover:bg-yellow-600 text-gray-900 rounded-lg font-semibold text-sm transition-colors">View BOG Licenses →</button>
+      </div>
+      <div class="card p-6 border-t-4 border-red-600">
+        <div class="text-3xl mb-3">🎯</div>
+        <h3 class="font-black text-lg mb-2" style="font-family:'Montserrat',sans-serif;">NPRA — Pensions</h3>
+        <p class="text-gray-500 text-sm mb-3">Licenses pension fund trustees, fund managers, and custodians for Ghana's three-tier pension system.</p>
+        <span class="law-ref"><i class="fas fa-book"></i> National Pensions Act, 2008 (Act 766)</span>
+        <button onclick="showTab('npra')" class="mt-4 w-full py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-semibold text-sm transition-colors">View NPRA Requirements →</button>
+      </div>
+      <div class="card p-6 border-t-4 border-indigo-600">
+        <div class="text-3xl mb-3">📈</div>
+        <h3 class="font-black text-lg mb-2" style="font-family:'Montserrat',sans-serif;">Ghana Alternative Exchange (GAX)</h3>
+        <p class="text-gray-500 text-sm mb-3">The SME and startup listing board on the Ghana Stock Exchange — designed for high-growth companies with lighter requirements.</p>
+        <span class="law-ref"><i class="fas fa-book"></i> GSE Rules · Securities Industry Act 929</span>
+        <button onclick="showTab('gax')" class="mt-4 w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold text-sm transition-colors">View GAX Requirements →</button>
+      </div>
+      <div class="card p-6 border-t-4 border-blue-500">
+        <div class="text-3xl mb-3">💰</div>
+        <h3 class="font-black text-lg mb-2" style="font-family:'Montserrat',sans-serif;">Fees at a Glance</h3>
+        <p class="text-gray-500 text-sm mb-3">Consolidated table of all application, licensing, annual renewal, and listing fees across all regulators.</p>
+        <span class="fee-tag"><i class="fas fa-coins"></i> GHS &amp; USD denominated</span>
+        <button onclick="showTab('fees')" class="mt-4 w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold text-sm transition-colors">View All Fees →</button>
+      </div>
+      <div class="card p-6 border-t-4 border-orange-500">
+        <div class="text-3xl mb-3">⚡</div>
+        <h3 class="font-black text-lg mb-2" style="font-family:'Montserrat',sans-serif;">Quick Start Guide</h3>
+        <p class="text-gray-500 text-sm leading-relaxed">Not sure where to begin? Use this guide to identify the correct regulator and license type for your business.</p>
+        <div class="mt-4 space-y-2 text-sm">
+          <div class="flex items-center gap-2 text-gray-600"><i class="fas fa-check-circle text-green-600 w-4"></i> Starting a fund? → SEC</div>
+          <div class="flex items-center gap-2 text-gray-600"><i class="fas fa-check-circle text-green-600 w-4"></i> Starting a bank? → BOG</div>
+          <div class="flex items-center gap-2 text-gray-600"><i class="fas fa-check-circle text-green-600 w-4"></i> Listing a startup? → GAX</div>
+          <div class="flex items-center gap-2 text-gray-600"><i class="fas fa-check-circle text-green-600 w-4"></i> Managing pensions? → NPRA</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Regulatory Landscape -->
+    <div class="card p-6 mb-6">
+      <h2 class="section-title mb-4"><i class="fas fa-sitemap text-green-600 mr-2"></i>Ghana's Financial Regulatory Landscape</h2>
+      <div class="overflow-x-auto">
+        <table>
+          <thead><tr>
+            <th>Regulator</th><th>Governing Law</th><th>Key Regulated Entities</th><th>Website</th>
+          </tr></thead>
+          <tbody>
+            <tr><td><strong>Securities &amp; Exchange Commission (SEC)</strong></td><td>Securities Industry Act, 2016 (Act 929)</td><td>Fund Managers, Broker-Dealers, Investment Advisers, Custodians, CIS, Market Operators, Trustees</td><td>sec.gov.gh</td></tr>
+            <tr><td><strong>Bank of Ghana (BOG)</strong></td><td>Banks and SDI Act, 2016 (Act 930)</td><td>Universal Banks, S&amp;L Companies, Finance Houses, Rural/Community Banks, Microfinance, Microcredit</td><td>bog.gov.gh</td></tr>
+            <tr><td><strong>National Pensions Regulatory Authority (NPRA)</strong></td><td>National Pensions Act, 2008 (Act 766) as amended by Act 883</td><td>Pension Fund Trustees, Fund Managers (Tier 2 &amp; 3), Custodians</td><td>npra.gov.gh</td></tr>
+            <tr><td><strong>Ghana Stock Exchange (GSE) / GAX</strong></td><td>Securities Industry Act 929; GSE Listing Rules</td><td>Listed Companies, Market Makers, Stockbrokers</td><td>gse.com.gh</td></tr>
+            <tr><td><strong>Insurance Commission</strong></td><td>Insurance Act, 2021 (Act 1061)</td><td>Insurers, Reinsurers, Brokers, Agents</td><td>nicgh.org</td></tr>
+            <tr><td><strong>Financial Intelligence Centre (FIC)</strong></td><td>Anti-Money Laundering Act, 2020 (Act 1044)</td><td>All reporting entities — AML/CFT compliance</td><td>fic.gov.gh</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="disclaimer-box">
+      <div class="flex gap-3">
+        <i class="fas fa-exclamation-triangle text-yellow-600 text-xl mt-0.5 flex-shrink-0"></i>
+        <div>
+          <p class="font-bold text-yellow-900 mb-1">Important Disclaimer</p>
+          <p class="text-yellow-800 text-sm leading-relaxed">This hub is provided for <strong>informational and educational purposes only</strong>. Fees, requirements, and procedures are subject to change by the respective regulators. Always verify current requirements directly with the relevant regulatory authority (SEC Ghana, Bank of Ghana, NPRA, or GSE) before making any business, investment, or licensing decisions. This does not constitute legal or professional advice. Engage a licensed legal practitioner or compliance professional for guidance specific to your situation.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ SEC LICENSES ============================================================ -->
+  <div id="tab-sec" class="tab-panel">
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-12 h-12 rounded-xl bg-green-700 flex items-center justify-center text-white text-xl">🏛️</div>
+      <div>
+        <h2 class="section-title">SEC Ghana — Capital Market Licenses</h2>
+        <p class="text-gray-500 text-sm">Securities Industry Act, 2016 (Act 929) · Securities Industry (Licensing) Regulations, 2003 (LI 1728)</p>
+      </div>
+    </div>
+
+    <!-- License Types Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+
+      <!-- Fund Management -->
+      <div class="card p-6" id="sec-fund-mgmt">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="font-black text-base" style="font-family:'Montserrat',sans-serif;">Fund Management Company</h3>
+          <span class="fee-tag"><i class="fas fa-coins"></i> GHS 3,000 App</span>
+        </div>
+        <span class="law-ref mb-3 inline-block"><i class="fas fa-book"></i> Act 929, Sec. 108–120 · LI 1728</span>
+        <p class="text-gray-600 text-sm mb-4">Manages investment funds (mutual funds, hedge funds, unit trusts) on behalf of investors on a discretionary basis.</p>
+        <div class="mb-4">
+          <p class="font-semibold text-sm mb-2 text-gray-700">Minimum Requirements:</p>
+          <div class="req-item">Minimum paid-up capital: <strong>GHS 500,000</strong></div>
+          <div class="req-item">Incorporated as a limited liability company in Ghana</div>
+          <div class="req-item">Minimum 2 licensed fund managers (individual licensees) as directors/key personnel</div>
+          <div class="req-item">Separate custodian for client assets (cannot self-custody)</div>
+          <div class="req-item">Fit-and-proper assessment of directors and key personnel</div>
+          <div class="req-item">Professional Indemnity Insurance in place</div>
+          <div class="req-item">AML/CFT compliance programme (FIC registration required)</div>
+        </div>
+        <div class="mb-4">
+          <p class="font-semibold text-sm mb-2 text-gray-700">Application Steps:</p>
+          <div class="space-y-2">
+            <div class="flex gap-3 items-start"><div class="step-num">1</div><p class="text-sm text-gray-600">Incorporate company with Registrar General's Department (RGD). Obtain Certificate of Incorporation + Commencement.</p></div>
+            <div class="flex gap-3 items-start"><div class="step-num">2</div><p class="text-sm text-gray-600">Draft Investment Policy Statement, Offering Document (if managing a fund), and Client Agreement templates.</p></div>
+            <div class="flex gap-3 items-start"><div class="step-num">3</div><p class="text-sm text-gray-600">Open dedicated client omnibus account with an approved custodian bank.</p></div>
+            <div class="flex gap-3 items-start"><div class="step-num">4</div><p class="text-sm text-gray-600">Register with FIC as a reporting entity under AML Act 1044. Appoint AML/CFT Compliance Officer.</p></div>
+            <div class="flex gap-3 items-start"><div class="step-num">5</div><p class="text-sm text-gray-600">Obtain individual Fund Manager licenses for all key personnel managing assets (see Individual License below).</p></div>
+            <div class="flex gap-3 items-start"><div class="step-num">6</div><p class="text-sm text-gray-600">Complete SEC Application Form CF1 (Corporate) and pay non-refundable application fee of GHS 3,000.</p></div>
+            <div class="flex gap-3 items-start"><div class="step-num">7</div><p class="text-sm text-gray-600">Submit certified documents: Memorandum &amp; Articles, RGD certificates, audited financials (or opening balance sheet), CVs of directors, fit-and-proper forms, business plan, compliance manual.</p></div>
+            <div class="flex gap-3 items-start"><div class="step-num">8</div><p class="text-sm text-gray-600">SEC conducts due diligence review (typically 60–90 working days). SEC may request additional information or conduct site inspection.</p></div>
+            <div class="flex gap-3 items-start"><div class="step-num">9</div><p class="text-sm text-gray-600">Upon approval, pay annual licensing fee of <strong>GHS 6,000</strong> and receive Fund Management License (valid 1 year, renewable).</p></div>
+          </div>
+        </div>
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-xs text-yellow-800">
+          <strong>Annual Renewal:</strong> GHS 6,000 · Due 31st January each year · Late renewal attracts penalty.
+        </div>
+      </div>
+
+      <!-- Investment Adviser -->
+      <div class="card p-6" id="sec-inv-adviser">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="font-black text-base" style="font-family:'Montserrat',sans-serif;">Investment Adviser / Wealth Manager</h3>
+          <span class="fee-tag"><i class="fas fa-coins"></i> GHS 2,000 App</span>
+        </div>
+        <span class="law-ref mb-3 inline-block"><i class="fas fa-book"></i> Act 929, Sec. 82–95 · LI 1728</span>
+        <p class="text-gray-600 text-sm mb-4">Provides investment advisory services to clients — asset allocation, portfolio recommendations, financial planning — without necessarily having discretionary management authority.</p>
+        <div class="mb-4">
+          <p class="font-semibold text-sm mb-2 text-gray-700">Minimum Requirements:</p>
+          <div class="req-item">Minimum paid-up capital: <strong>GHS 150,000</strong></div>
+          <div class="req-item">At least 1 licensed Investment Adviser (individual) on staff</div>
+          <div class="req-item">Written Advisory Agreement templates for all clients</div>
+          <div class="req-item">Disclosure document on conflicts of interest and fee structures</div>
+          <div class="req-item">Compliance manual aligned with SEC regulations</div>
+        </div>
+        <div class="mb-4">
+          <p class="font-semibold text-sm mb-2 text-gray-700">Application Steps:</p>
+          <div class="space-y-2">
+            <div class="flex gap-3 items-start"><div class="step-num">1</div><p class="text-sm text-gray-600">Incorporate entity at RGD with "investment advisory" as primary object in M&amp;A.</p></div>
+            <div class="flex gap-3 items-start"><div class="step-num">2</div><p class="text-sm text-gray-600">Prepare business plan, compliance manual, client advisory agreement templates, and fee disclosure document.</p></div>
+            <div class="flex gap-3 items-start"><div class="step-num">3</div><p class="text-sm text-gray-600">Register key personnel with SEC for individual Investment Adviser licenses.</p></div>
+            <div class="flex gap-3 items-start"><div class="step-num">4</div><p class="text-sm text-gray-600">Complete SEC Form CF1, pay GHS 2,000 application fee, and submit full documentation package.</p></div>
+            <div class="flex gap-3 items-start"><div class="step-num">5</div><p class="text-sm text-gray-600">Respond to any SEC queries within 15 working days. Await approval and pay annual fee of <strong>GHS 4,000</strong>.</p></div>
+          </div>
+        </div>
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-xs text-yellow-800">
+          <strong>Annual Renewal:</strong> GHS 4,000
+        </div>
+      </div>
+
+      <!-- Broker-Dealer -->
+      <div class="card p-6" id="sec-broker">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="font-black text-base" style="font-family:'Montserrat',sans-serif;">Broker-Dealer (Stockbroker)</h3>
+          <span class="fee-tag"><i class="fas fa-coins"></i> GHS 5,000 App</span>
+        </div>
+        <span class="law-ref mb-3 inline-block"><i class="fas fa-book"></i> Act 929, Sec. 60–80 · GSE Membership Rules</span>
+        <p class="text-gray-600 text-sm mb-4">Executes buy and sell orders for securities on the Ghana Stock Exchange (GSE) or OTC markets on behalf of clients and/or as principal.</p>
+        <div class="mb-4">
+          <p class="font-semibold text-sm mb-2 text-gray-700">Minimum Requirements:</p>
+          <div class="req-item">Minimum paid-up capital: <strong>GHS 2,000,000</strong> (Broker-Dealer with dealing licence)</div>
+          <div class="req-item">Minimum 2 licensed Dealing Officers (individual SEC licenses)</div>
+          <div class="req-item">Fidelity bond / surety bond to cover client funds</div>
+          <div class="req-item">GSE Trading Membership (applied separately from GSE)</div>
+          <div class="req-item">Client asset segregation — dedicated client omnibus account</div>
+          <div class="req-item">Robust back-office settlement systems (T+2 compliance)</div>
+          <div class="req-item">Compliance officer and AML/CFT programme</div>
+        </div>
+        <div class="mb-4">
+          <p class="font-semibold text-sm mb-2 text-gray-700">Application Steps:</p>
+          <div class="space-y-2">
+            <div class="flex gap-3 items-start"><div class="step-num">1</div><p class="text-sm text-gray-600">Incorporate. Ensure M&amp;A objects include "dealing in securities" and "brokerage."</p></div>
+            <div class="flex gap-3 items-start"><div class="step-num">2</div><p class="text-sm text-gray-600">Apply for SEC corporate Broker-Dealer license (Form CF1) — GHS 5,000 fee.</p></div>
+            <div class="flex gap-3 items-start"><div class="step-num">3</div><p class="text-sm text-gray-600">Separately apply to GSE for Trading Membership. Pay GSE entry fee + annual subscription.</p></div>
+            <div class="flex gap-3 items-start"><div class="step-num">4</div><p class="text-sm text-gray-600">Obtain Fidelity Bond and provide SEC with proof of surety.</p></div>
+            <div class="flex gap-3 items-start"><div class="step-num">5</div><p class="text-sm text-gray-600">Register all dealing officers under individual SEC Dealing Officer licenses.</p></div>
+            <div class="flex gap-3 items-start"><div class="step-num">6</div><p class="text-sm text-gray-600">SEC inspection of back-office systems and compliance infrastructure before final approval.</p></div>
+            <div class="flex gap-3 items-start"><div class="step-num">7</div><p class="text-sm text-gray-600">Upon approval pay annual license fee <strong>GHS 10,000</strong> and commence operations.</p></div>
+          </div>
+        </div>
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-xs text-yellow-800">
+          <strong>Annual Renewal:</strong> GHS 10,000 · GSE Annual Subscription: separate (contact GSE)
+        </div>
+      </div>
+
+      <!-- Corporate Trustee -->
+      <div class="card p-6" id="sec-trustee">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="font-black text-base" style="font-family:'Montserrat',sans-serif;">Corporate Trustee</h3>
+          <span class="fee-tag"><i class="fas fa-coins"></i> GHS 4,000 App</span>
+        </div>
+        <span class="law-ref mb-3 inline-block"><i class="fas fa-book"></i> Act 929 · Trustee Incorporation Act · Act 766 (for pension trustees)</span>
+        <p class="text-gray-600 text-sm mb-4">Holds assets in trust for beneficiaries of collective investment schemes, pension funds, or bond issuances. Acts as independent overseer of fund assets.</p>
+        <div class="mb-4">
+          <p class="font-semibold text-sm mb-2 text-gray-700">Minimum Requirements (SEC Corporate Trustee):</p>
+          <div class="req-item">Minimum paid-up capital: <strong>GHS 1,000,000</strong></div>
+          <div class="req-item">Deed of Trust (standard SEC-approved format)</div>
+          <div class="req-item">Custodian infrastructure — own or contracted to approved bank</div>
+          <div class="req-item">At least 2 qualified personnel with relevant trust/legal qualifications</div>
+          <div class="req-item">Surety/fidelity bond covering trustee obligations</div>
+          <div class="req-item">Trust deed for each scheme/fund must be registered with SEC</div>
+        </div>
+        <div class="mb-4">
+          <p class="font-semibold text-sm mb-2 text-gray-700">Steps:</p>
+          <div class="space-y-2">
+            <div class="flex gap-3 items-start"><div class="step-num">1</div><p class="text-sm text-gray-600">Incorporate. M&amp;A must include "trustee" and "custodial" services as primary objects.</p></div>
+            <div class="flex gap-3 items-start"><div class="step-num">2</div><p class="text-sm text-gray-600">Apply SEC Form CF1 for Corporate Trustee license. Pay GHS 4,000 application fee.</p></div>
+            <div class="flex gap-3 items-start"><div class="step-num">3</div><p class="text-sm text-gray-600">Submit draft Deed of Trust, compliance manual, organisational chart, CVs of key staff.</p></div>
+            <div class="flex gap-3 items-start"><div class="step-num">4</div><p class="text-sm text-gray-600">Demonstrate settlement and custody infrastructure to SEC (site inspection may be required).</p></div>
+            <div class="flex gap-3 items-start"><div class="step-num">5</div><p class="text-sm text-gray-600">Receive approval and pay annual fee <strong>GHS 8,000</strong>.</p></div>
+          </div>
+        </div>
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-xs text-yellow-800">
+          <strong>Annual Renewal:</strong> GHS 8,000
+        </div>
+      </div>
+
+      <!-- Collective Investment Scheme / Mutual Fund -->
+      <div class="card p-6" id="sec-cis">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="font-black text-base" style="font-family:'Montserrat',sans-serif;">Collective Investment Scheme (CIS) / Mutual Fund</h3>
+          <span class="fee-tag"><i class="fas fa-coins"></i> GHS 5,000 App</span>
+        </div>
+        <span class="law-ref mb-3 inline-block"><i class="fas fa-book"></i> Act 929, Sec. 121–175 · Securities Industry (CIS) Rules</span>
+        <p class="text-gray-600 text-sm mb-4">A pooled investment vehicle that collects money from investors and invests in a diversified portfolio. Includes mutual funds, unit trusts, fixed-income funds, money market funds.</p>
+        <div class="mb-4">
+          <p class="font-semibold text-sm mb-2 text-gray-700">Minimum Requirements:</p>
+          <div class="req-item">Fund Manager must already hold a SEC Fund Management License</div>
+          <div class="req-item">Corporate Trustee appointed (holds assets for investors)</div>
+          <div class="req-item">Approved Custodian (licensed bank) to hold fund assets</div>
+          <div class="req-item">Minimum initial fund size: <strong>GHS 500,000</strong> at launch</div>
+          <div class="req-item">Audited financial statements from fund manager parent company</div>
+          <div class="req-item">Prospectus / Offering Document — SEC-prescribed format</div>
+          <div class="req-item">Fund accounting and NAV computation procedures documented</div>
+        </div>
+        <div class="mb-4">
+          <p class="font-semibold text-sm mb-2 text-gray-700">CIS Registration Steps:</p>
+          <div class="space-y-2">
+            <div class="flex gap-3 items-start"><div class="step-num">1</div><p class="text-sm text-gray-600">Prepare Prospectus/Offering Document covering fund objectives, investment strategy, risk factors, fees, and redemption terms.</p></div>
+            <div class="flex gap-3 items-start"><div class="step-num">2</div><p class="text-sm text-gray-600">Execute Trust Deed between Fund Manager and Corporate Trustee.</p></div>
+            <div class="flex gap-3 items-start"><div class="step-num">3</div><p class="text-sm text-gray-600">Execute Custody Agreement with licensed custodian bank.</p></div>
+            <div class="flex gap-3 items-start"><div class="step-num">4</div><p class="text-sm text-gray-600">Submit CIS registration application to SEC with all executed agreements and Offering Document. Pay GHS 5,000.</p></div>
+            <div class="flex gap-3 items-start"><div class="step-num">5</div><p class="text-sm text-gray-600">SEC reviews and may issue comments. Revise Offering Document and resubmit. Process typically 45–90 working days.</p></div>
+            <div class="flex gap-3 items-start"><div class="step-num">6</div><p class="text-sm text-gray-600">Receive SEC No-Objection Letter. Seed the fund to minimum GHS 500,000. File confirmation with SEC.</p></div>
+            <div class="flex gap-3 items-start"><div class="step-num">7</div><p class="text-sm text-gray-600">Commence marketing and investor onboarding. NAV must be computed and published per SEC rules (at minimum weekly).</p></div>
+          </div>
+        </div>
+        <div class="bg-green-50 border border-green-200 rounded-lg p-3 text-xs text-green-800">
+          <strong>Ongoing obligations:</strong> Quarterly reports to SEC · Annual audited accounts · Immediate disclosure of material events
+        </div>
+      </div>
+
+      <!-- Market Operator / Exchange -->
+      <div class="card p-6" id="sec-market-op">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="font-black text-base" style="font-family:'Montserrat',sans-serif;">Market Operator / Stock Exchange</h3>
+          <span class="fee-tag"><i class="fas fa-coins"></i> GHS 20,000 App</span>
+        </div>
+        <span class="law-ref mb-3 inline-block"><i class="fas fa-book"></i> Act 929, Sec. 30–55</span>
+        <p class="text-gray-600 text-sm mb-4">Operates a securities exchange or alternative trading system. Highest-tier capital markets license — requires SEC's highest scrutiny.</p>
+        <div class="mb-4">
+          <p class="font-semibold text-sm mb-2 text-gray-700">Key Requirements:</p>
+          <div class="req-item">Minimum paid-up capital: <strong>GHS 10,000,000</strong></div>
+          <div class="req-item">Robust trading rules, listing standards, and membership criteria</div>
+          <div class="req-item">Central depository linkage (CSD — Ghana CSD)</div>
+          <div class="req-item">Trading and settlement infrastructure meeting T+2 standard</div>
+          <div class="req-item">Dispute resolution mechanism for market participants</div>
+          <div class="req-item">Market surveillance and manipulation prevention systems</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Individual Licenses -->
+    <div class="card p-6 mb-6">
+      <h3 class="section-title mb-1"><i class="fas fa-id-card text-green-600 mr-2"></i>Individual (Personal) SEC Licenses</h3>
+      <p class="text-gray-500 text-sm mb-4">Key personnel within licensed corporate entities must also hold personal SEC licenses. These are tied to the individual, not the company.</p>
+      <div class="overflow-x-auto">
+        <table>
+          <thead><tr><th>License Type</th><th>Who Needs It</th><th>Qualifications Required</th><th>Application Fee</th><th>Annual Fee</th></tr></thead>
+          <tbody>
+            <tr><td><strong>Fund Manager (Individual)</strong></td><td>Portfolio managers, investment directors within fund management firms</td><td>Degree in Finance/Economics/Accounting + CFA/ACCA/CIMA preferred · 3 years relevant experience</td><td>GHS 500</td><td>GHS 1,000</td></tr>
+            <tr><td><strong>Investment Adviser (Individual)</strong></td><td>Financial planners, wealth advisers, relationship managers providing investment advice</td><td>Degree in Finance/Business + relevant professional qualification</td><td>GHS 300</td><td>GHS 600</td></tr>
+            <tr><td><strong>Dealing Officer</strong></td><td>Traders and dealers executing buy/sell orders at broker-dealers</td><td>Degree + SEC Dealing Officer Examination (must pass)</td><td>GHS 400</td><td>GHS 800</td></tr>
+            <tr><td><strong>Research Analyst</strong></td><td>Equity research analysts publishing investment research</td><td>Degree in Finance/Economics + relevant experience</td><td>GHS 300</td><td>GHS 600</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm text-blue-800">
+        <strong>SEC Examination:</strong> The Dealing Officer license requires passing the SEC Ghana Capital Markets Operators Examination. Contact SEC (sec.gov.gh) for examination schedules.
+      </div>
+    </div>
+
+    <div class="disclaimer-box mt-6">
+      <p class="font-bold text-yellow-900 mb-1"><i class="fas fa-exclamation-triangle mr-2"></i>Disclaimer</p>
+      <p class="text-yellow-800 text-sm">Fee figures are based on SEC Ghana schedules. Verify current fees with SEC Ghana at sec.gov.gh or call +233 (0)302 768970. Requirements may be updated by SEC notices or regulations made under Act 929.</p>
+    </div>
+  </div>
+
+  <!-- ============================================================ GAX LISTING ============================================================ -->
+  <div id="tab-gax" class="tab-panel">
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-12 h-12 rounded-xl bg-indigo-600 flex items-center justify-center text-white text-xl">📈</div>
+      <div>
+        <h2 class="section-title">Ghana Alternative Exchange (GAX)</h2>
+        <p class="text-gray-500 text-sm">Ghana Stock Exchange (GSE) · Securities Industry Act, 2016 (Act 929) · GAX Rules</p>
+      </div>
+    </div>
+
+    <div class="card p-6 mb-6 border-l-4 border-indigo-500">
+      <p class="text-gray-700 leading-relaxed">The <strong>Ghana Alternative Exchange (GAX)</strong> is the second board of the Ghana Stock Exchange, specifically designed to provide <strong>SMEs, startups, and high-growth companies</strong> access to equity capital with lighter listing requirements than the Main Board. GAX is ideal for companies too early-stage or too small for the Main GSE Board but needing growth capital through public equity.</p>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+      <div class="card p-6">
+        <h3 class="font-black text-base mb-4" style="font-family:'Montserrat',sans-serif;"><i class="fas fa-list-check text-indigo-600 mr-2"></i>GAX Listing Requirements</h3>
+        <div class="space-y-3">
+          <div>
+            <p class="font-semibold text-sm text-gray-700 mb-1">Capital &amp; Size</p>
+            <div class="req-item" style="border-color:#4f46e5;background:#eef2ff;">Minimum issued share capital: <strong>GHS 250,000</strong> (post-IPO)</div>
+            <div class="req-item" style="border-color:#4f46e5;background:#eef2ff;">No minimum net assets requirement (unlike Main Board)</div>
+            <div class="req-item" style="border-color:#4f46e5;background:#eef2ff;">Minimum float (public shareholding): <strong>15%</strong> of issued shares</div>
+          </div>
+          <div>
+            <p class="font-semibold text-sm text-gray-700 mb-1">Operating History</p>
+            <div class="req-item" style="border-color:#4f46e5;background:#eef2ff;">Minimum 1 year of operating history (vs. 3 years on Main Board)</div>
+            <div class="req-item" style="border-color:#4f46e5;background:#eef2ff;">Startups with innovative business models may apply with as little as 6 months history at GSE discretion</div>
+          </div>
+          <div>
+            <p class="font-semibold text-sm text-gray-700 mb-1">Governance</p>
+            <div class="req-item" style="border-color:#4f46e5;background:#eef2ff;">Minimum 3 directors; at least 1 independent non-executive director</div>
+            <div class="req-item" style="border-color:#4f46e5;background:#eef2ff;">Audit committee required (minimum 3 members)</div>
+            <div class="req-item" style="border-color:#4f46e5;background:#eef2ff;">Mandatory appointment of a <strong>Nominated Adviser (NOMAD)</strong></div>
+          </div>
+          <div>
+            <p class="font-semibold text-sm text-gray-700 mb-1">Financial Reporting</p>
+            <div class="req-item" style="border-color:#4f46e5;background:#eef2ff;">Audited financial statements for at least 1 year (IFRS / IFRS for SMEs)</div>
+            <div class="req-item" style="border-color:#4f46e5;background:#eef2ff;">Unaudited half-year results within 2 months of period end</div>
+            <div class="req-item" style="border-color:#4f46e5;background:#eef2ff;">Full-year audited results within 4 months of year-end</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card p-6">
+        <h3 class="font-black text-base mb-4" style="font-family:'Montserrat',sans-serif;"><i class="fas fa-star text-yellow-500 mr-2"></i>Special Startup &amp; Innovation Provisions</h3>
+        <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-4 mb-4">
+          <p class="text-indigo-800 text-sm font-semibold mb-2">Why GAX was designed for startups:</p>
+          <ul class="text-indigo-700 text-sm space-y-1.5">
+            <li><i class="fas fa-check mr-2 text-indigo-500"></i>Shorter operating history requirement (1 year vs. 3 years)</li>
+            <li><i class="fas fa-check mr-2 text-indigo-500"></i>Lower minimum capital (GHS 250,000 vs. GHS 1,000,000+ on Main Board)</li>
+            <li><i class="fas fa-check mr-2 text-indigo-500"></i>NOMAD model — you have a sponsor who guides you through compliance</li>
+            <li><i class="fas fa-check mr-2 text-indigo-500"></i>No profitability requirement — loss-making growth companies can list</li>
+            <li><i class="fas fa-check mr-2 text-indigo-500"></i>Proportional listing fees — lower than Main Board</li>
+            <li><i class="fas fa-check mr-2 text-indigo-500"></i>Technology and innovation companies receive fast-track consideration</li>
+          </ul>
+        </div>
+        <div class="bg-green-50 border border-green-200 rounded-xl p-4">
+          <p class="text-green-800 text-sm font-semibold mb-2">Key legal basis (Act 929):</p>
+          <p class="text-green-700 text-sm">The Securities Industry Act, 2016 (Act 929) empowers the GSE to establish alternative listing segments. The SEC has approved the GAX Rules under Act 929 as the regulatory framework for alternative market listings. All GAX-listed companies remain subject to continuous disclosure obligations under Act 929, Sections 176–210.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- GAX Listing Process -->
+    <div class="card p-6 mb-6">
+      <h3 class="section-title mb-4"><i class="fas fa-road text-indigo-600 mr-2"></i>GAX Listing Process — Step by Step</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="space-y-3">
+          <div class="flex gap-3 items-start p-4 bg-indigo-50 rounded-xl">
+            <div class="step-num" style="background:#4f46e5;">1</div>
+            <div><p class="font-semibold text-sm">Appoint a NOMAD (Nominated Adviser)</p><p class="text-gray-600 text-xs mt-1">Select a GSE-approved NOMAD firm. They will guide you through the entire listing process, conduct due diligence, and act as your ongoing compliance adviser post-listing.</p></div>
+          </div>
+          <div class="flex gap-3 items-start p-4 bg-indigo-50 rounded-xl">
+            <div class="step-num" style="background:#4f46e5;">2</div>
+            <div><p class="font-semibold text-sm">Appoint Listing Advisers</p><p class="text-gray-600 text-xs mt-1">Legal counsel (transaction attorneys), reporting accountants (auditors), broker-dealer (for share marketing), and registrar (for shareholder management).</p></div>
+          </div>
+          <div class="flex gap-3 items-start p-4 bg-indigo-50 rounded-xl">
+            <div class="step-num" style="background:#4f46e5;">3</div>
+            <div><p class="font-semibold text-sm">Conduct Due Diligence &amp; Restructuring</p><p class="text-gray-600 text-xs mt-1">Legal, financial, and tax due diligence. Restructure corporate governance to meet GAX standards (board composition, audit committee, etc.).</p></div>
+          </div>
+          <div class="flex gap-3 items-start p-4 bg-indigo-50 rounded-xl">
+            <div class="step-num" style="background:#4f46e5;">4</div>
+            <div><p class="font-semibold text-sm">Prepare Prospectus / Information Memorandum</p><p class="text-gray-600 text-xs mt-1">Draft the Prospectus (or Information Memorandum for private placements) covering business description, financial history, risk factors, use of funds, and financial projections.</p></div>
+          </div>
+          <div class="flex gap-3 items-start p-4 bg-indigo-50 rounded-xl">
+            <div class="step-num" style="background:#4f46e5;">5</div>
+            <div><p class="font-semibold text-sm">Submit to SEC for Review</p><p class="text-gray-600 text-xs mt-1">File the Prospectus with SEC Ghana for vetting under Act 929, Sec. 180. SEC has 40 working days to review and clear the Prospectus.</p></div>
+          </div>
+        </div>
+        <div class="space-y-3">
+          <div class="flex gap-3 items-start p-4 bg-indigo-50 rounded-xl">
+            <div class="step-num" style="background:#4f46e5;">6</div>
+            <div><p class="font-semibold text-sm">Apply to GSE for GAX Listing</p><p class="text-gray-600 text-xs mt-1">Submit GAX Listing Application to Ghana Stock Exchange with SEC clearance, completed Prospectus, and all supporting documents. Pay GSE application fee.</p></div>
+          </div>
+          <div class="flex gap-3 items-start p-4 bg-indigo-50 rounded-xl">
+            <div class="step-num" style="background:#4f46e5;">7</div>
+            <div><p class="font-semibold text-sm">GSE Listing Committee Review</p><p class="text-gray-600 text-xs mt-1">GSE Listing Committee evaluates the application. May issue questions. Approval typically takes 10–20 working days after complete submission.</p></div>
+          </div>
+          <div class="flex gap-3 items-start p-4 bg-indigo-50 rounded-xl">
+            <div class="step-num" style="background:#4f46e5;">8</div>
+            <div><p class="font-semibold text-sm">Public Offer / Book Build</p><p class="text-gray-600 text-xs mt-1">Launch public offer (IPO) or private placement. Your broker-dealer markets shares to investors. Subscription period typically 2–4 weeks.</p></div>
+          </div>
+          <div class="flex gap-3 items-start p-4 bg-indigo-50 rounded-xl">
+            <div class="step-num" style="background:#4f46e5;">9</div>
+            <div><p class="font-semibold text-sm">Admission to Trading</p><p class="text-gray-600 text-xs mt-1">After successful offer and allotment, shares are admitted to trading on GAX. CSD registers shareholders. First day of trading.</p></div>
+          </div>
+          <div class="flex gap-3 items-start p-4 bg-indigo-50 rounded-xl">
+            <div class="step-num" style="background:#4f46e5;">10</div>
+            <div><p class="font-semibold text-sm">Ongoing Continuous Disclosure</p><p class="text-gray-600 text-xs mt-1">Immediately disclose material events, publish half-year and full-year results, maintain minimum float, file annual returns. NOMAD remains your ongoing compliance guide.</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GAX Fees -->
+    <div class="card p-6 mb-6">
+      <h3 class="section-title mb-4"><i class="fas fa-coins text-yellow-500 mr-2"></i>GAX Listing Fees</h3>
+      <div class="overflow-x-auto">
+        <table>
+          <thead><tr><th>Fee Type</th><th>Amount</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td>Application Fee (to GSE)</td><td><strong>GHS 5,000</strong></td><td>Non-refundable, payable on application</td></tr>
+            <tr><td>Listing Fee (initial)</td><td><strong>0.1% of market cap at listing</strong> (min GHS 10,000, max GHS 50,000)</td><td>Payable on admission to trading</td></tr>
+            <tr><td>Annual Listing Fee</td><td><strong>0.05% of market cap</strong> (min GHS 5,000, max GHS 25,000)</td><td>Due annually by 31st March</td></tr>
+            <tr><td>SEC Prospectus Review Fee</td><td><strong>0.05% of offer size</strong> (min GHS 3,000)</td><td>Payable to SEC on Prospectus submission</td></tr>
+            <tr><td>NOMAD Fee</td><td><strong>GHS 30,000–100,000+</strong> (negotiated)</td><td>Varies by NOMAD firm and complexity</td></tr>
+            <tr><td>Legal Counsel</td><td><strong>GHS 50,000–200,000+</strong></td><td>Varies by transaction complexity</td></tr>
+            <tr><td>Auditor / Reporting Accountant</td><td><strong>GHS 20,000–80,000+</strong></td><td>Depends on company size and audit history</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="disclaimer-box">
+      <p class="font-bold text-yellow-900 mb-1"><i class="fas fa-exclamation-triangle mr-2"></i>Note</p>
+      <p class="text-yellow-800 text-sm">GAX rules are set by the GSE and approved by SEC. Contact the GSE Listings Department at gse.com.gh or +233 (0)302 669914 for the most current requirements. A NOMAD is mandatory and will provide your most accurate guidance throughout the process.</p>
+    </div>
+  </div>
+
+  <!-- ============================================================ BOG BANKING ============================================================ -->
+  <div id="tab-bog" class="tab-panel">
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-12 h-12 rounded-xl bg-yellow-500 flex items-center justify-center text-xl">🏦</div>
+      <div>
+        <h2 class="section-title">Bank of Ghana — Banking &amp; Financial Institution Licenses</h2>
+        <p class="text-gray-500 text-sm">Banks and Specialised Deposit-Taking Institutions (BSDI) Act, 2016 (Act 930) · BOG Directives</p>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+
+      <!-- Universal Bank -->
+      <div class="card p-6" id="bog-universal">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="font-black text-base" style="font-family:'Montserrat',sans-serif;">Universal Bank</h3>
+          <span class="fee-tag"><i class="fas fa-coins"></i> GHS 400M Min Capital</span>
+        </div>
+        <span class="law-ref mb-3 inline-block"><i class="fas fa-book"></i> Act 930, Sec. 1–60 · BOG Banking Directives</span>
+        <p class="text-gray-600 text-sm mb-4">Full commercial banking services: deposits, lending, FX, trade finance, investment banking, and all other financial services. Highest regulatory tier.</p>
+        <div class="mb-4">
+          <p class="font-semibold text-sm mb-2 text-gray-700">Key Requirements:</p>
+          <div class="req-item">Minimum paid-up capital: <strong>GHS 400,000,000</strong> (GHS 400 million)</div>
+          <div class="req-item">Minimum capital adequacy ratio (CAR): <strong>13%</strong></div>
+          <div class="req-item">At least 5 qualified directors; majority must be Ghanaians</div>
+          <div class="req-item">Minimum liquidity ratio: <strong>30%</strong> of total deposits</div>
+          <div class="req-item">Primary reserve requirement: <strong>14%</strong> of total deposits held at BOG</div>
+          <div class="req-item">Robust core banking system and IT infrastructure</div>
+          <div class="req-item">AML/CFT framework per FIC Act 1044 — Compliance Officer mandatory</div>
+          <div class="req-item">At least 1 independent non-executive director with banking expertise</div>
+          <div class="req-item">Deposit Protection membership (Ghana Deposit Protection Corporation)</div>
+        </div>
+        <div class="mb-4">
+          <p class="font-semibold text-sm mb-2 text-gray-700">Application Steps:</p>
+          <div class="space-y-2">
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#ca8a04;">1</div><p class="text-sm text-gray-600">Secure promoter shareholders with fit-and-proper status. Foreign banks: obtain home-country regulator No Objection Letter.</p></div>
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#ca8a04;">2</div><p class="text-sm text-gray-600">Submit Letter of Intent (LOI) to BOG with business plan, ownership structure, and proof of capital availability.</p></div>
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#ca8a04;">3</div><p class="text-sm text-gray-600">BOG grants Approval-in-Principle (AIP). Incorporate at RGD. Open escrow account — deposit full minimum capital GHS 400M.</p></div>
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#ca8a04;">4</div><p class="text-sm text-gray-600">Submit full license application: M&amp;A, full business plan (5 years), IT system specs, AML/CFT programme, compliance manual, CVs/fit-and-proper forms for all directors and key management.</p></div>
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#ca8a04;">5</div><p class="text-sm text-gray-600">BOG conducts due diligence and on-site inspection of proposed premises, IT systems, and organisational readiness.</p></div>
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#ca8a04;">6</div><p class="text-sm text-gray-600">BOG issues banking license. Bank formally commences operations.</p></div>
+          </div>
+        </div>
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-xs text-yellow-800">
+          <strong>Application Fee to BOG:</strong> GHS 50,000 (non-refundable) · Annual Supervisory Fee: set by BOG based on total assets
+        </div>
+      </div>
+
+      <!-- Savings & Loans -->
+      <div class="card p-6" id="bog-sl">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="font-black text-base" style="font-family:'Montserrat',sans-serif;">Savings &amp; Loans Company</h3>
+          <span class="fee-tag"><i class="fas fa-coins"></i> GHS 15M Min Capital</span>
+        </div>
+        <span class="law-ref mb-3 inline-block"><i class="fas fa-book"></i> Act 930 · BOG S&amp;L Guidelines</span>
+        <p class="text-gray-600 text-sm mb-4">Takes deposits from the public and provides credit — similar to banks but with limited branching and foreign exchange powers. Popular vehicle for specialist lenders.</p>
+        <div class="mb-4">
+          <p class="font-semibold text-sm mb-2 text-gray-700">Key Requirements:</p>
+          <div class="req-item">Minimum paid-up capital: <strong>GHS 15,000,000</strong></div>
+          <div class="req-item">At least 5 directors with relevant financial experience</div>
+          <div class="req-item">Capital adequacy ratio: minimum <strong>10%</strong></div>
+          <div class="req-item">Primary reserve: <strong>12%</strong> of deposits at BOG</div>
+          <div class="req-item">Deposit-taking licence required (cannot take deposits without formal approval)</div>
+          <div class="req-item">AML/CFT compliance programme and FIC registration</div>
+          <div class="req-item">Core banking system with BOG-approved standards</div>
+        </div>
+        <div class="mb-4">
+          <p class="font-semibold text-sm mb-2 text-gray-700">Application Steps:</p>
+          <div class="space-y-2">
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#ca8a04;">1</div><p class="text-sm text-gray-600">Prepare a detailed business plan (5 years), target market analysis, capital sourcing evidence.</p></div>
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#ca8a04;">2</div><p class="text-sm text-gray-600">Submit LOI with evidence of GHS 15M minimum capital to BOG Banking Supervision Department.</p></div>
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#ca8a04;">3</div><p class="text-sm text-gray-600">Receive BOG AIP. Incorporate at RGD. Pay-up minimum capital in escrow account at BOG-approved bank.</p></div>
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#ca8a04;">4</div><p class="text-sm text-gray-600">Submit formal application with all documentation. BOG conducts fit-and-proper on directors, key management.</p></div>
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#ca8a04;">5</div><p class="text-sm text-gray-600">BOG site inspection of premises and IT systems. Receive final license and commence operations.</p></div>
+          </div>
+        </div>
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-xs text-yellow-800">
+          <strong>Application Fee:</strong> GHS 20,000 · Annual supervisory levy based on assets
+        </div>
+      </div>
+
+      <!-- Finance House -->
+      <div class="card p-6" id="bog-finance-house">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="font-black text-base" style="font-family:'Montserrat',sans-serif;">Finance House</h3>
+          <span class="fee-tag"><i class="fas fa-coins"></i> GHS 7.5M Min Capital</span>
+        </div>
+        <span class="law-ref mb-3 inline-block"><i class="fas fa-book"></i> Act 930 · BOG Finance House Guidelines</span>
+        <p class="text-gray-600 text-sm mb-4">Non-bank financial institution providing consumer finance, hire purchase, leasing, and structured finance. Cannot take demand deposits from the public.</p>
+        <div class="mb-4">
+          <p class="font-semibold text-sm mb-2 text-gray-700">Key Requirements:</p>
+          <div class="req-item">Minimum paid-up capital: <strong>GHS 7,500,000</strong></div>
+          <div class="req-item">Funding from wholesale (institutional) sources; limited retail deposit-taking</div>
+          <div class="req-item">At least 3 experienced directors</div>
+          <div class="req-item">Specialised lending policies for product types (hire purchase, leasing, etc.)</div>
+          <div class="req-item">Credit risk management framework</div>
+        </div>
+        <div class="mb-4">
+          <p class="font-semibold text-sm mb-2 text-gray-700">Steps:</p>
+          <div class="space-y-2">
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#ca8a04;">1</div><p class="text-sm text-gray-600">Submit LOI to BOG with business plan, promoter profiles, and source of capital.</p></div>
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#ca8a04;">2</div><p class="text-sm text-gray-600">Incorporate at RGD. Fund escrow account with GHS 7.5M minimum capital.</p></div>
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#ca8a04;">3</div><p class="text-sm text-gray-600">Submit formal application with all documents. Fit-and-proper checks. Site visit. License issued.</p></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Rural & Community Bank -->
+      <div class="card p-6" id="bog-rcb">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="font-black text-base" style="font-family:'Montserrat',sans-serif;">Rural &amp; Community Bank (RCB)</h3>
+          <span class="fee-tag"><i class="fas fa-coins"></i> GHS 1M Min Capital</span>
+        </div>
+        <span class="law-ref mb-3 inline-block"><i class="fas fa-book"></i> Act 930 · BOG RCB Guidelines · ARB Apex Bank Act</span>
+        <p class="text-gray-600 text-sm mb-4">Community-owned banks serving rural and peri-urban populations. Affiliated with the ARB Apex Bank for supervision and clearing services.</p>
+        <div class="mb-4">
+          <p class="font-semibold text-sm mb-2 text-gray-700">Key Requirements:</p>
+          <div class="req-item">Minimum paid-up capital: <strong>GHS 1,000,000</strong></div>
+          <div class="req-item">Majority community ownership — shares held primarily by community members</div>
+          <div class="req-item">At least 5 board members with community representation</div>
+          <div class="req-item">Affiliation with ARB Apex Bank mandatory</div>
+          <div class="req-item">Operates in defined geographical community</div>
+          <div class="req-item">SACCO/credit union experience in at least one board member desirable</div>
+        </div>
+        <div class="mb-4">
+          <p class="font-semibold text-sm mb-2 text-gray-700">Steps:</p>
+          <div class="space-y-2">
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#ca8a04;">1</div><p class="text-sm text-gray-600">Conduct community mobilisation — sell shares to community members. Minimum of 500 shareholders from the target community.</p></div>
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#ca8a04;">2</div><p class="text-sm text-gray-600">Raise minimum GHS 1,000,000 paid-up capital from share subscriptions.</p></div>
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#ca8a04;">3</div><p class="text-sm text-gray-600">Apply to ARB Apex Bank for membership and to BOG for RCB license.</p></div>
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#ca8a04;">4</div><p class="text-sm text-gray-600">BOG and ARB Apex Bank conduct joint review and site inspection. License granted.</p></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Microfinance -->
+      <div class="card p-6" id="bog-mfi">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="font-black text-base" style="font-family:'Montserrat',sans-serif;">Microfinance Institution (MFI)</h3>
+          <span class="fee-tag"><i class="fas fa-coins"></i> GHS 500K–2M Min Capital</span>
+        </div>
+        <span class="law-ref mb-3 inline-block"><i class="fas fa-book"></i> Act 930 · BOG Microfinance Regulations, 2017 (LI 2362)</span>
+        <p class="text-gray-600 text-sm mb-4">Provides financial services (mainly credit and savings) to low-income households and micro-enterprises. Four categories under BOG.</p>
+        <div class="overflow-x-auto mb-4">
+          <table>
+            <thead><tr><th>Category</th><th>Description</th><th>Min Capital</th><th>Deposit Taking?</th></tr></thead>
+            <tbody>
+              <tr><td><strong>Tier 1 — MFI</strong></td><td>Large microfinance companies with multiple branches, national scope</td><td><strong>GHS 2,000,000</strong></td><td>Yes (limited)</td></tr>
+              <tr><td><strong>Tier 2 — MFI</strong></td><td>Medium-sized, district/regional scope</td><td><strong>GHS 500,000</strong></td><td>Limited</td></tr>
+              <tr><td><strong>Tier 3 — Money Lender</strong></td><td>Lending only, no deposits</td><td><strong>GHS 100,000</strong></td><td>No</td></tr>
+              <tr><td><strong>Tier 4 — Financial NGO</strong></td><td>NGO-based microfinance, donor-funded</td><td>No min. (NGO registration)</td><td>No</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="mb-4">
+          <p class="font-semibold text-sm mb-2 text-gray-700">MFI Application Steps (Tier 1 &amp; 2):</p>
+          <div class="space-y-2">
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#ca8a04;">1</div><p class="text-sm text-gray-600">Incorporate limited liability company at RGD with "microfinance" as primary business object.</p></div>
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#ca8a04;">2</div><p class="text-sm text-gray-600">Raise and deposit minimum capital in escrow. Prepare business plan, product manual, loan policies, AML/CFT programme.</p></div>
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#ca8a04;">3</div><p class="text-sm text-gray-600">Register with FIC as a reporting entity. Appoint compliance officer.</p></div>
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#ca8a04;">4</div><p class="text-sm text-gray-600">Submit application to BOG Other Financial Institutions Department. Pay application fee GHS 5,000 (Tier 1) / GHS 2,000 (Tier 2).</p></div>
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#ca8a04;">5</div><p class="text-sm text-gray-600">BOG reviews and conducts fit-and-proper assessment of directors. Site inspection. License issued — valid 1 year, renewable.</p></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Microcredit -->
+      <div class="card p-6" id="bog-microcredit">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="font-black text-base" style="font-family:'Montserrat',sans-serif;">Microcredit Company / Money Lender</h3>
+          <span class="fee-tag"><i class="fas fa-coins"></i> GHS 100K Min Capital</span>
+        </div>
+        <span class="law-ref mb-3 inline-block"><i class="fas fa-book"></i> Act 930 · Moneylenders Act · LI 2362</span>
+        <p class="text-gray-600 text-sm mb-4">Provides small loans to individuals and micro-enterprises. Cannot take deposits from the public. Lighter regulatory burden — good entry point for consumer lenders.</p>
+        <div class="mb-4">
+          <p class="font-semibold text-sm mb-2 text-gray-700">Key Requirements:</p>
+          <div class="req-item">Minimum paid-up capital: <strong>GHS 100,000</strong></div>
+          <div class="req-item">Maximum interest rate caps apply (BOG sets from time to time)</div>
+          <div class="req-item">Loan products must be clearly documented</div>
+          <div class="req-item">Consumer protection disclosures mandatory (true cost of credit)</div>
+          <div class="req-item">At least 2 directors with relevant experience</div>
+          <div class="req-item">AML/CFT compliance even at this tier (FIC registration)</div>
+        </div>
+        <div class="mb-4">
+          <p class="font-semibold text-sm mb-2 text-gray-700">Steps:</p>
+          <div class="space-y-2">
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#ca8a04;">1</div><p class="text-sm text-gray-600">Incorporate at RGD. Deposit GHS 100,000 minimum capital.</p></div>
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#ca8a04;">2</div><p class="text-sm text-gray-600">Submit application to BOG Other Financial Institutions Department. Pay GHS 1,000 application fee.</p></div>
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#ca8a04;">3</div><p class="text-sm text-gray-600">Receive Microcredit license. Annual renewal GHS 500.</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Common BOG Requirements -->
+    <div class="card p-6 mb-6">
+      <h3 class="section-title mb-4"><i class="fas fa-clipboard-check text-yellow-600 mr-2"></i>Common Requirements Across All BOG-Regulated Entities</h3>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <div class="req-item" style="border-color:#ca8a04;background:#fffbeb;">Registration with Ghana Revenue Authority (GRA) — TIN required</div>
+          <div class="req-item" style="border-color:#ca8a04;background:#fffbeb;">Registration with Social Security and National Insurance Trust (SSNIT)</div>
+          <div class="req-item" style="border-color:#ca8a04;background:#fffbeb;">Registration with Financial Intelligence Centre (FIC) under AML Act 1044</div>
+          <div class="req-item" style="border-color:#ca8a04;background:#fffbeb;">Appointment of a licensed external auditor (must be ICAG member)</div>
+        </div>
+        <div>
+          <div class="req-item" style="border-color:#ca8a04;background:#fffbeb;">Compliance with Consumer Recourse Mechanism — mandatory complaints handling procedure</div>
+          <div class="req-item" style="border-color:#ca8a04;background:#fffbeb;">Annual submission of audited financial statements to BOG within 4 months of year-end</div>
+          <div class="req-item" style="border-color:#ca8a04;background:#fffbeb;">Quarterly regulatory returns submission to BOG</div>
+          <div class="req-item" style="border-color:#ca8a04;background:#fffbeb;">Compliance with BOG's Data Protection requirements and cybersecurity directives</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="disclaimer-box">
+      <p class="font-bold text-yellow-900 mb-1"><i class="fas fa-exclamation-triangle mr-2"></i>BOG Disclaimer</p>
+      <p class="text-yellow-800 text-sm">All minimum capital requirements are subject to change by BOG Directives. The GHS 400M Universal Bank minimum was set in 2018. Contact BOG Banking Supervision Department (bog.gov.gh) or call +233 (0)302 666174 for current requirements.</p>
+    </div>
+  </div>
+
+  <!-- ============================================================ NPRA ============================================================ -->
+  <div id="tab-npra" class="tab-panel">
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-12 h-12 rounded-xl bg-red-600 flex items-center justify-center text-white text-xl">🎯</div>
+      <div>
+        <h2 class="section-title">NPRA — National Pensions Regulatory Authority</h2>
+        <p class="text-gray-500 text-sm">National Pensions Act, 2008 (Act 766) as amended by National Pensions (Amendment) Act, 2014 (Act 883) · NPRA Regulations, 2011 (LI 1990)</p>
+      </div>
+    </div>
+
+    <div class="card p-6 mb-6 border-l-4 border-red-500">
+      <p class="text-gray-700 leading-relaxed mb-3"><strong>Ghana operates a three-tier pension system</strong> under Act 766. Understanding the tiers is essential before applying for any NPRA license:</p>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="bg-red-50 border border-red-200 rounded-xl p-4">
+          <p class="font-black text-sm text-red-800 mb-1">Tier 1 — Basic National Social Security</p>
+          <p class="text-red-700 text-xs">Mandatory. Managed by SSNIT. 13% employer + 5.5% employee contribution. NPRA does not license private managers for Tier 1.</p>
+        </div>
+        <div class="bg-orange-50 border border-orange-200 rounded-xl p-4">
+          <p class="font-black text-sm text-orange-800 mb-1">Tier 2 — Occupational Scheme</p>
+          <p class="text-orange-700 text-xs">Mandatory. 5% employee contribution. Must be managed by a licensed Tier 2 Fund Manager. Employer must establish or join an approved occupational scheme.</p>
+        </div>
+        <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+          <p class="font-black text-sm text-yellow-800 mb-1">Tier 3 — Voluntary Provident Fund</p>
+          <p class="text-yellow-700 text-xs">Voluntary. Additional voluntary savings by employees/self-employed. Managed by licensed Tier 3 Fund Managers. Tax-exempt contributions (up to limits).</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+
+      <!-- Corporate Trustee NPRA -->
+      <div class="card p-6">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="font-black text-base" style="font-family:'Montserrat',sans-serif;">Corporate Trustee (Pension)</h3>
+          <span class="fee-tag"><i class="fas fa-coins"></i> GHS 3,000 App</span>
+        </div>
+        <span class="law-ref mb-3 inline-block"><i class="fas fa-book"></i> Act 766, Sec. 109–130 · LI 1990</span>
+        <p class="text-gray-600 text-sm mb-4">Holds pension fund assets in trust for scheme members. Acts as independent custodian and oversees fund administration. Required for all Tier 2 and 3 schemes.</p>
+        <div class="mb-4">
+          <p class="font-semibold text-sm mb-2 text-gray-700">Minimum Requirements:</p>
+          <div class="req-item" style="border-color:#dc2626;">Minimum paid-up capital: <strong>GHS 500,000</strong></div>
+          <div class="req-item" style="border-color:#dc2626;">At least 3 directors, including 1 legal professional and 1 finance professional</div>
+          <div class="req-item" style="border-color:#dc2626;">Trust infrastructure: separate trust accounts for each scheme</div>
+          <div class="req-item" style="border-color:#dc2626;">Surety bond covering minimum 12 months' trustee obligations</div>
+          <div class="req-item" style="border-color:#dc2626;">Deed of Trust for each scheme registered with NPRA</div>
+        </div>
+        <div class="mb-4">
+          <p class="font-semibold text-sm mb-2 text-gray-700">Steps:</p>
+          <div class="space-y-2">
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#dc2626;">1</div><p class="text-sm text-gray-600">Incorporate at RGD with "trustee" as primary object.</p></div>
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#dc2626;">2</div><p class="text-sm text-gray-600">Prepare Deed of Trust template, compliance manual, surety bond, and director CVs/fit-and-proper forms.</p></div>
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#dc2626;">3</div><p class="text-sm text-gray-600">Apply to NPRA — pay GHS 3,000 non-refundable fee. Submit full documentation.</p></div>
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#dc2626;">4</div><p class="text-sm text-gray-600">NPRA review (60–90 days). Upon approval, pay annual license fee <strong>GHS 5,000</strong>.</p></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Fund Manager NPRA -->
+      <div class="card p-6">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="font-black text-base" style="font-family:'Montserrat',sans-serif;">Pension Fund Manager (Tier 2 &amp; 3)</h3>
+          <span class="fee-tag"><i class="fas fa-coins"></i> GHS 5,000 App</span>
+        </div>
+        <span class="law-ref mb-3 inline-block"><i class="fas fa-book"></i> Act 766, Sec. 131–160 · LI 1990 · NPRA Investment Guidelines</span>
+        <p class="text-gray-600 text-sm mb-4">Manages pension fund assets — invests contributions in compliance with NPRA investment guidelines. Must have both an NPRA licence AND a SEC Fund Management licence.</p>
+        <div class="mb-4">
+          <p class="font-semibold text-sm mb-2 text-gray-700">Minimum Requirements:</p>
+          <div class="req-item" style="border-color:#dc2626;">Minimum paid-up capital: <strong>GHS 2,000,000</strong></div>
+          <div class="req-item" style="border-color:#dc2626;">Must also hold SEC Fund Management Corporate License (dual licensing)</div>
+          <div class="req-item" style="border-color:#dc2626;">At least 3 licensed individual Fund Managers (SEC) on staff</div>
+          <div class="req-item" style="border-color:#dc2626;">Separate pension fund account for each scheme managed</div>
+          <div class="req-item" style="border-color:#dc2626;">Compliance with NPRA Investment Policy Guidelines (asset class limits)</div>
+          <div class="req-item" style="border-color:#dc2626;">Monthly NAV reporting to NPRA on each scheme</div>
+        </div>
+        <div class="mb-4">
+          <p class="font-semibold text-sm mb-2 text-gray-700">NPRA Investment Limits (Fund Managers must comply):</p>
+          <div class="overflow-x-auto">
+            <table>
+              <thead><tr><th>Asset Class</th><th>Max Allocation</th></tr></thead>
+              <tbody>
+                <tr><td>Government Securities (T-Bills, Bonds)</td><td>up to 70%</td></tr>
+                <tr><td>Equities (listed on GSE)</td><td>up to 35%</td></tr>
+                <tr><td>Real Estate Investment Trusts (REITs)</td><td>up to 25%</td></tr>
+                <tr><td>Collective Investment Schemes (CIS)</td><td>up to 25%</td></tr>
+                <tr><td>Infrastructure/Private Equity</td><td>up to 20%</td></tr>
+                <tr><td>Fixed Deposits (licensed banks)</td><td>up to 40%</td></tr>
+                <tr><td>Foreign Investments</td><td>up to 5%</td></tr>
+                <tr><td>Single Issuer Concentration</td><td>max 10% (excl. GoG securities)</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Custodian NPRA -->
+      <div class="card p-6">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="font-black text-base" style="font-family:'Montserrat',sans-serif;">Pension Custodian</h3>
+          <span class="fee-tag"><i class="fas fa-coins"></i> GHS 5,000 App</span>
+        </div>
+        <span class="law-ref mb-3 inline-block"><i class="fas fa-book"></i> Act 766, Sec. 161–175</span>
+        <p class="text-gray-600 text-sm mb-4">Safekeeps pension fund assets. Must be a licensed bank or financial institution. Separate from the Fund Manager (independence principle).</p>
+        <div class="mb-4">
+          <p class="font-semibold text-sm mb-2 text-gray-700">Requirements:</p>
+          <div class="req-item" style="border-color:#dc2626;">Must be a BOG-licensed bank or depository institution</div>
+          <div class="req-item" style="border-color:#dc2626;">Minimum capital: aligns with the applicant's existing BOG license category</div>
+          <div class="req-item" style="border-color:#dc2626;">Separate custody accounts for each pension scheme</div>
+          <div class="req-item" style="border-color:#dc2626;">Cannot be the same entity as the Fund Manager (independence)</div>
+          <div class="req-item" style="border-color:#dc2626;">Sub-custody capabilities for foreign assets if managing foreign allocations</div>
+        </div>
+      </div>
+
+      <!-- Scheme Registration -->
+      <div class="card p-6">
+        <div class="flex items-center justify-between mb-3">
+          <h3 class="font-black text-base" style="font-family:'Montserrat',sans-serif;">Establishing a Pension Scheme (Employers)</h3>
+          <span class="fee-tag"><i class="fas fa-coins"></i> GHS 500 App</span>
+        </div>
+        <span class="law-ref mb-3 inline-block"><i class="fas fa-book"></i> Act 766, Sec. 50–90</span>
+        <p class="text-gray-600 text-sm mb-4">Every employer with 5+ employees is required to establish or participate in an approved Tier 2 occupational pension scheme.</p>
+        <div class="mb-4">
+          <p class="font-semibold text-sm mb-2 text-gray-700">Employer Obligations:</p>
+          <div class="req-item" style="border-color:#dc2626;">Register with NPRA and SSNIT within 3 months of commencing business</div>
+          <div class="req-item" style="border-color:#dc2626;">Deduct 5% of basic salary from employees (Tier 2)</div>
+          <div class="req-item" style="border-color:#dc2626;">Remit contributions to licensed Tier 2 Fund Manager monthly (by 14th of following month)</div>
+          <div class="req-item" style="border-color:#dc2626;">Provide employees with pension benefit statements annually</div>
+          <div class="req-item" style="border-color:#dc2626;">Late remittance penalty: 3% per month on overdue contributions</div>
+        </div>
+        <div class="mb-4">
+          <p class="font-semibold text-sm mb-2 text-gray-700">Scheme Registration Steps:</p>
+          <div class="space-y-2">
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#dc2626;">1</div><p class="text-sm text-gray-600">Select a licensed Tier 2 Fund Manager and licensed Trustee. Execute Participation Agreement.</p></div>
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#dc2626;">2</div><p class="text-sm text-gray-600">Execute Trust Deed between Trustee and employer, and Scheme Rules document.</p></div>
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#dc2626;">3</div><p class="text-sm text-gray-600">Submit Scheme Registration Form to NPRA with Trust Deed, Scheme Rules, list of participating employees. Pay GHS 500 registration fee.</p></div>
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#dc2626;">4</div><p class="text-sm text-gray-600">NPRA issues Certificate of Registration. Begin contribution remittance monthly.</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="disclaimer-box">
+      <p class="font-bold text-yellow-900 mb-1"><i class="fas fa-exclamation-triangle mr-2"></i>NPRA Disclaimer</p>
+      <p class="text-yellow-800 text-sm">Investment limits and contribution rates may be updated by NPRA guidelines. Verify current requirements at npra.gov.gh or call NPRA on +233 (0)302 913540. Pension fund managers are jointly regulated by both NPRA and SEC Ghana.</p>
+    </div>
+  </div>
+
+  <!-- ============================================================ FEES SUMMARY ============================================================ -->
+  <div id="tab-fees" class="tab-panel">
+    <div class="flex items-center gap-3 mb-6">
+      <div class="w-12 h-12 rounded-xl bg-blue-600 flex items-center justify-center text-white text-xl">💰</div>
+      <div>
+        <h2 class="section-title">Consolidated Fees Reference</h2>
+        <p class="text-gray-500 text-sm">All major regulatory fees in one place · All amounts in GHS unless stated · Subject to change</p>
+      </div>
+    </div>
+
+    <!-- SEC Fees -->
+    <div class="card p-6 mb-6">
+      <h3 class="font-black text-lg mb-1" style="font-family:'Montserrat',sans-serif;"><i class="fas fa-landmark text-green-600 mr-2"></i>SEC Ghana — Licensing Fees</h3>
+      <p class="text-gray-500 text-xs mb-4">Source: SEC Ghana Fee Schedule under Act 929</p>
+      <div class="overflow-x-auto">
+        <table>
+          <thead><tr><th>License Type</th><th>Min. Capital (GHS)</th><th>App Fee (GHS)</th><th>Annual Fee (GHS)</th></tr></thead>
+          <tbody>
+            <tr><td>Fund Management Company (Corporate)</td><td>500,000</td><td>3,000</td><td>6,000</td></tr>
+            <tr><td>Investment Advisory Firm (Corporate)</td><td>150,000</td><td>2,000</td><td>4,000</td></tr>
+            <tr><td>Broker-Dealer / Stockbroker (Corporate)</td><td>2,000,000</td><td>5,000</td><td>10,000</td></tr>
+            <tr><td>Corporate Trustee</td><td>1,000,000</td><td>4,000</td><td>8,000</td></tr>
+            <tr><td>Market Operator / Exchange</td><td>10,000,000</td><td>20,000</td><td>40,000</td></tr>
+            <tr><td>CIS Registration (per fund)</td><td>500,000 (fund size)</td><td>5,000</td><td>2,000</td></tr>
+            <tr><td>Custodian (Corporate)</td><td>5,000,000</td><td>5,000</td><td>10,000</td></tr>
+            <tr><td>Fund Manager (Individual)</td><td>—</td><td>500</td><td>1,000</td></tr>
+            <tr><td>Investment Adviser (Individual)</td><td>—</td><td>300</td><td>600</td></tr>
+            <tr><td>Dealing Officer (Individual)</td><td>—</td><td>400</td><td>800</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- GAX Fees -->
+    <div class="card p-6 mb-6">
+      <h3 class="font-black text-lg mb-1" style="font-family:'Montserrat',sans-serif;"><i class="fas fa-chart-line text-indigo-600 mr-2"></i>GSE / GAX — Listing Fees</h3>
+      <div class="overflow-x-auto">
+        <table>
+          <thead><tr><th>Fee Type</th><th>Amount</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td>GAX Application Fee</td><td>GHS 5,000</td><td>Non-refundable, to GSE</td></tr>
+            <tr><td>Initial Listing Fee</td><td>0.1% of mkt cap (min GHS 10,000 / max GHS 50,000)</td><td>On admission</td></tr>
+            <tr><td>Annual Listing Fee</td><td>0.05% of mkt cap (min GHS 5,000 / max GHS 25,000)</td><td>Due 31 March</td></tr>
+            <tr><td>SEC Prospectus Review</td><td>0.05% of offer size (min GHS 3,000)</td><td>To SEC</td></tr>
+            <tr><td>NOMAD Fee (est.)</td><td>GHS 30,000 – 100,000+</td><td>Negotiated</td></tr>
+            <tr><td>Legal Costs (est.)</td><td>GHS 50,000 – 200,000+</td><td>Per transaction complexity</td></tr>
+            <tr><td>Auditor/Reporting Accountant (est.)</td><td>GHS 20,000 – 80,000+</td><td>Per company size</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- BOG Fees -->
+    <div class="card p-6 mb-6">
+      <h3 class="font-black text-lg mb-1" style="font-family:'Montserrat',sans-serif;"><i class="fas fa-university text-yellow-600 mr-2"></i>Bank of Ghana — Licensing Fees</h3>
+      <div class="overflow-x-auto">
+        <table>
+          <thead><tr><th>Entity Type</th><th>Min. Capital (GHS)</th><th>App Fee (GHS)</th><th>Annual Levy</th></tr></thead>
+          <tbody>
+            <tr><td>Universal Bank</td><td>400,000,000</td><td>50,000</td><td>Based on total assets</td></tr>
+            <tr><td>Savings &amp; Loans Company</td><td>15,000,000</td><td>20,000</td><td>Based on assets</td></tr>
+            <tr><td>Finance House</td><td>7,500,000</td><td>10,000</td><td>Based on assets</td></tr>
+            <tr><td>Rural &amp; Community Bank</td><td>1,000,000</td><td>5,000</td><td>Based on assets</td></tr>
+            <tr><td>Microfinance (Tier 1)</td><td>2,000,000</td><td>5,000</td><td>2,000/year</td></tr>
+            <tr><td>Microfinance (Tier 2)</td><td>500,000</td><td>2,000</td><td>1,000/year</td></tr>
+            <tr><td>Microcredit / Money Lender</td><td>100,000</td><td>1,000</td><td>500/year</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- NPRA Fees -->
+    <div class="card p-6 mb-6">
+      <h3 class="font-black text-lg mb-1" style="font-family:'Montserrat',sans-serif;"><i class="fas fa-piggy-bank text-red-600 mr-2"></i>NPRA — Licensing Fees</h3>
+      <div class="overflow-x-auto">
+        <table>
+          <thead><tr><th>License Type</th><th>Min. Capital (GHS)</th><th>App Fee (GHS)</th><th>Annual Fee (GHS)</th></tr></thead>
+          <tbody>
+            <tr><td>Pension Fund Manager (Corporate)</td><td>2,000,000</td><td>5,000</td><td>10,000</td></tr>
+            <tr><td>Corporate Trustee (Pension)</td><td>500,000</td><td>3,000</td><td>5,000</td></tr>
+            <tr><td>Pension Custodian</td><td>(BOG-licensed bank)</td><td>5,000</td><td>10,000</td></tr>
+            <tr><td>Pension Scheme Registration (Employer)</td><td>—</td><td>500</td><td>200/year</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="bg-blue-50 border border-blue-200 rounded-xl p-5">
+      <p class="font-bold text-blue-900 mb-2"><i class="fas fa-info-circle mr-2"></i>Important Notes on Fees</p>
+      <ul class="text-blue-800 text-sm space-y-1.5">
+        <li><i class="fas fa-dot-circle mr-2 text-blue-500"></i>All fees are subject to annual revision by each regulator and may change without prior notice.</li>
+        <li><i class="fas fa-dot-circle mr-2 text-blue-500"></i>Application fees are generally non-refundable even if the application is rejected.</li>
+        <li><i class="fas fa-dot-circle mr-2 text-blue-500"></i>BOG annual supervisory levies are calculated on total assets and billed separately after licensing.</li>
+        <li><i class="fas fa-dot-circle mr-2 text-blue-500"></i>Late annual renewal attracts penalty surcharges — typically 10–30% of annual fee per regulator.</li>
+        <li><i class="fas fa-dot-circle mr-2 text-blue-500"></i>Additional costs include RGD incorporation fees, GRA TIN registration, FIC registration, and professional adviser fees.</li>
+        <li><i class="fas fa-dot-circle mr-2 text-blue-500"></i>Always obtain a current fee schedule directly from the regulator before budgeting.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- SHARED DISCLAIMER -->
+  <div class="mt-10 disclaimer-box">
+    <div class="flex gap-3">
+      <i class="fas fa-balance-scale text-yellow-600 text-2xl mt-0.5 flex-shrink-0"></i>
+      <div>
+        <p class="font-black text-yellow-900 text-base mb-2" style="font-family:'Montserrat',sans-serif;">Legal Disclaimer — Please Read</p>
+        <p class="text-yellow-800 text-sm leading-relaxed mb-2">
+          The information on this <em>Capital Markets Hub — Ghana</em> page is compiled from publicly available regulatory sources including the <strong>Securities Industry Act, 2016 (Act 929)</strong>, the <strong>Banks and Specialised Deposit-Taking Institutions Act, 2016 (Act 930)</strong>, the <strong>National Pensions Act, 2008 (Act 766)</strong> as amended, BOG Directives, NPRA Regulations (LI 1990), and SEC Ghana guidelines. It is provided <strong>for informational and reference purposes only</strong>.
+        </p>
+        <p class="text-yellow-800 text-sm leading-relaxed mb-2">
+          This page does not constitute <strong>legal advice, compliance advice, or professional regulatory advice</strong>. Regulatory requirements, minimum capital thresholds, and fee schedules are subject to change and may have been updated since this page was last revised. The information herein does not replace official regulatory guidance.
+        </p>
+        <p class="text-yellow-800 text-sm leading-relaxed">
+          <strong>Always verify current requirements directly with the relevant authority:</strong> SEC Ghana (sec.gov.gh · +233 302 768970), Bank of Ghana (bog.gov.gh · +233 302 666174), NPRA (npra.gov.gh · +233 302 913540), Ghana Stock Exchange (gse.com.gh · +233 302 669914). Engage a qualified Ghanaian legal practitioner and/or licensed compliance consultant before commencing any licensing or regulatory application.
+        </p>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- FOOTER -->
+<footer class="ghana-hero text-white py-10 mt-8">
+  <div class="ghana-bar mb-8" style="opacity:.4;"></div>
+  <div class="max-w-6xl mx-auto px-4">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-6 text-sm mb-8">
+      <div>
+        <p class="font-bold text-green-300 mb-3" style="font-family:'Montserrat',sans-serif;">InvestIQ</p>
+        <a href="/" class="block text-green-200 hover:text-white mb-1.5">Home</a>
+        <a href="/#calculators" class="block text-green-200 hover:text-white mb-1.5">Calculators</a>
+        <a href="/about" class="block text-green-200 hover:text-white mb-1.5">About</a>
+      </div>
+      <div>
+        <p class="font-bold text-green-300 mb-3">Ghana Regulators</p>
+        <p class="text-green-200 text-xs mb-1">SEC Ghana: sec.gov.gh</p>
+        <p class="text-green-200 text-xs mb-1">Bank of Ghana: bog.gov.gh</p>
+        <p class="text-green-200 text-xs mb-1">NPRA: npra.gov.gh</p>
+        <p class="text-green-200 text-xs">GSE: gse.com.gh</p>
+      </div>
+      <div>
+        <p class="font-bold text-green-300 mb-3">Key Laws</p>
+        <p class="text-green-200 text-xs mb-1">Securities Industry Act (Act 929)</p>
+        <p class="text-green-200 text-xs mb-1">BSDI Act (Act 930)</p>
+        <p class="text-green-200 text-xs mb-1">National Pensions Act (Act 766)</p>
+        <p class="text-green-200 text-xs">AML Act (Act 1044)</p>
+      </div>
+      <div>
+        <p class="font-bold text-green-300 mb-3">Legal</p>
+        <a href="/disclaimer" class="block text-green-200 hover:text-white text-xs mb-1.5">Disclaimer</a>
+        <a href="/privacy-policy" class="block text-green-200 hover:text-white text-xs mb-1.5">Privacy Policy</a>
+        <a href="/contact" class="block text-green-200 hover:text-white text-xs">Contact Us</a>
+      </div>
+    </div>
+    <div class="border-t border-green-800 pt-6 text-center">
+      <p class="text-green-400 text-xs">© 2025 InvestIQ — Capital Markets Hub Ghana. For informational purposes only. Not legal advice. Always verify with SEC Ghana, BOG, NPRA, or GSE directly.</p>
+    </div>
+  </div>
+</footer>
+
+<script>
+function showTab(name) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  document.getElementById('btn-' + name).classList.add('active');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+
+<!-- Google AdSense -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1910810542133525" crossorigin="anonymous"></script>
+</body>
+</html>

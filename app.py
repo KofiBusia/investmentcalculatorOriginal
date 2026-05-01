@@ -1851,6 +1851,10 @@ def privacy_policy():
 def privacy_redirect():
     return redirect(url_for('privacy_policy'))
 
+@app.route('/capital-markets-ghana')
+def capital_markets_ghana():
+    return render_template('capital_markets_ghana.html')
+
 @app.route('/terms')
 def terms():
     return render_template('terms_conditions.html')
