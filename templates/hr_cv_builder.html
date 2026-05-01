@@ -61,6 +61,7 @@ body{font-family:'Inter',sans-serif;background:#f0f4f8;}
       <a href="/cv-builder" class="text-white font-semibold border-b-2 border-blue-300 pb-0.5">CV Builder</a>
       <a href="/employers-corner" class="text-blue-200 hover:text-white">Employers' Corner</a>
       <a href="/training" class="text-blue-200 hover:text-white">Training</a>
+      <a href="/mentorship" class="text-blue-200 hover:text-white">Mentorship</a>
     </div>
   </div>
 </nav>
@@ -91,6 +92,46 @@ body{font-family:'Inter',sans-serif;background:#f0f4f8;}
     {% endif %}
 
     <form method="POST" id="cv-form" class="space-y-4">
+
+      <!-- ── SECTION 0: Quick Survey ── -->
+      <div class="card p-5" style="border-top:4px solid #006B3F;background:linear-gradient(135deg,#f0fdf4,#fff);">
+        <p class="section-hdr" style="color:#006B3F;border-color:#bbf7d0;"><i class="fas fa-poll-h text-green-700"></i> Quick Questions — Help Us Support You Better</p>
+        <p class="text-gray-500 text-xs mb-4">Answer yes or no — takes under 10 seconds. Your responses help us match you with the right opportunities.</p>
+        <div class="space-y-3">
+          <!-- Q1 -->
+          <div class="flex items-center justify-between bg-white border border-gray-100 rounded-xl px-4 py-3 shadow-sm">
+            <span class="text-sm font-medium text-gray-700 flex-1 pr-4"><i class="fas fa-users text-green-600 mr-2"></i>Are you a member of the <strong>Young Investors Network</strong>?</span>
+            <div class="flex gap-3 shrink-0">
+              <label class="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="yin_member" value="yes" class="accent-green-600"/> <span class="text-sm font-semibold text-green-700">Yes</span></label>
+              <label class="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="yin_member" value="no" checked class="accent-red-500"/> <span class="text-sm font-semibold text-red-600">No</span></label>
+            </div>
+          </div>
+          <!-- Q2 -->
+          <div class="flex items-center justify-between bg-white border border-gray-100 rounded-xl px-4 py-3 shadow-sm">
+            <span class="text-sm font-medium text-gray-700 flex-1 pr-4"><i class="fas fa-trophy text-yellow-600 mr-2"></i>Have you ever participated in the <strong>Stock Pitch Competition</strong>?</span>
+            <div class="flex gap-3 shrink-0">
+              <label class="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="stock_pitch" value="yes" class="accent-green-600"/> <span class="text-sm font-semibold text-green-700">Yes</span></label>
+              <label class="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="stock_pitch" value="no" checked class="accent-red-500"/> <span class="text-sm font-semibold text-red-600">No</span></label>
+            </div>
+          </div>
+          <!-- Q3 -->
+          <div class="flex items-center justify-between bg-white border border-gray-100 rounded-xl px-4 py-3 shadow-sm">
+            <span class="text-sm font-medium text-gray-700 flex-1 pr-4"><i class="fas fa-briefcase text-blue-600 mr-2"></i>Do you want an <strong>internship opportunity</strong>?</span>
+            <div class="flex gap-3 shrink-0">
+              <label class="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="want_internship" value="yes" class="accent-green-600"/> <span class="text-sm font-semibold text-green-700">Yes</span></label>
+              <label class="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="want_internship" value="no" checked class="accent-red-500"/> <span class="text-sm font-semibold text-red-600">No</span></label>
+            </div>
+          </div>
+          <!-- Q4 -->
+          <div class="flex items-center justify-between bg-white border border-gray-100 rounded-xl px-4 py-3 shadow-sm">
+            <span class="text-sm font-medium text-gray-700 flex-1 pr-4"><i class="fas fa-flag text-red-600 mr-2"></i>Do you want an opportunity for <strong>National Service</strong>?</span>
+            <div class="flex gap-3 shrink-0">
+              <label class="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="want_national_service" value="yes" class="accent-green-600"/> <span class="text-sm font-semibold text-green-700">Yes</span></label>
+              <label class="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="want_national_service" value="no" checked class="accent-red-500"/> <span class="text-sm font-semibold text-red-600">No</span></label>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <!-- ── SECTION 1: Template ── -->
       <div class="card p-5">

@@ -415,6 +415,35 @@ class Referral(db.Model):
     booking          = db.relationship('TrainingBooking', backref='referral_record', lazy=True)
 
 
+class CVSurveyResponse(db.Model):
+    __tablename__         = 'cv_survey_responses'
+    id                    = db.Column(db.Integer, primary_key=True)
+    full_name             = db.Column(db.String(200), default='')
+    email                 = db.Column(db.String(200), nullable=False, index=True)
+    yin_member            = db.Column(db.String(3),   default='No')   # Yes / No
+    stock_pitch           = db.Column(db.String(3),   default='No')
+    want_internship       = db.Column(db.String(3),   default='No')
+    want_national_service = db.Column(db.String(3),   default='No')
+    created_at            = db.Column(db.DateTime,    default=datetime.utcnow)
+
+
+class MentorshipApplication(db.Model):
+    __tablename__   = 'mentorship_applications'
+    id              = db.Column(db.Integer, primary_key=True)
+    full_name       = db.Column(db.String(200), nullable=False)
+    email           = db.Column(db.String(200), nullable=False, index=True)
+    phone           = db.Column(db.String(50),  default='')
+    institution     = db.Column(db.String(200), default='')
+    program         = db.Column(db.String(200), default='')   # e.g. BSc Finance
+    year_of_study   = db.Column(db.String(30),  default='')
+    interest_area   = db.Column(db.String(100), default='')   # Finance, IB, AM, etc.
+    availability    = db.Column(db.String(50),  default='')   # Weekdays, Weekends, etc.
+    why_mentorship  = db.Column(db.Text,        default='')
+    linkedin        = db.Column(db.String(500), default='')
+    status          = db.Column(db.String(30),  default='Pending')  # Pending / Matched / Active
+    created_at      = db.Column(db.DateTime,    default=datetime.utcnow)
+
+
 def _validate_company_name(name):
     """Return (ok: bool, error: str). Enforces real registered company name."""
     import re
@@ -5024,7 +5053,22 @@ def cv_builder():
             if not cv_data['full_name'] or not cv_data['email']:
                 error = 'Full name and email are required.'
                 cv_data = None
-            elif request.form.get('employers_corner_consent'):
+            else:
+                # Save survey response (always, regardless of employers corner consent)
+                try:
+                    survey = CVSurveyResponse(
+                        full_name             = cv_data['full_name'],
+                        email                 = cv_data['email'],
+                        yin_member            = 'Yes' if request.form.get('yin_member') == 'yes' else 'No',
+                        stock_pitch           = 'Yes' if request.form.get('stock_pitch') == 'yes' else 'No',
+                        want_internship       = 'Yes' if request.form.get('want_internship') == 'yes' else 'No',
+                        want_national_service = 'Yes' if request.form.get('want_national_service') == 'yes' else 'No',
+                    )
+                    db.session.add(survey)
+                    db.session.commit()
+                except Exception as sv_err:
+                    logger.error(f'Survey save error: {sv_err}')
+            if cv_data and request.form.get('employers_corner_consent'):
                 try:
                     current_title = (cv_data['work_experiences'][0]['job_title'] if cv_data['work_experiences'] else cv_data.get('headline', ''))
                     all_skills = ', '.join(filter(None, [cv_data['technical_skills'], cv_data['skills']]))[:500]
@@ -5185,6 +5229,9 @@ def referral_page():
 
 @app.route('/employers-corner')
 def employers_corner():
+    emp = _current_employer()
+    if not emp:
+        return redirect(url_for('employer_login') + '?next=/employers-corner')
     sector    = request.args.get('sector',    '').strip()
     role_q    = request.args.get('role',      '').strip()
     skills_kw = request.args.get('skills',    '').strip()
@@ -5803,6 +5850,96 @@ def super_admin_training_csv():
             'Content-Disposition': 'attachment; filename="training_schedules.csv"',
         }
     )
+
+
+@app.route('/super-admin/survey-csv')
+def super_admin_survey_csv():
+    redir = _super_admin_required()
+    if redir:
+        return redir
+    import csv, io
+    rows = CVSurveyResponse.query.order_by(CVSurveyResponse.created_at.desc()).all()
+    buf = io.StringIO()
+    writer = csv.writer(buf)
+    writer.writerow([
+        'ID', 'Full Name', 'Email',
+        'YIN Member?', 'Stock Pitch Participant?',
+        'Wants Internship?', 'Wants National Service?', 'Submitted At'
+    ])
+    for r in rows:
+        writer.writerow([
+            r.id, r.full_name, r.email,
+            r.yin_member, r.stock_pitch,
+            r.want_internship, r.want_national_service,
+            r.created_at.strftime('%Y-%m-%d %H:%M') if r.created_at else '',
+        ])
+    output = buf.getvalue()
+    return (output, 200, {
+        'Content-Type': 'text/csv; charset=utf-8',
+        'Content-Disposition': 'attachment; filename="cv_survey_responses.csv"',
+    })
+
+
+@app.route('/mentorship', methods=['GET', 'POST'])
+def mentorship_page():
+    success = False
+    error = None
+    if request.method == 'POST':
+        full_name = request.form.get('full_name', '').strip()
+        email     = request.form.get('email', '').strip()
+        if not full_name or not email:
+            error = 'Full name and email are required.'
+        else:
+            try:
+                app_entry = MentorshipApplication(
+                    full_name     = full_name,
+                    email         = email,
+                    phone         = request.form.get('phone', '').strip(),
+                    institution   = request.form.get('institution', '').strip(),
+                    program       = request.form.get('program', '').strip(),
+                    year_of_study = request.form.get('year_of_study', '').strip(),
+                    interest_area = request.form.get('interest_area', '').strip(),
+                    availability  = request.form.get('availability', '').strip(),
+                    why_mentorship= request.form.get('why_mentorship', '').strip(),
+                    linkedin      = request.form.get('linkedin', '').strip(),
+                )
+                db.session.add(app_entry)
+                db.session.commit()
+                success = True
+            except Exception as e:
+                logger.error(f'Mentorship application error: {e}')
+                error = 'Something went wrong. Please try again.'
+    return render_template('mentorship.html', success=success, error=error)
+
+
+@app.route('/super-admin/mentorship-csv')
+def super_admin_mentorship_csv():
+    redir = _super_admin_required()
+    if redir:
+        return redir
+    import csv, io
+    rows = MentorshipApplication.query.order_by(MentorshipApplication.created_at.desc()).all()
+    buf = io.StringIO()
+    writer = csv.writer(buf)
+    writer.writerow([
+        'ID', 'Full Name', 'Email', 'Phone', 'Institution',
+        'Program / Degree', 'Year of Study', 'Interest Area',
+        'Availability', 'Why Mentorship', 'LinkedIn', 'Status', 'Applied At'
+    ])
+    for r in rows:
+        writer.writerow([
+            r.id, r.full_name, r.email, r.phone,
+            r.institution, r.program, r.year_of_study,
+            r.interest_area, r.availability,
+            (r.why_mentorship or '').replace('\n', ' '),
+            r.linkedin, r.status,
+            r.created_at.strftime('%Y-%m-%d %H:%M') if r.created_at else '',
+        ])
+    output = buf.getvalue()
+    return (output, 200, {
+        'Content-Type': 'text/csv; charset=utf-8',
+        'Content-Disposition': 'attachment; filename="mentorship_applications.csv"',
+    })
 
 
 @app.route('/super-admin/linked-candidates-csv')

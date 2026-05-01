@@ -86,6 +86,9 @@
   <!-- Course Grid -->
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-10" id="courses-grid">
     {% set courses = [
+      ('fas fa-funnel-dollar','Financial Analysis','Finance','3 Days','#dcfce7','#065f46','Interpret financial statements, ratio analysis, and cash flow modelling for informed investment decisions.'),
+      ('fas fa-building','Company Valuation','Finance','3 Days','#fef9c3','#92400e','DCF, comparable companies, precedent transactions — master every valuation methodology used by professionals.'),
+      ('fas fa-bullseye','Sales & Marketing','Marketing','3 Days','#fff7ed','#c2410c','Consultative selling, pipeline management, brand positioning, and converting prospects to loyal clients.'),
       ('fas fa-chart-line','Financial Modelling & DCF','Finance','3 Days','#dbeafe','#1d4ed8','Build institutional-quality financial models and DCF valuations.'),
       ('fas fa-award','CFA Exam Preparation','Finance','12 Weeks','#ede9fe','#5b21b6','Structured CFA Level I/II/III prep with mock exams and tutors.'),
       ('fas fa-university','Investment Banking','Finance','5 Days','#fef9c3','#92400e','M&A, LBO, pitchbook creation, and deal structuring.'),
@@ -180,12 +183,17 @@
           <select name="category" id="category-select" class="input-field">
             <option value="">— Select Program —</option>
             <optgroup label="Finance &amp; Investment">
+              <option>Financial Analysis</option>
+              <option>Company Valuation</option>
               <option>Financial Modelling &amp; DCF</option>
               <option>CFA Exam Preparation</option>
               <option>Investment Banking</option>
               <option>Risk Management</option>
               <option>Portfolio Management</option>
               <option>ACCA / ICAG Coaching</option>
+            </optgroup>
+            <optgroup label="Sales &amp; Marketing">
+              <option>Sales &amp; Marketing</option>
             </optgroup>
             <optgroup label="Technology &amp; Data">
               <option>Python for Finance</option>

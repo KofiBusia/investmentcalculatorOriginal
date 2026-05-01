@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Mentorship Programme — InvestIQ</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Montserrat:wght@700;800;900&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+body{font-family:'Inter',sans-serif;background:#f0f4f8;}
+.hero-gradient{background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 50%,#0f2a4a 100%);}
+.card{background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(0,0,0,.07);border:1px solid #e8edf2;}
+.input-field{width:100%;padding:.6rem .95rem;border:1.5px solid #dde3ec;border-radius:.6rem;font-size:.875rem;outline:none;transition:border .2s,box-shadow .2s;background:#fff;color:#1e293b;}
+.input-field:focus{border-color:#1e40af;box-shadow:0 0 0 3px rgba(30,64,175,.1);}
+.submit-btn{background:linear-gradient(135deg,#1e40af,#1e3a5f);color:#fff;padding:.85rem 2rem;border-radius:12px;font-weight:700;font-size:1rem;border:none;cursor:pointer;width:100%;transition:all .2s;}
+.submit-btn:hover{opacity:.92;transform:translateY(-1px);}
+.area-card{border:2px solid #e2e8f0;border-radius:12px;padding:1rem;cursor:pointer;transition:all .2s;text-align:center;}
+.area-card:hover,.area-card.selected{border-color:#1e40af;background:#eff6ff;}
+.area-card.selected{border-width:3px;}
+.mentor-card{border:1.5px solid #e2e8f0;border-radius:14px;padding:1.5rem;background:#fff;transition:all .2s;}
+.mentor-card:hover{box-shadow:0 8px 24px rgba(0,0,0,.1);transform:translateY(-2px);}
+.badge{display:inline-block;font-size:.72rem;font-weight:700;padding:.2rem .65rem;border-radius:999px;}
+.step-circle{width:40px;height:40px;border-radius:50%;background:#1e40af;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:.9rem;flex-shrink:0;}
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="hero-gradient text-white py-3.5 px-5 shadow-xl">
+  <div class="max-w-6xl mx-auto flex justify-between items-center">
+    <a href="/" class="text-xl font-bold flex items-center gap-2" style="font-family:'Montserrat',sans-serif;">
+      <i class="fas fa-chart-line text-blue-300"></i> Invest<span class="text-blue-300">IQ</span>
+    </a>
+    <div class="flex gap-5 text-sm flex-wrap">
+      <a href="/" class="text-blue-200 hover:text-white">Home</a>
+      <a href="/jobs" class="text-blue-200 hover:text-white">Jobs</a>
+      <a href="/cv-builder" class="text-blue-200 hover:text-white">CV Builder</a>
+      <a href="/training" class="text-blue-200 hover:text-white">Training</a>
+      <a href="/mentorship" class="text-white font-semibold border-b-2 border-blue-300 pb-0.5">Mentorship</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero-gradient text-white py-14 px-4">
+  <div class="max-w-4xl mx-auto text-center">
+    <div class="inline-flex items-center gap-2 bg-blue-500/20 border border-blue-400/30 rounded-full px-4 py-1.5 text-xs font-bold text-blue-300 mb-5 uppercase tracking-widest">
+      <i class="fas fa-star"></i> Mentorship Programme
+    </div>
+    <h1 class="text-4xl md:text-5xl font-black mb-4 leading-tight" style="font-family:'Montserrat',sans-serif;">
+      Your Career Accelerator<br/><span class="text-blue-300">Starts Here</span>
+    </h1>
+    <p class="text-blue-100 text-lg max-w-2xl mx-auto leading-relaxed mb-6">
+      Connect with experienced professionals in finance, investment, banking, and business. Get real guidance, real networks, and real opportunities — not just advice.
+    </p>
+    <div class="flex flex-wrap justify-center gap-4 text-sm">
+      <span class="bg-white/10 px-4 py-2 rounded-full"><i class="fas fa-users mr-2 text-blue-300"></i>1-on-1 Mentoring</span>
+      <span class="bg-white/10 px-4 py-2 rounded-full"><i class="fas fa-calendar-check mr-2 text-blue-300"></i>Structured Programme</span>
+      <span class="bg-white/10 px-4 py-2 rounded-full"><i class="fas fa-network-wired mr-2 text-blue-300"></i>Industry Network Access</span>
+      <span class="bg-white/10 px-4 py-2 rounded-full"><i class="fas fa-briefcase mr-2 text-blue-300"></i>Internship Pathways</span>
+    </div>
+  </div>
+</div>
+
+<main class="max-w-6xl mx-auto px-4 py-10">
+
+  {% if success %}
+  <div class="max-w-2xl mx-auto mb-8 bg-green-50 border-2 border-green-300 rounded-2xl p-6 text-center">
+    <div class="text-4xl mb-3">🎉</div>
+    <h3 class="font-black text-green-800 text-xl mb-2" style="font-family:'Montserrat',sans-serif;">Application Submitted!</h3>
+    <p class="text-green-700 text-sm">Thank you for applying to the InvestIQ Mentorship Programme. Our team will review your application and get back to you within 5 business days.</p>
+    <a href="/mentorship" class="inline-flex items-center gap-2 mt-4 bg-green-700 text-white px-6 py-2.5 rounded-xl font-semibold text-sm hover:bg-green-800 transition-colors">
+      <i class="fas fa-arrow-left"></i> Back to Mentorship
+    </a>
+  </div>
+  {% endif %}
+
+  <!-- What You Get -->
+  <section class="mb-12">
+    <h2 class="text-2xl font-black text-center text-gray-800 mb-2" style="font-family:'Montserrat',sans-serif;">What the Programme Offers</h2>
+    <p class="text-center text-gray-500 text-sm mb-8">A structured, outcome-focused experience designed for students and early-career professionals</p>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      <div class="card p-5 border-t-4 border-blue-600 text-center">
+        <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center text-blue-700 text-xl mx-auto mb-3"><i class="fas fa-user-tie"></i></div>
+        <h3 class="font-bold text-gray-800 mb-1">1-on-1 Sessions</h3>
+        <p class="text-gray-500 text-xs leading-relaxed">Monthly 60-minute video calls with your assigned industry mentor — personalised career planning and problem-solving.</p>
+      </div>
+      <div class="card p-5 border-t-4 border-green-600 text-center">
+        <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center text-green-700 text-xl mx-auto mb-3"><i class="fas fa-map-signs"></i></div>
+        <h3 class="font-bold text-gray-800 mb-1">Career Roadmap</h3>
+        <p class="text-gray-500 text-xs leading-relaxed">A custom 90-day plan covering skills to build, qualifications to pursue, and targets to hit — built around your goals.</p>
+      </div>
+      <div class="card p-5 border-t-4 border-yellow-500 text-center">
+        <div class="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center text-yellow-700 text-xl mx-auto mb-3"><i class="fas fa-handshake"></i></div>
+        <h3 class="font-bold text-gray-800 mb-1">Industry Introductions</h3>
+        <p class="text-gray-500 text-xs leading-relaxed">Your mentor connects you with professionals, hiring managers, and networks you couldn't access on your own.</p>
+      </div>
+      <div class="card p-5 border-t-4 border-purple-600 text-center">
+        <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center text-purple-700 text-xl mx-auto mb-3"><i class="fas fa-briefcase"></i></div>
+        <h3 class="font-bold text-gray-800 mb-1">Internship Pathways</h3>
+        <p class="text-gray-500 text-xs leading-relaxed">High-performing mentees are referred to partner organisations for internship and national service placement opportunities.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Focus Areas -->
+  <section class="mb-12">
+    <h2 class="text-2xl font-black text-center text-gray-800 mb-2" style="font-family:'Montserrat',sans-serif;">Mentorship Focus Areas</h2>
+    <p class="text-center text-gray-500 text-sm mb-8">Choose the area most relevant to your career aspirations</p>
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+      {% for icon, label, color, bg in [
+        ('fas fa-chart-line','Investment Management','#1d4ed8','#dbeafe'),
+        ('fas fa-university','Investment Banking','#92400e','#fef9c3'),
+        ('fas fa-coins','Financial Analysis','#065f46','#dcfce7'),
+        ('fas fa-building','Corporate Finance','#7c3aed','#ede9fe'),
+        ('fas fa-shield-alt','Risk Management','#991b1b','#fee2e2'),
+        ('fas fa-piggy-bank','Personal Finance','#9a3412','#ffedd5'),
+        ('fas fa-globe-africa','Capital Markets','#065f46','#d1fae5'),
+        ('fas fa-funnel-dollar','Sales & Marketing','#c2410c','#fff7ed'),
+        ('fas fa-graduation-cap','CFA / ACCA Prep','#5b21b6','#ede9fe'),
+        ('fas fa-users','Entrepreneurship','#047857','#d1fae5'),
+        ('fas fa-landmark','Regulatory / Compliance','#1e40af','#dbeafe'),
+        ('fas fa-star','Other / General','#374151','#f1f5f9'),
+      ] %}
+      <div class="area-card" onclick="selectArea('{{ label }}', this)">
+        <div class="w-9 h-9 rounded-lg flex items-center justify-center mx-auto mb-2 text-sm" style="background:{{ bg }};color:{{ color }};">
+          <i class="{{ icon }}"></i>
+        </div>
+        <div class="text-xs font-semibold text-gray-700 leading-tight">{{ label }}</div>
+      </div>
+      {% endfor %}
+    </div>
+    <input type="hidden" id="selected-area-display" value=""/>
+  </section>
+
+  <!-- How It Works -->
+  <section class="mb-12">
+    <h2 class="text-2xl font-black text-center text-gray-800 mb-2" style="font-family:'Montserrat',sans-serif;">How It Works</h2>
+    <p class="text-center text-gray-500 text-sm mb-8">Simple. Structured. Results-driven.</p>
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div class="text-center">
+        <div class="step-circle mx-auto mb-3">1</div>
+        <h4 class="font-bold text-gray-800 mb-1 text-sm">Apply</h4>
+        <p class="text-gray-500 text-xs">Fill in the application form below with your goals and background. Takes under 3 minutes.</p>
+      </div>
+      <div class="text-center">
+        <div class="step-circle mx-auto mb-3">2</div>
+        <h4 class="font-bold text-gray-800 mb-1 text-sm">Get Matched</h4>
+        <p class="text-gray-500 text-xs">Our team reviews your profile and matches you with the best available mentor in your chosen area.</p>
+      </div>
+      <div class="text-center">
+        <div class="step-circle mx-auto mb-3">3</div>
+        <h4 class="font-bold text-gray-800 mb-1 text-sm">Kickoff Session</h4>
+        <p class="text-gray-500 text-xs">Meet your mentor for an intro call. Set goals, agree on a schedule, and define your 90-day roadmap.</p>
+      </div>
+      <div class="text-center">
+        <div class="step-circle mx-auto mb-3">4</div>
+        <h4 class="font-bold text-gray-800 mb-1 text-sm">Grow & Achieve</h4>
+        <p class="text-gray-500 text-xs">Monthly sessions, accountability check-ins, and opportunity referrals. We track your progress with you.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Who Should Apply -->
+  <section class="mb-12">
+    <div class="card p-8 bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-100">
+      <h2 class="text-xl font-black text-gray-800 mb-4" style="font-family:'Montserrat',sans-serif;"><i class="fas fa-user-check text-blue-600 mr-2"></i>Who Should Apply?</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div class="flex items-start gap-3"><div class="w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center mt-0.5 flex-shrink-0"><i class="fas fa-check text-white text-xs"></i></div><span class="text-sm text-gray-700">University students (any year) in finance, business, economics, accounting, or related fields</span></div>
+        <div class="flex items-start gap-3"><div class="w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center mt-0.5 flex-shrink-0"><i class="fas fa-check text-white text-xs"></i></div><span class="text-sm text-gray-700">Recent graduates seeking their first role in capital markets, banking, or corporate finance</span></div>
+        <div class="flex items-start gap-3"><div class="w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center mt-0.5 flex-shrink-0"><i class="fas fa-check text-white text-xs"></i></div><span class="text-sm text-gray-700">Students seeking internship or national service placement in the financial sector</span></div>
+        <div class="flex items-start gap-3"><div class="w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center mt-0.5 flex-shrink-0"><i class="fas fa-check text-white text-xs"></i></div><span class="text-sm text-gray-700">Young professionals (1–3 years experience) looking to accelerate and transition into new roles</span></div>
+        <div class="flex items-start gap-3"><div class="w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center mt-0.5 flex-shrink-0"><i class="fas fa-check text-white text-xs"></i></div><span class="text-sm text-gray-700">Members of the Young Investors Network seeking deeper professional development</span></div>
+        <div class="flex items-start gap-3"><div class="w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center mt-0.5 flex-shrink-0"><i class="fas fa-check text-white text-xs"></i></div><span class="text-sm text-gray-700">Anyone preparing for CFA, ACCA, or ICAG qualifications who wants structured support</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Application Form -->
+  <section class="mb-12" id="apply">
+    <div class="max-w-2xl mx-auto">
+      <div class="text-center mb-6">
+        <h2 class="text-2xl font-black text-gray-800 mb-2" style="font-family:'Montserrat',sans-serif;">Apply for Mentorship</h2>
+        <p class="text-gray-500 text-sm">All applications are reviewed within 5 business days. There is no cost to apply.</p>
+      </div>
+
+      {% if error %}
+      <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm flex items-center gap-2 mb-4">
+        <i class="fas fa-exclamation-circle"></i> {{ error }}
+      </div>
+      {% endif %}
+
+      <div class="card p-7">
+        <form method="POST">
+          <div class="space-y-4">
+            <!-- Name & Email -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-semibold text-gray-500 mb-1">Full Name *</label>
+                <input type="text" name="full_name" required class="input-field" placeholder="Ama Owusu"/>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-gray-500 mb-1">Email Address *</label>
+                <input type="email" name="email" required class="input-field" placeholder="ama@example.com"/>
+              </div>
+            </div>
+            <!-- Phone & Institution -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-semibold text-gray-500 mb-1">Phone Number</label>
+                <input type="tel" name="phone" class="input-field" placeholder="+233 XX XXX XXXX"/>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-gray-500 mb-1">Institution / University</label>
+                <input type="text" name="institution" class="input-field" placeholder="University of Ghana"/>
+              </div>
+            </div>
+            <!-- Program & Year -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-semibold text-gray-500 mb-1">Degree / Programme</label>
+                <input type="text" name="program" class="input-field" placeholder="BSc Finance"/>
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-gray-500 mb-1">Year of Study / Level</label>
+                <select name="year_of_study" class="input-field">
+                  <option value="">— Select —</option>
+                  <option>1st Year</option>
+                  <option>2nd Year</option>
+                  <option>3rd Year</option>
+                  <option>4th Year / Final Year</option>
+                  <option>Recent Graduate (0–1 yr)</option>
+                  <option>Working Professional (1–3 yrs)</option>
+                  <option>Other</option>
+                </select>
+              </div>
+            </div>
+            <!-- Interest Area -->
+            <div>
+              <label class="block text-xs font-semibold text-gray-500 mb-1">Area of Mentorship Interest *</label>
+              <select name="interest_area" id="interest-area-select" required class="input-field">
+                <option value="">— Select your focus area —</option>
+                <option>Investment Management</option>
+                <option>Investment Banking</option>
+                <option>Financial Analysis</option>
+                <option>Corporate Finance</option>
+                <option>Risk Management</option>
+                <option>Personal Finance</option>
+                <option>Capital Markets</option>
+                <option>Sales &amp; Marketing</option>
+                <option>CFA / ACCA Prep</option>
+                <option>Entrepreneurship</option>
+                <option>Regulatory / Compliance</option>
+                <option>Other / General</option>
+              </select>
+            </div>
+            <!-- Availability -->
+            <div>
+              <label class="block text-xs font-semibold text-gray-500 mb-1">Session Availability</label>
+              <select name="availability" class="input-field">
+                <option value="">— Select —</option>
+                <option>Weekday mornings</option>
+                <option>Weekday evenings</option>
+                <option>Weekends</option>
+                <option>Flexible / Anytime</option>
+              </select>
+            </div>
+            <!-- LinkedIn -->
+            <div>
+              <label class="block text-xs font-semibold text-gray-500 mb-1">LinkedIn Profile (optional)</label>
+              <input type="url" name="linkedin" class="input-field" placeholder="https://linkedin.com/in/yourprofile"/>
+            </div>
+            <!-- Why -->
+            <div>
+              <label class="block text-xs font-semibold text-gray-500 mb-1">Why do you want a mentor? What do you want to achieve? *</label>
+              <textarea name="why_mentorship" required rows="4" class="input-field" style="resize:vertical;" placeholder="Tell us about your career goals, what challenges you're facing, and what you hope to get from this programme..."></textarea>
+            </div>
+            <button type="submit" class="submit-btn">
+              <i class="fas fa-paper-plane mr-2"></i> Submit Mentorship Application
+            </button>
+            <p class="text-center text-gray-400 text-xs mt-2">Your information is kept confidential. We do not share it with third parties without your consent.</p>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="mb-12 max-w-2xl mx-auto">
+    <h2 class="text-xl font-black text-center text-gray-800 mb-6" style="font-family:'Montserrat',sans-serif;">Frequently Asked Questions</h2>
+    <div class="space-y-3">
+      {% for q, a in [
+        ('Is this programme free?', 'Yes. The InvestIQ Mentorship Programme is completely free for all mentees. We believe access to quality guidance should not depend on your financial situation.'),
+        ('How long does the programme run?', 'Each cohort runs for 3 months with monthly 1-on-1 sessions, plus optional group workshops and networking events.'),
+        ('What happens after 3 months?', 'Strong mentee-mentor relationships often continue informally. Top performers are fast-tracked for internship referrals and longer-term career support.'),
+        ('Can I be both a mentee and a mentor?', 'Yes — if you are a working professional with 3+ years of experience and want to give back, contact us at hello@investright.onrender.com to apply as a volunteer mentor.'),
+        ('How are mentors selected?', 'All mentors are vetted professionals with demonstrated expertise. They include fund managers, investment bankers, analysts, and corporate finance practitioners.'),
+        ('What if I am not in Ghana?', 'Sessions are fully online via video call, so you can participate from anywhere. We have mentees and mentors across Africa and beyond.'),
+      ] %}
+      <div class="card p-4">
+        <details>
+          <summary class="font-semibold text-gray-800 text-sm cursor-pointer flex items-center justify-between">
+            <span><i class="fas fa-question-circle text-blue-500 mr-2"></i>{{ q }}</span>
+            <i class="fas fa-chevron-down text-gray-400 text-xs ml-3"></i>
+          </summary>
+          <p class="text-gray-500 text-sm mt-3 pl-6 leading-relaxed">{{ a }}</p>
+        </details>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- CTA Banner -->
+  <section class="mb-10">
+    <div class="card p-8 text-center" style="background:linear-gradient(135deg,#0f172a,#1e3a5f);border:none;">
+      <h2 class="text-2xl font-black text-white mb-3" style="font-family:'Montserrat',sans-serif;">Ready to Accelerate Your Career?</h2>
+      <p class="text-blue-200 text-sm mb-5 max-w-xl mx-auto">Don't wait for opportunities to find you. Apply today and get matched with a mentor who's been where you want to go.</p>
+      <a href="#apply" class="inline-flex items-center gap-2 bg-blue-500 hover:bg-blue-400 text-white font-bold px-8 py-3 rounded-xl transition-colors text-sm">
+        <i class="fas fa-arrow-up"></i> Apply Now — It's Free
+      </a>
+      <div class="flex justify-center gap-6 mt-6 text-xs text-blue-400">
+        <span><i class="fas fa-clock mr-1"></i> 5-day response time</span>
+        <span><i class="fas fa-lock mr-1"></i> Your data is private</span>
+        <span><i class="fas fa-globe-africa mr-1"></i> Open to all of Africa</span>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- FOOTER -->
+<footer style="background:linear-gradient(180deg,#0f172a,#080e1a);color:white;padding:48px 0 24px;">
+  <div class="max-w-6xl mx-auto px-4 text-center">
+    <p class="text-blue-300 font-bold text-lg mb-2" style="font-family:'Montserrat',sans-serif;">Invest<span class="text-white">IQ</span></p>
+    <p class="text-gray-500 text-xs mb-4">Empowering the next generation of financial professionals across Africa.</p>
+    <div class="flex justify-center gap-6 text-xs text-gray-400 flex-wrap">
+      <a href="/" class="hover:text-white">Home</a>
+      <a href="/jobs" class="hover:text-white">Jobs</a>
+      <a href="/cv-builder" class="hover:text-white">CV Builder</a>
+      <a href="/training" class="hover:text-white">Training</a>
+      <a href="/mentorship" class="hover:text-white">Mentorship</a>
+      <a href="/contact" class="hover:text-white">Contact</a>
+    </div>
+    <p class="text-gray-600 text-xs mt-6">© 2025 InvestIQ. All rights reserved.</p>
+  </div>
+</footer>
+
+<script>
+function selectArea(label, el) {
+  document.querySelectorAll('.area-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  const sel = document.getElementById('interest-area-select');
+  if (sel) {
+    for (let opt of sel.options) {
+      if (opt.text === label) { opt.selected = true; break; }
+    }
+  }
+}
+</script>
+
+<!-- AdSense -->
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1910810542133525" crossorigin="anonymous"></script>
+</body>
+</html>
