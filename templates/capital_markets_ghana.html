@@ -49,6 +49,12 @@
     td { padding:9px 14px; font-size:.83rem; color:#374151; border-bottom:1px solid #f1f5f9; }
     tr:hover td { background:#f8fafc; }
     .disclaimer-box { background:linear-gradient(135deg,#fff7ed,#fef3c7); border:2px solid #fde68a; border-radius:14px; padding:20px 24px; }
+    .ca-btn { padding:8px 16px; border-radius:8px; font-weight:600; font-size:.82rem; cursor:pointer; transition:all .2s; border:2px solid transparent; white-space:nowrap; }
+    .ca-btn.active { background:#7c3aed; color:#fff; border-color:#7c3aed; }
+    .ca-btn:not(.active) { background:#f3f4f6; color:#374151; border-color:#e5e7eb; }
+    .ca-btn:not(.active):hover { border-color:#7c3aed; color:#7c3aed; background:#faf5ff; }
+    .ca-panel { display:none; }
+    .ca-panel.active { display:block; }
   </style>
 </head>
 <body class="text-gray-800">
@@ -106,6 +112,7 @@
       <button class="tab-btn" onclick="showTab('bog')" id="btn-bog"><i class="fas fa-university mr-1.5"></i>BOG Banking</button>
       <button class="tab-btn" onclick="showTab('npra')" id="btn-npra"><i class="fas fa-piggy-bank mr-1.5"></i>NPRA Pensions</button>
       <button class="tab-btn" onclick="showTab('fees')" id="btn-fees"><i class="fas fa-coins mr-1.5"></i>Fees Summary</button>
+      <button class="tab-btn" onclick="showTab('corpactions')" id="btn-corpactions"><i class="fas fa-exchange-alt mr-1.5"></i>Corporate Actions</button>
     </div>
   </div>
 </div>
@@ -149,6 +156,13 @@
         <p class="text-gray-500 text-sm mb-3">Consolidated table of all application, licensing, annual renewal, and listing fees across all regulators.</p>
         <span class="fee-tag"><i class="fas fa-coins"></i> GHS &amp; USD denominated</span>
         <button onclick="showTab('fees')" class="mt-4 w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold text-sm transition-colors">View All Fees →</button>
+      </div>
+      <div class="card p-6 border-t-4 border-purple-600">
+        <div class="text-3xl mb-3">🔄</div>
+        <h3 class="font-black text-lg mb-2" style="font-family:'Montserrat',sans-serif;">Corporate Actions</h3>
+        <p class="text-gray-500 text-sm mb-3">Complete process guides for Rights Issues, Bonus Issues, IPOs, M&amp;A, and Bond Issues on Ghana's capital markets.</p>
+        <span class="law-ref"><i class="fas fa-book"></i> Act 929 · Act 992 · GSE Rules · BOG · NPRA</span>
+        <button onclick="showTab('corpactions')" class="mt-4 w-full py-2 bg-purple-700 hover:bg-purple-800 text-white rounded-lg font-semibold text-sm transition-colors">View Corporate Actions →</button>
       </div>
       <div class="card p-6 border-t-4 border-orange-500">
         <div class="text-3xl mb-3">⚡</div>
@@ -1048,6 +1062,680 @@
     </div>
   </div>
 
+
+  <!-- ============================================================ CORPORATE ACTIONS ============================================================ -->
+  <div id="tab-corpactions" class="tab-panel">
+
+    <!-- Sub-tab navigation -->
+    <div class="bg-white rounded-2xl shadow-sm border border-gray-100 mb-6 overflow-hidden">
+      <div class="flex flex-wrap gap-1 p-3 bg-gray-50 border-b border-gray-100" id="ca-subtab-nav">
+        <button class="ca-btn active" onclick="showCA('ca-framework')" id="cabtn-framework"><i class="fas fa-sitemap mr-1.5"></i>Decision Framework</button>
+        <button class="ca-btn" onclick="showCA('ca-rights')" id="cabtn-rights"><i class="fas fa-certificate mr-1.5"></i>Rights Issue</button>
+        <button class="ca-btn" onclick="showCA('ca-bonus')" id="cabtn-bonus"><i class="fas fa-gift mr-1.5"></i>Bonus Issue</button>
+        <button class="ca-btn" onclick="showCA('ca-ipo')" id="cabtn-ipo"><i class="fas fa-rocket mr-1.5"></i>IPO</button>
+        <button class="ca-btn" onclick="showCA('ca-ma')" id="cabtn-ma"><i class="fas fa-handshake mr-1.5"></i>M&amp;A</button>
+        <button class="ca-btn" onclick="showCA('ca-bond')" id="cabtn-bond"><i class="fas fa-file-invoice-dollar mr-1.5"></i>Bond Issue</button>
+      </div>
+
+      <!-- ===== DECISION FRAMEWORK ===== -->
+      <div id="ca-framework" class="ca-panel p-6 active">
+        <div class="flex items-center gap-3 mb-5">
+          <div class="w-12 h-12 rounded-xl bg-purple-700 flex items-center justify-center text-white text-xl"><i class="fas fa-sitemap"></i></div>
+          <div>
+            <h2 class="section-title">Corporate Action Decision Framework</h2>
+            <p class="text-gray-500 text-sm">Integrated guide to selecting the right capital market transaction for your company</p>
+          </div>
+        </div>
+
+        <!-- Master Comparison Table -->
+        <div class="card p-5 mb-6">
+          <h3 class="font-black text-base mb-4" style="font-family:'Montserrat',sans-serif;"><i class="fas fa-table text-purple-600 mr-2"></i>Master Comparison Table</h3>
+          <div class="overflow-x-auto">
+            <table>
+              <thead>
+                <tr>
+                  <th>Dimension</th>
+                  <th>Rights Issue</th>
+                  <th>Bonus Issue</th>
+                  <th>IPO</th>
+                  <th>M&amp;A</th>
+                  <th>Bond Issue</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td><strong>Primary Purpose</strong></td><td>Raise fresh equity capital</td><td>Capitalise reserves; reward shareholders</td><td>Go public; raise capital &amp; liquidity</td><td>Growth through acquisition or combination</td><td>Raise debt capital</td></tr>
+                <tr><td><strong>Regulatory Authority</strong></td><td>SEC · GSE · BOG (banks)</td><td>SEC · GSE · RGD</td><td>SEC · GSE/GAX</td><td>SEC · FTC · BOG · NCA</td><td>SEC · GFIM · BOG · NPRA</td></tr>
+                <tr><td><strong>Primary Law</strong></td><td>Act 929 · Act 992</td><td>Act 992 (s.66)</td><td>Act 929 · GSE Rules</td><td>Act 929 · Act 992 · FTC Act 921</td><td>Act 929 · BOG Directives</td></tr>
+                <tr><td><strong>Dilution</strong></td><td>Yes — new shares issued</td><td>Yes — new shares, no cash out</td><td>Yes — new float shares</td><td>Yes (share deals)</td><td>No equity dilution</td></tr>
+                <tr><td><strong>Cash Inflow to Company</strong></td><td>Yes</td><td>No</td><td>Yes (OFS); No (Offer for Sale)</td><td>Yes (asset sales)</td><td>Yes</td></tr>
+                <tr><td><strong>Min Timeline</strong></td><td>~26 weeks</td><td>~14 weeks</td><td>9–18 months</td><td>12–24 months</td><td>~18 weeks</td></tr>
+                <tr><td><strong>Typical Cost</strong></td><td>3%–5% of raise</td><td>1%–2% of capitalised value</td><td>3%–7% of gross proceeds</td><td>2%–5% of deal value</td><td>1.5%–4% of principal</td></tr>
+                <tr><td><strong>NPRA Eligible?</strong></td><td>Indirect (post-issue shares)</td><td>Indirect</td><td>Yes (listed equity)</td><td>No</td><td>Yes (qualifying bonds)</td></tr>
+                <tr><td><strong>Existing Shareholders</strong></td><td>Pre-emption rights protected</td><td>Free shares pro-rata</td><td>Existing may sell via OFS</td><td>May receive consideration</td><td>Not affected directly</td></tr>
+                <tr><td><strong>Key Risk</strong></td><td>Under-subscription</td><td>Share price dilution perception</td><td>Market timing</td><td>Regulatory approval / integration</td><td>Interest rate / refinancing risk</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 7-Step Decision Process -->
+        <div class="card p-5 mb-6">
+          <h3 class="font-black text-base mb-4" style="font-family:'Montserrat',sans-serif;"><i class="fas fa-route text-purple-600 mr-2"></i>7-Step Integrated Decision Process</h3>
+          <div class="space-y-3">
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#7c3aed;">1</div><div><strong class="text-sm">Define Capital Need</strong><p class="text-gray-600 text-sm mt-0.5">Is this equity, quasi-equity, or debt? Growth capex vs. working capital vs. acquisition? Is timing flexible or urgent?</p></div></div>
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#7c3aed;">2</div><div><strong class="text-sm">Assess Ownership Tolerance</strong><p class="text-gray-600 text-sm mt-0.5">How much dilution can founders/shareholders absorb? Is pre-emption waiver feasible? Check existing shareholder agreements and loan covenants.</p></div></div>
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#7c3aed;">3</div><div><strong class="text-sm">Evaluate Balance Sheet Capacity</strong><p class="text-gray-600 text-sm mt-0.5">For bonus issue: are distributable reserves &amp; share premium sufficient? For bond: what is current gearing/leverage ratio? Does the new debt service fit cash flow?</p></div></div>
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#7c3aed;">4</div><div><strong class="text-sm">Check Regulatory Eligibility</strong><p class="text-gray-600 text-sm mt-0.5">Are you listed or unlisted? If unlisted and equity route chosen → IPO first. Is the sector regulated (banking requires BOG approval for capital actions)? Mandatory Offer Rule triggered for M&amp;A &gt;30%?</p></div></div>
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#7c3aed;">5</div><div><strong class="text-sm">Model the Transaction Economics</strong><p class="text-gray-600 text-sm mt-0.5">For rights: calculate TERP. For bond: model coupon vs. GoG benchmark + credit spread. For IPO: assess P/E relative to sector comps. For M&amp;A: run DCF + synergy analysis.</p></div></div>
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#7c3aed;">6</div><div><strong class="text-sm">Market Conditions Check</strong><p class="text-gray-600 text-sm mt-0.5">Review GSE/GFIM market sentiment. Assess investor appetite for sector. Check secondary market liquidity. Evaluate FX risk if USD-denominated.</p></div></div>
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#7c3aed;">7</div><div><strong class="text-sm">Board Resolution &amp; Mandate Advisors</strong><p class="text-gray-600 text-sm mt-0.5">Pass special resolution (75% threshold for most material transactions). Appoint SEC-licensed Financial Advisor, Legal Counsel, Auditors, and (if listed) GSE-accredited Issuing House.</p></div></div>
+          </div>
+        </div>
+
+        <!-- Factor Matrix -->
+        <div class="card p-5 mb-6">
+          <h3 class="font-black text-base mb-4" style="font-family:'Montserrat',sans-serif;"><i class="fas fa-th text-purple-600 mr-2"></i>Comparative Factor Matrix — Scenario-Based Selection</h3>
+          <div class="overflow-x-auto">
+            <table>
+              <thead><tr><th>If your scenario is...</th><th>Best Action</th><th>Why</th></tr></thead>
+              <tbody>
+                <tr><td>Listed company needs equity; wants to protect existing shareholders</td><td><strong>Rights Issue</strong></td><td>Pre-emption rights maintained; pro-rata offer</td></tr>
+                <tr><td>Company has excess retained earnings; wants to reward shareholders without cash outflow</td><td><strong>Bonus Issue</strong></td><td>Capitalise reserves; no dilution of economic value</td></tr>
+                <tr><td>Growing private company wants exchange listing and public capital</td><td><strong>IPO</strong></td><td>Price discovery + liquidity + public profile</td></tr>
+                <tr><td>Company wants to acquire a competitor quickly</td><td><strong>M&amp;A (Share/Asset Purchase)</strong></td><td>Faster than organic growth; beware mandatory offer rule</td></tr>
+                <tr><td>Company needs fixed-rate debt without equity dilution; NPRA investors targeted</td><td><strong>Bond Issue</strong></td><td>Debt capital; NPRA-eligible if structured correctly</td></tr>
+                <tr><td>Bank needs Tier 2 capital for CAR compliance</td><td><strong>Subordinated Bond Issue</strong></td><td>Qualifies as Tier 2 capital under BOG prudential rules</td></tr>
+                <tr><td>Company wants to raise large capital but market is volatile</td><td><strong>Rights Issue with Underwriting</strong></td><td>Underwriter guarantee reduces price-risk</td></tr>
+                <tr><td>Startup wants GSE listing with lighter requirements</td><td><strong>GAX IPO</strong></td><td>Lower capital &amp; track record thresholds on GAX</td></tr>
+                <tr><td>Company seeks strategic partnership, not just capital</td><td><strong>M&amp;A (JV or Strategic Investment)</strong></td><td>Brings expertise, market access, not just money</td></tr>
+                <tr><td>SOE / government entity seeking private capital</td><td><strong>IPO (Privatisation Structure)</strong></td><td>Offer for Sale of govt shares; possible OFS combination</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Common Pitfalls -->
+        <div class="card p-5">
+          <h3 class="font-black text-base mb-4" style="font-family:'Montserrat',sans-serif;"><i class="fas fa-exclamation-triangle text-red-500 mr-2"></i>Common Pitfalls &amp; How to Avoid Them</h3>
+          <div class="overflow-x-auto">
+            <table>
+              <thead><tr><th>Pitfall</th><th>Transaction</th><th>Prevention</th></tr></thead>
+              <tbody>
+                <tr><td>Under-subscription due to over-pricing</td><td>Rights Issue / IPO</td><td>Independent valuation; stress-test subscription price; arrange standby underwriting</td></tr>
+                <tr><td>Bonus issue when distributable reserves are insufficient</td><td>Bonus Issue</td><td>Confirm audited reserves before board resolution; get legal opinion on Act 992 s.66</td></tr>
+                <tr><td>Mandatory offer triggered unintentionally at 30%</td><td>M&amp;A</td><td>Monitor shareholding thresholds; seek SEC waiver proactively if strategic</td></tr>
+                <tr><td>Bond not NPRA-eligible due to missing credit rating</td><td>Bond Issue</td><td>Obtain GCR Africa or Dataphyte rating before prospectus filing</td></tr>
+                <tr><td>Prospectus liability — material omissions</td><td>IPO / Rights / Bond</td><td>Thorough due diligence; Directors' responsibility statements; legal sign-off</td></tr>
+                <tr><td>FTC not notified for M&amp;A above merger notification threshold</td><td>M&amp;A</td><td>Check thresholds early; file FTC notification before completion</td></tr>
+                <tr><td>Rights issue PALs not tradeable due to CSD setup failure</td><td>Rights Issue</td><td>Engage CSD (GH) Ltd early; confirm nil-paid rights trading mechanics</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== RIGHTS ISSUE ===== -->
+      <div id="ca-rights" class="ca-panel p-6">
+        <div class="flex items-center gap-3 mb-5">
+          <div class="w-12 h-12 rounded-xl bg-green-700 flex items-center justify-center text-white text-xl"><i class="fas fa-certificate"></i></div>
+          <div>
+            <h2 class="section-title">Rights Issue Process Guide — Ghana</h2>
+            <p class="text-gray-500 text-sm">Securities Industry Act, 2016 (Act 929) · Companies Act, 2019 (Act 992) · GSE Listing Rules · BOG Directives (for banks)</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div class="card p-4 border-l-4 border-green-600 text-center">
+            <div class="text-2xl font-black text-green-700">26 weeks</div>
+            <div class="text-xs text-gray-500 mt-1">Typical full timetable</div>
+          </div>
+          <div class="card p-4 border-l-4 border-yellow-500 text-center">
+            <div class="text-2xl font-black text-yellow-700">3%–5%</div>
+            <div class="text-xs text-gray-500 mt-1">Total transaction cost of raise</div>
+          </div>
+          <div class="card p-4 border-l-4 border-red-500 text-center">
+            <div class="text-2xl font-black text-red-700">75%</div>
+            <div class="text-xs text-gray-500 mt-1">Shareholder approval threshold</div>
+          </div>
+        </div>
+
+        <!-- Key Concepts -->
+        <div class="card p-5 mb-5">
+          <h3 class="font-black text-base mb-3" style="font-family:'Montserrat',sans-serif;"><i class="fas fa-key text-green-600 mr-2"></i>Key Concepts</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+            <div class="req-item"><strong>Pre-emptive Rights (Act 992 s.60):</strong> Existing shareholders have a statutory right to subscribe to new shares pro-rata before they can be offered to outsiders. This can only be waived by special resolution (75%).</div>
+            <div class="req-item"><strong>PAL — Provisional Allotment Letter:</strong> The document evidencing the shareholder's entitlement. PALs can be traded on the GSE as "nil-paid rights" during the rights exercise period.</div>
+            <div class="req-item"><strong>TERP — Theoretical Ex-Rights Price:</strong> Calculated as [(Market price × existing shares) + (Issue price × new shares)] ÷ (existing + new shares). Sets post-rights fair value benchmark.</div>
+            <div class="req-item"><strong>Underwriting:</strong> Investment bank commits to subscribe for unsubscribed shares. Typical fee: 1.5%–2.5% of underwritten amount. Mandatory for banking sector rights issues per BOG.</div>
+            <div class="req-item"><strong>Renunciation:</strong> Rights holders who do not wish to subscribe can renounce (sell) their rights. Renouncees must submit form through broker to CSD by deadline.</div>
+            <div class="req-item"><strong>Excess Application:</strong> Shareholders may apply for more shares than their entitlement. Issuer allocates excess shares if under-subscription exists after full rights exercise period.</div>
+          </div>
+        </div>
+
+        <!-- 7 Phases -->
+        <div class="card p-5 mb-5">
+          <h3 class="font-black text-base mb-4" style="font-family:'Montserrat',sans-serif;"><i class="fas fa-tasks text-green-600 mr-2"></i>7 Phases — Rights Issue Process</h3>
+          <div class="space-y-4">
+            <div class="border border-gray-100 rounded-xl p-4">
+              <div class="flex items-center gap-3 mb-2"><div class="step-num">1</div><strong class="text-sm">Phase 1 — Strategic Planning (Weeks 1–2)</strong></div>
+              <ul class="text-sm text-gray-600 space-y-1 ml-12 list-disc">
+                <li>Board approves strategic need for capital raise; defines target amount and use of proceeds</li>
+                <li>Appoint Financial Advisor (SEC-licensed Investment Bank) and Legal Counsel</li>
+                <li>Appoint Reporting Accountant and Receiving Bank</li>
+                <li>Preliminary TERP and subscription price modelling</li>
+                <li>Review shareholder register; identify any pre-emption waiver needed</li>
+              </ul>
+            </div>
+            <div class="border border-gray-100 rounded-xl p-4">
+              <div class="flex items-center gap-3 mb-2"><div class="step-num">2</div><strong class="text-sm">Phase 2 — Regulatory Pre-Clearance (Weeks 3–6)</strong></div>
+              <ul class="text-sm text-gray-600 space-y-1 ml-12 list-disc">
+                <li>BOG pre-approval (if issuer is a bank or regulated financial institution)</li>
+                <li>SEC Ghana informal consultation on prospectus structure</li>
+                <li>GSE notification of intended rights issue (if issuer is listed)</li>
+                <li>Legal Counsel confirms pre-emption rights position and waiver mechanics</li>
+                <li>Negotiate underwriting commitment letter</li>
+              </ul>
+            </div>
+            <div class="border border-gray-100 rounded-xl p-4">
+              <div class="flex items-center gap-3 mb-2"><div class="step-num">3</div><strong class="text-sm">Phase 3 — Documentation Preparation (Weeks 7–14)</strong></div>
+              <ul class="text-sm text-gray-600 space-y-1 ml-12 list-disc">
+                <li>Draft Rights Issue Circular / Prospectus including: company overview, audited financials (3 years), use of proceeds, risk factors, TERP calculation, subscription mechanics</li>
+                <li>Reporting Accountant prepares Long-Form Report and Short-Form Report</li>
+                <li>Legal Counsel drafts PAL, Renunciation Form, Underwriting Agreement, and Subscription Agreement</li>
+                <li>Director's responsibility statement and liability notices prepared</li>
+                <li>CSD (GH) Ltd engagement — set up nil-paid rights trading on CSD</li>
+              </ul>
+            </div>
+            <div class="border border-gray-100 rounded-xl p-4">
+              <div class="flex items-center gap-3 mb-2"><div class="step-num">4</div><strong class="text-sm">Phase 4 — SEC Filing &amp; Approval (Weeks 15–18)</strong></div>
+              <ul class="text-sm text-gray-600 space-y-1 ml-12 list-disc">
+                <li>Submit Prospectus + supporting documents to SEC Ghana for formal review</li>
+                <li>Pay SEC filing fee (0.05%–0.1% of offer value)</li>
+                <li>SEC comment letters — respond within SEC's stipulated timeframe</li>
+                <li>GSE approves listing of nil-paid rights and new shares</li>
+                <li>SEC issues No Objection / Approval Letter</li>
+              </ul>
+            </div>
+            <div class="border border-gray-100 rounded-xl p-4">
+              <div class="flex items-center gap-3 mb-2"><div class="step-num">5</div><strong class="text-sm">Phase 5 — Shareholder EGM (Week 19)</strong></div>
+              <ul class="text-sm text-gray-600 space-y-1 ml-12 list-disc">
+                <li>Dispatch EGM Notice (21 days notice for listed companies)</li>
+                <li>Shareholders vote on special resolution: authority to issue new shares &amp; waive pre-emption if needed (75% threshold)</li>
+                <li>Board approves final subscription price, offer ratio (e.g. 1 for 4), and record date</li>
+                <li>Announce EGM outcome to GSE / SEC</li>
+              </ul>
+            </div>
+            <div class="border border-gray-100 rounded-xl p-4">
+              <div class="flex items-center gap-3 mb-2"><div class="step-num">6</div><strong class="text-sm">Phase 6 — Offer Period &amp; Subscription (Weeks 20–24)</strong></div>
+              <ul class="text-sm text-gray-600 space-y-1 ml-12 list-disc">
+                <li>Dispatch PALs to shareholders on record date</li>
+                <li>Publish rights offer prospectus in newspapers (2 national dailies minimum)</li>
+                <li>Nil-paid rights trading opens on GSE — shareholders can sell rights</li>
+                <li>Subscription period typically 21 days — payments via receiving bank</li>
+                <li>Excess application period (if any)</li>
+                <li>Rights trading closes; underwriter takes up unsubscribed balance</li>
+              </ul>
+            </div>
+            <div class="border border-gray-100 rounded-xl p-4">
+              <div class="flex items-center gap-3 mb-2"><div class="step-num">7</div><strong class="text-sm">Phase 7 — Allotment, Settlement &amp; Post-Issuance (Weeks 25–26)</strong></div>
+              <ul class="text-sm text-gray-600 space-y-1 ml-12 list-disc">
+                <li>Allotment committee meets; prepares allotment basis and excess allocation table</li>
+                <li>File allotment return with RGD (Registrar General's Department)</li>
+                <li>New shares credited to CSD accounts via DVP settlement</li>
+                <li>New shares admitted to trading on GSE</li>
+                <li>Proceeds released from escrow to company; Financial Advisor fees settled</li>
+                <li>Announcement of subscription results to SEC, GSE, and market</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Costs Table -->
+        <div class="card p-5 mb-5">
+          <h3 class="font-black text-base mb-3" style="font-family:'Montserrat',sans-serif;"><i class="fas fa-coins text-yellow-600 mr-2"></i>Rights Issue — Cost Structure</h3>
+          <div class="overflow-x-auto">
+            <table>
+              <thead><tr><th>Cost Item</th><th>Rate / Amount</th><th>Payable To</th></tr></thead>
+              <tbody>
+                <tr><td>Financial Advisory Fee</td><td>1.5%–2.5% of gross proceeds</td><td>Lead Investment Bank</td></tr>
+                <tr><td>Underwriting Commission</td><td>1.5%–2.5% of underwritten amount</td><td>Underwriter(s)</td></tr>
+                <tr><td>SEC Filing Fee</td><td>0.05%–0.10% of offer value</td><td>SEC Ghana</td></tr>
+                <tr><td>GSE Listing Fee (new shares)</td><td>0.10% of market cap of new shares</td><td>Ghana Stock Exchange</td></tr>
+                <tr><td>Legal Fees</td><td>GHS 80,000–300,000 (deal-size dependent)</td><td>Legal Counsel</td></tr>
+                <tr><td>Reporting Accountant</td><td>GHS 50,000–150,000</td><td>Audit Firm</td></tr>
+                <tr><td>CSD Setup &amp; Processing</td><td>GHS 10,000–30,000</td><td>CSD (GH) Ltd</td></tr>
+                <tr><td>Receiving Bank Fees</td><td>0.10%–0.25% of proceeds collected</td><td>Receiving Bank</td></tr>
+                <tr><td>Newspaper Publication</td><td>GHS 15,000–40,000</td><td>Print Media</td></tr>
+                <tr><td>Share Registrar</td><td>GHS 20,000–50,000</td><td>Share Registrar</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="disclaimer-box">
+          <p class="font-bold text-yellow-900 mb-1"><i class="fas fa-exclamation-triangle mr-2"></i>Key Regulatory Reminders</p>
+          <p class="text-yellow-800 text-sm">BOG must approve any rights issue by a bank or SDI before SEC filing. The underwriting arrangement must be in place before GSE notification. PALs must be issued within 14 days of the record date. Nil-paid rights trading is subject to CSD operational readiness — engage CSD early to avoid delays.</p>
+        </div>
+      </div>
+
+      <!-- ===== BONUS ISSUE ===== -->
+      <div id="ca-bonus" class="ca-panel p-6">
+        <div class="flex items-center gap-3 mb-5">
+          <div class="w-12 h-12 rounded-xl bg-yellow-600 flex items-center justify-center text-white text-xl"><i class="fas fa-gift"></i></div>
+          <div>
+            <h2 class="section-title">Bonus Issue Process Guide — Ghana</h2>
+            <p class="text-gray-500 text-sm">Companies Act, 2019 (Act 992, s.66) · Securities Industry Act, 2016 (Act 929) · GSE Listing Rules</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div class="card p-4 border-l-4 border-yellow-500 text-center">
+            <div class="text-2xl font-black text-yellow-700">14 weeks</div>
+            <div class="text-xs text-gray-500 mt-1">Typical timetable</div>
+          </div>
+          <div class="card p-4 border-l-4 border-green-600 text-center">
+            <div class="text-2xl font-black text-green-700">0% cash</div>
+            <div class="text-xs text-gray-500 mt-1">No proceeds raised</div>
+          </div>
+          <div class="card p-4 border-l-4 border-blue-500 text-center">
+            <div class="text-2xl font-black text-blue-700">75%</div>
+            <div class="text-xs text-gray-500 mt-1">Shareholder vote threshold</div>
+          </div>
+        </div>
+
+        <!-- Characteristics -->
+        <div class="card p-5 mb-5">
+          <h3 class="font-black text-base mb-3" style="font-family:'Montserrat',sans-serif;"><i class="fas fa-info-circle text-yellow-600 mr-2"></i>What Is a Bonus Issue?</h3>
+          <p class="text-gray-700 text-sm mb-4">A bonus issue (also called a scrip issue or capitalisation issue) is the issuance of additional shares to existing shareholders at no cost, funded by capitalising accumulated profits, retained earnings, or share premium account. No new money enters the company — it is purely a balance sheet reclassification.</p>
+          <div class="overflow-x-auto">
+            <table>
+              <thead><tr><th>Feature</th><th>Bonus Issue</th><th>Rights Issue</th></tr></thead>
+              <tbody>
+                <tr><td>Cash to Company</td><td class="text-red-600 font-semibold">None</td><td class="text-green-700 font-semibold">Yes</td></tr>
+                <tr><td>Shareholder cost</td><td class="text-green-700 font-semibold">Free</td><td>Pay subscription price</td></tr>
+                <tr><td>Share price impact</td><td>Diluted proportionally</td><td>TERP reduction</td></tr>
+                <tr><td>Total economic value</td><td>Unchanged (same pie, more slices)</td><td>Increases (new capital)</td></tr>
+                <tr><td>Approval needed</td><td>Special resolution (75%)</td><td>Special resolution (75%)</td></tr>
+                <tr><td>Funding source</td><td>Retained earnings / Share premium</td><td>New shareholder cash</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Reserves Requirement -->
+        <div class="card p-5 mb-5">
+          <h3 class="font-black text-base mb-3" style="font-family:'Montserrat',sans-serif;"><i class="fas fa-database text-yellow-600 mr-2"></i>Reserves Requirement (Act 992, Section 66)</h3>
+          <div class="space-y-2 text-sm">
+            <div class="req-item" style="border-color:#ca8a04;background:#fffbeb;">Bonus shares must be fully paid from distributable profits, retained earnings, share premium account, or any other reserve that can be capitalised under the articles of association.</div>
+            <div class="req-item" style="border-color:#ca8a04;background:#fffbeb;">Share premium account can be applied to pay up bonus shares even though it is technically a capital reserve (Act 992 allows this specific use).</div>
+            <div class="req-item" style="border-color:#ca8a04;background:#fffbeb;">The statutory reserve fund (compulsory 12.5% annual set-aside for banks under Act 930) <strong>cannot</strong> be used for bonus issue capitalisation.</div>
+            <div class="req-item" style="border-color:#ca8a04;background:#fffbeb;">Revaluation reserve is generally <strong>not</strong> recommended as a bonus issue source (unrealised; may reverse).</div>
+            <div class="req-item" style="border-color:#ca8a04;background:#fffbeb;">Amount to capitalise = Bonus ratio × par value × number of existing shares. E.g. 1-for-4 bonus with 100M shares at GHS 0.10 par = GHS 2.5M debit to reserves.</div>
+          </div>
+        </div>
+
+        <!-- Accounting Treatment -->
+        <div class="card p-5 mb-5">
+          <h3 class="font-black text-base mb-3" style="font-family:'Montserrat',sans-serif;"><i class="fas fa-calculator text-yellow-600 mr-2"></i>Accounting Treatment (IFRS/GAPS)</h3>
+          <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 font-mono text-sm">
+            <div class="text-green-700 font-bold mb-2">Journal Entry — Bonus Issue</div>
+            <div class="mb-1">Dr. Retained Earnings (or Share Premium Account)      [Amount capitalised]</div>
+            <div class="mb-3">Cr. Share Capital                                         [Same amount]</div>
+            <div class="text-gray-500 text-xs">No cash flows. Share capital account increases; distributable reserves decrease by equal amount. Paid-in capital increases; total equity is unchanged.</div>
+          </div>
+        </div>
+
+        <!-- 7 Phases -->
+        <div class="card p-5 mb-5">
+          <h3 class="font-black text-base mb-4" style="font-family:'Montserrat',sans-serif;"><i class="fas fa-tasks text-yellow-600 mr-2"></i>7 Phases — Bonus Issue Process (14-Week Timetable)</h3>
+          <div class="space-y-3">
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#ca8a04;">1</div><div><strong class="text-sm">Strategic Review &amp; Board Approval (Weeks 1–2)</strong><p class="text-gray-600 text-sm mt-0.5">Finance team confirms adequate distributable reserves. Board resolves to proceed with bonus capitalisation at specified ratio. Appoint Financial Advisor and Legal Counsel. Confirm EGM notice period (21 days minimum).</p></div></div>
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#ca8a04;">2</div><div><strong class="text-sm">Reporting Accountant Review (Weeks 3–4)</strong><p class="text-gray-600 text-sm mt-0.5">Auditors confirm adequacy of reserves and issue a Capitalisation Certificate or Long-Form Report. Review Articles of Association for bonus share authority. Confirm no covenant restrictions in loan agreements limiting capitalisation.</p></div></div>
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#ca8a04;">3</div><div><strong class="text-sm">Documentation (Weeks 5–7)</strong><p class="text-gray-600 text-sm mt-0.5">Draft EGM Circular with bonus issue details (ratio, record date, listing date, source of funds). Legal Counsel prepares board resolutions and special resolutions. Prepare CSD instructions for new share credit.</p></div></div>
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#ca8a04;">4</div><div><strong class="text-sm">SEC &amp; GSE Notification (Week 8)</strong><p class="text-gray-600 text-sm mt-0.5">Notify SEC Ghana and GSE of intended bonus issue. For significant transactions, SEC may request formal filing. GSE requires advance notice to prepare for new share listing.</p></div></div>
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#ca8a04;">5</div><div><strong class="text-sm">Shareholder EGM (Week 9)</strong><p class="text-gray-600 text-sm mt-0.5">Hold EGM. Pass special resolution approving: bonus ratio, source of capitalisation (retained earnings / share premium), authority to allot new shares. Minimum 75% approval required. Record date set.</p></div></div>
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#ca8a04;">6</div><div><strong class="text-sm">Allotment &amp; CSD Credit (Weeks 10–12)</strong><p class="text-gray-600 text-sm mt-0.5">Board allots bonus shares on record date. File allotment return with RGD within 28 days. Instruct CSD (GH) Ltd to credit bonus shares to shareholder accounts. New shares admitted to GSE trading.</p></div></div>
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#ca8a04;">7</div><div><strong class="text-sm">Post-Issuance Compliance (Weeks 13–14)</strong><p class="text-gray-600 text-sm mt-0.5">Update shareholder register. Book accounting journal entry (Dr. Reserves / Cr. Share Capital). Announce completion to SEC, GSE, and shareholders. Update share capital in next annual report and audited accounts.</p></div></div>
+          </div>
+        </div>
+
+        <div class="disclaimer-box">
+          <p class="font-bold text-yellow-900 mb-1"><i class="fas fa-exclamation-triangle mr-2"></i>Key Regulatory Note</p>
+          <p class="text-yellow-800 text-sm">BOG prior approval is required for bonus issues by banks (Act 930). The bonus issue must not reduce the bank's capital below the minimum regulatory capital requirement. The capitalisation must be from freely available reserves as confirmed by auditors — do not capitalise revaluation reserves without specific legal advice.</p>
+        </div>
+      </div>
+
+      <!-- ===== IPO ===== -->
+      <div id="ca-ipo" class="ca-panel p-6">
+        <div class="flex items-center gap-3 mb-5">
+          <div class="w-12 h-12 rounded-xl bg-blue-700 flex items-center justify-center text-white text-xl"><i class="fas fa-rocket"></i></div>
+          <div>
+            <h2 class="section-title">IPO Process Guide — Ghana Stock Exchange</h2>
+            <p class="text-gray-500 text-sm">Securities Industry Act, 2016 (Act 929) · GSE Listing Rules · SEC Ghana Regulations · Companies Act, 2019 (Act 992)</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+          <div class="card p-4 border-l-4 border-blue-600 text-center">
+            <div class="text-xl font-black text-blue-700">9–18 months</div>
+            <div class="text-xs text-gray-500 mt-1">Typical timetable</div>
+          </div>
+          <div class="card p-4 border-l-4 border-green-600 text-center">
+            <div class="text-xl font-black text-green-700">GHS 1M+</div>
+            <div class="text-xs text-gray-500 mt-1">Min. GSE Main Board capital</div>
+          </div>
+          <div class="card p-4 border-l-4 border-yellow-500 text-center">
+            <div class="text-xl font-black text-yellow-700">25%</div>
+            <div class="text-xs text-gray-500 mt-1">Min. public float (GSE)</div>
+          </div>
+          <div class="card p-4 border-l-4 border-red-500 text-center">
+            <div class="text-xl font-black text-red-700">3%–7%</div>
+            <div class="text-xs text-gray-500 mt-1">Total cost of gross proceeds</div>
+          </div>
+        </div>
+
+        <!-- IPO Structures -->
+        <div class="card p-5 mb-5">
+          <h3 class="font-black text-base mb-4" style="font-family:'Montserrat',sans-serif;"><i class="fas fa-layer-group text-blue-600 mr-2"></i>5 IPO Structures on Ghana Markets</h3>
+          <div class="overflow-x-auto">
+            <table>
+              <thead><tr><th>Structure</th><th>Description</th><th>Cash to Company?</th><th>Common Use Case</th></tr></thead>
+              <tbody>
+                <tr><td><strong>Offer for Subscription (OFS)</strong></td><td>Company issues new shares to the public</td><td class="text-green-700 font-semibold">Yes</td><td>Growth capital raise; standard IPO</td></tr>
+                <tr><td><strong>Offer for Sale (OS)</strong></td><td>Existing shareholders sell shares to public</td><td class="text-red-600 font-semibold">No (goes to sellers)</td><td>Exit for founders/PE/government</td></tr>
+                <tr><td><strong>Combination (OFS + OS)</strong></td><td>Mixed: new + existing shares offered</td><td class="text-green-700 font-semibold">Partial</td><td>Most common structure; fresh capital + partial exit</td></tr>
+                <tr><td><strong>Introduction</strong></td><td>Listing without public offer; existing shareholders only</td><td class="text-red-600 font-semibold">No</td><td>Foreign company dual-listing; widely-held private companies</td></tr>
+                <tr><td><strong>Privatisation</strong></td><td>Government sells state-owned enterprise shares</td><td>Varies</td><td>SOE privatisation; government divestiture</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- GSE Listing Requirements -->
+        <div class="card p-5 mb-5">
+          <h3 class="font-black text-base mb-4" style="font-family:'Montserrat',sans-serif;"><i class="fas fa-clipboard-check text-blue-600 mr-2"></i>GSE Main Board vs GAX Listing Requirements</h3>
+          <div class="overflow-x-auto">
+            <table>
+              <thead><tr><th>Requirement</th><th>GSE Main Board</th><th>GAX (SME Board)</th></tr></thead>
+              <tbody>
+                <tr><td>Minimum Net Assets / Capital</td><td><strong>GHS 1,000,000</strong></td><td><strong>GHS 250,000</strong></td></tr>
+                <tr><td>Minimum Public Float</td><td><strong>25%</strong> of shares</td><td><strong>15%</strong> of shares</td></tr>
+                <tr><td>Minimum Shareholders</td><td><strong>300</strong></td><td><strong>50</strong></td></tr>
+                <tr><td>Track Record</td><td><strong>3 years</strong> audited financials</td><td><strong>1 year</strong> (or exemption)</td></tr>
+                <tr><td>Profitability</td><td>Profitable in 2 of last 3 years</td><td>Growth potential (no profitability requirement)</td></tr>
+                <tr><td>Minimum Market Cap at IPO</td><td>GSE sets minimum (check current rules)</td><td>Lower threshold</td></tr>
+                <tr><td>Financial Statements Standard</td><td>IFRS (audited)</td><td>IFRS or GAPS</td></tr>
+                <tr><td>Company Type</td><td>Public Limited Company (PLC)</td><td>PLC or limited company (with conversion)</td></tr>
+                <tr><td>Nominated Adviser (NOMAD)</td><td>Not mandatory</td><td><strong>Mandatory</strong> ongoing NOMAD</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 9 Phases -->
+        <div class="card p-5 mb-5">
+          <h3 class="font-black text-base mb-4" style="font-family:'Montserrat',sans-serif;"><i class="fas fa-tasks text-blue-600 mr-2"></i>9 Phases — IPO Process (9–18 Month Timetable)</h3>
+          <div class="space-y-3">
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#1d4ed8;">1</div><div><strong class="text-sm">Phase 1 — IPO Readiness Assessment (Months 1–2)</strong><p class="text-gray-600 text-sm mt-0.5">Board and shareholders resolve to pursue listing. Appoint Lead Manager / Issuing House (SEC-licensed Investment Bank). Conduct IPO readiness gap analysis: corporate governance, financial reporting quality, management depth, related-party transactions cleanup. Convert to PLC if needed.</p></div></div>
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#1d4ed8;">2</div><div><strong class="text-sm">Phase 2 — Advisors Assembly (Months 2–3)</strong><p class="text-gray-600 text-sm mt-0.5">Appoint: Legal Counsel, Reporting Accountant, Share Registrar, CSD Participant, Receiving Bank, PR/IR Firm, and (for GAX) NOMAD. Establish project committee with weekly cadence. Negotiate advisory engagement letters and fee structures.</p></div></div>
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#1d4ed8;">3</div><div><strong class="text-sm">Phase 3 — Corporate Restructuring &amp; Governance (Months 3–6)</strong><p class="text-gray-600 text-sm mt-0.5">Implement recommended board governance changes (independent directors, audit committee, remuneration committee). Clean up related-party transactions and group structure. Ensure 3 years of IFRS-compliant audited accounts. Address any legal, tax, or regulatory compliance gaps.</p></div></div>
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#1d4ed8;">4</div><div><strong class="text-sm">Phase 4 — Due Diligence (Months 5–8)</strong><p class="text-gray-600 text-sm mt-0.5">Full legal due diligence (title to assets, litigation, contracts, IP, employment). Financial due diligence and preparation of Reporting Accountant's Long-Form Report. Tax due diligence. Environmental / sector-specific reviews (mining, banking, telecom). Management interviews.</p></div></div>
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#1d4ed8;">5</div><div><strong class="text-sm">Phase 5 — Prospectus Preparation (Months 7–10)</strong><p class="text-gray-600 text-sm mt-0.5">Draft full Prospectus: company description, industry analysis, business strategy, financials (3-year audited + interim), use of proceeds, risk factors, management biographies, shareholder structure, valuation basis. Legal counsel drafts all subscription documentation.</p></div></div>
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#1d4ed8;">6</div><div><strong class="text-sm">Phase 6 — SEC &amp; GSE Filing (Months 10–12)</strong><p class="text-gray-600 text-sm mt-0.5">Submit Prospectus to SEC Ghana for formal review (Act 929). Pay SEC filing fee. GSE in-principle approval application. Respond to SEC comment letters. SEC grants Approval Letter. GSE grants listing approval. Agree final IPO price range with Lead Manager.</p></div></div>
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#1d4ed8;">7</div><div><strong class="text-sm">Phase 7 — Pre-IPO Marketing (Months 12–13)</strong><p class="text-gray-600 text-sm mt-0.5">Management roadshow: institutional investors, fund managers, NPRA-regulated pension funds, HNWIs. Analyst presentations. Retail investor awareness campaign (newspapers, radio, financial press). Fix final IPO price based on book-building (institutional) or fixed price (retail).</p></div></div>
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#1d4ed8;">8</div><div><strong class="text-sm">Phase 8 — Public Offer Period (Month 14)</strong><p class="text-gray-600 text-sm mt-0.5">Prospectus published and distributed (2 national daily newspapers). Offer period opens (typically 21 days). Subscription forms collected via receiving bank branches and online. Institutional book closed. Oversubscription scaling applied per allotment policy.</p></div></div>
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#1d4ed8;">9</div><div><strong class="text-sm">Phase 9 — Allotment, Listing &amp; Post-IPO (Months 15–18)</strong><p class="text-gray-600 text-sm mt-0.5">Allotment basis determined and announced. Refunds issued to over-applicants. New shares credited to CSD accounts. GSE listing day — trading commences. Proceeds released to company. Price stabilisation (if underwriting syndicate). SEC post-listing compliance: quarterly accounts, continuous disclosure, annual report within 4 months of year-end.</p></div></div>
+          </div>
+        </div>
+
+        <!-- IPO Costs -->
+        <div class="card p-5 mb-5">
+          <h3 class="font-black text-base mb-3" style="font-family:'Montserrat',sans-serif;"><i class="fas fa-coins text-yellow-600 mr-2"></i>IPO Cost Structure (Typical Range: 3%–7% of Gross Proceeds)</h3>
+          <div class="overflow-x-auto">
+            <table>
+              <thead><tr><th>Cost Item</th><th>Rate / Amount</th><th>Notes</th></tr></thead>
+              <tbody>
+                <tr><td>Lead Manager / Issuing House Fee</td><td>2%–4% of gross proceeds</td><td>Includes underwriting if offered</td></tr>
+                <tr><td>SEC Registration &amp; Filing Fee</td><td>0.05%–0.15% of offer value</td><td>Paid on filing</td></tr>
+                <tr><td>GSE Admission Fee</td><td>0.10% of market cap at listing</td><td>One-time; plus annual fees thereafter</td></tr>
+                <tr><td>Legal Fees</td><td>GHS 150,000–500,000</td><td>Deal-size dependent</td></tr>
+                <tr><td>Reporting Accountant</td><td>GHS 100,000–300,000</td><td>Long-form + short-form reports</td></tr>
+                <tr><td>PR / IR Campaign</td><td>GHS 50,000–200,000</td><td>Roadshow, media, advertising</td></tr>
+                <tr><td>Share Registrar Setup</td><td>GHS 30,000–80,000</td><td>Annual fees thereafter</td></tr>
+                <tr><td>CSD Setup &amp; Processing</td><td>GHS 15,000–40,000</td><td>Dematerialisation of shares</td></tr>
+                <tr><td>Receiving Bank</td><td>0.20%–0.30% of proceeds</td><td>Collection and banking costs</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="disclaimer-box">
+          <p class="font-bold text-yellow-900 mb-1"><i class="fas fa-exclamation-triangle mr-2"></i>Post-Listing Obligations</p>
+          <p class="text-yellow-800 text-sm">After IPO, listed companies must comply with GSE continuing obligations: quarterly financial statements (within 45 days), annual report (within 4 months of year-end), material price-sensitive information disclosed immediately, no insider trading, no share buybacks without SEC approval. Non-compliance leads to suspension or delisting.</p>
+        </div>
+      </div>
+
+      <!-- ===== M&A ===== -->
+      <div id="ca-ma" class="ca-panel p-6">
+        <div class="flex items-center gap-3 mb-5">
+          <div class="w-12 h-12 rounded-xl bg-red-700 flex items-center justify-center text-white text-xl"><i class="fas fa-handshake"></i></div>
+          <div>
+            <h2 class="section-title">M&amp;A Process Guide — Ghana</h2>
+            <p class="text-gray-500 text-sm">Securities Industry Act, 2016 (Act 929) · Companies Act, 2019 (Act 992) · FTC Act 921 · BOG / NCA / SEC Sector Approvals</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div class="card p-4 border-l-4 border-red-600 text-center">
+            <div class="text-xl font-black text-red-700">12–24 months</div>
+            <div class="text-xs text-gray-500 mt-1">Typical timetable</div>
+          </div>
+          <div class="card p-4 border-l-4 border-orange-500 text-center">
+            <div class="text-xl font-black text-orange-700">30% threshold</div>
+            <div class="text-xs text-gray-500 mt-1">Mandatory offer rule trigger</div>
+          </div>
+          <div class="card p-4 border-l-4 border-yellow-500 text-center">
+            <div class="text-xl font-black text-yellow-700">2%–5%</div>
+            <div class="text-xs text-gray-500 mt-1">Advisory cost of deal value</div>
+          </div>
+        </div>
+
+        <!-- Transaction Types -->
+        <div class="card p-5 mb-5">
+          <h3 class="font-black text-base mb-4" style="font-family:'Montserrat',sans-serif;"><i class="fas fa-sitemap text-red-600 mr-2"></i>7 M&amp;A Transaction Types in Ghana</h3>
+          <div class="overflow-x-auto">
+            <table>
+              <thead><tr><th>Type</th><th>Description</th><th>Key Features</th><th>Typical Use</th></tr></thead>
+              <tbody>
+                <tr><td><strong>Merger</strong></td><td>Two companies combine into one entity</td><td>Both entities dissolved; new entity formed; Act 992 Scheme</td><td>Consolidation of equals; sector rationalisation</td></tr>
+                <tr><td><strong>Share Purchase</strong></td><td>Acquirer buys shares from existing shareholders</td><td>Target becomes subsidiary; liabilities transfer with target</td><td>Control acquisition; most common structure</td></tr>
+                <tr><td><strong>Asset Purchase</strong></td><td>Acquirer buys specific assets of target</td><td>Cherry-pick assets; liabilities stay with seller (mostly)</td><td>Distressed asset buying; branch/division acquisition</td></tr>
+                <tr><td><strong>Takeover (Public)</strong></td><td>Acquirer makes offer to all listed target shareholders</td><td>Mandatory offer at ≥30% per Act 929; SEC regulated</td><td>Hostile / friendly acquisition of listed companies</td></tr>
+                <tr><td><strong>Scheme of Arrangement</strong></td><td>Court-sanctioned reorganisation</td><td>Requires High Court approval + 75% shareholder vote</td><td>Complex cross-border; merger of listed + unlisted</td></tr>
+                <tr><td><strong>Joint Venture (JV)</strong></td><td>Two parties form a new shared entity</td><td>Each party retains separate existence; shared governance</td><td>Market entry; large project; tech/sector partnership</td></tr>
+                <tr><td><strong>Reverse Takeover (RTO)</strong></td><td>Private company acquires control of listed shell/company</td><td>Private company effectively lists via listed acquiree</td><td>Back-door listing without full IPO process</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Mandatory Offer Rule -->
+        <div class="card p-5 mb-5 border-l-4 border-red-600">
+          <h3 class="font-black text-base mb-3" style="font-family:'Montserrat',sans-serif;"><i class="fas fa-exclamation-circle text-red-600 mr-2"></i>Mandatory Offer Rule — Act 929 (Critical for Listed Companies)</h3>
+          <div class="space-y-2 text-sm">
+            <div class="req-item" style="border-color:#dc2626;background:#fef2f2;">Any person or group who acquires <strong>30% or more</strong> of the voting rights of a listed company <strong>must make a mandatory offer</strong> to all remaining shareholders at the highest price paid in the preceding 12 months.</div>
+            <div class="req-item" style="border-color:#dc2626;background:#fef2f2;">The mandatory offer must be made <strong>within 35 days</strong> of crossing the 30% threshold. The offer document must be SEC-approved before despatch.</div>
+            <div class="req-item" style="border-color:#dc2626;background:#fef2f2;">SEC may grant a <strong>whitewash waiver</strong> if independent shareholders (excluding the acquirer) vote to waive the obligation — commonly used in rescue situations or family company consolidations.</div>
+            <div class="req-item" style="border-color:#dc2626;background:#fef2f2;">Failure to comply with the mandatory offer rule results in: <strong>loss of voting rights</strong> on shares above 30% until offer is made; potential SEC enforcement action; possible criminal liability.</div>
+            <div class="req-item" style="border-color:#dc2626;background:#fef2f2;">The rule applies to concert parties — aggregation of shareholdings of parties acting in concert counts toward the 30% trigger.</div>
+          </div>
+        </div>
+
+        <!-- FTC Merger Notification -->
+        <div class="card p-5 mb-5">
+          <h3 class="font-black text-base mb-3" style="font-family:'Montserrat',sans-serif;"><i class="fas fa-gavel text-orange-600 mr-2"></i>FTC Merger Notification (Fair Trade Commission Act, 2022 — Act 921)</h3>
+          <div class="space-y-2 text-sm">
+            <div class="req-item" style="border-color:#ea580c;background:#fff7ed;">Mergers and acquisitions above the FTC notification threshold must be notified to the Fair Trade Commission <strong>before completion</strong>.</div>
+            <div class="req-item" style="border-color:#ea580c;background:#fff7ed;">FTC assesses whether the transaction will substantially lessen competition in any relevant market in Ghana.</div>
+            <div class="req-item" style="border-color:#ea580c;background:#fff7ed;">FTC may: approve unconditionally, approve with conditions (behavioral or structural remedies), or prohibit the transaction.</div>
+            <div class="req-item" style="border-color:#ea580c;background:#fff7ed;">FTC review period: 30 days (Phase 1); up to 90 additional days (Phase 2 in-depth investigation).</div>
+            <div class="req-item" style="border-color:#ea580c;background:#fff7ed;">Additional sector regulator approvals required: BOG (banking), NCA (telecom), NPA (petroleum), GRA (tax clearances).</div>
+          </div>
+        </div>
+
+        <!-- 9 Phases -->
+        <div class="card p-5 mb-5">
+          <h3 class="font-black text-base mb-4" style="font-family:'Montserrat',sans-serif;"><i class="fas fa-tasks text-red-600 mr-2"></i>9 Phases — M&amp;A Process (12–24 Month Timetable)</h3>
+          <div class="space-y-3">
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#dc2626;">1</div><div><strong class="text-sm">Strategic Rationale &amp; Target Identification (Months 1–2)</strong><p class="text-gray-600 text-sm mt-0.5">Board defines acquisition rationale: market share, technology, geographic expansion, vertical integration. M&amp;A Advisor prepares target screen and preliminary financial analysis. NDA executed with preferred targets. Preliminary contact and expression of interest.</p></div></div>
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#dc2626;">2</div><div><strong class="text-sm">Preliminary Negotiations &amp; Term Sheet (Months 2–4)</strong><p class="text-gray-600 text-sm mt-0.5">Management meetings and site visits. Financial advisor prepares preliminary valuation (DCF, comps, precedent transactions). Negotiate and sign non-binding Term Sheet or Letter of Intent (LOI) setting out indicative price, structure, exclusivity period, and conditions precedent.</p></div></div>
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#dc2626;">3</div><div><strong class="text-sm">Due Diligence (Months 4–8)</strong><p class="text-gray-600 text-sm mt-0.5">Full legal due diligence: corporate structure, contracts, litigation, IP, employment, regulatory licenses. Financial due diligence: quality of earnings, working capital, debt, off-balance-sheet items. Tax due diligence: historic tax positions, transfer pricing, tax clearances. Commercial due diligence: market position, competitive dynamics. Set up virtual data room (VDR).</p></div></div>
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#dc2626;">4</div><div><strong class="text-sm">Valuation &amp; Pricing (Months 6–9)</strong><p class="text-gray-600 text-sm mt-0.5">Final valuation based on due diligence findings. Price adjustments for issues found (working capital, debt, normalised earnings). Negotiate final consideration: cash, shares, loan notes, or combination. Agree on locked-box or completion accounts mechanism.</p></div></div>
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#dc2626;">5</div><div><strong class="text-sm">Transaction Documentation (Months 8–11)</strong><p class="text-gray-600 text-sm mt-0.5">Negotiate and draft: Share Purchase Agreement (SPA) / Asset Purchase Agreement (APA), Disclosure Letter, Shareholders Agreement (if JV), Employment Agreements for key managers, Non-Compete and Non-Solicit agreements. Legal Counsel coordinates signing logistics.</p></div></div>
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#dc2626;">6</div><div><strong class="text-sm">Regulatory Approvals (Months 9–15)</strong><p class="text-gray-600 text-sm mt-0.5">File FTC merger notification (if above threshold). Apply for sector regulator approval (BOG / NCA / SEC as applicable). For listed targets: SEC review of takeover offer document; mandatory offer compliance. Shareholder EGM (if material acquisition by acquirer). BOG/NCA approval can take 3–6 months — plan accordingly.</p></div></div>
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#dc2626;">7</div><div><strong class="text-sm">Completion / Closing (Months 14–18)</strong><p class="text-gray-600 text-sm mt-0.5">Satisfaction of all conditions precedent. Funds transfer (escrow release). Share transfer forms signed; registered with RGD. CSD transfer of listed shares. Regulatory licenses transferred or novated. Board reconstituted per SPA terms. Completion accounts prepared (if applicable).</p></div></div>
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#dc2626;">8</div><div><strong class="text-sm">Post-Merger Integration (Months 15–21)</strong><p class="text-gray-600 text-sm mt-0.5">100-day integration plan execution: systems integration, brand rationalisation, HR harmonisation. Synergy tracking against pre-deal model. Customer and supplier communications. Regulatory change-of-control notifications. Legal entity rationalisation (wind down redundant entities).</p></div></div>
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#dc2626;">9</div><div><strong class="text-sm">Post-Completion Compliance (Months 18–24)</strong><p class="text-gray-600 text-sm mt-0.5">Deferred consideration payments (earn-outs). Final warranty claim resolution. Annual compliance filings with SEC / GSE (if listed). Post-acquisition financial reporting (purchase price allocation under IFRS 3). Goodwill impairment testing (annually). Final integration assessment.</p></div></div>
+          </div>
+        </div>
+
+        <div class="disclaimer-box">
+          <p class="font-bold text-yellow-900 mb-1"><i class="fas fa-exclamation-triangle mr-2"></i>M&amp;A Regulatory Reminder</p>
+          <p class="text-yellow-800 text-sm">Never complete an M&amp;A transaction involving a listed company without SEC clearance. The mandatory offer rule at 30% is strictly enforced. FTC notification must precede completion for qualifying mergers — completing before FTC approval (gun-jumping) carries significant penalties. Engage M&amp;A lawyers early to map all regulatory approval timelines before signing the LOI.</p>
+        </div>
+      </div>
+
+      <!-- ===== BOND ISSUE ===== -->
+      <div id="ca-bond" class="ca-panel p-6">
+        <div class="flex items-center gap-3 mb-5">
+          <div class="w-12 h-12 rounded-xl bg-indigo-700 flex items-center justify-center text-white text-xl"><i class="fas fa-file-invoice-dollar"></i></div>
+          <div>
+            <h2 class="section-title">Bond Issue Process Guide — Ghana</h2>
+            <p class="text-gray-500 text-sm">Securities Industry Act, 2016 (Act 929) · GFIM Rules · BOG Directives · NPRA Guidelines · Income Tax Act, 2015 (Act 896)</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div class="card p-4 border-l-4 border-indigo-600 text-center">
+            <div class="text-xl font-black text-indigo-700">~18 weeks</div>
+            <div class="text-xs text-gray-500 mt-1">Typical timetable</div>
+          </div>
+          <div class="card p-4 border-l-4 border-blue-500 text-center">
+            <div class="text-xl font-black text-blue-700">1.5%–4%</div>
+            <div class="text-xs text-gray-500 mt-1">Total cost of principal</div>
+          </div>
+          <div class="card p-4 border-l-4 border-green-600 text-center">
+            <div class="text-xl font-black text-green-700">NPRA eligible</div>
+            <div class="text-xs text-gray-500 mt-1">If rated &amp; listed on GFIM</div>
+          </div>
+        </div>
+
+        <!-- 12 Bond Types -->
+        <div class="card p-5 mb-5">
+          <h3 class="font-black text-base mb-4" style="font-family:'Montserrat',sans-serif;"><i class="fas fa-list text-indigo-600 mr-2"></i>12 Bond Types Available in Ghana's Capital Markets</h3>
+          <div class="overflow-x-auto">
+            <table>
+              <thead><tr><th>Bond Type</th><th>Coupon Structure</th><th>Regulatory Capital Treatment</th><th>NPRA Eligible?</th></tr></thead>
+              <tbody>
+                <tr><td><strong>Senior Unsecured Bond</strong></td><td>Fixed or Floating</td><td>Liability (no capital credit)</td><td>Yes (if rated BBB- or above)</td></tr>
+                <tr><td><strong>Secured Bond</strong></td><td>Fixed rate (typically)</td><td>Liability — security lowers cost</td><td>Yes</td></tr>
+                <tr><td><strong>Tier 2 Subordinated Bond</strong></td><td>Fixed (step-up after 5yrs)</td><td><strong>Qualifies as Tier 2 capital</strong> (BOG)</td><td>Yes (specific carve-out)</td></tr>
+                <tr><td><strong>AT1 / CoCo Bond</strong></td><td>Non-cumulative; discretionary</td><td><strong>Qualifies as Additional Tier 1</strong></td><td>No (too complex for pension)</td></tr>
+                <tr><td><strong>Green Bond</strong></td><td>Fixed or Floating</td><td>Standard liability</td><td>Yes (ESG mandate aligns)</td></tr>
+                <tr><td><strong>MTN Programme Bond</strong></td><td>Fixed, Floating, or Zero</td><td>Standard liability</td><td>Yes (per programme terms)</td></tr>
+                <tr><td><strong>Fixed Rate Bond</strong></td><td>Fixed semi-annual coupon</td><td>Standard liability</td><td>Yes</td></tr>
+                <tr><td><strong>Floating Rate Note (FRN)</strong></td><td>Linked to 91-day T-Bill + spread</td><td>Standard liability</td><td>Yes</td></tr>
+                <tr><td><strong>Zero Coupon Bond</strong></td><td>No periodic coupon; issued at discount</td><td>Standard liability</td><td>Limited (match pension duration)</td></tr>
+                <tr><td><strong>Callable Bond</strong></td><td>Fixed (higher coupon for call option)</td><td>Standard liability</td><td>Yes (with call risk disclosure)</td></tr>
+                <tr><td><strong>Corporate Bond (unlisted)</strong></td><td>Privately placed; any structure</td><td>Standard liability</td><td>No (must be listed on GFIM)</td></tr>
+                <tr><td><strong>Convertible Bond</strong></td><td>Fixed + equity conversion right</td><td>Hybrid — split into debt &amp; equity</td><td>No (equity risk)</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Bond Pricing -->
+        <div class="card p-5 mb-5">
+          <h3 class="font-black text-base mb-3" style="font-family:'Montserrat',sans-serif;"><i class="fas fa-percentage text-indigo-600 mr-2"></i>Bond Pricing Mechanics — Ghana</h3>
+          <div class="bg-indigo-50 border border-indigo-200 rounded-xl p-4 mb-4 font-mono text-sm">
+            <div class="text-indigo-800 font-bold mb-2">Corporate Bond Coupon Formula</div>
+            <div class="mb-1 text-indigo-900"><strong>Coupon Rate = GoG Benchmark Yield + Credit Spread</strong></div>
+            <div class="text-gray-600 text-xs mt-2">GoG Benchmark: 91-day / 182-day / 364-day T-Bill rate (for short-term) or 2-year / 5-year / 7-year / 10-year GoG bond yield (for longer tenors)</div>
+            <div class="text-gray-600 text-xs">Credit Spread: additional basis points reflecting issuer credit risk (typically 150–500 bps for investment grade corporates)</div>
+          </div>
+          <div class="overflow-x-auto">
+            <table>
+              <thead><tr><th>Issuer Type</th><th>Typical Spread over GoG</th><th>Indicative Coupon Range</th></tr></thead>
+              <tbody>
+                <tr><td>Tier 1 Bank (GCB, Ecobank, Absa)</td><td>150–250 bps</td><td>GoG + 1.5%–2.5%</td></tr>
+                <tr><td>Tier 2 Subordinated (Bank)</td><td>250–400 bps</td><td>GoG + 2.5%–4.0%</td></tr>
+                <tr><td>Large Corporate (Listed)</td><td>200–350 bps</td><td>GoG + 2.0%–3.5%</td></tr>
+                <tr><td>Mid-Cap Corporate</td><td>300–500 bps</td><td>GoG + 3.0%–5.0%</td></tr>
+                <tr><td>Financial Institution (Non-Bank)</td><td>250–450 bps</td><td>GoG + 2.5%–4.5%</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- NPRA Bond Requirements -->
+        <div class="card p-5 mb-5">
+          <h3 class="font-black text-base mb-3" style="font-family:'Montserrat',sans-serif;"><i class="fas fa-shield-alt text-red-600 mr-2"></i>NPRA Bond Investment Eligibility Requirements</h3>
+          <p class="text-sm text-gray-600 mb-3">For a corporate bond to be NPRA-eligible (investable by Ghana pension funds), it must satisfy ALL of the following:</p>
+          <div class="space-y-2 text-sm">
+            <div class="req-item" style="border-color:#dc2626;background:#fef2f2;">Must be <strong>listed on the Ghana Fixed Income Market (GFIM)</strong> — unlisted private placements are not eligible for pension fund investment</div>
+            <div class="req-item" style="border-color:#dc2626;background:#fef2f2;">Must have an <strong>investment-grade credit rating</strong> from an SEC/NPRA-recognised rating agency (GCR Africa, Dataphyte, or equivalent) — minimum BBB- or equivalent</div>
+            <div class="req-item" style="border-color:#dc2626;background:#fef2f2;">Bond must be denominated in <strong>Ghana Cedis (GHS)</strong> — foreign currency bonds require BOG approval for pension investment</div>
+            <div class="req-item" style="border-color:#dc2626;background:#fef2f2;">Issuer must be a registered legal entity in Ghana (or Ghana branch of foreign entity with BOG/SEC registration)</div>
+            <div class="req-item" style="border-color:#dc2626;background:#fef2f2;">NPRA investment limits: pension funds can invest max <strong>20% of fund in corporate bonds</strong>; max <strong>5% in a single issuer</strong>; max <strong>10% in a single issue</strong></div>
+            <div class="req-item" style="border-color:#dc2626;background:#fef2f2;">Tier 2 Subordinated Bonds by banks are eligible subject to specific NPRA carve-out — must still be rated and listed on GFIM</div>
+          </div>
+        </div>
+
+        <!-- 8 Phases -->
+        <div class="card p-5 mb-5">
+          <h3 class="font-black text-base mb-4" style="font-family:'Montserrat',sans-serif;"><i class="fas fa-tasks text-indigo-600 mr-2"></i>8 Phases — Bond Issue Process (18-Week Timetable)</h3>
+          <div class="space-y-3">
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#4338ca;">1</div><div><strong class="text-sm">Phase 1 — Strategic Planning &amp; Mandate (Weeks 1–2)</strong><p class="text-gray-600 text-sm mt-0.5">Board approves bond issue strategy: principal amount, tenor, currency, fixed vs. floating, secured vs. unsecured. Appoint Lead Arranger (SEC-licensed Investment Bank), Legal Counsel, and Reporting Accountant. Obtain credit rating mandate from GCR Africa / Dataphyte. Check existing debt covenants for restriction on new debt.</p></div></div>
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#4338ca;">2</div><div><strong class="text-sm">Phase 2 — Credit Rating Process (Weeks 2–6)</strong><p class="text-gray-600 text-sm mt-0.5">Rating agency conducts full credit analysis: financial ratios (leverage, coverage, liquidity), business risk, industry risk, management quality, governance, and environmental factors. Management presentation to rating committee. Rating assigned and disclosed. If NPRA eligibility targeted, minimum BBB- required — lower rating means pricing penalty but not disqualification for non-pension investors.</p></div></div>
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#4338ca;">3</div><div><strong class="text-sm">Phase 3 — Documentation Preparation (Weeks 4–10)</strong><p class="text-gray-600 text-sm mt-0.5">Draft Prospectus / Information Memorandum (IM): issuer profile, audited financials (3 years), use of proceeds, risk factors, debt repayment schedule, security details (if secured), coupon structure, call/put options. Legal Counsel drafts: Trust Deed, Subscription Agreement, Security Documents (if applicable), Paying Agency Agreement, GFIM listing application.</p></div></div>
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#4338ca;">4</div><div><strong class="text-sm">Phase 4 — SEC Filing &amp; GFIM Approval (Weeks 8–12)</strong><p class="text-gray-600 text-sm mt-0.5">Submit Prospectus to SEC Ghana for debt securities registration. Pay SEC filing fee. GFIM listing application submitted (via Lead Arranger who must be a GFIM member). BOG approval for bank Tier 2 / AT1 bonds. SEC grants approval. GFIM grants in-principle listing approval.</p></div></div>
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#4338ca;">5</div><div><strong class="text-sm">Phase 5 — Investor Roadshow &amp; Book-Building (Weeks 11–14)</strong><p class="text-gray-600 text-sm mt-0.5">Lead Arranger conducts investor roadshow: presentations to fund managers, pension funds, insurance companies, bank treasuries, HNWIs. Price guidance issued (indicative coupon range). Book-building: collect orders and gauge demand. Finalise coupon based on book demand at price guidance. Allocate bonds across investor classes.</p></div></div>
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#4338ca;">6</div><div><strong class="text-sm">Phase 6 — Pricing &amp; Documentation Signing (Week 14–15)</strong><p class="text-gray-600 text-sm mt-0.5">Announce final pricing (coupon rate and issue price). Sign: Trust Deed, Subscription Agreement, Paying Agency Agreement. Set issue date and payment date. Bondholders execute subscription forms. Escrow account established at Paying Agent bank.</p></div></div>
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#4338ca;">7</div><div><strong class="text-sm">Phase 7 — Settlement &amp; GFIM Listing (Weeks 15–17)</strong><p class="text-gray-600 text-sm mt-0.5">Bondholders pay subscription proceeds to escrow. Bonds credited to CSD accounts via DVP settlement on issue date. Bonds listed on GFIM — commence secondary market trading. Proceeds released to issuer from escrow. Bond register established by Registrar.</p></div></div>
+            <div class="flex gap-3 items-start"><div class="step-num" style="background:#4338ca;">8</div><div><strong class="text-sm">Phase 8 — Post-Issuance Compliance (Week 18 onwards)</strong><p class="text-gray-600 text-sm mt-0.5">Half-yearly coupon payments to bondholders on schedule dates. Annual financial statements to bondholders and GFIM within 4 months of year-end. Trustee monitoring of debt covenants. Withholding tax on coupon: 8% for resident individuals, 8% for institutions (Ghana Income Tax Act, Act 896). Sinking fund deposits (if applicable). Credit rating review / surveillance annually.</p></div></div>
+          </div>
+        </div>
+
+        <!-- Bond Cost Structure -->
+        <div class="card p-5 mb-5">
+          <h3 class="font-black text-base mb-3" style="font-family:'Montserrat',sans-serif;"><i class="fas fa-coins text-yellow-600 mr-2"></i>Bond Issue Cost Structure</h3>
+          <div class="overflow-x-auto">
+            <table>
+              <thead><tr><th>Cost Item</th><th>Rate / Amount</th><th>Notes</th></tr></thead>
+              <tbody>
+                <tr><td>Lead Arranger / Management Fee</td><td>1.0%–2.5% of principal</td><td>Includes placement and underwriting if offered</td></tr>
+                <tr><td>Credit Rating Fee</td><td>GHS 80,000–200,000</td><td>Initial rating + annual surveillance</td></tr>
+                <tr><td>SEC Registration Fee</td><td>0.05%–0.10% of principal</td><td>Paid at filing</td></tr>
+                <tr><td>GFIM Listing Fee</td><td>0.05%–0.10% of principal</td><td>One-time admission fee</td></tr>
+                <tr><td>Trustee Fee</td><td>0.05%–0.15% p.a. of outstanding principal</td><td>Annual ongoing fee</td></tr>
+                <tr><td>Legal Fees</td><td>GHS 100,000–300,000</td><td>Issuer &amp; trustee counsel</td></tr>
+                <tr><td>Paying Agent &amp; Registrar</td><td>GHS 30,000–80,000 p.a.</td><td>Ongoing bond administration</td></tr>
+                <tr><td>CSD Registration</td><td>GHS 10,000–25,000</td><td>Dematerialisation on CSD</td></tr>
+                <tr><td>Reporting Accountant</td><td>GHS 50,000–150,000</td><td>Comfort letters for prospectus</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="disclaimer-box">
+          <p class="font-bold text-yellow-900 mb-1"><i class="fas fa-exclamation-triangle mr-2"></i>Tax Note — Bond Coupon Withholding Tax</p>
+          <p class="text-yellow-800 text-sm">Withholding tax of 8% applies to bond coupon payments to resident individuals and most institutions under the Income Tax Act, 2015 (Act 896). GoG bonds (Treasury Bonds) are exempt for resident individuals. Corporate bonds are not exempt. Build WHT into your investor yield calculations and ensure the Paying Agent withholds and remits to GRA correctly.</p>
+        </div>
+      </div>
+
+    </div><!-- end sub-tab wrapper -->
+  </div><!-- end ca tab panel -->
+
 </main>
 
 <!-- FOOTER -->
@@ -1095,6 +1783,12 @@ function showTab(name) {
   document.getElementById('tab-' + name).classList.add('active');
   document.getElementById('btn-' + name).classList.add('active');
   window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+function showCA(name) {
+  document.querySelectorAll('.ca-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.ca-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(name).classList.add('active');
+  document.getElementById('cabtn-' + name.replace('ca-','')).classList.add('active');
 }
 </script>
 
