@@ -5100,6 +5100,11 @@ def jobs_page():
     return render_template('hr_jobs.html', listings=listings)
 
 
+@app.route('/stock-pitch')
+def stock_pitch():
+    return render_template('hr_stock_pitch.html')
+
+
 @app.route('/jobs/<int:job_id>/apply', methods=['GET', 'POST'])
 def job_apply(job_id):
     job = JobListing.query.get_or_404(job_id)

@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Stock Pitch Competition — YIN × InvestIQ</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body { font-family: 'Inter', sans-serif; background: #fff; color: #0f172a; }
+  .hero-gradient { background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 60%, #0f4c81 100%); }
+  .step-card { background: #fff; border-radius: 20px; border: 1px solid #e2e8f0; box-shadow: 0 4px 24px rgba(0,0,0,.06); transition: all .2s; }
+  .step-card:hover { box-shadow: 0 8px 40px rgba(15,76,129,.13); transform: translateY(-3px); }
+  .step-num { width: 48px; height: 48px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; font-weight: 900; flex-shrink: 0; }
+  .calc-card { background: #fff; border-radius: 14px; border: 1.5px solid #e2e8f0; padding: 1.25rem; transition: all .2s; }
+  .calc-card:hover { border-color: #3b82f6; box-shadow: 0 4px 20px rgba(59,130,246,.12); }
+  .pill { display: inline-flex; align-items: center; padding: .3rem .9rem; border-radius: 999px; font-size: .78rem; font-weight: 700; letter-spacing: .3px; }
+  .pill-buy { background: #d1fae5; color: #065f46; }
+  .pill-sell { background: #fee2e2; color: #991b1b; }
+  .pill-hold { background: #fef3c7; color: #92400e; }
+  .section-tag { display: inline-block; background: #dbeafe; color: #1d4ed8; font-size: .72rem; font-weight: 800; padding: .2rem .7rem; border-radius: 6px; letter-spacing: .8px; text-transform: uppercase; margin-bottom: .75rem; }
+  .timeline-line { position: absolute; left: 23px; top: 56px; bottom: 0; width: 2px; background: linear-gradient(to bottom, #3b82f6, #e2e8f0); }
+  .accordion-body { max-height: 0; overflow: hidden; transition: max-height .4s ease; }
+  .accordion-body.open { max-height: 2000px; }
+  .nav-tab { padding: .55rem 1.1rem; border-radius: 8px; font-size: .88rem; font-weight: 600; color: #64748b; transition: all .15s; text-decoration: none; }
+  .nav-tab:hover, .nav-tab.active { background: rgba(255,255,255,.15); color: #fff; }
+</style>
+</head>
+<body>
+
+<!-- ── NAVBAR ── -->
+<nav class="hero-gradient text-white py-4 px-6 sticky top-0 z-50 shadow-xl">
+  <div class="max-w-7xl mx-auto flex justify-between items-center">
+    <a href="/" class="text-xl font-bold flex items-center gap-2">
+      <i class="fas fa-chart-line text-blue-300"></i>
+      Invest<span class="text-blue-300">IQ</span>
+    </a>
+    <div class="hidden md:flex items-center gap-2 text-sm">
+      <a href="/" class="nav-tab">Home</a>
+      <a href="/jobs" class="nav-tab">Jobs</a>
+      <a href="/cv-builder" class="nav-tab">Build CV</a>
+      <a href="/yin-programs" class="nav-tab">YIN Programmes</a>
+      <a href="/stock-pitch" class="nav-tab active">Stock Pitch</a>
+      <a href="/training" class="nav-tab">Training</a>
+    </div>
+    <a href="/#calculators" class="hidden md:block bg-blue-500 hover:bg-blue-400 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors">
+      <i class="fas fa-calculator mr-1"></i> Open Calculators
+    </a>
+  </div>
+</nav>
+
+<!-- ── HERO ── -->
+<section class="hero-gradient text-white py-20 px-4">
+  <div class="max-w-5xl mx-auto text-center">
+
+    <!-- YIN Logo area -->
+    <div class="flex items-center justify-center gap-6 mb-10 flex-wrap">
+      <div class="bg-white rounded-2xl px-6 py-3 shadow-lg">
+        <div class="flex items-center gap-3">
+          <div style="background:linear-gradient(135deg,#1e3a8a,#2563eb);border-radius:10px;width:44px;height:44px;display:flex;align-items:center;justify-content:center;">
+            <span style="color:#fff;font-size:1.3rem;font-weight:900;">Y</span>
+          </div>
+          <div>
+            <p style="color:#1e3a8a;font-weight:900;font-size:.95rem;line-height:1;">YOUNG INVESTORS</p>
+            <p style="color:#dc2626;font-weight:900;font-size:.95rem;line-height:1.3;">NETWORK</p>
+          </div>
+        </div>
+      </div>
+      <div class="text-white/40 text-2xl font-light hidden md:block">×</div>
+      <div class="flex items-center gap-2">
+        <i class="fas fa-chart-line text-blue-300 text-2xl"></i>
+        <span class="text-2xl font-black">Invest<span class="text-blue-300">IQ</span></span>
+      </div>
+    </div>
+
+    <div class="inline-flex items-center gap-2 bg-yellow-400/20 border border-yellow-400/40 rounded-full px-4 py-1.5 text-sm mb-6">
+      <i class="fas fa-trophy text-yellow-400"></i>
+      <span class="text-yellow-200 font-semibold">Stock Pitch Competition</span>
+    </div>
+
+    <h1 class="text-4xl md:text-6xl font-black mb-5 leading-tight">
+      Learn to Value Stocks.<br/>
+      <span class="text-blue-300">Pitch with Confidence.</span>
+    </h1>
+    <p class="text-blue-200 text-lg md:text-xl mb-10 max-w-3xl mx-auto leading-relaxed">
+      A complete step-by-step guide for non-finance students to analyse, value, and pitch Ghana Stock Exchange equities — using professional tools built right into InvestIQ.
+    </p>
+    <div class="flex flex-wrap gap-4 justify-center">
+      <a href="#guide" class="bg-blue-500 hover:bg-blue-400 text-white px-8 py-3.5 rounded-xl font-bold text-base transition-colors shadow-lg">
+        <i class="fas fa-book-open mr-2"></i>Start the Guide
+      </a>
+      <a href="#competition" class="bg-white/10 hover:bg-white/20 border border-white/25 text-white px-8 py-3.5 rounded-xl font-bold text-base transition-colors">
+        <i class="fas fa-info-circle mr-2"></i>Competition Details
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ── WHAT IS A STOCK PITCH ── -->
+<section class="max-w-5xl mx-auto px-4 py-16">
+  <div class="text-center mb-12">
+    <span class="section-tag">The Basics</span>
+    <h2 class="text-3xl font-black text-gray-900 mt-2">What is a Stock Pitch?</h2>
+  </div>
+  <div class="grid md:grid-cols-3 gap-6">
+    <div class="step-card p-6 text-center">
+      <div class="w-14 h-14 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+        <i class="fas fa-search text-blue-600 text-2xl"></i>
+      </div>
+      <h3 class="font-bold text-gray-900 text-lg mb-2">Research a Company</h3>
+      <p class="text-gray-500 text-sm leading-relaxed">Deep-dive into a publicly listed company — its financials, industry, competitive position, and growth prospects.</p>
+    </div>
+    <div class="step-card p-6 text-center">
+      <div class="w-14 h-14 bg-indigo-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+        <i class="fas fa-calculator text-indigo-600 text-2xl"></i>
+      </div>
+      <h3 class="font-bold text-gray-900 text-lg mb-2">Calculate its Value</h3>
+      <p class="text-gray-500 text-sm leading-relaxed">Use professional valuation models — DCF, DDM, Intrinsic Value, Target Price — to determine what the stock is truly worth.</p>
+    </div>
+    <div class="step-card p-6 text-center">
+      <div class="w-14 h-14 bg-emerald-50 rounded-2xl flex items-center justify-center mx-auto mb-4">
+        <i class="fas fa-gavel text-emerald-600 text-2xl"></i>
+      </div>
+      <h3 class="font-bold text-gray-900 text-lg mb-2">Make a Recommendation</h3>
+      <p class="text-gray-500 text-sm leading-relaxed">Argue confidently whether investors should <span class="text-green-600 font-bold">BUY</span>, <span class="text-red-600 font-bold">SELL</span>, or <span class="text-amber-600 font-bold">HOLD</span> the stock — backed by data.</p>
+    </div>
+  </div>
+
+  <div class="mt-10 bg-blue-50 border border-blue-100 rounded-2xl p-6">
+    <p class="text-blue-800 font-semibold text-sm mb-2"><i class="fas fa-quote-left mr-2 text-blue-400"></i>Your Opening Statement</p>
+    <p class="text-blue-900 text-base font-medium leading-relaxed italic">
+      "I think that <span class="text-blue-600 font-bold not-italic">[Company Name]</span> is a <span class="text-green-600 font-bold not-italic">BUY / SELL / HOLD</span> because <span class="text-blue-600 font-bold not-italic">[qualitative reason]</span> and our valuation shows the stock is <span class="text-blue-600 font-bold not-italic">[overvalued / undervalued / fairly priced]</span> at its current price of <span class="text-blue-600 font-bold not-italic">[GHc X]</span>."
+    </p>
+    <p class="text-blue-600 text-xs mt-3">This 15-second pitch combines qualitative insight with quantitative valuation — both are required.</p>
+  </div>
+</section>
+
+<!-- ── STEP-BY-STEP GUIDE ── -->
+<section id="guide" class="bg-gray-50 py-16 px-4">
+  <div class="max-w-5xl mx-auto">
+    <div class="text-center mb-14">
+      <span class="section-tag">The 6-Step Framework</span>
+      <h2 class="text-3xl font-black text-gray-900 mt-2">How to Build Your Stock Pitch</h2>
+      <p class="text-gray-500 mt-2 max-w-2xl mx-auto">Follow these six steps in order. Each one feeds into the next — skip none.</p>
+    </div>
+
+    <div class="relative">
+      <div class="timeline-line hidden md:block"></div>
+      <div class="space-y-8">
+
+        <!-- STEP 1: Economic Analysis -->
+        <div class="step-card p-7 md:ml-16 relative">
+          <div class="step-num bg-blue-600 text-white absolute -left-6 top-7 hidden md:flex" style="left:-24px;">1</div>
+          <div class="flex items-start gap-4">
+            <div class="step-num bg-blue-50 text-blue-700 md:hidden">1</div>
+            <div class="flex-1">
+              <div class="flex items-center gap-3 mb-3 flex-wrap">
+                <h3 class="text-xl font-black text-gray-900">Economic Analysis</h3>
+                <span class="pill bg-blue-100 text-blue-700">Macro View</span>
+              </div>
+              <p class="text-gray-600 mb-4 leading-relaxed">Before analysing any company, understand the broader economic environment. A great company in a struggling economy can still be a bad investment.</p>
+              <div class="grid sm:grid-cols-2 gap-3">
+                <div class="bg-blue-50 rounded-xl p-4">
+                  <p class="font-bold text-blue-800 text-sm mb-2"><i class="fas fa-globe-africa mr-2"></i>Ghana Macro Factors</p>
+                  <ul class="text-blue-700 text-xs space-y-1.5">
+                    <li><i class="fas fa-check-circle mr-1 text-blue-400"></i>GDP growth rate — is the economy expanding or contracting?</li>
+                    <li><i class="fas fa-check-circle mr-1 text-blue-400"></i>Inflation rate — how does it affect company costs and revenues?</li>
+                    <li><i class="fas fa-check-circle mr-1 text-blue-400"></i>Interest rates (Bank of Ghana policy rate) — affects borrowing costs</li>
+                    <li><i class="fas fa-check-circle mr-1 text-blue-400"></i>Exchange rate (GHc/USD) — critical for import-heavy companies</li>
+                    <li><i class="fas fa-check-circle mr-1 text-blue-400"></i>Government spending and fiscal policy</li>
+                  </ul>
+                </div>
+                <div class="bg-indigo-50 rounded-xl p-4">
+                  <p class="font-bold text-indigo-800 text-sm mb-2"><i class="fas fa-lightbulb mr-2"></i>Key Questions to Answer</p>
+                  <ul class="text-indigo-700 text-xs space-y-1.5">
+                    <li>Is Ghana's economy growing fast enough to support earnings growth?</li>
+                    <li>Are interest rates rising? (Bad for indebted companies)</li>
+                    <li>Is inflation hurting consumer purchasing power?</li>
+                    <li>Are there regulatory changes affecting the sector?</li>
+                    <li>What external global factors (oil price, commodities) matter?</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="mt-4 bg-gray-900 rounded-xl p-4">
+                <p class="text-emerald-400 text-xs font-bold mb-1"><i class="fas fa-terminal mr-2"></i>WHERE TO FIND THIS DATA</p>
+                <p class="text-gray-300 text-xs">Bank of Ghana (bog.gov.gh) · Ghana Statistical Service (statsghana.gov.gh) · IMF World Economic Outlook · World Bank Data Portal</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 2: Industry Analysis -->
+        <div class="step-card p-7 md:ml-16 relative">
+          <div class="step-num bg-violet-600 text-white absolute hidden md:flex" style="left:-24px;top:28px;">2</div>
+          <div class="flex items-start gap-4">
+            <div class="step-num bg-violet-50 text-violet-700 md:hidden">2</div>
+            <div class="flex-1">
+              <div class="flex items-center gap-3 mb-3 flex-wrap">
+                <h3 class="text-xl font-black text-gray-900">Industry Analysis</h3>
+                <span class="pill bg-violet-100 text-violet-700">Sector View</span>
+              </div>
+              <p class="text-gray-600 mb-4 leading-relaxed">Even excellent management cannot overcome a structurally broken industry. Understand the competitive landscape your company operates in.</p>
+              <div class="grid sm:grid-cols-2 gap-3 mb-4">
+                <div class="bg-violet-50 rounded-xl p-4">
+                  <p class="font-bold text-violet-800 text-sm mb-2"><i class="fas fa-chess mr-2"></i>Porter's 5 Forces (Simplified)</p>
+                  <ul class="text-violet-700 text-xs space-y-1.5">
+                    <li><span class="font-bold">1. Competition:</span> How fierce is rivalry between existing companies?</li>
+                    <li><span class="font-bold">2. New entrants:</span> How easy is it for new competitors to enter?</li>
+                    <li><span class="font-bold">3. Substitutes:</span> Can customers switch to an alternative product?</li>
+                    <li><span class="font-bold">4. Suppliers:</span> Do suppliers have power to raise prices?</li>
+                    <li><span class="font-bold">5. Buyers:</span> Do customers have power to demand lower prices?</li>
+                  </ul>
+                </div>
+                <div class="bg-pink-50 rounded-xl p-4">
+                  <p class="font-bold text-pink-800 text-sm mb-2"><i class="fas fa-chart-line mr-2"></i>Industry Metrics to Research</p>
+                  <ul class="text-pink-700 text-xs space-y-1.5">
+                    <li>Is the industry growing, stable, or declining?</li>
+                    <li>What is the average profit margin in this sector?</li>
+                    <li>Who are the top 3 companies? What market share does your company have?</li>
+                    <li>Is there government regulation that limits competition?</li>
+                    <li>What are the key risks unique to this industry?</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="bg-amber-50 border border-amber-100 rounded-xl p-4">
+                <p class="text-amber-800 text-xs font-bold mb-1"><i class="fas fa-star mr-1 text-amber-500"></i>GSE SECTOR EXAMPLES</p>
+                <div class="flex flex-wrap gap-2 mt-1">
+                  <span class="bg-amber-100 text-amber-800 text-xs px-2 py-0.5 rounded-full font-medium">Banking</span>
+                  <span class="bg-amber-100 text-amber-800 text-xs px-2 py-0.5 rounded-full font-medium">Insurance</span>
+                  <span class="bg-amber-100 text-amber-800 text-xs px-2 py-0.5 rounded-full font-medium">Telecoms</span>
+                  <span class="bg-amber-100 text-amber-800 text-xs px-2 py-0.5 rounded-full font-medium">Manufacturing</span>
+                  <span class="bg-amber-100 text-amber-800 text-xs px-2 py-0.5 rounded-full font-medium">Food &amp; Beverage</span>
+                  <span class="bg-amber-100 text-amber-800 text-xs px-2 py-0.5 rounded-full font-medium">Oil &amp; Gas</span>
+                  <span class="bg-amber-100 text-amber-800 text-xs px-2 py-0.5 rounded-full font-medium">Real Estate</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 3: Company Analysis -->
+        <div class="step-card p-7 md:ml-16 relative">
+          <div class="step-num bg-emerald-600 text-white absolute hidden md:flex" style="left:-24px;top:28px;">3</div>
+          <div class="flex items-start gap-4">
+            <div class="step-num bg-emerald-50 text-emerald-700 md:hidden">3</div>
+            <div class="flex-1">
+              <div class="flex items-center gap-3 mb-3 flex-wrap">
+                <h3 class="text-xl font-black text-gray-900">Company Analysis</h3>
+                <span class="pill bg-emerald-100 text-emerald-700">Deep Dive</span>
+              </div>
+              <p class="text-gray-600 mb-4 leading-relaxed">This is the heart of your pitch. Know your company inside out — its business model, financials, management, and competitive advantage.</p>
+              <div class="grid sm:grid-cols-3 gap-3 mb-4">
+                <div class="bg-emerald-50 rounded-xl p-4">
+                  <p class="font-bold text-emerald-800 text-sm mb-2"><i class="fas fa-building mr-1"></i>Business Overview</p>
+                  <ul class="text-emerald-700 text-xs space-y-1">
+                    <li>What does the company do?</li>
+                    <li>How does it make money?</li>
+                    <li>Who are its customers?</li>
+                    <li>Where does it operate?</li>
+                    <li>How long has it been listed?</li>
+                  </ul>
+                </div>
+                <div class="bg-teal-50 rounded-xl p-4">
+                  <p class="font-bold text-teal-800 text-sm mb-2"><i class="fas fa-chart-bar mr-1"></i>Financial Metrics</p>
+                  <ul class="text-teal-700 text-xs space-y-1">
+                    <li>Revenue (3-year trend)</li>
+                    <li>Net profit margin</li>
+                    <li>Earnings Per Share (EPS)</li>
+                    <li>Return on Equity (ROE)</li>
+                    <li>Debt-to-Equity ratio</li>
+                    <li>Dividend per share</li>
+                  </ul>
+                </div>
+                <div class="bg-cyan-50 rounded-xl p-4">
+                  <p class="font-bold text-cyan-800 text-sm mb-2"><i class="fas fa-shield-alt mr-1"></i>SWOT Analysis</p>
+                  <ul class="text-cyan-700 text-xs space-y-1">
+                    <li><span class="font-bold text-green-600">S</span> Strengths (moat, brand)</li>
+                    <li><span class="font-bold text-red-500">W</span> Weaknesses (gaps, debt)</li>
+                    <li><span class="font-bold text-blue-500">O</span> Opportunities (growth)</li>
+                    <li><span class="font-bold text-orange-500">T</span> Threats (competition, FX)</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="bg-gray-900 rounded-xl p-4">
+                <p class="text-emerald-400 text-xs font-bold mb-2"><i class="fas fa-database mr-2"></i>KEY DATA TO COLLECT FROM ANNUAL REPORT</p>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  <div class="bg-gray-800 rounded-lg p-2 text-center">
+                    <p class="text-white text-xs font-bold">Market Cap</p>
+                    <p class="text-gray-400 text-xs">Shares × Price</p>
+                  </div>
+                  <div class="bg-gray-800 rounded-lg p-2 text-center">
+                    <p class="text-white text-xs font-bold">Net Debt</p>
+                    <p class="text-gray-400 text-xs">Total Debt − Cash</p>
+                  </div>
+                  <div class="bg-gray-800 rounded-lg p-2 text-center">
+                    <p class="text-white text-xs font-bold">Enterprise Value</p>
+                    <p class="text-gray-400 text-xs">Mkt Cap + Net Debt</p>
+                  </div>
+                  <div class="bg-gray-800 rounded-lg p-2 text-center">
+                    <p class="text-white text-xs font-bold">EPS</p>
+                    <p class="text-gray-400 text-xs">Net Profit ÷ Shares</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 4: Valuation -->
+        <div class="step-card p-7 md:ml-16 relative">
+          <div class="step-num bg-orange-500 text-white absolute hidden md:flex" style="left:-24px;top:28px;">4</div>
+          <div class="flex items-start gap-4">
+            <div class="step-num bg-orange-50 text-orange-600 md:hidden">4</div>
+            <div class="flex-1">
+              <div class="flex items-center gap-3 mb-3 flex-wrap">
+                <h3 class="text-xl font-black text-gray-900">Valuation</h3>
+                <span class="pill bg-orange-100 text-orange-700">Use InvestIQ Calculators</span>
+              </div>
+              <p class="text-gray-600 mb-5 leading-relaxed">This is where InvestIQ does the heavy lifting for you. Use our professional calculators to compute intrinsic value — then compare to the current market price.</p>
+
+              <div class="bg-orange-50 border border-orange-100 rounded-xl p-4 mb-5">
+                <p class="text-orange-800 font-bold text-sm mb-1"><i class="fas fa-compass mr-2"></i>The Core Valuation Logic</p>
+                <p class="text-orange-700 text-sm">If <span class="font-bold">Intrinsic Value &gt; Current Market Price</span> → Stock is <span class="text-green-600 font-bold">undervalued</span> → Consider BUY<br/>
+                If <span class="font-bold">Intrinsic Value &lt; Current Market Price</span> → Stock is <span class="text-red-600 font-bold">overvalued</span> → Consider SELL<br/>
+                If <span class="font-bold">Intrinsic Value ≈ Current Market Price</span> → Stock is <span class="text-amber-600 font-bold">fairly valued</span> → Consider HOLD</p>
+              </div>
+
+              <!-- Calculator Cards -->
+              <p class="font-bold text-gray-800 mb-3"><i class="fas fa-calculator mr-2 text-blue-500"></i>InvestIQ Calculators — Click to Open</p>
+              <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-4">
+
+                <a href="/#calculators" class="calc-card block">
+                  <div class="flex items-center gap-3 mb-2">
+                    <div class="w-9 h-9 rounded-xl bg-blue-100 flex items-center justify-center flex-shrink-0">
+                      <i class="fas fa-chart-area text-blue-600 text-sm"></i>
+                    </div>
+                    <p class="font-bold text-gray-900 text-sm">DCF Valuation</p>
+                  </div>
+                  <p class="text-gray-500 text-xs leading-relaxed">Best for: companies with predictable free cash flows. Enter revenue growth, margins, WACC, and terminal growth to get intrinsic value per share.</p>
+                  <p class="text-blue-600 text-xs font-bold mt-2">You need: FCF, growth rate, WACC →</p>
+                </a>
+
+                <a href="/#calculators" class="calc-card block">
+                  <div class="flex items-center gap-3 mb-2">
+                    <div class="w-9 h-9 rounded-xl bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                      <i class="fas fa-shield-alt text-emerald-600 text-sm"></i>
+                    </div>
+                    <p class="font-bold text-gray-900 text-sm">Intrinsic Value (Graham)</p>
+                  </div>
+                  <p class="text-gray-500 text-xs leading-relaxed">Benjamin Graham's formula. Simple and powerful for any stock. Gives you a margin of safety — how much the stock is discounted from its true value.</p>
+                  <p class="text-emerald-600 text-xs font-bold mt-2">You need: EPS, growth rate →</p>
+                </a>
+
+                <a href="/#calculators" class="calc-card block">
+                  <div class="flex items-center gap-3 mb-2">
+                    <div class="w-9 h-9 rounded-xl bg-sky-100 flex items-center justify-center flex-shrink-0">
+                      <i class="fas fa-bullseye text-sky-600 text-sm"></i>
+                    </div>
+                    <p class="font-bold text-gray-900 text-sm">Target Price</p>
+                  </div>
+                  <p class="text-gray-500 text-xs leading-relaxed">Analyst-style price target using Forward EPS × Target P/E multiple. Compare target price to current price to identify upside or downside.</p>
+                  <p class="text-sky-600 text-xs font-bold mt-2">You need: EPS forecast, P/E multiple →</p>
+                </a>
+
+                <a href="/#calculators" class="calc-card block">
+                  <div class="flex items-center gap-3 mb-2">
+                    <div class="w-9 h-9 rounded-xl bg-amber-100 flex items-center justify-center flex-shrink-0">
+                      <i class="fas fa-university text-amber-600 text-sm"></i>
+                    </div>
+                    <p class="font-bold text-gray-900 text-sm">Bank Stock Valuation</p>
+                  </div>
+                  <p class="text-gray-500 text-xs leading-relaxed">If pitching a bank stock (GCB, CAL, Absa, Stanchart, etc.), use this DDM-based model specifically designed for financial institutions.</p>
+                  <p class="text-amber-600 text-xs font-bold mt-2">You need: DPS, ROE, cost of equity →</p>
+                </a>
+
+                <a href="/#calculators" class="calc-card block">
+                  <div class="flex items-center gap-3 mb-2">
+                    <div class="w-9 h-9 rounded-xl bg-purple-100 flex items-center justify-center flex-shrink-0">
+                      <i class="fas fa-coins text-purple-600 text-sm"></i>
+                    </div>
+                    <p class="font-bold text-gray-900 text-sm">Dividend Valuation (DDM)</p>
+                  </div>
+                  <p class="text-gray-500 text-xs leading-relaxed">Gordon Growth Model — values stocks that pay regular dividends. Ideal for mature, dividend-paying GSE companies.</p>
+                  <p class="text-purple-600 text-xs font-bold mt-2">You need: DPS, dividend growth, cost of equity →</p>
+                </a>
+
+                <a href="/#calculators" class="calc-card block">
+                  <div class="flex items-center gap-3 mb-2">
+                    <div class="w-9 h-9 rounded-xl bg-teal-100 flex items-center justify-center flex-shrink-0">
+                      <i class="fas fa-percentage text-teal-600 text-sm"></i>
+                    </div>
+                    <p class="font-bold text-gray-900 text-sm">Cost of Equity (CAPM)</p>
+                  </div>
+                  <p class="text-gray-500 text-xs leading-relaxed">Calculate the required return on equity — the discount rate you'll use in DDM and DCF models. CAPM + DDM blended approach.</p>
+                  <p class="text-teal-600 text-xs font-bold mt-2">You need: risk-free rate, beta, market return →</p>
+                </a>
+
+                <a href="/#calculators" class="calc-card block">
+                  <div class="flex items-center gap-3 mb-2">
+                    <div class="w-9 h-9 rounded-xl bg-red-100 flex items-center justify-center flex-shrink-0">
+                      <i class="fas fa-building text-red-600 text-sm"></i>
+                    </div>
+                    <p class="font-bold text-gray-900 text-sm">FCFF Calculator</p>
+                  </div>
+                  <p class="text-gray-500 text-xs leading-relaxed">Free Cash Flow to the Firm — calculates the cash available to all capital providers. Used in enterprise valuation (EV) models.</p>
+                  <p class="text-red-600 text-xs font-bold mt-2">You need: EBIT, taxes, capex, depreciation →</p>
+                </a>
+
+                <a href="/#calculators" class="calc-card block">
+                  <div class="flex items-center gap-3 mb-2">
+                    <div class="w-9 h-9 rounded-xl bg-orange-100 flex items-center justify-center flex-shrink-0">
+                      <i class="fas fa-hand-holding-usd text-orange-600 text-sm"></i>
+                    </div>
+                    <p class="font-bold text-gray-900 text-sm">FCFE Calculator</p>
+                  </div>
+                  <p class="text-gray-500 text-xs leading-relaxed">Free Cash Flow to Equity — the cash left for equity holders after debt payments. Used for equity-specific valuation.</p>
+                  <p class="text-orange-600 text-xs font-bold mt-2">You need: net income, capex, debt changes →</p>
+                </a>
+
+                <a href="/#calculators" class="calc-card block">
+                  <div class="flex items-center gap-3 mb-2">
+                    <div class="w-9 h-9 rounded-xl bg-indigo-100 flex items-center justify-center flex-shrink-0">
+                      <i class="fas fa-wave-square text-indigo-600 text-sm"></i>
+                    </div>
+                    <p class="font-bold text-gray-900 text-sm">Beta Calculator</p>
+                  </div>
+                  <p class="text-gray-500 text-xs leading-relaxed">Measure a stock's systematic risk relative to the GSE market. Beta &gt; 1 means higher risk/reward. Used in CAPM cost of equity.</p>
+                  <p class="text-indigo-600 text-xs font-bold mt-2">You need: stock returns vs market returns →</p>
+                </a>
+
+              </div>
+
+              <div class="bg-blue-900 rounded-xl p-5 text-white">
+                <p class="font-bold mb-3"><i class="fas fa-lightbulb text-yellow-400 mr-2"></i>Pro Tip — Use Multiple Models</p>
+                <p class="text-blue-200 text-sm leading-relaxed">Don't rely on one model alone. Run at least two or three, then take an average (weighted or equal). Show the judges you understand the range of possible values. Example:</p>
+                <div class="grid grid-cols-3 gap-3 mt-3">
+                  <div class="bg-blue-800 rounded-lg p-3 text-center">
+                    <p class="text-blue-300 text-xs">DCF Value</p>
+                    <p class="text-white font-bold">GHc 4.20</p>
+                  </div>
+                  <div class="bg-blue-800 rounded-lg p-3 text-center">
+                    <p class="text-blue-300 text-xs">Graham Value</p>
+                    <p class="text-white font-bold">GHc 3.85</p>
+                  </div>
+                  <div class="bg-blue-800 rounded-lg p-3 text-center">
+                    <p class="text-blue-300 text-xs">Average (Target)</p>
+                    <p class="text-yellow-300 font-bold">GHc 4.03</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 5: Recommendation -->
+        <div class="step-card p-7 md:ml-16 relative">
+          <div class="step-num bg-green-600 text-white absolute hidden md:flex" style="left:-24px;top:28px;">5</div>
+          <div class="flex items-start gap-4">
+            <div class="step-num bg-green-50 text-green-700 md:hidden">5</div>
+            <div class="flex-1">
+              <div class="flex items-center gap-3 mb-3 flex-wrap">
+                <h3 class="text-xl font-black text-gray-900">Recommendation</h3>
+                <span class="pill bg-green-100 text-green-700">Buy · Sell · Hold</span>
+              </div>
+              <p class="text-gray-600 mb-5 leading-relaxed">Based on your full analysis, make a clear and confident recommendation. Be decisive — a vague "it depends" is not a recommendation.</p>
+              <div class="grid sm:grid-cols-3 gap-4">
+                <div class="border-2 border-green-200 bg-green-50 rounded-2xl p-5">
+                  <div class="w-12 h-12 bg-green-500 rounded-xl flex items-center justify-center mx-auto mb-3">
+                    <i class="fas fa-arrow-trend-up text-white text-lg"></i>
+                  </div>
+                  <p class="font-black text-green-700 text-center text-lg mb-2">BUY</p>
+                  <ul class="text-green-700 text-xs space-y-1.5">
+                    <li><i class="fas fa-check mr-1"></i>Intrinsic value significantly above market price</li>
+                    <li><i class="fas fa-check mr-1"></i>Strong earnings growth outlook</li>
+                    <li><i class="fas fa-check mr-1"></i>Competitive advantage is durable</li>
+                    <li><i class="fas fa-check mr-1"></i>Macroeconomic tailwinds</li>
+                  </ul>
+                </div>
+                <div class="border-2 border-red-200 bg-red-50 rounded-2xl p-5">
+                  <div class="w-12 h-12 bg-red-500 rounded-xl flex items-center justify-center mx-auto mb-3">
+                    <i class="fas fa-arrow-trend-down text-white text-lg"></i>
+                  </div>
+                  <p class="font-black text-red-600 text-center text-lg mb-2">SELL</p>
+                  <ul class="text-red-700 text-xs space-y-1.5">
+                    <li><i class="fas fa-check mr-1"></i>Stock is significantly overvalued</li>
+                    <li><i class="fas fa-check mr-1"></i>Earnings are declining or under pressure</li>
+                    <li><i class="fas fa-check mr-1"></i>Competitive moat is eroding</li>
+                    <li><i class="fas fa-check mr-1"></i>Major macro or regulatory headwinds</li>
+                  </ul>
+                </div>
+                <div class="border-2 border-amber-200 bg-amber-50 rounded-2xl p-5">
+                  <div class="w-12 h-12 bg-amber-500 rounded-xl flex items-center justify-center mx-auto mb-3">
+                    <i class="fas fa-minus text-white text-lg"></i>
+                  </div>
+                  <p class="font-black text-amber-700 text-center text-lg mb-2">HOLD</p>
+                  <ul class="text-amber-700 text-xs space-y-1.5">
+                    <li><i class="fas fa-check mr-1"></i>Stock is fairly valued at current price</li>
+                    <li><i class="fas fa-check mr-1"></i>Steady but unexciting growth outlook</li>
+                    <li><i class="fas fa-check mr-1"></i>No strong catalyst to drive price up or down</li>
+                    <li><i class="fas fa-check mr-1"></i>Good dividend yield compensates for flat price</li>
+                  </ul>
+                </div>
+              </div>
+              <div class="mt-4 bg-gray-50 border border-gray-200 rounded-xl p-4">
+                <p class="font-bold text-gray-800 text-sm mb-2">Your Recommendation Slide Should Include:</p>
+                <div class="flex flex-wrap gap-2">
+                  <span class="bg-gray-200 text-gray-700 text-xs px-3 py-1 rounded-full font-medium">Current Price</span>
+                  <span class="bg-gray-200 text-gray-700 text-xs px-3 py-1 rounded-full font-medium">Target Price</span>
+                  <span class="bg-gray-200 text-gray-700 text-xs px-3 py-1 rounded-full font-medium">Upside / Downside %</span>
+                  <span class="bg-gray-200 text-gray-700 text-xs px-3 py-1 rounded-full font-medium">Time Horizon (e.g. 12 months)</span>
+                  <span class="bg-gray-200 text-gray-700 text-xs px-3 py-1 rounded-full font-medium">Key Risks to Watch</span>
+                  <span class="bg-gray-200 text-gray-700 text-xs px-3 py-1 rounded-full font-medium">BUY / SELL / HOLD verdict</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 6: Conclusion -->
+        <div class="step-card p-7 md:ml-16 relative">
+          <div class="step-num bg-gray-800 text-white absolute hidden md:flex" style="left:-24px;top:28px;">6</div>
+          <div class="flex items-start gap-4">
+            <div class="step-num bg-gray-100 text-gray-700 md:hidden">6</div>
+            <div class="flex-1">
+              <div class="flex items-center gap-3 mb-3 flex-wrap">
+                <h3 class="text-xl font-black text-gray-900">Conclusion</h3>
+                <span class="pill bg-gray-100 text-gray-700">Tie it All Together</span>
+              </div>
+              <p class="text-gray-600 mb-4 leading-relaxed">End strong. Your conclusion is your last chance to convince the judges. Summarise succinctly — don't introduce new information.</p>
+              <div class="bg-gray-900 rounded-2xl p-6 text-white">
+                <p class="text-gray-400 text-xs font-bold mb-3">CONCLUSION STRUCTURE</p>
+                <div class="space-y-3">
+                  <div class="flex items-start gap-3">
+                    <div class="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">1</div>
+                    <p class="text-gray-300 text-sm"><span class="text-white font-bold">Restate your thesis:</span> "We recommended [Company] as a BUY based on our analysis showing it is undervalued by X%."</p>
+                  </div>
+                  <div class="flex items-start gap-3">
+                    <div class="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">2</div>
+                    <p class="text-gray-300 text-sm"><span class="text-white font-bold">Top 3 reasons:</span> Summarise your strongest arguments — macro tailwind, strong earnings, undervalued by DCF.</p>
+                  </div>
+                  <div class="flex items-start gap-3">
+                    <div class="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">3</div>
+                    <p class="text-gray-300 text-sm"><span class="text-white font-bold">Acknowledge key risks:</span> "The main risk to our thesis is X. If Y happens, our recommendation changes to Z."</p>
+                  </div>
+                  <div class="flex items-start gap-3">
+                    <div class="w-6 h-6 rounded-full bg-yellow-500 flex items-center justify-center text-xs font-bold flex-shrink-0 mt-0.5">4</div>
+                    <p class="text-gray-300 text-sm"><span class="text-white font-bold">Close with conviction:</span> End confidently — thank the judges, restate your verdict, invite questions.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── COMPETITION DETAILS ── -->
+<section id="competition" class="max-w-5xl mx-auto px-4 py-16">
+  <div class="text-center mb-12">
+    <span class="section-tag">Official Guidelines</span>
+    <h2 class="text-3xl font-black text-gray-900 mt-2">Competition Details</h2>
+    <p class="text-gray-500 mt-2">Everything you need to know about the YIN Stock Pitch Competition</p>
+  </div>
+
+  <div class="grid md:grid-cols-2 gap-6 mb-8">
+    <div class="step-card p-6">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+          <i class="fas fa-users text-blue-600"></i>
+        </div>
+        <h3 class="font-bold text-gray-900">Teams</h3>
+      </div>
+      <ul class="space-y-2 text-sm text-gray-600">
+        <li class="flex items-start gap-2"><i class="fas fa-check-circle text-green-500 mt-0.5"></i>Groups of <strong>1 to 5 people</strong> maximum</li>
+        <li class="flex items-start gap-2"><i class="fas fa-check-circle text-green-500 mt-0.5"></i>Open to persons who completed school within the <strong>last 3 years</strong></li>
+        <li class="flex items-start gap-2"><i class="fas fa-check-circle text-green-500 mt-0.5"></i>Any field of study — finance, engineering, arts, science, all welcome</li>
+      </ul>
+    </div>
+
+    <div class="step-card p-6">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center">
+          <i class="fas fa-presentation text-purple-600"></i>
+        </div>
+        <h3 class="font-bold text-gray-900">Presentation Format</h3>
+      </div>
+      <ul class="space-y-2 text-sm text-gray-600">
+        <li class="flex items-start gap-2"><i class="fas fa-check-circle text-green-500 mt-0.5"></i><strong>10 minutes</strong> presentation + <strong>5 minutes</strong> Q&amp;A with judges</li>
+        <li class="flex items-start gap-2"><i class="fas fa-check-circle text-green-500 mt-0.5"></i><strong>10 slides MAX</strong> (excluding title and appendices)</li>
+        <li class="flex items-start gap-2"><i class="fas fa-check-circle text-green-500 mt-0.5"></i>Print <strong>5 copies</strong> of slides to hand to judges</li>
+        <li class="flex items-start gap-2"><i class="fas fa-check-circle text-green-500 mt-0.5"></i>Bring your laptop with the presentation ready</li>
+      </ul>
+    </div>
+
+    <div class="step-card p-6">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center">
+          <i class="fas fa-stock text-amber-600"></i>
+        </div>
+        <h3 class="font-bold text-gray-900">Stock Selection Rules</h3>
+      </div>
+      <ul class="space-y-2 text-sm text-gray-600">
+        <li class="flex items-start gap-2"><i class="fas fa-check-circle text-green-500 mt-0.5"></i>Must be a stock listed on the <strong>Ghana Stock Exchange (GSE)</strong></li>
+        <li class="flex items-start gap-2"><i class="fas fa-check-circle text-green-500 mt-0.5"></i>Must be a <strong>common or preferred stock</strong> (not bonds)</li>
+        <li class="flex items-start gap-2"><i class="fas fa-check-circle text-green-500 mt-0.5"></i>Stock must have had <strong>trading activity within the last 12 months</strong></li>
+      </ul>
+    </div>
+
+    <div class="step-card p-6">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="w-10 h-10 bg-red-100 rounded-xl flex items-center justify-center">
+          <i class="fas fa-gavel text-red-600"></i>
+        </div>
+        <h3 class="font-bold text-gray-900">How You're Judged</h3>
+      </div>
+      <ul class="space-y-2 text-sm text-gray-600">
+        <li class="flex items-start gap-2"><i class="fas fa-check-circle text-green-500 mt-0.5"></i>Quality and depth of your <strong>financial analysis</strong></li>
+        <li class="flex items-start gap-2"><i class="fas fa-check-circle text-green-500 mt-0.5"></i>Strength of your <strong>arguments and recommendation</strong></li>
+        <li class="flex items-start gap-2"><i class="fas fa-check-circle text-green-500 mt-0.5"></i><strong>Overall flow</strong> and clarity of your presentation</li>
+        <li class="flex items-start gap-2"><i class="fas fa-check-circle text-green-500 mt-0.5"></i><strong>Accuracy</strong> in answering judges' questions</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Submission -->
+  <div class="bg-gray-900 rounded-2xl p-8 text-white text-center">
+    <div class="w-16 h-16 bg-blue-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+      <i class="fas fa-paper-plane text-blue-400 text-2xl"></i>
+    </div>
+    <h3 class="text-xl font-black mb-2">Submission</h3>
+    <p class="text-gray-400 mb-4">Send your presentation deck in both <strong class="text-white">.pptx</strong> and <strong class="text-white">.pdf</strong> format to:</p>
+    <a href="mailto:financescholarsyin@gmail.com" class="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-6 py-3 rounded-xl font-bold transition-colors">
+      <i class="fas fa-envelope"></i> financescholarsyin@gmail.com
+    </a>
+  </div>
+</section>
+
+<!-- ── SLIDE CHECKLIST ── -->
+<section class="bg-blue-900 text-white py-16 px-4">
+  <div class="max-w-5xl mx-auto">
+    <div class="text-center mb-10">
+      <h2 class="text-3xl font-black mb-2">Your 10-Slide Checklist</h2>
+      <p class="text-blue-300">Use this as your presentation roadmap</p>
+    </div>
+    <div class="grid sm:grid-cols-2 lg:grid-cols-5 gap-3">
+      <div class="bg-blue-800/60 border border-blue-700/50 rounded-xl p-4 text-center">
+        <p class="text-blue-400 text-xs font-bold mb-1">SLIDE 1</p>
+        <p class="font-bold text-sm">Title &amp; Opening Statement</p>
+        <p class="text-blue-400 text-xs mt-1">"We recommend [Stock] as a BUY because..."</p>
+      </div>
+      <div class="bg-blue-800/60 border border-blue-700/50 rounded-xl p-4 text-center">
+        <p class="text-blue-400 text-xs font-bold mb-1">SLIDE 2</p>
+        <p class="font-bold text-sm">Economic Analysis</p>
+        <p class="text-blue-400 text-xs mt-1">Ghana macro environment &amp; its impact</p>
+      </div>
+      <div class="bg-blue-800/60 border border-blue-700/50 rounded-xl p-4 text-center">
+        <p class="text-blue-400 text-xs font-bold mb-1">SLIDE 3</p>
+        <p class="font-bold text-sm">Industry Analysis</p>
+        <p class="text-blue-400 text-xs mt-1">Sector overview, competition, market share</p>
+      </div>
+      <div class="bg-blue-800/60 border border-blue-700/50 rounded-xl p-4 text-center">
+        <p class="text-blue-400 text-xs font-bold mb-1">SLIDE 4</p>
+        <p class="font-bold text-sm">Company Overview</p>
+        <p class="text-blue-400 text-xs mt-1">Business model, products, management</p>
+      </div>
+      <div class="bg-blue-800/60 border border-blue-700/50 rounded-xl p-4 text-center">
+        <p class="text-blue-400 text-xs font-bold mb-1">SLIDE 5</p>
+        <p class="font-bold text-sm">Financial Summary</p>
+        <p class="text-blue-400 text-xs mt-1">Revenue, EPS, ROE, debt, dividends</p>
+      </div>
+      <div class="bg-blue-800/60 border border-blue-700/50 rounded-xl p-4 text-center">
+        <p class="text-blue-400 text-xs font-bold mb-1">SLIDE 6</p>
+        <p class="font-bold text-sm">SWOT Analysis</p>
+        <p class="text-blue-400 text-xs mt-1">Strengths, Weaknesses, Opportunities, Threats</p>
+      </div>
+      <div class="bg-blue-800/60 border border-blue-700/50 rounded-xl p-4 text-center">
+        <p class="text-blue-400 text-xs font-bold mb-1">SLIDE 7</p>
+        <p class="font-bold text-sm">Valuation Model 1</p>
+        <p class="text-blue-400 text-xs mt-1">DCF or Intrinsic Value (Graham)</p>
+      </div>
+      <div class="bg-blue-800/60 border border-blue-700/50 rounded-xl p-4 text-center">
+        <p class="text-blue-400 text-xs font-bold mb-1">SLIDE 8</p>
+        <p class="font-bold text-sm">Valuation Model 2</p>
+        <p class="text-blue-400 text-xs mt-1">DDM, Target Price, or Bank Valuation</p>
+      </div>
+      <div class="bg-blue-800/60 border border-blue-700/50 rounded-xl p-4 text-center">
+        <p class="text-blue-400 text-xs font-bold mb-1">SLIDE 9</p>
+        <p class="font-bold text-sm">Recommendation</p>
+        <p class="text-blue-400 text-xs mt-1">BUY/SELL/HOLD, target price, upside/downside</p>
+      </div>
+      <div class="bg-yellow-500/20 border border-yellow-500/40 rounded-xl p-4 text-center">
+        <p class="text-yellow-400 text-xs font-bold mb-1">SLIDE 10</p>
+        <p class="font-bold text-sm text-yellow-300">Conclusion</p>
+        <p class="text-yellow-400 text-xs mt-1">Thesis restatement, key risks, final verdict</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── CTA ── -->
+<section class="py-16 px-4 bg-white text-center">
+  <div class="max-w-2xl mx-auto">
+    <h2 class="text-3xl font-black text-gray-900 mb-3">Ready to Start?</h2>
+    <p class="text-gray-500 mb-8">Open InvestIQ's calculators and begin valuing your chosen GSE stock today.</p>
+    <div class="flex flex-wrap gap-4 justify-center">
+      <a href="/#calculators" class="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-xl font-bold text-base transition-colors shadow-lg">
+        <i class="fas fa-calculator mr-2"></i>Open Calculators
+      </a>
+      <a href="/jobs" class="bg-gray-100 hover:bg-gray-200 text-gray-800 px-8 py-4 rounded-xl font-bold text-base transition-colors">
+        <i class="fas fa-arrow-left mr-2"></i>Back to Jobs
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="bg-gray-900 text-gray-400 text-center py-6 text-sm">
+  <p>© 2025 Young Investors Network × InvestIQ · <a href="/" class="text-blue-400 hover:text-blue-300">investright.onrender.com</a></p>
+</footer>
+
+</body>
+</html>
