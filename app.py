@@ -6700,13 +6700,19 @@ def yin_register_page():
         return render_template('hr_yin_register.html', programs=programs,
                                error='Full name and email are required.')
 
-    # Resolve program (optional — if none active just store NULL)
+    # Resolve program; fall back to first active, or create a General one
     prog = None
-    prog_name = 'General Membership'
     if prog_id_str and prog_id_str.isdigit():
         prog = YINProgram.query.get(int(prog_id_str))
-        if prog:
-            prog_name = prog.name
+    if prog is None:
+        prog = YINProgram.query.filter_by(is_active=True).first()
+    if prog is None:
+        # Create a persistent General Membership programme as fallback
+        prog = YINProgram(name='General Membership', description='General YIN membership registration.', is_active=True)
+        db.session.add(prog)
+        db.session.flush()  # get prog.id without full commit
+
+    prog_name = prog.name
 
     # Generate or use existing YIN code
     if is_existing:
@@ -6719,7 +6725,7 @@ def yin_register_page():
         yin_code = f'YIN{next_num:04d}'
 
     reg = YINRegistration(
-        program_id=prog.id if prog else None,
+        program_id=prog.id,
         program_name=prog_name,
         full_name=full_name, phone=phone, email=email,
         institution=institution, institution_type=inst_type,
