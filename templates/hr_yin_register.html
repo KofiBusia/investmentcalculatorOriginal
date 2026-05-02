@@ -107,15 +107,34 @@
 <!-- Main form -->
 <section class="max-w-3xl mx-auto px-4 py-12">
 
-  {% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
-    {% for cat, msg in messages %}
-    <div class="mb-6 p-4 rounded-xl font-medium {% if cat == 'success' %}bg-green-50 border border-green-200 text-green-800{% else %}bg-red-50 border border-red-200 text-red-700{% endif %}">
-      <i class="fas {% if cat == 'success' %}fa-check-circle{% else %}fa-exclamation-circle{% endif %} mr-2"></i>{{ msg }}
+  {% if success %}
+  <div class="mb-8 bg-green-50 border-2 border-green-300 rounded-2xl p-7 text-center shadow-sm">
+    <div class="w-16 h-16 bg-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+      <i class="fas fa-check text-white text-2xl"></i>
     </div>
-    {% endfor %}
+    <h2 class="text-2xl font-black text-green-900 mb-2">Registration Successful!</h2>
+    <p class="text-green-700 mb-4">You've been registered for <strong>{{ registered_prog }}</strong>.</p>
+    {% if is_existing %}
+    <p class="text-green-700 text-sm">Your existing YIN code has been recorded. Welcome back!</p>
+    {% else %}
+    <p class="text-green-600 text-sm mb-3">Your unique YIN membership code is:</p>
+    <div class="inline-block bg-white border-2 border-green-400 rounded-xl px-8 py-4 mb-3">
+      <p class="text-3xl font-black text-green-700 tracking-widest">{{ new_code }}</p>
+    </div>
+    <p class="text-green-600 text-xs">Save this code — you'll need it to join future YIN programmes.</p>
+    {% endif %}
+    <div class="mt-5 flex flex-wrap gap-3 justify-center">
+      <a href="/yin-programs" class="bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 rounded-xl font-semibold text-sm transition-colors">View YIN Programmes</a>
+      <a href="/stock-pitch" class="bg-yellow-400 hover:bg-yellow-300 text-gray-900 px-5 py-2.5 rounded-xl font-semibold text-sm transition-colors">Stock Pitch Guide</a>
+    </div>
+  </div>
   {% endif %}
-  {% endwith %}
+
+  {% if error %}
+  <div class="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm">
+    <i class="fas fa-exclamation-circle mr-2"></i>{{ error }}
+  </div>
+  {% endif %}
 
   {% if programs %}
   <!-- Step 1: Choose a programme -->
@@ -148,7 +167,7 @@
   {% endif %}
 
   <!-- Step 2: Registration form -->
-  <form id="reg-form" method="POST" action="" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-7">
+  <form id="reg-form" method="POST" action="/yin-register" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-7">
     <h2 class="text-xl font-black text-gray-900 mb-1 flex items-center gap-2">
       <span class="w-7 h-7 bg-green-600 text-white rounded-full text-sm font-bold flex items-center justify-center">2</span>
       Your Details
@@ -270,16 +289,13 @@
 function openDrawer(){document.getElementById('mobile-drawer').style.left='0';document.getElementById('drawer-overlay').style.display='block';document.body.style.overflow='hidden';}
 function closeDrawer(){document.getElementById('mobile-drawer').style.left='-280px';document.getElementById('drawer-overlay').style.display='none';document.body.style.overflow='';}
 
-let selectedProgId = null;
-
 function selectProg(id) {
-  selectedProgId = id;
   document.querySelectorAll('.prog-card').forEach(c => c.classList.remove('selected'));
   const lbl = document.getElementById('prog-label-' + id);
   if (lbl) lbl.classList.add('selected');
-  document.querySelector('input[name=prog_select][value="' + id + '"]').checked = true;
+  const radio = document.querySelector('input[name=prog_select][value="' + id + '"]');
+  if (radio) radio.checked = true;
   document.getElementById('no-prog-warning').classList.add('hidden');
-  document.getElementById('reg-form').action = '/yin-programs/' + id + '/register';
 }
 
 function toggleYINCode(isExisting) {
@@ -290,15 +306,12 @@ function toggleYINCode(isExisting) {
   else            { cc.required = true;  cw.style.opacity = '1';  }
 }
 
-// Validate programme selection before submit
-document.getElementById('reg-form').addEventListener('submit', function(e) {
-  {% if programs %}
-  if (!selectedProgId) {
-    e.preventDefault();
-    document.getElementById('no-prog-warning').classList.remove('hidden');
-    document.getElementById('prog-cards').scrollIntoView({behavior:'smooth'});
+// Auto-select first programme on load
+document.addEventListener('DOMContentLoaded', function() {
+  const firstRadio = document.querySelector('input[name=prog_select]');
+  if (firstRadio) {
+    selectProg(firstRadio.value);
   }
-  {% endif %}
 });
 </script>
 </body>

@@ -6677,10 +6677,61 @@ def api_cv_submit():
 
 # ── YIN PROGRAMS ──────────────────────────────────────────────────────────────
 
-@app.route('/yin-register')
+@app.route('/yin-register', methods=['GET', 'POST'])
 def yin_register_page():
     programs = YINProgram.query.filter_by(is_active=True).order_by(YINProgram.created_at.desc()).all()
-    return render_template('hr_yin_register.html', programs=programs)
+
+    if request.method == 'GET':
+        return render_template('hr_yin_register.html', programs=programs)
+
+    # ── POST: process registration ──
+    prog_id_str  = request.form.get('prog_select', '').strip()
+    full_name    = request.form.get('full_name', '').strip()
+    phone        = request.form.get('phone', '').strip()
+    email        = request.form.get('email', '').strip().lower()
+    institution  = request.form.get('institution', '').strip()
+    inst_type    = request.form.get('institution_type', '').strip()
+    how_heard    = request.form.get('how_heard', '').strip()
+    is_existing  = request.form.get('is_existing_member') == 'yes'
+    existing_code = request.form.get('existing_yin_code', '').strip().upper()
+    confirmed    = request.form.get('confirmed') == 'on'
+
+    if not full_name or not email:
+        return render_template('hr_yin_register.html', programs=programs,
+                               error='Full name and email are required.')
+
+    # Resolve program (optional — if none active just store NULL)
+    prog = None
+    prog_name = 'General Membership'
+    if prog_id_str and prog_id_str.isdigit():
+        prog = YINProgram.query.get(int(prog_id_str))
+        if prog:
+            prog_name = prog.name
+
+    # Generate or use existing YIN code
+    if is_existing:
+        yin_code = existing_code
+    else:
+        last = YINRegistration.query.filter(
+            YINRegistration.yin_code.like('YIN%')
+        ).order_by(YINRegistration.id.desc()).first()
+        next_num = (int(last.yin_code[3:]) + 1) if (last and last.yin_code and last.yin_code[3:].isdigit()) else 1
+        yin_code = f'YIN{next_num:04d}'
+
+    reg = YINRegistration(
+        program_id=prog.id if prog else None,
+        program_name=prog_name,
+        full_name=full_name, phone=phone, email=email,
+        institution=institution, institution_type=inst_type,
+        how_heard=how_heard, is_existing_member=is_existing,
+        yin_code=yin_code, confirmed=confirmed,
+    )
+    db.session.add(reg)
+    db.session.commit()
+
+    return render_template('hr_yin_register.html', programs=programs,
+                           success=True, new_code=yin_code,
+                           is_existing=is_existing, registered_prog=prog_name)
 
 
 @app.route('/yin-programs')
