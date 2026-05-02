@@ -1,27 +1,51 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>Admin Dashboard — InvestIQ</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
   <script src="https://cdn.tailwindcss.com"></script>
-  <style>body{font-family:'Inter',sans-serif;background:#f1f5f9;min-height:100vh;}</style>
+  <style>
+    body{font-family:'Inter',sans-serif;background:#f1f5f9;min-height:100vh;}
+    #sidebar{transition:transform .25s cubic-bezier(.4,0,.2,1);}
+    @media(max-width:767px){
+      #sidebar{position:fixed;top:0;left:0;height:100%;z-index:300;transform:translateX(-100%);}
+      #sidebar.open{transform:translateX(0);}
+      #sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;}
+      #sidebar-overlay.open{display:block;}
+    }
+    .export-card{background:#1e293b;border:1px solid #334155;border-radius:14px;overflow:hidden;transition:border-color .2s;}
+    .export-card:hover{border-color:#6366f1;}
+    .dl-btn{display:flex;align-items:center;justify-content:center;gap:.5rem;padding:.7rem;border-radius:9px;font-size:.88rem;font-weight:700;text-decoration:none;transition:all .2s;color:#fff;}
+  </style>
 </head>
 <body class="text-gray-800">
+
+<!-- Mobile sidebar overlay -->
+<div id="sidebar-overlay" onclick="closeSidebar()"></div>
+
+<!-- Mobile topbar -->
+<div class="md:hidden bg-gray-900 text-white px-4 py-3 flex items-center justify-between sticky top-0 z-100 shadow-lg" style="z-index:150;">
+  <button onclick="openSidebar()" class="text-gray-300 hover:text-white p-1">
+    <i class="fas fa-bars text-xl"></i>
+  </button>
+  <span class="font-bold text-sm flex items-center gap-2"><i class="fas fa-chart-line text-indigo-400"></i> InvestIQ Admin</span>
+  <a href="/admin/logout" class="text-gray-400 hover:text-white text-sm"><i class="fas fa-sign-out-alt"></i></a>
+</div>
 
 <!-- Sidebar + content layout -->
 <div class="flex min-h-screen">
 
   <!-- Sidebar -->
-  <aside class="w-64 bg-gray-900 text-white flex flex-col" style="min-height:100vh;">
-    <div class="p-6 border-b border-gray-800">
+  <aside id="sidebar" class="w-64 bg-gray-900 text-white flex flex-col" style="min-height:100vh;">
+    <div class="p-6 border-b border-gray-800 flex items-center justify-between">
       <a href="/" class="flex items-center gap-2 text-white font-bold text-lg">
         <i class="fas fa-chart-line text-indigo-400"></i> InvestIQ Admin
       </a>
-      <p class="text-gray-400 text-xs mt-1">Content Management</p>
+      <button onclick="closeSidebar()" class="md:hidden text-gray-400 hover:text-white"><i class="fas fa-times"></i></button>
     </div>
-    <nav class="flex-1 p-4 space-y-1">
+    <nav class="flex-1 p-4 space-y-1 overflow-y-auto">
       <a href="/admin" class="flex items-center gap-3 px-3 py-2.5 bg-indigo-600 text-white rounded-lg text-sm font-medium">
         <i class="fas fa-tachometer-alt w-4"></i> Dashboard
       </a>
@@ -52,7 +76,7 @@
       <a href="/admin/content-admins" class="flex items-center gap-3 px-3 py-2.5 text-gray-300 hover:bg-gray-800 rounded-lg text-sm font-medium transition-colors">
         <i class="fas fa-user-edit w-4 text-purple-400"></i> Content Admins
       </a>
-      <hr class="border-gray-800 my-3" />
+      <hr class="border-gray-800 my-3"/>
       <a href="/" class="flex items-center gap-3 px-3 py-2.5 text-gray-400 hover:bg-gray-800 rounded-lg text-sm transition-colors">
         <i class="fas fa-globe w-4"></i> View Website
       </a>
@@ -71,7 +95,7 @@
   </aside>
 
   <!-- Main content -->
-  <main class="flex-1 p-8">
+  <main class="flex-1 p-4 md:p-8 overflow-x-hidden">
     <div class="mb-8">
       <h1 class="text-2xl font-bold text-gray-800">Dashboard</h1>
       <p class="text-gray-500 text-sm mt-1">Manage your articles and YouTube videos</p>
@@ -197,7 +221,143 @@
       </table>
     </div>
     {% endif %}
+
+    {% if is_super_admin %}
+    <!-- ── DATA EXPORTS ── -->
+    <div class="mt-10">
+      <div class="flex items-center gap-3 mb-6">
+        <div class="w-10 h-10 bg-indigo-100 rounded-xl flex items-center justify-center">
+          <i class="fas fa-database text-indigo-600"></i>
+        </div>
+        <div>
+          <h2 class="text-xl font-bold text-gray-800">Data Exports</h2>
+          <p class="text-gray-500 text-xs">Download live CSV snapshots from the platform database</p>
+        </div>
+      </div>
+
+      <!-- Platform stats row -->
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-8">
+        {% set stat_data = [
+          ('Total Signups', total_signups, 'indigo', 'fa-users'),
+          ('Training Bookings', training_count, 'amber', 'fa-calendar-alt'),
+          ('Employers', employer_count, 'blue', 'fa-building'),
+          ('Candidates', candidate_count, 'emerald', 'fa-user-tie'),
+          ('YIN Members', yin_reg_count, 'yellow', 'fa-id-card'),
+          ('Referrers', referral_count, 'pink', 'fa-share-alt'),
+        ] %}
+        {% for label, val, color, icon in stat_data %}
+        <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 text-center">
+          <i class="fas {{ icon }} text-{{ color }}-500 text-lg mb-1"></i>
+          <p class="text-2xl font-black text-gray-800">{{ val }}</p>
+          <p class="text-xs text-gray-500 mt-0.5">{{ label }}</p>
+        </div>
+        {% endfor %}
+      </div>
+
+      <!-- Export cards grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+
+        <div class="export-card">
+          <div class="p-5 border-b border-gray-700">
+            <div class="w-10 h-10 rounded-xl bg-emerald-600 flex items-center justify-center mb-3"><i class="fas fa-calendar-alt text-white"></i></div>
+            <p class="text-white font-bold">Training Schedules <span class="text-xs bg-blue-600 text-white px-2 py-0.5 rounded-full ml-1">{{ training_count }}</span></p>
+            <p class="text-gray-400 text-xs mt-1">All training booking requests — individual & corporate.</p>
+          </div>
+          <div class="p-4">
+            <a href="/super-admin/training-csv" class="dl-btn" style="background:linear-gradient(135deg,#059669,#0d9488);">
+              <i class="fas fa-file-csv"></i> Download training_schedules.csv
+            </a>
+          </div>
+        </div>
+
+        <div class="export-card">
+          <div class="p-5 border-b border-gray-700">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center mb-3" style="background:#ede9fe;"><i class="fas fa-user-friends" style="color:#5b21b6;"></i></div>
+            <p class="text-white font-bold">Mentorship Applications</p>
+            <p class="text-gray-400 text-xs mt-1">All mentorship programme applications.</p>
+          </div>
+          <div class="p-4">
+            <a href="/super-admin/mentorship-csv" class="dl-btn" style="background:#ede9fe;color:#5b21b6;border:1.5px solid #c4b5fd;">
+              <i class="fas fa-file-csv"></i> Download mentorship_applications.csv
+            </a>
+          </div>
+        </div>
+
+        <div class="export-card">
+          <div class="p-5 border-b border-gray-700">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center mb-3" style="background:#dcfce7;"><i class="fas fa-poll-h" style="color:#065f46;"></i></div>
+            <p class="text-white font-bold">CV Builder Survey Responses</p>
+            <p class="text-gray-400 text-xs mt-1">YIN, Stock Pitch, Internship & National Service answers.</p>
+          </div>
+          <div class="p-4">
+            <a href="/super-admin/survey-csv" class="dl-btn" style="background:#dcfce7;color:#065f46;border:1.5px solid #86efac;">
+              <i class="fas fa-file-csv"></i> Download cv_survey_responses.csv
+            </a>
+          </div>
+        </div>
+
+        <div class="export-card">
+          <div class="p-5 border-b border-gray-700">
+            <div class="w-10 h-10 rounded-xl bg-blue-600 flex items-center justify-center mb-3"><i class="fas fa-user-tie text-white"></i></div>
+            <p class="text-white font-bold">Candidates Linked to Employers <span class="text-xs bg-blue-600 text-white px-2 py-0.5 rounded-full ml-1">{{ linked_count }}</span></p>
+            <p class="text-gray-400 text-xs mt-1">Shortlisted or interviewed candidates.</p>
+          </div>
+          <div class="p-4">
+            <a href="/super-admin/linked-candidates-csv" class="dl-btn" style="background:linear-gradient(135deg,#2563eb,#7c3aed);">
+              <i class="fas fa-file-csv"></i> Download candidates_linked.csv
+            </a>
+          </div>
+        </div>
+
+        <div class="export-card">
+          <div class="p-5 border-b border-gray-700">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center mb-3" style="background:linear-gradient(135deg,#d97706,#f59e0b);"><i class="fas fa-share-nodes text-white"></i></div>
+            <p class="text-white font-bold">Referrals & Discounts <span class="text-xs bg-amber-500 text-white px-2 py-0.5 rounded-full ml-1">{{ successful_refs }} successful</span></p>
+            <p class="text-gray-400 text-xs mt-1">One row per referrer — discount earned & referees list.</p>
+          </div>
+          <div class="p-4">
+            <a href="/super-admin/referrals-csv" class="dl-btn" style="background:linear-gradient(135deg,#d97706,#f59e0b);">
+              <i class="fas fa-file-csv"></i> Download referrals.csv
+            </a>
+          </div>
+        </div>
+
+        <div class="export-card">
+          <div class="p-5 border-b border-gray-700">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center mb-3" style="background:linear-gradient(135deg,#be185d,#db2777);"><i class="fas fa-id-card text-white"></i></div>
+            <p class="text-white font-bold">YIN Registrations <span class="text-xs bg-pink-600 text-white px-2 py-0.5 rounded-full ml-1">{{ yin_reg_count }}</span></p>
+            <p class="text-gray-400 text-xs mt-1">All YIN membership registrations with codes.</p>
+          </div>
+          <div class="p-4">
+            <a href="/super-admin/yin-registrations-csv" class="dl-btn" style="background:linear-gradient(135deg,#be185d,#db2777);">
+              <i class="fas fa-file-csv"></i> Download yin_registrations.csv
+            </a>
+          </div>
+        </div>
+
+        <div class="export-card">
+          <div class="p-5 border-b border-gray-700">
+            <div class="w-10 h-10 rounded-xl bg-gray-600 flex items-center justify-center mb-3"><i class="fas fa-users text-white"></i></div>
+            <p class="text-white font-bold">All Signups <span class="text-xs bg-gray-500 text-white px-2 py-0.5 rounded-full ml-1">{{ total_signups }} unique</span></p>
+            <p class="text-gray-400 text-xs mt-1">Deduplicated by email across all platform forms.</p>
+          </div>
+          <div class="p-4">
+            <a href="/super-admin/all-signups-csv" class="dl-btn" style="background:#374151;">
+              <i class="fas fa-file-csv"></i> Download all_signups.csv
+            </a>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    {% endif %}
+
   </main>
 </div>
+
+<script>
+function openSidebar(){document.getElementById('sidebar').classList.add('open');document.getElementById('sidebar-overlay').classList.add('open');document.body.style.overflow='hidden';}
+function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('sidebar-overlay').classList.remove('open');document.body.style.overflow='';}
+</script>
 </body>
 </html>

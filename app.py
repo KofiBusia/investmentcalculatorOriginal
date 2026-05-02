@@ -3211,43 +3211,47 @@ def _is_full_admin():
 def admin_login():
     error = None
     if request.method == 'POST':
-        if request.form.get('password') == ADMIN_PASSWORD:
-            session['admin_logged_in'] = True
-            session.permanent = True
-            return redirect(url_for('admin_dashboard'))
-        error = 'Incorrect password. Please try again.'
+        email    = request.form.get('email', '').strip().lower()
+        password = request.form.get('password', '')
+        if not email:
+            # Master password login
+            if password == ADMIN_PASSWORD or password == SUPER_ADMIN_PASSWORD:
+                session['admin_logged_in']       = True
+                session['super_admin_logged_in'] = True
+                session.permanent = True
+                return redirect(url_for('admin_dashboard'))
+            error = 'Incorrect password. Please try again.'
+        else:
+            # Content admin (email + password)
+            ca = ContentAdmin.query.filter_by(email=email, is_active=True).first()
+            if ca and ca.check_password(password):
+                session['content_admin_logged_in'] = True
+                session['content_admin_id'] = ca.id
+                session.permanent = True
+                return redirect(url_for('admin_articles'))
+            error = 'Invalid email or password.'
     return render_template('admin_login.html', error=error)
 
 
 @app.route('/admin/logout')
 def admin_logout():
     session.pop('admin_logged_in', None)
+    session.pop('super_admin_logged_in', None)
+    session.pop('content_admin_logged_in', None)
+    session.pop('content_admin_id', None)
     return redirect(url_for('admin_login'))
 
 
-# ---- CONTENT ADMIN (articles + videos only) ----
+# ---- LEGACY REDIRECTS (old content-admin and super-admin URLs) ----
 
 @app.route('/content-admin/login', methods=['GET', 'POST'])
 def content_admin_login():
-    error = None
-    if request.method == 'POST':
-        email = request.form.get('email', '').strip().lower()
-        password = request.form.get('password', '')
-        ca = ContentAdmin.query.filter_by(email=email, is_active=True).first()
-        if ca and ca.check_password(password):
-            session['content_admin_logged_in'] = True
-            session['content_admin_id'] = ca.id
-            session.permanent = True
-            return redirect(url_for('admin_articles'))
-        error = 'Invalid email or password.'
-    return render_template('content_admin_login.html', error=error)
+    return redirect(url_for('admin_login'))
 
 
 @app.route('/content-admin/logout')
 def content_admin_logout():
-    session.pop('content_admin_logged_in', None)
-    session.pop('content_admin_id', None)
-    return redirect(url_for('content_admin_login'))
+    return redirect(url_for('admin_logout'))
 
 
 @app.route('/admin/content-admins', methods=['GET', 'POST'])
@@ -3302,9 +3306,41 @@ def admin_dashboard():
     recent        = Article.query.order_by(Article.created_at.desc()).limit(5).all()
     job_count     = JobListing.query.filter_by(is_active=True).count()
     app_count     = JobApplication.query.count()
-    return render_template('admin_dashboard.html', article_count=article_count,
-                           video_count=video_count, published=published, recent=recent,
-                           job_count=job_count, app_count=app_count)
+
+    # Super-admin data exports section
+    is_super_admin = bool(session.get('super_admin_logged_in') or session.get('admin_logged_in'))
+    training_count  = TrainingBooking.query.count()          if is_super_admin else 0
+    employer_count  = EmployerAccount.query.count()          if is_super_admin else 0
+    candidate_count = CandidateProfile.query.count()         if is_super_admin else 0
+    yin_reg_count   = YINRegistration.query.count()          if is_super_admin else 0
+    referral_count  = db.session.query(Referral.referrer_email).distinct().count() if is_super_admin else 0
+    successful_refs = Referral.query.filter_by(status='Successful').count()        if is_super_admin else 0
+
+    linked_count = 0
+    total_signups = 0
+    if is_super_admin:
+        linked_ids = set(
+            [r[0] for r in db.session.query(EmployerShortlist.candidate_id).distinct().all()] +
+            [r[0] for r in db.session.query(EmployerInquiry.candidate_id).distinct().all()]
+        )
+        linked_count = len(linked_ids)
+        all_emails = set()
+        for u in SiteUser.query.with_entities(SiteUser.email).all():               all_emails.add(u[0].strip().lower())
+        for e in EmployerAccount.query.with_entities(EmployerAccount.email).all(): all_emails.add(e[0].strip().lower())
+        for c in CandidateProfile.query.with_entities(CandidateProfile.email).all(): all_emails.add(c[0].strip().lower())
+        for b in TrainingBooking.query.with_entities(TrainingBooking.email).all(): all_emails.add(b[0].strip().lower())
+        for a in JobApplication.query.with_entities(JobApplication.email).all():   all_emails.add(a[0].strip().lower())
+        total_signups = len(all_emails)
+
+    return render_template('admin_dashboard.html',
+                           article_count=article_count, video_count=video_count,
+                           published=published, recent=recent,
+                           job_count=job_count, app_count=app_count,
+                           is_super_admin=is_super_admin,
+                           training_count=training_count, employer_count=employer_count,
+                           candidate_count=candidate_count, yin_reg_count=yin_reg_count,
+                           referral_count=referral_count, successful_refs=successful_refs,
+                           linked_count=linked_count, total_signups=total_signups)
 
 
 # ---- ARTICLE CRUD ----
@@ -5991,28 +6027,19 @@ def admin_training():
 
 def _super_admin_required():
     """Return redirect if super admin not logged in, else None."""
-    if not session.get('super_admin_logged_in'):
-        return redirect(url_for('super_admin_login'))
+    if not session.get('super_admin_logged_in') and not session.get('admin_logged_in'):
+        return redirect(url_for('admin_login'))
     return None
 
 
 @app.route('/super-admin/login', methods=['GET', 'POST'])
 def super_admin_login():
-    error = None
-    if request.method == 'POST':
-        pw = request.form.get('password', '')
-        if pw == SUPER_ADMIN_PASSWORD:
-            session['super_admin_logged_in'] = True
-            session.permanent = True
-            return redirect(url_for('super_admin_dashboard'))
-        error = 'Incorrect password.'
-    return render_template('hr_super_admin_login.html', error=error)
+    return redirect(url_for('admin_login'))
 
 
 @app.route('/super-admin/logout')
 def super_admin_logout():
-    session.pop('super_admin_logged_in', None)
-    return redirect(url_for('super_admin_login'))
+    return redirect(url_for('admin_logout'))
 
 
 @app.route('/super-admin')
@@ -6653,7 +6680,7 @@ def api_cv_submit():
 @app.route('/yin-register')
 def yin_register_page():
     programs = YINProgram.query.filter_by(is_active=True).order_by(YINProgram.created_at.desc()).all()
-    return render_template('hr_yin_programs.html', programs=programs, open_register=True)
+    return render_template('hr_yin_register.html', programs=programs)
 
 
 @app.route('/yin-programs')

@@ -1,50 +1,100 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>Admin Login — InvestIQ</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>body{font-family:'Inter',sans-serif;background:linear-gradient(135deg,#1e293b,#0f172a);min-height:100vh;display:flex;align-items:center;justify-content:center;}</style>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <style>
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Inter',sans-serif;background:linear-gradient(135deg,#0f172a 0%,#1e293b 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:1rem;}
+    .card{background:#fff;border-radius:20px;box-shadow:0 24px 80px rgba(0,0,0,.4);padding:2.5rem;width:100%;max-width:420px;}
+    .logo{display:flex;align-items:center;gap:.6rem;font-size:1.35rem;font-weight:800;color:#1e293b;margin-bottom:.25rem;}
+    .logo span{color:#6366f1;}
+    .subtitle{font-size:.82rem;color:#94a3b8;margin-bottom:2rem;}
+    .tab-row{display:flex;gap:.5rem;margin-bottom:1.75rem;background:#f1f5f9;border-radius:10px;padding:.3rem;}
+    .tab{flex:1;text-align:center;padding:.55rem;border-radius:8px;font-size:.88rem;font-weight:600;color:#64748b;cursor:pointer;border:none;background:transparent;transition:all .15s;}
+    .tab.active{background:#fff;color:#4f46e5;box-shadow:0 2px 8px rgba(0,0,0,.08);}
+    .field{margin-bottom:1.1rem;}
+    label{display:block;font-size:.82rem;font-weight:600;color:#374151;margin-bottom:.45rem;}
+    input{width:100%;border:1.5px solid #e2e8f0;border-radius:10px;padding:.75rem 1rem;font-size:.93rem;font-family:inherit;outline:none;transition:border .2s;}
+    input:focus{border-color:#6366f1;box-shadow:0 0 0 3px rgba(99,102,241,.1);}
+    .btn{width:100%;background:linear-gradient(135deg,#4f46e5,#6366f1);color:#fff;border:none;border-radius:10px;padding:.85rem;font-size:.95rem;font-weight:700;cursor:pointer;transition:all .2s;margin-top:.25rem;}
+    .btn:hover{opacity:.92;transform:translateY(-1px);}
+    .error{background:#fef2f2;border:1px solid #fecaca;color:#dc2626;padding:.75rem 1rem;border-radius:10px;font-size:.85rem;display:flex;align-items:center;gap:.5rem;margin-bottom:1.25rem;}
+    .hint{font-size:.75rem;color:#94a3b8;text-align:center;margin-top:1.25rem;}
+    .hint a{color:#6366f1;text-decoration:none;}
+    .divider{height:1px;background:#f1f5f9;margin:1.25rem 0;}
+    .role-badge{display:inline-flex;align-items:center;gap:.4rem;font-size:.78rem;padding:.3rem .7rem;border-radius:999px;font-weight:600;}
+    .role-full{background:#ede9fe;color:#5b21b6;}
+    .role-content{background:#dbeafe;color:#1d4ed8;}
+    .roles-row{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1.5rem;}
+  </style>
 </head>
-<body class="text-gray-800">
-  <div class="w-full max-w-md px-4">
-    <div class="bg-white rounded-2xl shadow-2xl p-8">
-      <div class="text-center mb-8">
-        <div class="inline-flex items-center justify-center w-16 h-16 bg-indigo-100 rounded-2xl mb-4">
-          <i class="fas fa-lock text-2xl text-indigo-600"></i>
-        </div>
-        <h1 class="text-2xl font-bold text-gray-800">Admin Access</h1>
-        <p class="text-gray-500 text-sm mt-1">InvestIQ Content Management</p>
+<body>
+  <div class="card">
+    <div class="logo"><i class="fas fa-chart-line" style="color:#6366f1;"></i> Invest<span>IQ</span></div>
+    <p class="subtitle">Unified Admin Panel</p>
+
+    <div class="roles-row">
+      <span class="role-badge role-full"><i class="fas fa-shield-alt"></i> Full Admin</span>
+      <span class="role-badge role-content"><i class="fas fa-pen"></i> Content Admin</span>
+    </div>
+
+    {% if error %}
+    <div class="error"><i class="fas fa-exclamation-circle"></i> {{ error }}</div>
+    {% endif %}
+
+    <div class="tab-row">
+      <button class="tab active" id="tab-admin" onclick="switchTab('admin')">
+        <i class="fas fa-shield-alt mr-1"></i> Admin Login
+      </button>
+      <button class="tab" id="tab-content" onclick="switchTab('content')">
+        <i class="fas fa-pen mr-1"></i> Content Admin
+      </button>
+    </div>
+
+    <!-- Admin password form -->
+    <form method="POST" action="/admin/login" id="form-admin">
+      <input type="hidden" name="email" value=""/>
+      <div class="field">
+        <label><i class="fas fa-lock" style="color:#6366f1;margin-right:.35rem;"></i>Admin Password</label>
+        <input type="password" name="password" placeholder="Enter admin password" autofocus/>
       </div>
+      <button type="submit" class="btn"><i class="fas fa-sign-in-alt mr-2"></i>Sign In as Admin</button>
+    </form>
 
-      {% if error %}
-      <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6 text-sm flex items-center gap-2">
-        <i class="fas fa-exclamation-circle"></i> {{ error }}
+    <!-- Content admin form -->
+    <form method="POST" action="/admin/login" id="form-content" style="display:none;">
+      <div class="field">
+        <label><i class="fas fa-envelope" style="color:#6366f1;margin-right:.35rem;"></i>Email Address</label>
+        <input type="email" name="email" placeholder="your@email.com"/>
       </div>
-      {% endif %}
-
-      <form method="POST" action="/admin/login">
-        <div class="mb-5">
-          <label class="block text-sm font-medium text-gray-700 mb-2">Admin Password</label>
-          <input type="password" name="password" required autofocus
-            class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent"
-            placeholder="Enter admin password" />
-        </div>
-        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-lg transition-colors">
-          <i class="fas fa-sign-in-alt mr-2"></i> Sign In
-        </button>
-      </form>
-
-      <p class="text-center text-sm text-gray-400 mt-6">
-        <a href="/" class="text-indigo-500 hover:text-indigo-700"><i class="fas fa-arrow-left mr-1"></i>Back to InvestIQ</a>
-      </p>
-
-      <div class="mt-6 p-4 bg-gray-50 rounded-lg">
-        <p class="text-xs text-gray-500 text-center">Default password can be changed via the <code class="bg-gray-100 px-1 rounded">ADMIN_PASSWORD</code> environment variable.</p>
+      <div class="field">
+        <label><i class="fas fa-lock" style="color:#6366f1;margin-right:.35rem;"></i>Password</label>
+        <input type="password" name="password" placeholder="Enter your password"/>
       </div>
+      <button type="submit" class="btn" style="background:linear-gradient(135deg,#1d4ed8,#3b82f6);"><i class="fas fa-pen mr-2"></i>Sign In as Content Admin</button>
+    </form>
+
+    <div class="hint">
+      <a href="/"><i class="fas fa-arrow-left mr-1"></i>Back to InvestIQ</a>
     </div>
   </div>
+
+  <script>
+    function switchTab(t) {
+      document.getElementById('tab-admin').classList.toggle('active', t==='admin');
+      document.getElementById('tab-content').classList.toggle('active', t==='content');
+      document.getElementById('form-admin').style.display  = t==='admin'   ? '' : 'none';
+      document.getElementById('form-content').style.display = t==='content' ? '' : 'none';
+    }
+    // If there was an error and email field was filled, switch to content tab
+    {% if error %}
+    (function(){
+      const url = new URLSearchParams(window.location.search);
+    })();
+    {% endif %}
+  </script>
 </body>
 </html>
