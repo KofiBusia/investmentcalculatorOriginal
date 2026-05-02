@@ -3407,7 +3407,7 @@ def admin_video_new():
 
         # If featuring this video, un-feature others
         if is_featured:
-            Video.query.update({'is_featured': False})
+            Video.query.update({'is_featured': False}, synchronize_session=False)
 
         video = Video(title=title, youtube_url=youtube_url, description=description,
                       is_featured=is_featured, is_published=is_published)
@@ -3432,7 +3432,7 @@ def admin_video_edit(video_id):
         video.is_published = request.form.get('is_published') == '1'
 
         if video.is_featured:
-            Video.query.filter(Video.id != video_id).update({'is_featured': False})
+            Video.query.filter(Video.id != video_id).update({'is_featured': False}, synchronize_session=False)
 
         db.session.commit()
         logger.info(f'Admin updated video {video_id}')
