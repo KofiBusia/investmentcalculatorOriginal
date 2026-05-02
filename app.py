@@ -41,6 +41,12 @@ app = Flask(__name__)
 UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), 'static', 'books')
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
+# Use PostgreSQL on Render (DATABASE_URL env var); fall back to SQLite locally.
+_raw_db_url = os.getenv('DATABASE_URL', 'sqlite:///site.db')
+# Render provides postgres:// scheme; SQLAlchemy requires postgresql://
+if _raw_db_url.startswith('postgres://'):
+    _raw_db_url = _raw_db_url.replace('postgres://', 'postgresql://', 1)
+
 app.config.update(
     SECRET_KEY=os.getenv('SECRET_KEY', 'e1efa2b32b1bac66588d074bac02a168212082d8befd0b6466f5ee37a8c2836a'),
     MAX_CONTENT_LENGTH=50 * 1024 * 1024,  # 50 MB limit for book uploads
@@ -49,7 +55,7 @@ app.config.update(
     SESSION_PERMANENT=True,
     PERMANENT_SESSION_LIFETIME=86400,
     WTF_CSRF_TIME_LIMIT=7200,
-    SQLALCHEMY_DATABASE_URI='sqlite:///site.db',
+    SQLALCHEMY_DATABASE_URI=_raw_db_url,
     SQLALCHEMY_TRACK_MODIFICATIONS=False,
     SESSION_FILE_DIR=os.path.join(os.path.dirname(__file__), 'instance', 'sessions'),
     UPLOAD_FOLDER=UPLOAD_FOLDER,
