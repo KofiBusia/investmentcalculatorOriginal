@@ -6650,6 +6650,12 @@ def api_cv_submit():
 
 # ── YIN PROGRAMS ──────────────────────────────────────────────────────────────
 
+@app.route('/yin-register')
+def yin_register_page():
+    programs = YINProgram.query.filter_by(is_active=True).order_by(YINProgram.created_at.desc()).all()
+    return render_template('hr_yin_programs.html', programs=programs, open_register=True)
+
+
 @app.route('/yin-programs')
 def yin_programs():
     programs = YINProgram.query.filter_by(is_active=True).order_by(YINProgram.created_at.desc()).all()
