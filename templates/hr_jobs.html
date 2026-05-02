@@ -16,8 +16,12 @@
   .badge-green{background:#d1fae5;color:#065f46;}
   .badge-purple{background:#ede9fe;color:#5b21b6;}
   .badge-orange{background:#ffedd5;color:#9a3412;}
-  .filter-btn{padding:.5rem 1.25rem;border-radius:8px;font-weight:500;font-size:.9rem;border:1.5px solid #e2e8f0;background:#fff;cursor:pointer;transition:all .15s;}
+  .filter-btn{padding:.5rem 1.25rem;border-radius:8px;font-weight:500;font-size:.9rem;border:1.5px solid #e2e8f0;background:#fff;cursor:pointer;transition:all .15s;white-space:nowrap;flex-shrink:0;}
   .filter-btn.active,.filter-btn:hover{background:#0f4c81;color:#fff;border-color:#0f4c81;}
+  .filters-scroll{display:flex;gap:.5rem;overflow-x:auto;padding:.25rem .25rem .75rem;scrollbar-width:thin;scrollbar-color:#cbd5e1 transparent;-webkit-overflow-scrolling:touch;}
+  .filters-scroll::-webkit-scrollbar{height:4px;}
+  .filters-scroll::-webkit-scrollbar-track{background:transparent;}
+  .filters-scroll::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:99px;}
   .search-input{border:1.5px solid #e2e8f0;border-radius:10px;padding:.65rem 1rem .65rem 2.75rem;font-size:.95rem;width:100%;outline:none;transition:border .2s;}
   .search-input:focus{border-color:#0f4c81;box-shadow:0 0 0 3px rgba(15,76,129,.12);}
   .apply-btn{background:linear-gradient(135deg,#0f4c81,#1e3a5f);color:#fff;padding:.7rem 1.75rem;border-radius:10px;font-weight:600;font-size:.93rem;border:none;cursor:pointer;transition:all .2s;}
@@ -45,6 +49,9 @@
       <a href="/stock-pitch" class="bg-yellow-400/20 border border-yellow-400/40 text-yellow-300 hover:bg-yellow-400/30 px-3 py-1 rounded-full font-semibold transition-colors flex items-center gap-1">
         <i class="fas fa-trophy text-xs"></i> Stock Pitch
       </a>
+      <a href="/yin-register" class="bg-green-500/20 border border-green-400/40 text-green-300 hover:bg-green-500/30 px-3 py-1 rounded-full font-semibold transition-colors flex items-center gap-1">
+        <i class="fas fa-id-card text-xs"></i> Join YIN
+      </a>
     </div>
     <a href="/cv-builder" class="hidden md:block bg-blue-500 hover:bg-blue-400 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors">
       <i class="fas fa-file-alt mr-1"></i> Build Your CV
@@ -71,7 +78,7 @@
 
 <!-- FILTERS -->
 <div class="max-w-7xl mx-auto px-4 py-6">
-  <div class="flex flex-wrap gap-2" id="sector-filters">
+  <div class="filters-scroll" id="sector-filters">
     <button class="filter-btn active" onclick="setFilter('all',this)">All Jobs</button>
     <button class="filter-btn" onclick="setFilter('Finance',this)">Finance</button>
     <button class="filter-btn" onclick="setFilter('Banking',this)">Banking</button>
