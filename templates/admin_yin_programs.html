@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>YIN Programmes — Admin</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+<style>
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #f1f5f9; min-height: 100vh; }
+  .topbar { background: #1e293b; border-bottom: 1px solid #334155; padding: 0 28px; height: 56px; display: flex; align-items: center; justify-content: space-between; }
+  .brand { font-size: 1rem; font-weight: 800; color: #f1f5f9; display: flex; align-items: center; gap: 8px; text-decoration: none; }
+  .back-btn { display: flex; align-items: center; gap: 6px; padding: 7px 14px; background: rgba(100,116,139,.15); color: #94a3b8; border: 1px solid rgba(100,116,139,.25); border-radius: 8px; font-size: .82rem; font-weight: 600; text-decoration: none; transition: all .2s; }
+  .back-btn:hover { background: rgba(100,116,139,.3); color: #e2e8f0; }
+  .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+  .input-field { display: block; width: 100%; border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 9px 12px; font-size: .9rem; outline: none; transition: border-color .2s; }
+  .input-field:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
+  .btn-primary { background: linear-gradient(135deg, #1e3a5f, #2563eb); color: #fff; border: none; border-radius: 8px; padding: 10px 20px; font-weight: 700; font-size: .88rem; cursor: pointer; transition: opacity .2s; }
+  .btn-primary:hover { opacity: .88; }
+  .badge-active { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; padding: 2px 10px; border-radius: 20px; font-size: .75rem; font-weight: 700; }
+  .badge-inactive { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; padding: 2px 10px; border-radius: 20px; font-size: .75rem; font-weight: 700; }
+</style>
+</head>
+<body>
+
+<!-- Topbar -->
+<div class="topbar">
+  <a href="/admin/dashboard" class="brand">
+    <i class="fas fa-chart-line" style="color:#3b82f6;"></i> InvestIQ <span style="color:#64748b;font-weight:400;">/ Admin</span>
+  </a>
+  <a href="/admin/dashboard" class="back-btn"><i class="fas fa-arrow-left"></i> Dashboard</a>
+</div>
+
+<div class="max-w-4xl mx-auto px-4 py-10">
+
+  <!-- Page Title -->
+  <div class="mb-8">
+    <h1 class="text-2xl font-extrabold text-gray-800 flex items-center gap-3">
+      <span class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:linear-gradient(135deg,#1e3a5f,#2563eb);">
+        <i class="fas fa-users text-white text-sm"></i>
+      </span>
+      YIN Programmes
+    </h1>
+    <p class="text-gray-500 text-sm mt-1">Create and manage Young Investors Network programmes.</p>
+  </div>
+
+  <!-- Create New Programme -->
+  <div class="card p-6 mb-8">
+    <h2 class="text-base font-bold text-gray-700 mb-4 flex items-center gap-2">
+      <i class="fas fa-plus-circle text-blue-600"></i> Add New Programme
+    </h2>
+    <form method="POST" action="/admin/yin-programs" class="space-y-4">
+      <div>
+        <label class="block text-sm font-semibold text-gray-600 mb-1">Programme Name <span class="text-red-500">*</span></label>
+        <input type="text" name="name" required placeholder="e.g. YIN Investment Academy 2025" class="input-field"/>
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-gray-600 mb-1">Description</label>
+        <textarea name="description" rows="3" placeholder="Describe the programme, objectives, and who it's for..." class="input-field resize-none"></textarea>
+      </div>
+      <button type="submit" class="btn-primary flex items-center gap-2">
+        <i class="fas fa-save"></i> Create Programme
+      </button>
+    </form>
+  </div>
+
+  <!-- All Programmes List -->
+  <div class="card">
+    <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+      <h2 class="font-bold text-gray-700 flex items-center gap-2">
+        <i class="fas fa-list text-blue-600"></i> All Programmes
+      </h2>
+      <span class="text-xs text-gray-400">{{ programs|length }} total</span>
+    </div>
+
+    {% if programs %}
+    <div class="divide-y divide-gray-100">
+      {% for prog in programs %}
+      <div class="px-6 py-4 flex items-start justify-between gap-4">
+        <div class="flex-1 min-w-0">
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="font-bold text-gray-800 text-sm">{{ prog.name }}</span>
+            {% if prog.is_active %}
+            <span class="badge-active">Active</span>
+            {% else %}
+            <span class="badge-inactive">Inactive</span>
+            {% endif %}
+          </div>
+          {% if prog.description %}
+          <p class="text-gray-500 text-xs mt-1 leading-relaxed">{{ prog.description[:180] }}{% if prog.description|length > 180 %}…{% endif %}</p>
+          {% endif %}
+          <p class="text-gray-400 text-xs mt-1"><i class="fas fa-clock mr-1"></i>Created {{ prog.created_at.strftime('%d %b %Y') }}</p>
+        </div>
+        <div class="shrink-0">
+          <form method="POST" action="/admin/yin-programs/{{ prog.id }}/toggle">
+            <button type="submit"
+                    class="text-xs font-semibold px-4 py-2 rounded-lg border transition-all cursor-pointer {% if prog.is_active %}bg-red-50 text-red-700 border-red-200 hover:bg-red-100{% else %}bg-green-50 text-green-700 border-green-200 hover:bg-green-100{% endif %}">
+              {% if prog.is_active %}
+              <i class="fas fa-eye-slash mr-1"></i> Deactivate
+              {% else %}
+              <i class="fas fa-eye mr-1"></i> Activate
+              {% endif %}
+            </button>
+          </form>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="px-6 py-12 text-center">
+      <i class="fas fa-folder-open text-gray-300 text-4xl mb-3"></i>
+      <p class="text-gray-500 text-sm">No programmes yet. Create your first one above.</p>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Quick Links -->
+  <div class="mt-6 flex flex-wrap gap-3 text-sm">
+    <a href="/yin-programs" class="text-blue-600 hover:underline flex items-center gap-1">
+      <i class="fas fa-external-link-alt text-xs"></i> View Public Page
+    </a>
+    <span class="text-gray-300">|</span>
+    <a href="/super-admin/yin-registrations-csv" class="text-green-600 hover:underline flex items-center gap-1">
+      <i class="fas fa-download text-xs"></i> Download Registrations CSV
+    </a>
+  </div>
+
+</div>
+</body>
+</html>

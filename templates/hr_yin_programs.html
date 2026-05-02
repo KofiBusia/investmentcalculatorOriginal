@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>YIN Programmes — InvestIQ</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+<style>
+  body { background: #f8fafc; font-family: 'Segoe UI', Arial, sans-serif; }
+  .hero-gradient { background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 60%, #2563eb 100%); }
+  .input-field { display: block; width: 100%; border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 9px 12px; font-size: 0.9rem; outline: none; transition: border-color .2s; }
+  .input-field:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
+  .btn-primary { background: linear-gradient(135deg, #1e3a5f, #2563eb); color: #fff; border: none; border-radius: 9px; padding: 11px 22px; font-weight: 700; font-size: .95rem; cursor: pointer; transition: opacity .2s; }
+  .btn-primary:hover { opacity: .9; }
+  .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; box-shadow: 0 2px 8px rgba(0,0,0,.06); transition: box-shadow .2s, border-color .2s; }
+  .card:hover { box-shadow: 0 6px 24px rgba(37,99,235,.1); border-color: #bfdbfe; }
+  .yin-code-badge { background: linear-gradient(135deg, #1e3a5f, #2563eb); color: #fff; border-radius: 12px; padding: 4px 16px; font-size: 1.2rem; font-weight: 800; letter-spacing: .08em; display: inline-block; }
+  .tab-link { padding: 8px 18px; border-radius: 8px; font-size: .88rem; font-weight: 600; color: rgba(255,255,255,.7); text-decoration: none; transition: all .2s; }
+  .tab-link:hover, .tab-link.active { background: rgba(255,255,255,.15); color: #fff; }
+  .tab-link.active { border-bottom: 2px solid #93c5fd; border-radius: 0; }
+  select.input-field { cursor: pointer; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="hero-gradient text-white py-4 px-6 sticky top-0 z-50 shadow-xl">
+  <div class="max-w-6xl mx-auto flex items-center justify-between">
+    <a href="/" class="flex items-center gap-2 font-extrabold text-lg">
+      <i class="fas fa-chart-line text-blue-300"></i> Invest<span class="text-blue-300">IQ</span>
+    </a>
+    <div class="hidden md:flex items-center gap-1 text-sm flex-wrap">
+      <a href="/jobs" class="tab-link">Jobs</a>
+      <a href="/cv-builder" class="tab-link">CV Builder</a>
+      <a href="/yin-programs" class="tab-link active">YIN Programmes</a>
+      <a href="/employers-corner" class="tab-link">Employers' Corner</a>
+    </div>
+    <a href="/cv-builder" class="hidden md:block bg-blue-500 hover:bg-blue-400 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors">
+      <i class="fas fa-file-alt mr-1"></i> Build CV
+    </a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero-gradient text-white py-16 px-6">
+  <div class="max-w-4xl mx-auto text-center">
+    <div class="inline-flex items-center gap-2 bg-white/10 border border-white/20 rounded-full px-4 py-1.5 text-sm font-semibold mb-5">
+      <i class="fas fa-users text-blue-300"></i> Young Investors Network
+    </div>
+    <h1 class="text-4xl md:text-5xl font-extrabold mb-4 leading-tight">YIN Programmes</h1>
+    <p class="text-blue-200 text-lg max-w-2xl mx-auto leading-relaxed">Empowering young investors with the skills, network, and opportunities to build successful careers in finance and investment.</p>
+  </div>
+</div>
+
+<!-- SUCCESS BANNER -->
+{% if success %}
+<div class="max-w-3xl mx-auto px-4 mt-8">
+  <div class="bg-green-50 border-2 border-green-300 rounded-2xl p-6 text-center shadow-lg">
+    <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+      <i class="fas fa-check-circle text-green-600 text-3xl"></i>
+    </div>
+    <h2 class="text-2xl font-extrabold text-green-800 mb-2">
+      {% if is_existing %}Welcome back!{% else %}Registration Successful!{% endif %}
+    </h2>
+    <p class="text-green-700 mb-4">
+      {% if is_existing %}
+        You have been registered for <strong>{{ registered_prog }}</strong> using your existing YIN membership.
+      {% else %}
+        You have been registered for <strong>{{ registered_prog }}</strong>. Welcome to the Young Investors Network!
+      {% endif %}
+    </p>
+    <p class="text-sm text-gray-600 mb-3">Your YIN Membership Code:</p>
+    <span class="yin-code-badge">{{ new_code }}</span>
+    <p class="text-xs text-gray-500 mt-3">Please save this code — you will need it for future programme registrations.</p>
+    <a href="/yin-programs" class="inline-block mt-5 btn-primary text-sm px-6 py-2">
+      <i class="fas fa-arrow-left mr-1"></i> Back to Programmes
+    </a>
+  </div>
+</div>
+{% endif %}
+
+<!-- ERROR BANNER -->
+{% if error %}
+<div class="max-w-3xl mx-auto px-4 mt-6">
+  <div class="bg-red-50 border border-red-300 rounded-xl p-4 flex items-center gap-3">
+    <i class="fas fa-exclamation-circle text-red-500 text-xl"></i>
+    <span class="text-red-700 font-medium">{{ error }}</span>
+  </div>
+</div>
+{% endif %}
+
+<!-- PROGRAMMES GRID -->
+<div class="max-w-6xl mx-auto px-4 py-12">
+
+  {% if not programs %}
+  <div class="text-center py-20">
+    <div class="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-5">
+      <i class="fas fa-calendar-times text-blue-300 text-3xl"></i>
+    </div>
+    <h3 class="text-xl font-bold text-gray-700 mb-2">No Programmes Available</h3>
+    <p class="text-gray-500 text-sm max-w-sm mx-auto">There are no active YIN programmes at this time. Check back soon — new opportunities are added regularly.</p>
+  </div>
+  {% else %}
+
+  <h2 class="text-2xl font-extrabold text-gray-800 mb-2">Active Programmes</h2>
+  <p class="text-gray-500 text-sm mb-8">Select a programme to learn more and register your interest.</p>
+
+  <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {% for prog in programs %}
+    <div class="card p-6 flex flex-col">
+      <div class="flex items-start gap-3 mb-3">
+        <div class="w-11 h-11 rounded-xl flex items-center justify-center shrink-0" style="background:linear-gradient(135deg,#1e3a5f,#2563eb);">
+          <i class="fas fa-star text-white"></i>
+        </div>
+        <div>
+          <h3 class="font-extrabold text-gray-800 text-base leading-tight">{{ prog.name }}</h3>
+          <p class="text-xs text-blue-600 font-semibold mt-0.5">YIN Programme</p>
+        </div>
+      </div>
+      {% if prog.description %}
+      <p class="text-gray-600 text-sm leading-relaxed flex-1 mb-4">{{ prog.description }}</p>
+      {% else %}
+      <p class="text-gray-400 text-sm italic flex-1 mb-4">Programme details coming soon.</p>
+      {% endif %}
+      <button onclick="openModal({{ prog.id }}, '{{ prog.name | e }}')"
+              class="btn-primary text-sm w-full flex items-center justify-center gap-2 mt-auto">
+        <i class="fas fa-user-plus"></i> Apply Now
+      </button>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+</div>
+
+<!-- REGISTRATION MODAL -->
+<div id="reg-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden" style="background:rgba(0,0,0,.55);">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-xl max-h-[92vh] overflow-y-auto">
+    <!-- Modal Header -->
+    <div class="hero-gradient text-white rounded-t-2xl px-6 py-5 flex items-center justify-between">
+      <div>
+        <p class="text-xs text-blue-200 font-semibold uppercase tracking-widest mb-1">YIN Programme Registration</p>
+        <h3 id="modal-prog-name" class="text-xl font-extrabold"></h3>
+      </div>
+      <button onclick="closeModal()" class="text-white/70 hover:text-white text-2xl leading-none">&times;</button>
+    </div>
+
+    <!-- Modal Body -->
+    <form id="reg-form" method="POST" action="" class="px-6 py-6 space-y-4">
+      <!-- Full Name -->
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-1"><i class="fas fa-user text-blue-500 mr-1"></i>Full Name <span class="text-red-500">*</span></label>
+        <input type="text" name="full_name" required placeholder="Your full name" class="input-field"/>
+      </div>
+
+      <!-- Phone -->
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-1"><i class="fas fa-phone text-blue-500 mr-1"></i>Phone Number</label>
+        <input type="tel" name="phone" placeholder="+233 XX XXX XXXX" class="input-field"/>
+      </div>
+
+      <!-- Email -->
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-1"><i class="fas fa-envelope text-blue-500 mr-1"></i>Email Address <span class="text-red-500">*</span></label>
+        <input type="email" name="email" required placeholder="you@example.com" class="input-field"/>
+      </div>
+
+      <!-- Institution -->
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-1"><i class="fas fa-university text-blue-500 mr-1"></i>Name of Institution</label>
+        <input type="text" name="institution" placeholder="University, company, or organisation" class="input-field"/>
+      </div>
+
+      <!-- Institution Type -->
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-2"><i class="fas fa-building text-blue-500 mr-1"></i>Institution Type</label>
+        <div class="flex gap-4">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="radio" name="institution_type" value="tertiary" class="accent-blue-600"/>
+            <span class="text-sm text-gray-700 font-medium">Tertiary Institution</span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="radio" name="institution_type" value="non-tertiary" class="accent-blue-600"/>
+            <span class="text-sm text-gray-700 font-medium">Non-Tertiary Institution</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- How Heard -->
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-1"><i class="fas fa-bullhorn text-blue-500 mr-1"></i>How did you hear about YIN?</label>
+        <select name="how_heard" class="input-field">
+          <option value="">— Select an option —</option>
+          <option value="Social Media">Social Media</option>
+          <option value="Referral from a Friend">Referral from a Friend</option>
+          <option value="University/College">University/College</option>
+          <option value="Event/Conference">Event/Conference</option>
+          <option value="Online Search">Online Search</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+
+      <!-- Existing YIN Member -->
+      <div class="bg-blue-50 border border-blue-100 rounded-xl p-4">
+        <label class="block text-sm font-semibold text-gray-700 mb-2"><i class="fas fa-id-card text-blue-500 mr-1"></i>Are you already a YIN member?</label>
+        <div class="flex gap-4 mb-3">
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="radio" name="is_existing_member" value="yes" class="accent-blue-600" onchange="toggleYINCode(true)"/>
+            <span class="text-sm font-semibold text-green-700">Yes</span>
+          </label>
+          <label class="flex items-center gap-2 cursor-pointer">
+            <input type="radio" name="is_existing_member" value="no" checked class="accent-blue-600" onchange="toggleYINCode(false)"/>
+            <span class="text-sm font-semibold text-red-600">No</span>
+          </label>
+        </div>
+
+        <!-- Existing code input -->
+        <div id="existing-code-field" class="hidden">
+          <label class="block text-xs font-semibold text-gray-600 mb-1">Your YIN Code</label>
+          <input type="text" name="existing_yin_code" id="existing_yin_code" placeholder="e.g. YIN0042" class="input-field" style="text-transform:uppercase;"/>
+        </div>
+
+        <!-- New member confirmation -->
+        <div id="new-member-confirm">
+          <label class="flex items-start gap-2 cursor-pointer">
+            <input type="checkbox" name="confirmed" value="on" class="accent-blue-600 mt-0.5 shrink-0"/>
+            <span class="text-xs text-gray-600">By submitting this form, I confirm I wish to become a YIN member and will receive my membership code upon registration.</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Submit -->
+      <button type="submit" class="btn-primary w-full flex items-center justify-center gap-2 py-3">
+        <i class="fas fa-paper-plane"></i> Submit Registration
+      </button>
+    </form>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer class="py-10 px-6 text-center text-gray-400 text-sm border-t border-gray-200 bg-white mt-16">
+  <p class="font-semibold text-gray-700 mb-1">Young Investors Network &mdash; InvestIQ</p>
+  <p>Empowering the next generation of investors in Ghana and beyond.</p>
+  <div class="flex justify-center gap-5 mt-4 text-xs">
+    <a href="/jobs" class="hover:text-blue-600">Jobs</a>
+    <a href="/cv-builder" class="hover:text-blue-600">CV Builder</a>
+    <a href="/yin-programs" class="hover:text-blue-600">YIN Programmes</a>
+    <a href="/employers-corner" class="hover:text-blue-600">Employers' Corner</a>
+  </div>
+</footer>
+
+<script>
+function openModal(progId, progName) {
+  document.getElementById('modal-prog-name').textContent = progName;
+  document.getElementById('reg-form').action = '/yin-programs/' + progId + '/register';
+  document.getElementById('reg-modal').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  document.getElementById('reg-modal').classList.add('hidden');
+  document.body.style.overflow = '';
+}
+
+function toggleYINCode(isExisting) {
+  document.getElementById('existing-code-field').classList.toggle('hidden', !isExisting);
+  document.getElementById('new-member-confirm').classList.toggle('hidden', isExisting);
+}
+
+// Close modal on backdrop click
+document.getElementById('reg-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+{% if open_prog_id %}
+// Re-open modal on error
+document.addEventListener('DOMContentLoaded', function() {
+  var prog = document.querySelector('[data-prog-id="{{ open_prog_id }}"]');
+  if (prog) prog.click();
+});
+{% endif %}
+</script>
+</body>
+</html>

@@ -454,6 +454,42 @@ class PasswordResetToken(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 
+class CVSurveyExtra(db.Model):
+    __tablename__ = 'cv_survey_extra'
+    id                  = db.Column(db.Integer, primary_key=True)
+    email               = db.Column(db.String(200), nullable=False, index=True)
+    yin_join_date       = db.Column(db.String(20), default='')   # YYYY-MM-DD
+    years_with_yin      = db.Column(db.String(10), default='')   # computed
+    seeking_full_time   = db.Column(db.String(3), default='No')  # Yes / No
+    created_at          = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+class YINProgram(db.Model):
+    __tablename__ = 'yin_programs'
+    id          = db.Column(db.Integer, primary_key=True)
+    name        = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text, default='')
+    is_active   = db.Column(db.Boolean, default=True)
+    created_at  = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+class YINRegistration(db.Model):
+    __tablename__ = 'yin_registrations'
+    id               = db.Column(db.Integer, primary_key=True)
+    program_id       = db.Column(db.Integer, db.ForeignKey('yin_programs.id'), nullable=False)
+    program_name     = db.Column(db.String(200), default='')
+    full_name        = db.Column(db.String(200), nullable=False)
+    phone            = db.Column(db.String(50), default='')
+    email            = db.Column(db.String(200), nullable=False, index=True)
+    institution      = db.Column(db.String(200), default='')
+    institution_type = db.Column(db.String(20), default='')   # tertiary / non-tertiary
+    how_heard        = db.Column(db.String(200), default='')
+    is_existing_member = db.Column(db.Boolean, default=False)
+    yin_code         = db.Column(db.String(20), default='', index=True)  # existing or generated
+    confirmed        = db.Column(db.Boolean, default=False)
+    created_at       = db.Column(db.DateTime, default=datetime.utcnow)
+
+
 def _validate_company_name(name):
     """Return (ok: bool, error: str). Enforces real registered company name."""
     import re
@@ -5128,6 +5164,24 @@ def cv_builder():
                         want_national_service = 'Yes' if request.form.get('want_national_service') == 'yes' else 'No',
                     )
                     db.session.add(survey)
+                    # Save extra YIN survey fields
+                    yin_join_date = request.form.get('yin_join_date', '').strip()
+                    years_with_yin = ''
+                    if yin_join_date:
+                        try:
+                            from datetime import date
+                            join = date.fromisoformat(yin_join_date)
+                            years_with_yin = str((date.today() - join).days // 365)
+                        except Exception:
+                            pass
+                    seeking_ft = 'Yes' if request.form.get('seeking_full_time') == 'yes' else 'No'
+                    if email:
+                        db.session.add(CVSurveyExtra(
+                            email=email,
+                            yin_join_date=yin_join_date,
+                            years_with_yin=years_with_yin,
+                            seeking_full_time=seeking_ft,
+                        ))
                     db.session.commit()
                 except Exception as sv_err:
                     logger.error(f'Survey save error: {sv_err}')
@@ -5172,7 +5226,8 @@ def cv_builder():
             error = 'Error processing CV. Please check all fields.'
             logger.error(f'CV build error: {e}')
     return render_template('hr_cv_builder.html', cv_data=cv_data, error=error,
-                           jobs=jobs, saved_to_corner=saved_to_corner)
+                           jobs=jobs, saved_to_corner=saved_to_corner,
+                           now_date=datetime.utcnow().strftime('%Y-%m-%d'))
 
 
 @app.route('/cv-preview')
@@ -6465,6 +6520,105 @@ def api_cv_submit():
     c.is_visible     = bool(data.get('opt_in', True))
     db.session.commit()
     return _j({'ok': True, 'message': 'Profile saved and visible to employers!'})
+
+
+# ── YIN PROGRAMS ──────────────────────────────────────────────────────────────
+
+@app.route('/yin-programs')
+def yin_programs():
+    programs = YINProgram.query.filter_by(is_active=True).order_by(YINProgram.created_at.desc()).all()
+    return render_template('hr_yin_programs.html', programs=programs)
+
+
+@app.route('/yin-programs/<int:prog_id>/register', methods=['POST'])
+def yin_register(prog_id):
+    prog = YINProgram.query.get_or_404(prog_id)
+    full_name        = request.form.get('full_name', '').strip()
+    phone            = request.form.get('phone', '').strip()
+    email            = request.form.get('email', '').strip().lower()
+    institution      = request.form.get('institution', '').strip()
+    institution_type = request.form.get('institution_type', '').strip()
+    how_heard        = request.form.get('how_heard', '').strip()
+    is_existing      = request.form.get('is_existing_member') == 'yes'
+    existing_code    = request.form.get('existing_yin_code', '').strip().upper()
+    confirmed        = request.form.get('confirmed') == 'on'
+
+    if not full_name or not email:
+        return render_template('hr_yin_programs.html',
+                               programs=YINProgram.query.filter_by(is_active=True).all(),
+                               error='Full name and email are required.', open_prog_id=prog_id)
+
+    # Generate or use YIN code
+    if is_existing:
+        yin_code = existing_code
+    else:
+        last = YINRegistration.query.filter(
+            YINRegistration.yin_code.like('YIN%')
+        ).order_by(YINRegistration.id.desc()).first()
+        if last and last.yin_code and last.yin_code[3:].isdigit():
+            next_num = int(last.yin_code[3:]) + 1
+        else:
+            next_num = 1
+        yin_code = f'YIN{next_num:04d}'
+
+    reg = YINRegistration(
+        program_id=prog.id, program_name=prog.name,
+        full_name=full_name, phone=phone, email=email,
+        institution=institution, institution_type=institution_type,
+        how_heard=how_heard, is_existing_member=is_existing,
+        yin_code=yin_code, confirmed=confirmed,
+    )
+    db.session.add(reg)
+    db.session.commit()
+    return render_template('hr_yin_programs.html',
+                           programs=YINProgram.query.filter_by(is_active=True).all(),
+                           success=True, new_code=yin_code, is_existing=is_existing,
+                           registered_prog=prog.name)
+
+
+@app.route('/admin/yin-programs', methods=['GET', 'POST'])
+def admin_yin_programs():
+    if not session.get('is_admin'):
+        return redirect(url_for('admin_login'))
+    if request.method == 'POST':
+        name = request.form.get('name', '').strip()
+        desc = request.form.get('description', '').strip()
+        if name:
+            db.session.add(YINProgram(name=name, description=desc))
+            db.session.commit()
+    programs = YINProgram.query.order_by(YINProgram.created_at.desc()).all()
+    return render_template('admin_yin_programs.html', programs=programs)
+
+
+@app.route('/admin/yin-programs/<int:prog_id>/toggle', methods=['POST'])
+def admin_yin_toggle(prog_id):
+    if not session.get('is_admin'):
+        return redirect(url_for('admin_login'))
+    prog = YINProgram.query.get_or_404(prog_id)
+    prog.is_active = not prog.is_active
+    db.session.commit()
+    return redirect(url_for('admin_yin_programs'))
+
+
+@app.route('/super-admin/yin-registrations-csv')
+def super_admin_yin_csv():
+    if not session.get('is_super_admin'):
+        return redirect(url_for('super_admin_login'))
+    rows = YINRegistration.query.order_by(YINRegistration.created_at.desc()).all()
+    import csv, io
+    out = io.StringIO()
+    w = csv.writer(out)
+    w.writerow(['ID','Program','Full Name','Phone','Email','Institution','Type','How Heard','Existing Member','YIN Code','Confirmed','Date'])
+    for r in rows:
+        w.writerow([r.id, r.program_name, r.full_name, r.phone, r.email,
+                    r.institution, r.institution_type, r.how_heard,
+                    'Yes' if r.is_existing_member else 'No',
+                    r.yin_code, 'Yes' if r.confirmed else 'No',
+                    r.created_at.strftime('%Y-%m-%d %H:%M')])
+    out.seek(0)
+    from flask import Response
+    return Response(out.getvalue(), mimetype='text/csv',
+                    headers={'Content-Disposition': 'attachment;filename=yin_registrations.csv'})
 
 
 @app.route('/api/mentorship/apply', methods=['POST'])

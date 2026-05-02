@@ -59,6 +59,7 @@ body{font-family:'Inter',sans-serif;background:#f0f4f8;}
     <div class="flex gap-5 text-sm">
       <a href="/jobs" class="text-blue-200 hover:text-white">Jobs</a>
       <a href="/cv-builder" class="text-white font-semibold border-b-2 border-blue-300 pb-0.5">CV Builder</a>
+      <a href="/yin-programs" class="text-blue-200 hover:text-white">YIN Programmes</a>
       <a href="/employers-corner" class="text-blue-200 hover:text-white">Employers' Corner</a>
       <a href="/training" class="text-blue-200 hover:text-white">Training</a>
       <a href="/mentorship" class="text-blue-200 hover:text-white">Mentorship</a>
@@ -128,6 +129,30 @@ body{font-family:'Inter',sans-serif;background:#f0f4f8;}
             <div class="flex gap-3 shrink-0">
               <label class="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="want_national_service" value="yes" class="accent-green-600"/> <span class="text-sm font-semibold text-green-700">Yes</span></label>
               <label class="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="want_national_service" value="no" checked class="accent-red-500"/> <span class="text-sm font-semibold text-red-600">No</span></label>
+            </div>
+          </div>
+          <!-- Q5: YIN join date -->
+          <div class="bg-white border border-gray-100 rounded-xl px-4 py-3 shadow-sm">
+            <div class="flex flex-wrap items-center gap-3">
+              <span class="text-sm font-medium text-gray-700 flex-1 min-w-0"><i class="fas fa-calendar-alt text-green-600 mr-2"></i>How long have you been with the <strong>Young Investors Network</strong>?</span>
+              <div class="flex items-center gap-3 shrink-0 flex-wrap">
+                <div>
+                  <label class="text-xs text-gray-500 block mb-1">Date joined YIN</label>
+                  <input type="date" name="yin_join_date" id="yin_join_date" max="{{ now_date }}" class="input-field text-sm" style="max-width:160px;" onchange="calcYINYears()"/>
+                </div>
+                <div id="yin_years_box" class="hidden">
+                  <label class="text-xs text-gray-500 block mb-1">Years with YIN</label>
+                  <div id="yin_years_display" class="font-bold text-green-700 text-lg"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Q6: Full-time employment -->
+          <div class="flex items-center justify-between bg-white border border-gray-100 rounded-xl px-4 py-3 shadow-sm">
+            <span class="text-sm font-medium text-gray-700 flex-1 pr-4"><i class="fas fa-user-tie text-blue-600 mr-2"></i>Are you currently seeking <strong>full-time employment</strong>?</span>
+            <div class="flex gap-3 shrink-0">
+              <label class="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="seeking_full_time" value="yes" class="accent-green-600"/> <span class="text-sm font-semibold text-green-700">Yes</span></label>
+              <label class="flex items-center gap-1.5 cursor-pointer"><input type="radio" name="seeking_full_time" value="no" checked class="accent-red-500"/> <span class="text-sm font-semibold text-red-600">No</span></label>
             </div>
           </div>
         </div>
@@ -967,6 +992,15 @@ document.addEventListener('DOMContentLoaded',function(){
   form.addEventListener('change',updatePreview);
   updatePreview();
 });
+
+function calcYINYears() {
+  var d = document.getElementById('yin_join_date').value;
+  if (!d) { document.getElementById('yin_years_box').classList.add('hidden'); return; }
+  var join = new Date(d), today = new Date();
+  var years = Math.floor((today - join) / (365.25 * 24 * 3600 * 1000));
+  document.getElementById('yin_years_display').textContent = years < 1 ? 'Less than 1 year' : years + (years === 1 ? ' year' : ' years');
+  document.getElementById('yin_years_box').classList.remove('hidden');
+}
 </script>
 </body>
 </html>
