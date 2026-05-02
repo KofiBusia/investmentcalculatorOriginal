@@ -8,7 +8,7 @@ import json
 import logging
 import math
 import os
-from datetime import datetime
+from datetime import datetime, timedelta
 from logging.handlers import RotatingFileHandler
 
 # --- THIRD-PARTY IMPORTS ---
@@ -444,6 +444,16 @@ class MentorshipApplication(db.Model):
     created_at      = db.Column(db.DateTime,    default=datetime.utcnow)
 
 
+class PasswordResetToken(db.Model):
+    __tablename__ = 'password_reset_tokens'
+    id         = db.Column(db.Integer, primary_key=True)
+    user_id    = db.Column(db.Integer, db.ForeignKey('site_users.id'), nullable=False)
+    token      = db.Column(db.String(100), unique=True, nullable=False, index=True)
+    expires_at = db.Column(db.DateTime, nullable=False)
+    used       = db.Column(db.Boolean, default=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
 def _validate_company_name(name):
     """Return (ok: bool, error: str). Enforces real registered company name."""
     import re
@@ -761,6 +771,59 @@ def user_login():
 def user_logout():
     logout_user()
     return redirect(url_for('index'))
+
+
+@app.route('/forgot-password', methods=['GET', 'POST'])
+def forgot_password():
+    import secrets
+    sent = False
+    error = None
+    if request.method == 'POST':
+        email = request.form.get('email', '').strip().lower()
+        if not email:
+            error = 'Please enter your email address.'
+        else:
+            u = SiteUser.query.filter(db.func.lower(SiteUser.email) == email).first()
+            if u:
+                token = secrets.token_urlsafe(32)
+                expires = datetime.utcnow() + timedelta(hours=1)
+                db.session.add(PasswordResetToken(user_id=u.id, token=token, expires_at=expires))
+                db.session.commit()
+                reset_url = url_for('reset_password', token=token, _external=True)
+                send_email_safe(
+                    subject='Reset your InvestIQ password',
+                    recipients=[u.email],
+                    body_html=f'''<p>Hi {u.full_name},</p>
+<p>Click the link below to reset your password. This link expires in 1 hour.</p>
+<p><a href="{reset_url}" style="background:#2563eb;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;">Reset Password</a></p>
+<p>If you did not request this, ignore this email.</p>''',
+                    body_text=f'Reset your InvestIQ password: {reset_url}'
+                )
+            sent = True
+    return render_template('forgot_password.html', sent=sent, error=error)
+
+
+@app.route('/reset-password/<token>', methods=['GET', 'POST'])
+def reset_password(token):
+    rec = PasswordResetToken.query.filter_by(token=token, used=False).first()
+    if not rec or rec.expires_at < datetime.utcnow():
+        return render_template('reset_password.html', invalid=True)
+    error = None
+    if request.method == 'POST':
+        pw  = request.form.get('password', '')
+        pw2 = request.form.get('password2', '')
+        if len(pw) < 6:
+            error = 'Password must be at least 6 characters.'
+        elif pw != pw2:
+            error = 'Passwords do not match.'
+        else:
+            u = SiteUser.query.get(rec.user_id)
+            u.set_password(pw)
+            rec.used = True
+            db.session.commit()
+            flash('Password updated. You can now sign in.', 'success')
+            return redirect(url_for('user_login'))
+    return render_template('reset_password.html', invalid=False, error=error, token=token)
 
 
 # ── GOOGLE OAUTH ──────────────────────────────────────────────────────────────
@@ -6201,6 +6264,32 @@ def api_auth_login():
         return _j({'ok': False, 'error': 'Invalid email or password.'}, 401)
     return _j({'ok': True, 'token': _mobile_token(u),
                'user': {'id': u.id, 'full_name': u.full_name, 'email': u.email}})
+
+
+@app.route('/api/auth/forgot-password', methods=['POST'])
+def api_auth_forgot_password():
+    import secrets
+    data  = request.get_json() or {}
+    email = (data.get('email') or '').strip().lower()
+    if not email:
+        return _j({'ok': False, 'error': 'Email is required.'}, 400)
+    u = SiteUser.query.filter(db.func.lower(SiteUser.email) == email).first()
+    if u:
+        token = secrets.token_urlsafe(32)
+        expires = datetime.utcnow() + timedelta(hours=1)
+        db.session.add(PasswordResetToken(user_id=u.id, token=token, expires_at=expires))
+        db.session.commit()
+        reset_url = f'https://investright.onrender.com/reset-password/{token}'
+        send_email_safe(
+            subject='Reset your InvestIQ password',
+            recipients=[u.email],
+            body_html=f'''<p>Hi {u.full_name},</p>
+<p>Click the link below to reset your password. This link expires in 1 hour.</p>
+<p><a href="{reset_url}" style="background:#2563eb;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;">Reset Password</a></p>
+<p>If you did not request this, ignore this email.</p>''',
+            body_text=f'Reset your InvestIQ password: {reset_url}'
+        )
+    return _j({'ok': True, 'message': 'If that email is registered, a reset link has been sent.'})
 
 @app.route('/api/auth/me', methods=['GET'])
 def api_auth_me():
