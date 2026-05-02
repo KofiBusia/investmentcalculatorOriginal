@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Content Admin Login — InvestIQ</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>body{font-family:'Inter',sans-serif;}</style>
+</head>
+<body class="min-h-screen bg-gray-900 flex items-center justify-center px-4">
+  <div class="w-full max-w-sm">
+    <div class="text-center mb-8">
+      <a href="/" class="inline-flex items-center gap-2 text-white font-bold text-2xl">
+        <i class="fas fa-chart-line text-indigo-400"></i> InvestIQ
+      </a>
+      <p class="text-gray-400 text-sm mt-2">Content Admin Portal</p>
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-xl p-8">
+      <h1 class="text-xl font-bold text-gray-800 mb-1">Sign In</h1>
+      <p class="text-gray-500 text-sm mb-6">Articles &amp; Videos management</p>
+
+      {% if error %}
+      <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-5 text-sm flex items-center gap-2">
+        <i class="fas fa-exclamation-circle"></i> {{ error }}
+      </div>
+      {% endif %}
+
+      <form method="POST" class="space-y-4">
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-1.5">Email address</label>
+          <input type="email" name="email" required autofocus
+            class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 bg-gray-50"
+            placeholder="you@example.com" />
+        </div>
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-1.5">Password</label>
+          <input type="password" name="password" required
+            class="w-full px-4 py-3 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 bg-gray-50"
+            placeholder="••••••••" />
+        </div>
+        <button type="submit"
+          class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl text-sm transition-colors mt-2">
+          Sign In
+        </button>
+      </form>
+
+      <p class="text-center text-xs text-gray-400 mt-6">
+        Full admin? <a href="/admin/login" class="text-indigo-600 hover:underline font-medium">Admin login</a>
+      </p>
+    </div>
+  </div>
+</body>
+</html>

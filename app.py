@@ -490,6 +490,22 @@ class YINRegistration(db.Model):
     created_at       = db.Column(db.DateTime, default=datetime.utcnow)
 
 
+class ContentAdmin(db.Model):
+    __tablename__ = 'content_admins'
+    id            = db.Column(db.Integer, primary_key=True)
+    name          = db.Column(db.String(200), nullable=False)
+    email         = db.Column(db.String(200), unique=True, nullable=False)
+    password_hash = db.Column(db.String(256), nullable=False)
+    is_active     = db.Column(db.Boolean, default=True)
+    created_at    = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def set_password(self, pw):
+        self.password_hash = generate_password_hash(pw)
+
+    def check_password(self, pw):
+        return check_password_hash(self.password_hash, pw)
+
+
 def _validate_company_name(name):
     """Return (ok: bool, error: str). Enforces real registered company name."""
     import re
@@ -3170,6 +3186,21 @@ def admin_required(f):
     return decorated
 
 
+def content_admin_required(f):
+    """Decorator: allows full admin OR content admin (articles/videos only)."""
+    from functools import wraps
+    @wraps(f)
+    def decorated(*args, **kwargs):
+        if not session.get('admin_logged_in') and not session.get('content_admin_logged_in'):
+            return redirect(url_for('content_admin_login'))
+        return f(*args, **kwargs)
+    return decorated
+
+
+def _is_full_admin():
+    return bool(session.get('admin_logged_in'))
+
+
 @app.route('/admin/login', methods=['GET', 'POST'])
 def admin_login():
     error = None
@@ -3186,6 +3217,74 @@ def admin_login():
 def admin_logout():
     session.pop('admin_logged_in', None)
     return redirect(url_for('admin_login'))
+
+
+# ---- CONTENT ADMIN (articles + videos only) ----
+
+@app.route('/content-admin/login', methods=['GET', 'POST'])
+def content_admin_login():
+    error = None
+    if request.method == 'POST':
+        email = request.form.get('email', '').strip().lower()
+        password = request.form.get('password', '')
+        ca = ContentAdmin.query.filter_by(email=email, is_active=True).first()
+        if ca and ca.check_password(password):
+            session['content_admin_logged_in'] = True
+            session['content_admin_id'] = ca.id
+            session.permanent = True
+            return redirect(url_for('admin_articles'))
+        error = 'Invalid email or password.'
+    return render_template('content_admin_login.html', error=error)
+
+
+@app.route('/content-admin/logout')
+def content_admin_logout():
+    session.pop('content_admin_logged_in', None)
+    session.pop('content_admin_id', None)
+    return redirect(url_for('content_admin_login'))
+
+
+@app.route('/admin/content-admins', methods=['GET', 'POST'])
+@admin_required
+def admin_content_admins():
+    error = None
+    success = None
+    if request.method == 'POST':
+        action = request.form.get('action', 'create')
+        if action == 'create':
+            name = request.form.get('name', '').strip()
+            email = request.form.get('email', '').strip().lower()
+            password = request.form.get('password', '')
+            if not name or not email or not password:
+                error = 'Name, email, and password are all required.'
+            elif ContentAdmin.query.filter_by(email=email).first():
+                error = 'An account with that email already exists.'
+            else:
+                ca = ContentAdmin(name=name, email=email)
+                ca.set_password(password)
+                db.session.add(ca)
+                db.session.commit()
+                success = f'Content admin "{name}" created successfully.'
+    admins = ContentAdmin.query.order_by(ContentAdmin.created_at.desc()).all()
+    return render_template('admin_content_admins.html', admins=admins, error=error, success=success)
+
+
+@app.route('/admin/content-admins/<int:ca_id>/toggle', methods=['POST'])
+@admin_required
+def admin_content_admin_toggle(ca_id):
+    ca = ContentAdmin.query.get_or_404(ca_id)
+    ca.is_active = not ca.is_active
+    db.session.commit()
+    return redirect(url_for('admin_content_admins'))
+
+
+@app.route('/admin/content-admins/<int:ca_id>/delete', methods=['POST'])
+@admin_required
+def admin_content_admin_delete(ca_id):
+    ca = ContentAdmin.query.get_or_404(ca_id)
+    db.session.delete(ca)
+    db.session.commit()
+    return redirect(url_for('admin_content_admins'))
 
 
 @app.route('/admin')
@@ -3205,15 +3304,16 @@ def admin_dashboard():
 # ---- ARTICLE CRUD ----
 
 @app.route('/admin/articles')
-@admin_required
+@content_admin_required
 def admin_articles():
     posts = Article.query.order_by(Article.created_at.desc()).all()
-    return render_template('admin_articles.html', posts=posts)
+    return render_template('admin_articles.html', posts=posts, is_full_admin=_is_full_admin())
 
 
 @app.route('/admin/articles/new', methods=['GET', 'POST'])
-@admin_required
+@content_admin_required
 def admin_article_new():
+    fa = _is_full_admin()
     if request.method == 'POST':
         title   = request.form.get('title', '').strip()
         summary = request.form.get('summary', '').strip()
@@ -3224,7 +3324,7 @@ def admin_article_new():
 
         if not title or not body:
             return render_template('admin_article_form.html', error='Title and body are required.',
-                                   action='New', article=None)
+                                   action='New', article=None, is_full_admin=fa)
 
         # Auto-generate slug from title
         import re
@@ -3243,12 +3343,13 @@ def admin_article_new():
         logger.info(f'Admin created article: {title}')
         return redirect(url_for('admin_articles'))
 
-    return render_template('admin_article_form.html', action='New', article=None, error=None)
+    return render_template('admin_article_form.html', action='New', article=None, error=None, is_full_admin=fa)
 
 
 @app.route('/admin/articles/<int:article_id>/edit', methods=['GET', 'POST'])
-@admin_required
+@content_admin_required
 def admin_article_edit(article_id):
+    fa = _is_full_admin()
     article = Article.query.get_or_404(article_id)
     if request.method == 'POST':
         article.title         = request.form.get('title', '').strip()
@@ -3261,11 +3362,11 @@ def admin_article_edit(article_id):
         db.session.commit()
         logger.info(f'Admin updated article {article_id}')
         return redirect(url_for('admin_articles'))
-    return render_template('admin_article_form.html', action='Edit', article=article, error=None)
+    return render_template('admin_article_form.html', action='Edit', article=article, error=None, is_full_admin=fa)
 
 
 @app.route('/admin/articles/<int:article_id>/delete', methods=['POST'])
-@admin_required
+@content_admin_required
 def admin_article_delete(article_id):
     article = Article.query.get_or_404(article_id)
     db.session.delete(article)
@@ -3277,15 +3378,16 @@ def admin_article_delete(article_id):
 # ---- VIDEO CRUD ----
 
 @app.route('/admin/videos')
-@admin_required
+@content_admin_required
 def admin_videos():
     vids = Video.query.order_by(Video.created_at.desc()).all()
-    return render_template('admin_videos.html', videos=vids)
+    return render_template('admin_videos.html', videos=vids, is_full_admin=_is_full_admin())
 
 
 @app.route('/admin/videos/new', methods=['GET', 'POST'])
-@admin_required
+@content_admin_required
 def admin_video_new():
+    fa = _is_full_admin()
     if request.method == 'POST':
         title        = request.form.get('title', '').strip()
         youtube_url  = request.form.get('youtube_url', '').strip()
@@ -3295,7 +3397,7 @@ def admin_video_new():
 
         if not title or not youtube_url:
             return render_template('admin_video_form.html', action='New', video=None,
-                                   error='Title and YouTube URL are required.')
+                                   error='Title and YouTube URL are required.', is_full_admin=fa)
 
         # If featuring this video, un-feature others
         if is_featured:
@@ -3308,12 +3410,13 @@ def admin_video_new():
         logger.info(f'Admin added video: {title}')
         return redirect(url_for('admin_videos'))
 
-    return render_template('admin_video_form.html', action='New', video=None, error=None)
+    return render_template('admin_video_form.html', action='New', video=None, error=None, is_full_admin=fa)
 
 
 @app.route('/admin/videos/<int:video_id>/edit', methods=['GET', 'POST'])
-@admin_required
+@content_admin_required
 def admin_video_edit(video_id):
+    fa = _is_full_admin()
     video = Video.query.get_or_404(video_id)
     if request.method == 'POST':
         video.title        = request.form.get('title', '').strip()
@@ -3328,11 +3431,11 @@ def admin_video_edit(video_id):
         db.session.commit()
         logger.info(f'Admin updated video {video_id}')
         return redirect(url_for('admin_videos'))
-    return render_template('admin_video_form.html', action='Edit', video=video, error=None)
+    return render_template('admin_video_form.html', action='Edit', video=video, error=None, is_full_admin=fa)
 
 
 @app.route('/admin/videos/<int:video_id>/delete', methods=['POST'])
-@admin_required
+@content_admin_required
 def admin_video_delete(video_id):
     video = Video.query.get_or_404(video_id)
     db.session.delete(video)

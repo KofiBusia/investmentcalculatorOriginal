@@ -20,11 +20,13 @@
   <aside class="w-64 bg-gray-900 text-white flex flex-col" style="min-height:100vh;">
     <div class="p-6 border-b border-gray-800"><a href="/" class="flex items-center gap-2 font-bold text-lg"><i class="fas fa-chart-line text-indigo-400"></i> InvestIQ Admin</a></div>
     <nav class="flex-1 p-4 space-y-1">
+      {% if is_full_admin %}
       <a href="/admin" class="flex items-center gap-3 px-3 py-2.5 text-gray-300 hover:bg-gray-800 rounded-lg text-sm"><i class="fas fa-tachometer-alt w-4"></i> Dashboard</a>
+      {% endif %}
       <a href="/admin/articles" class="flex items-center gap-3 px-3 py-2.5 bg-indigo-600 text-white rounded-lg text-sm font-medium"><i class="fas fa-newspaper w-4"></i> Articles</a>
       <a href="/admin/videos" class="flex items-center gap-3 px-3 py-2.5 text-gray-300 hover:bg-gray-800 rounded-lg text-sm"><i class="fab fa-youtube w-4"></i> Videos</a>
     </nav>
-    <div class="p-4 border-t border-gray-800"><a href="/admin/logout" class="flex items-center gap-2 text-gray-400 hover:text-white text-sm"><i class="fas fa-sign-out-alt"></i> Logout</a></div>
+    <div class="p-4 border-t border-gray-800"><a href="{% if is_full_admin %}/admin/logout{% else %}/content-admin/logout{% endif %}" class="flex items-center gap-2 text-gray-400 hover:text-white text-sm"><i class="fas fa-sign-out-alt"></i> Logout</a></div>
   </aside>
 
   <main class="flex-1 p-8">
