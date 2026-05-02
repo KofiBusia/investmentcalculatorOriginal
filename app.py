@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 from logging.handlers import RotatingFileHandler
 
 # --- THIRD-PARTY IMPORTS ---
-from flask import Flask, jsonify, render_template, request, send_from_directory, session, redirect, url_for, make_response, flash, abort
+from flask import Flask, jsonify, render_template, request, send_from_directory, send_file, session, redirect, url_for, make_response, flash, abort
 from flask_wtf import FlaskForm
 from wtforms import StringField, SelectField, FloatField, IntegerField
 from wtforms.validators import DataRequired, Length, NumberRange
@@ -5103,6 +5103,18 @@ def jobs_page():
 @app.route('/stock-pitch')
 def stock_pitch():
     return render_template('hr_stock_pitch.html')
+
+
+@app.route('/stock-pitch/download-pptx')
+def download_stock_pitch_pptx():
+    from pptx_generator import build_pptx
+    buf = build_pptx()
+    return send_file(
+        buf,
+        as_attachment=True,
+        download_name='YIN_Stock_Pitch_Template.pptx',
+        mimetype='application/vnd.openxmlformats-officedocument.presentationml.presentation'
+    )
 
 
 @app.route('/jobs/<int:job_id>/apply', methods=['GET', 'POST'])
