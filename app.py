@@ -6578,7 +6578,7 @@ def yin_register(prog_id):
 
 @app.route('/admin/yin-programs', methods=['GET', 'POST'])
 def admin_yin_programs():
-    if not session.get('is_admin'):
+    if not session.get('admin_logged_in'):
         return redirect(url_for('admin_login'))
     if request.method == 'POST':
         name = request.form.get('name', '').strip()
@@ -6592,7 +6592,7 @@ def admin_yin_programs():
 
 @app.route('/admin/yin-programs/<int:prog_id>/toggle', methods=['POST'])
 def admin_yin_toggle(prog_id):
-    if not session.get('is_admin'):
+    if not session.get('admin_logged_in'):
         return redirect(url_for('admin_login'))
     prog = YINProgram.query.get_or_404(prog_id)
     prog.is_active = not prog.is_active
