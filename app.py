@@ -560,6 +560,22 @@ with app.app_context():
         db.create_all()
     except Exception as _db_err:
         logger.warning(f"db.create_all() skipped: {_db_err}")
+    # Add any missing columns that were added after initial table creation
+    try:
+        _migrate_sql = [
+            "ALTER TABLE gisi_payments ADD COLUMN IF NOT EXISTS admin_token VARCHAR(64)",
+            "ALTER TABLE gisi_payments ADD COLUMN IF NOT EXISTS access_code VARCHAR(20)",
+            "ALTER TABLE gisi_payments ADD COLUMN IF NOT EXISTS approved_at TIMESTAMP",
+        ]
+        for _sql in _migrate_sql:
+            try:
+                db.session.execute(db.text(_sql))
+            except Exception:
+                db.session.rollback()
+        db.session.commit()
+    except Exception as _col_err:
+        db.session.rollback()
+        logger.warning(f"Column migration skipped: {_col_err}")
 
 # --- DATACLASSES ---
 from dataclasses import dataclass
