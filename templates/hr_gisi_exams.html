@@ -196,49 +196,62 @@
         <button onclick="closePayModal()" class="text-gray-400 hover:text-gray-600 text-2xl leading-none ml-4 flex-shrink-0">&times;</button>
       </div>
 
-      <!-- MoMo payment box -->
-      <div style="background:linear-gradient(135deg,#fef9c3,#fef3c7);border:2px solid #fbbf24;border-radius:14px;padding:18px 20px;margin-bottom:18px;">
+      <!-- Step 1: Pay on phone -->
+      <div style="background:linear-gradient(135deg,#fef9c3,#fef3c7);border:2px solid #fbbf24;border-radius:14px;padding:18px 20px;margin-bottom:14px;">
         <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
           <div style="width:36px;height:36px;background:#f59e0b;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-            <i class="fas fa-mobile-alt" style="color:#fff;font-size:16px;"></i>
+            <span style="color:#fff;font-weight:900;font-size:15px;">1</span>
           </div>
           <div>
-            <div style="font-weight:800;color:#92400e;font-size:15px;">Step 1 — Send Payment via MTN MoMo</div>
+            <div style="font-weight:800;color:#92400e;font-size:15px;">First — Send Payment on Your Phone</div>
             <div style="font-size:12px;color:#b45309;">Amount: <span id="pay-amount-text" style="font-weight:800;font-size:14px;">GHS 60</span></div>
           </div>
         </div>
         <div style="background:#fff;border-radius:10px;padding:14px 16px;border:1px solid #fde68a;">
-          <div style="font-size:12px;color:#92400e;font-weight:600;margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em;">MTN Mobile Money Number</div>
+          <div style="font-size:11px;color:#92400e;font-weight:700;margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em;">MTN Mobile Money — Recipient Number</div>
           <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
-            <span id="momo-number-display" style="font-family:monospace;font-size:26px;font-weight:900;color:#1e293b;letter-spacing:2px;">0503566913</span>
+            <span id="momo-number-display" style="font-family:monospace;font-size:28px;font-weight:900;color:#1e293b;letter-spacing:3px;">0503566913</span>
             <button onclick="copyMoMo()" id="copy-btn" style="background:#f59e0b;color:#fff;border:none;border-radius:8px;padding:8px 14px;font-weight:700;font-size:12px;cursor:pointer;flex-shrink:0;transition:all .15s;">
               <i class="fas fa-copy mr-1"></i>Copy
             </button>
           </div>
           <div style="font-size:11px;color:#b45309;margin-top:6px;"><i class="fas fa-user mr-1"></i>Account Name: <strong>InvestIQ / YIN Ghana</strong></div>
         </div>
-        <div style="margin-top:10px;font-size:12px;color:#92400e;"><i class="fas fa-info-circle mr-1"></i>After sending, copy the transaction reference from your MoMo SMS and paste it below.</div>
+        <div style="margin-top:10px;font-size:12px;color:#78350f;font-weight:600;"><i class="fas fa-arrow-right mr-1"></i>Go to your MoMo app, send the payment, then come back here and complete Step 2 below.</div>
+      </div>
+
+      <!-- Step 2: Notify admin -->
+      <div style="background:#eff6ff;border:1.5px solid #bfdbfe;border-radius:12px;padding:14px 16px;margin-bottom:14px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+          <div style="width:28px;height:28px;background:#1d4ed8;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <span style="color:#fff;font-weight:900;font-size:13px;">2</span>
+          </div>
+          <div style="font-weight:700;color:#1e40af;font-size:13px;">After sending, fill in this form to notify admin</div>
+        </div>
+        <div style="font-size:12px;color:#3b82f6;line-height:1.6;">
+          <i class="fas fa-info-circle mr-1"></i>This form does <strong>not</strong> process your payment — it simply notifies the admin that you have already sent the MoMo. The admin will check their phone, confirm receipt, and approve your access within <strong>~5 minutes</strong>.
+        </div>
       </div>
 
       <!-- How it works -->
       <div style="background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:12px;padding:14px 16px;margin-bottom:18px;">
-        <div style="font-weight:700;color:#166534;font-size:13px;margin-bottom:8px;"><i class="fas fa-clock mr-1"></i>How It Works — What Happens Next</div>
+        <div style="font-weight:700;color:#166534;font-size:13px;margin-bottom:8px;"><i class="fas fa-list-ol mr-1"></i>What Happens After You Notify Admin</div>
         <div style="display:flex;flex-direction:column;gap:6px;">
           <div style="display:flex;align-items:flex-start;gap:8px;font-size:13px;color:#15803d;">
             <span style="background:#16a34a;color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0;margin-top:1px;">1</span>
-            <span>Submit this form — admin is notified instantly</span>
+            <span>Admin receives your notification email instantly</span>
           </div>
           <div style="display:flex;align-items:flex-start;gap:8px;font-size:13px;color:#15803d;">
             <span style="background:#16a34a;color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0;margin-top:1px;">2</span>
-            <span>Admin verifies your MoMo payment (within ~10 minutes)</span>
+            <span>Admin checks MoMo phone and confirms your payment was received</span>
           </div>
           <div style="display:flex;align-items:flex-start;gap:8px;font-size:13px;color:#15803d;">
             <span style="background:#16a34a;color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0;margin-top:1px;">3</span>
-            <span>You receive a unique <strong>Access Code</strong> by email</span>
+            <span>Admin clicks <strong>Approve</strong> — your unique <strong>Access Code</strong> is emailed to you immediately</span>
           </div>
           <div style="display:flex;align-items:flex-start;gap:8px;font-size:13px;color:#15803d;">
             <span style="background:#16a34a;color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0;margin-top:1px;">4</span>
-            <span>Enter the code here to unlock your section(s) immediately</span>
+            <span>Enter the code here to unlock your section(s) instantly</span>
           </div>
         </div>
       </div>
@@ -263,21 +276,22 @@
         <div style="margin-bottom:16px;">
           <label style="display:block;font-size:11px;font-weight:700;color:#475569;margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em;">MoMo Transaction Reference *</label>
           <input type="text" id="pay-ref" placeholder="e.g. S241234567890" required style="width:100%;box-sizing:border-box;font-family:monospace;font-size:15px;font-weight:700;"/>
-          <p style="font-size:11px;color:#94a3b8;margin:4px 0 0;">Found in your MoMo SMS confirmation message.</p>
+          <p style="font-size:11px;color:#94a3b8;margin:4px 0 0;"><i class="fas fa-sms mr-1"></i>This is the reference number in the MoMo SMS you received after sending.</p>
         </div>
         <div id="pay-error" style="display:none;margin-bottom:12px;font-size:13px;color:#dc2626;background:#fef2f2;border:1.5px solid #fecaca;border-radius:8px;padding:10px 14px;"></div>
-        <button type="submit" id="pay-btn" style="width:100%;padding:14px;background:linear-gradient(135deg,#0f172a,#1d4ed8);color:#fff;border:none;border-radius:12px;font-weight:800;font-size:16px;cursor:pointer;transition:opacity .2s;">
-          <i class="fas fa-paper-plane mr-2"></i>Submit Payment for Approval
+        <button type="submit" id="pay-btn" style="width:100%;padding:15px;background:linear-gradient(135deg,#0f172a,#1d4ed8);color:#fff;border:none;border-radius:12px;font-weight:800;font-size:16px;cursor:pointer;transition:opacity .2s;letter-spacing:.01em;">
+          <i class="fas fa-bell mr-2"></i>I've Paid — Notify Admin Now
         </button>
-        <p style="font-size:11px;text-align:center;color:#94a3b8;margin:8px 0 0;"><i class="fas fa-shield-alt mr-1"></i>Your access code will be emailed to you within ~10 minutes after admin verification.</p>
+        <p style="font-size:11px;text-align:center;color:#94a3b8;margin:8px 0 0;"><i class="fas fa-shield-alt mr-1"></i>This only sends a notification. Your access code will be emailed within ~5 minutes once your payment is confirmed.</p>
       </form>
     </div>
 
     <!-- STEP 2: Pending confirmation (shown after submit) -->
     <div id="modal-step-2" style="display:none;text-align:center;padding:8px 0;">
       <div style="width:72px;height:72px;background:linear-gradient(135deg,#fef3c7,#fde68a);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:36px;">⏳</div>
-      <h3 style="font-size:22px;font-weight:800;color:#1e293b;margin:0 0 10px;">Payment Submitted!</h3>
-      <p style="color:#475569;font-size:15px;margin:0 0 20px;line-height:1.6;">Your payment has been received for review. The admin will verify your MoMo transaction and send your <strong>Access Code</strong> to <strong id="pending-email"></strong> within approximately <strong>10 minutes</strong>.</p>
+      <h3 style="font-size:22px;font-weight:800;color:#1e293b;margin:0 0 10px;">Admin Notified!</h3>
+      <p style="color:#475569;font-size:15px;margin:0 0 8px;line-height:1.6;">The admin has been notified that you have made a MoMo payment. They will check their phone to confirm receipt and approve your access.</p>
+      <p style="color:#475569;font-size:14px;margin:0 0 20px;line-height:1.6;">Your unique <strong>Access Code</strong> will be sent to <strong id="pending-email"></strong> within approximately <strong>5 minutes</strong>.</p>
 
       <div style="background:#f8fafc;border:2px dashed #cbd5e1;border-radius:14px;padding:20px;margin-bottom:20px;">
         <div style="font-size:13px;font-weight:700;color:#475569;margin-bottom:12px;text-transform:uppercase;letter-spacing:.05em;">Once you receive your code by email</div>
@@ -800,7 +814,7 @@ async function submitPayment(e){
   e.preventDefault();
   const btn = document.getElementById('pay-btn');
   btn.disabled = true;
-  btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Submitting...';
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Notifying admin...';
   const errDiv = document.getElementById('pay-error');
   errDiv.style.display = 'none';
 
@@ -823,7 +837,7 @@ async function submitPayment(e){
       errDiv.textContent = data.message;
       errDiv.style.display = 'block';
       btn.disabled = false;
-      btn.innerHTML = '<i class="fas fa-paper-plane mr-2"></i>Submit Payment for Approval';
+      btn.innerHTML = '<i class="fas fa-bell mr-2"></i>I\'ve Paid — Notify Admin Now';
     }
   } catch(err){
     errDiv.textContent = 'Network error. Please try again.';
