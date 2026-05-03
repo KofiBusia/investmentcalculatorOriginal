@@ -5214,7 +5214,7 @@ def gisi_exams_pay():
 
     amount       = 200.0 if plan == 'bundle' else 60.0
     admin_token  = _sec.token_urlsafe(32)
-    access_code  = 'GISI-' + _sec.token_hex(3).upper()
+    access_code  = 'SIPQ-' + _sec.token_hex(3).upper()
 
     pay = GISIPayment(
         full_name=full_name, email=email, phone=phone,
@@ -5233,14 +5233,14 @@ def gisi_exams_pay():
     # Email admin with approve/reject buttons
     try:
         msg = Message(
-            f'[ACTION REQUIRED] GISI Exam Payment — {full_name} — GHS{amount:.0f}',
+            f'[ACTION REQUIRED] Practice Questions Payment — {full_name} — GHS{amount:.0f}',
             sender=app.config.get('MAIL_DEFAULT_SENDER', 'noreply@investright.onrender.com'),
             recipients=['kyeikofi@gmail.com']
         )
         msg.html = f'''
 <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#f8fafc;border-radius:12px;overflow:hidden;">
   <div style="background:linear-gradient(135deg,#0f172a,#1e3a5f);padding:28px 32px;text-align:center;">
-    <h1 style="color:#fff;margin:0;font-size:22px;">⚡ GISI Exam — Payment Approval Required</h1>
+    <h1 style="color:#fff;margin:0;font-size:22px;">⚡ Securities Industry Practice Questions — Payment Approval Required</h1>
     <p style="color:#93c5fd;margin:8px 0 0;font-size:14px;">InvestIQ Talent Hub</p>
   </div>
   <div style="padding:28px 32px;background:#fff;">
@@ -5294,7 +5294,7 @@ def gisi_exams_approve(admin_token):
     # Email user with access code
     try:
         msg = Message(
-            f'✅ GISI Exam Access Approved — Your Access Code Inside',
+            f'✅ Practice Questions Access Approved — Your Access Code Inside',
             sender=app.config.get('MAIL_DEFAULT_SENDER', 'noreply@investright.onrender.com'),
             recipients=[pay.email]
         )
@@ -5303,7 +5303,7 @@ def gisi_exams_approve(admin_token):
   <div style="background:linear-gradient(135deg,#0f172a,#1e3a5f);padding:32px;text-align:center;">
     <div style="width:64px;height:64px;background:#16a34a;border-radius:50%;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;font-size:32px;">✅</div>
     <h1 style="color:#fff;margin:0;font-size:24px;">Payment Approved!</h1>
-    <p style="color:#93c5fd;margin:8px 0 0;font-size:15px;">Your GISI Exam access is now ready</p>
+    <p style="color:#93c5fd;margin:8px 0 0;font-size:15px;">Your Securities Industry Practice Questions access is now ready</p>
   </div>
   <div style="padding:32px;background:#fff;text-align:center;">
     <p style="color:#475569;font-size:16px;margin-bottom:24px;">Hi <strong>{pay.full_name}</strong>, your payment of <strong>GHS{pay.amount:.0f}</strong> for <strong>{section_label}</strong> has been verified and approved.</p>
@@ -5311,9 +5311,9 @@ def gisi_exams_approve(admin_token):
     <div style="background:linear-gradient(135deg,#eff6ff,#dbeafe);border:2px dashed #3b82f6;border-radius:14px;padding:20px 32px;display:inline-block;margin-bottom:24px;">
       <span style="font-family:monospace;font-size:32px;font-weight:900;color:#1d4ed8;letter-spacing:4px;">{pay.access_code}</span>
     </div>
-    <p style="color:#64748b;font-size:14px;margin-bottom:24px;">Enter this code on the GISI Exams page to unlock your section(s). This code is unique to you — please keep it safe.</p>
-    <a href="{exam_url}" style="display:inline-block;background:linear-gradient(135deg,#1e3a5f,#1d4ed8);color:#fff;text-decoration:none;padding:16px 40px;border-radius:12px;font-weight:700;font-size:17px;">Start Exam Now →</a>
-    <p style="font-size:12px;color:#94a3b8;margin-top:24px;">Thank you for supporting YIN's financial literacy programmes in Ghana.<br/>InvestIQ Talent Hub — <a href="{base}" style="color:#3b82f6;">{base}</a></p>
+    <p style="color:#64748b;font-size:14px;margin-bottom:24px;">Enter this code on the Practice Questions page to unlock your section(s). This code is unique to you — please keep it safe.</p>
+    <a href="{exam_url}" style="display:inline-block;background:linear-gradient(135deg,#1e3a5f,#1d4ed8);color:#fff;text-decoration:none;padding:16px 40px;border-radius:12px;font-weight:700;font-size:17px;">Start Practising Now →</a>
+    <p style="font-size:12px;color:#94a3b8;margin-top:24px;">Thank you for choosing InvestIQ for your examination preparation.<br/>InvestIQ Talent Hub — <a href="{base}" style="color:#3b82f6;">{base}</a></p>
   </div>
 </div>'''
         mail.send(msg)
@@ -5333,7 +5333,7 @@ def gisi_exams_reject(admin_token):
     # Email user to notify rejection
     try:
         msg = Message(
-            'GISI Exam Payment — Unable to Verify',
+            'Securities Industry Practice Questions — Payment Unable to Verify',
             sender=app.config.get('MAIL_DEFAULT_SENDER', 'noreply@investright.onrender.com'),
             recipients=[pay.email]
         )
