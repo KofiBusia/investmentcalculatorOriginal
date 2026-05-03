@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>GISI Exam Trial Questions — InvestIQ</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4ff;}
+  .hero-gradient{background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 50%,#0f4c81 100%);}
+  .tab-btn{padding:.55rem 1.2rem;border-radius:8px;font-size:.85rem;font-weight:600;border:2px solid transparent;cursor:pointer;transition:all .2s;white-space:nowrap;}
+  .tab-btn.active{background:#1d4ed8;color:#fff;border-color:#1d4ed8;}
+  .tab-btn:not(.active){background:#fff;color:#475569;border-color:#e2e8f0;}
+  .tab-btn.locked{background:#f1f5f9;color:#94a3b8;cursor:not-allowed;}
+  .option-label{display:flex;align-items:flex-start;gap:.75rem;padding:.85rem 1rem;border-radius:10px;border:2px solid #e2e8f0;cursor:pointer;transition:all .15s;margin-bottom:.5rem;}
+  .option-label:hover{border-color:#93c5fd;background:#eff6ff;}
+  .option-label.selected{border-color:#1d4ed8;background:#eff6ff;}
+  .option-label.correct{border-color:#16a34a;background:#f0fdf4;}
+  .option-label.wrong{border-color:#dc2626;background:#fef2f2;}
+  .option-label input{display:none;}
+  .opt-circle{width:28px;height:28px;border-radius:50%;border:2px solid #cbd5e1;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.82rem;flex-shrink:0;transition:all .15s;}
+  .selected .opt-circle{border-color:#1d4ed8;background:#1d4ed8;color:#fff;}
+  .correct .opt-circle{border-color:#16a34a;background:#16a34a;color:#fff;}
+  .wrong .opt-circle{border-color:#dc2626;background:#dc2626;color:#fff;}
+  .progress-bar{height:8px;background:#e2e8f0;border-radius:99px;overflow:hidden;}
+  .progress-fill{height:100%;background:linear-gradient(90deg,#1d4ed8,#3b82f6);border-radius:99px;transition:width .4s;}
+  .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:999;display:flex;align-items:center;justify-content:center;padding:1rem;}
+  .modal{background:#fff;border-radius:20px;padding:2rem;max-width:520px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.3);}
+  input[type="text"],input[type="email"],input[type="tel"]{width:100%;border:1.5px solid #e2e8f0;border-radius:8px;padding:.65rem .9rem;font-size:.9rem;outline:none;transition:border .2s;}
+  input:focus{border-color:#1d4ed8;box-shadow:0 0 0 3px rgba(29,78,216,.1);}
+  .score-card{background:linear-gradient(135deg,#1e3a5f,#1d4ed8);color:#fff;border-radius:16px;padding:2rem;text-align:center;}
+</style>
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="hero-gradient text-white py-4 px-6 sticky top-0 z-50 shadow-xl">
+  <div class="max-w-7xl mx-auto flex justify-between items-center">
+    <a href="/" class="font-extrabold text-xl flex items-center gap-2">
+      <i class="fas fa-chart-line text-blue-300"></i> Invest<span class="text-blue-300">IQ</span>
+    </a>
+    <div class="hidden md:flex items-center gap-4 text-sm">
+      <a href="/jobs" class="text-blue-200 hover:text-white transition-colors"><i class="fas fa-briefcase mr-1"></i>Looking for Job?</a>
+      <a href="/cv-builder" class="text-blue-200 hover:text-white transition-colors"><i class="fas fa-file-alt mr-1"></i>Build CV</a>
+      <a href="/yin-programs" class="text-blue-200 hover:text-white transition-colors"><i class="fas fa-graduation-cap mr-1"></i>YIN Programmes</a>
+      <a href="/gisi-exams" class="text-white font-semibold border-b-2 border-yellow-300 pb-0.5"><i class="fas fa-question-circle mr-1"></i>GISI Exams</a>
+    </div>
+    <a href="/jobs" class="hidden md:flex items-center gap-2 bg-blue-500 hover:bg-blue-400 px-3 py-2 rounded-lg text-sm font-semibold transition-colors">
+      <i class="fas fa-arrow-left"></i> Back to Jobs
+    </a>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero-gradient text-white py-14 px-6">
+  <div class="max-w-4xl mx-auto text-center">
+    <div class="inline-flex items-center gap-2 bg-yellow-400/20 border border-yellow-400/40 rounded-full px-4 py-1.5 text-sm font-semibold mb-5 text-yellow-300">
+      <i class="fas fa-award"></i> Ghana Institute of Securities &amp; Investments
+    </div>
+    <h1 class="text-4xl md:text-5xl font-extrabold mb-4">GISI Trial Questions</h1>
+    <p class="text-blue-200 text-lg max-w-2xl mx-auto">Practice with 250 multiple-choice questions across 5 sections. <span class="text-yellow-300 font-semibold">Section 1 is free.</span> Sections 2–5 require a support donation.</p>
+    <div class="flex flex-wrap justify-center gap-4 mt-6 text-sm">
+      <div class="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full"><i class="fas fa-list text-blue-300"></i> 5 Sections</div>
+      <div class="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full"><i class="fas fa-question text-blue-300"></i> 50 Questions Each</div>
+      <div class="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full"><i class="fas fa-check-circle text-green-300"></i> Instant Results</div>
+      <div class="flex items-center gap-2 bg-green-500/20 border border-green-400/40 px-3 py-1.5 rounded-full text-green-300"><i class="fas fa-unlock"></i> Section 1 Free</div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="max-w-4xl mx-auto px-4 py-8">
+
+  <!-- SECTION TABS -->
+  <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 mb-6">
+    <div class="flex gap-2 flex-wrap">
+      <button onclick="switchSection(1)" id="tab-1" class="tab-btn active"><i class="fas fa-unlock-alt mr-1 text-green-500"></i>Section 1<span class="ml-1 text-xs bg-green-100 text-green-700 px-1.5 rounded-full font-semibold">FREE</span></button>
+      <button onclick="switchSection(2)" id="tab-2" class="tab-btn locked"><i class="fas fa-lock mr-1"></i>Section 2</button>
+      <button onclick="switchSection(3)" id="tab-3" class="tab-btn locked"><i class="fas fa-lock mr-1"></i>Section 3</button>
+      <button onclick="switchSection(4)" id="tab-4" class="tab-btn locked"><i class="fas fa-lock mr-1"></i>Section 4</button>
+      <button onclick="switchSection(5)" id="tab-5" class="tab-btn locked"><i class="fas fa-lock mr-1"></i>Section 5</button>
+    </div>
+    <div class="mt-3 text-sm text-gray-500" id="section-subtitle">Investment Fundamentals — Free practice section</div>
+  </div>
+
+  <!-- EXAM PANEL -->
+  <div id="exam-panel" class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+
+    <!-- Section title + progress -->
+    <div class="flex items-center justify-between mb-4">
+      <div>
+        <h2 class="text-xl font-extrabold text-gray-800" id="section-title">Section 1: Investment Fundamentals</h2>
+        <p class="text-sm text-gray-500 mt-0.5" id="section-desc">Free — 50 Multiple Choice Questions</p>
+      </div>
+      <div class="text-right">
+        <div class="text-2xl font-extrabold text-blue-700" id="q-counter">1 / 50</div>
+        <div class="text-xs text-gray-400">Questions</div>
+      </div>
+    </div>
+    <div class="progress-bar mb-6"><div class="progress-fill" id="progress-fill" style="width:2%"></div></div>
+
+    <!-- Question -->
+    <div id="question-area">
+      <div class="bg-blue-50 border border-blue-100 rounded-xl p-5 mb-5">
+        <div class="text-xs font-semibold text-blue-500 mb-2" id="q-num">Question 1</div>
+        <p class="text-gray-800 font-semibold text-base leading-relaxed" id="q-text"></p>
+      </div>
+      <div id="options-area"></div>
+    </div>
+
+    <!-- Navigation -->
+    <div class="flex items-center justify-between mt-6 pt-4 border-t border-gray-100">
+      <button onclick="prevQuestion()" id="btn-prev" class="flex items-center gap-2 px-4 py-2 rounded-lg border-2 border-gray-200 text-gray-600 font-semibold text-sm hover:border-gray-300 transition-all disabled:opacity-30" disabled>
+        <i class="fas fa-chevron-left"></i> Previous
+      </button>
+      <div class="flex items-center gap-3">
+        <span class="text-sm text-gray-400" id="answered-count">0 answered</span>
+        <button onclick="submitSection()" id="btn-submit" class="hidden px-5 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-bold text-sm transition-all">
+          <i class="fas fa-check mr-1"></i> Submit &amp; See Results
+        </button>
+      </div>
+      <button onclick="nextQuestion()" id="btn-next" class="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm transition-all">
+        Next <i class="fas fa-chevron-right"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- RESULTS PANEL (hidden initially) -->
+  <div id="results-panel" class="hidden">
+    <div class="score-card mb-6">
+      <div class="text-5xl font-extrabold mb-2" id="score-pct">0%</div>
+      <div class="text-blue-200 text-lg mb-1" id="score-fraction">0 / 50 correct</div>
+      <div class="text-sm text-blue-300" id="score-grade"></div>
+    </div>
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6">
+      <h3 class="font-extrabold text-gray-800 text-lg mb-4"><i class="fas fa-clipboard-list text-blue-600 mr-2"></i>Detailed Review</h3>
+      <div id="review-area"></div>
+    </div>
+    <div class="text-center">
+      <button onclick="continueToNext()" id="btn-continue" class="px-8 py-3 bg-gradient-to-r from-blue-700 to-blue-500 text-white rounded-xl font-bold text-base shadow-lg hover:shadow-xl transition-all">
+        <i class="fas fa-arrow-right mr-2"></i>Continue to Next Section
+      </button>
+      <button onclick="retrySection()" class="ml-3 px-6 py-3 border-2 border-blue-200 text-blue-700 rounded-xl font-bold text-base hover:border-blue-400 transition-all">
+        <i class="fas fa-redo mr-1"></i>Retry This Section
+      </button>
+    </div>
+  </div>
+
+  <!-- LOCKED PANEL -->
+  <div id="locked-panel" class="hidden">
+    <div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 text-center">
+      <div class="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <i class="fas fa-lock text-yellow-500 text-3xl"></i>
+      </div>
+      <h2 class="text-2xl font-extrabold text-gray-800 mb-2">Section Locked</h2>
+      <p class="text-gray-500 mb-6 max-w-md mx-auto">Support this project to unlock this section and continue your GISI exam preparation.</p>
+      <div class="flex flex-col sm:flex-row gap-4 justify-center mb-6">
+        <div class="flex-1 max-w-xs border-2 border-blue-200 rounded-2xl p-5 text-left hover:border-blue-400 transition-all cursor-pointer" onclick="openPayModal('single')">
+          <div class="text-xs font-semibold text-blue-500 mb-1">SINGLE SECTION</div>
+          <div class="text-3xl font-extrabold text-gray-800 mb-1">GHS 60</div>
+          <div class="text-sm text-gray-500">Access this section only</div>
+          <button class="mt-3 w-full py-2 bg-blue-600 text-white rounded-lg font-semibold text-sm hover:bg-blue-700 transition-all">Select</button>
+        </div>
+        <div class="flex-1 max-w-xs border-2 border-green-300 rounded-2xl p-5 text-left relative hover:border-green-500 transition-all cursor-pointer bg-green-50" onclick="openPayModal('bundle')">
+          <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-green-500 text-white text-xs font-bold px-3 py-0.5 rounded-full">BEST VALUE</div>
+          <div class="text-xs font-semibold text-green-600 mb-1">ALL 4 SECTIONS (2–5)</div>
+          <div class="text-3xl font-extrabold text-gray-800 mb-1">GHS 200</div>
+          <div class="text-sm text-gray-500">Save GHS 40 vs buying individually</div>
+          <button class="mt-3 w-full py-2 bg-green-600 text-white rounded-lg font-semibold text-sm hover:bg-green-700 transition-all">Select</button>
+        </div>
+      </div>
+      <p class="text-xs text-gray-400">Proceeds support YIN's financial literacy programmes for young Ghanaian investors.</p>
+    </div>
+  </div>
+
+</div><!-- end max-w -->
+
+<!-- PAYMENT MODAL -->
+<div id="pay-modal" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="flex items-center justify-between mb-5">
+      <h3 class="text-xl font-extrabold text-gray-800"><i class="fas fa-mobile-alt text-blue-600 mr-2"></i>Complete Payment</h3>
+      <button onclick="closePayModal()" class="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
+    </div>
+
+    <!-- Payment instructions -->
+    <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-5">
+      <div class="font-bold text-blue-800 mb-2"><i class="fas fa-info-circle mr-1"></i>Payment Instructions</div>
+      <ol class="text-sm text-blue-700 space-y-1 list-decimal list-inside">
+        <li>Send <strong id="pay-amount-text">GHS 60</strong> via Mobile Money</li>
+        <li>MTN MoMo: <strong>0244-XXXXXXX</strong> (InvestIQ / YIN)</li>
+        <li>Vodafone Cash: <strong>020-XXXXXXX</strong></li>
+        <li>AirtelTigo: <strong>027-XXXXXXX</strong></li>
+        <li>Enter your MoMo transaction reference below</li>
+      </ol>
+    </div>
+
+    <form id="pay-form" onsubmit="submitPayment(event)">
+      <input type="hidden" id="pay-plan" value="single"/>
+      <input type="hidden" id="pay-section" value="2"/>
+      <div class="grid grid-cols-2 gap-3 mb-3">
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">Full Name *</label>
+          <input type="text" id="pay-name" placeholder="Your full name" required/>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-600 mb-1">Email *</label>
+          <input type="email" id="pay-email" placeholder="your@email.com" required/>
+        </div>
+      </div>
+      <div class="mb-3">
+        <label class="block text-xs font-semibold text-gray-600 mb-1">Phone Number</label>
+        <input type="tel" id="pay-phone" placeholder="0XX-XXX-XXXX"/>
+      </div>
+      <div class="mb-4">
+        <label class="block text-xs font-semibold text-gray-600 mb-1">MoMo Transaction Reference *</label>
+        <input type="text" id="pay-ref" placeholder="e.g. S241234567890" required/>
+        <p class="text-xs text-gray-400 mt-1">You can find this in your MoMo SMS confirmation.</p>
+      </div>
+      <div id="pay-error" class="hidden mb-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg p-3"></div>
+      <button type="submit" id="pay-btn" class="w-full py-3 bg-gradient-to-r from-blue-700 to-blue-500 text-white rounded-xl font-bold text-base hover:opacity-90 transition-all">
+        <i class="fas fa-unlock mr-2"></i>Confirm Payment &amp; Unlock
+      </button>
+      <p class="text-xs text-center text-gray-400 mt-2">Access is granted immediately after submission.</p>
+    </form>
+  </div>
+</div>
+
+<script>
+// ─── QUESTIONS DATA ────────────────────────────────────────────────────────
+const QUESTIONS = {
+1: [
+  {q:"What is the primary function of a financial market?",opts:["To facilitate government borrowing only","To facilitate the transfer of funds from savers to borrowers","To ensure equal distribution of wealth","To control inflation"],ans:1},
+  {q:"Which statement best describes the time value of money?",opts:["Money loses value due to inflation only","A sum of money today is worth more than the same sum in the future","A sum of money in the future is worth more than today","Money has no time value"],ans:1},
+  {q:"An investor buys a share at GHS 10, sells at GHS 14 and receives GHS 1 dividend. What is the total return?",opts:["40%","50%","10%","60%"],ans:1},
+  {q:"Which risk CANNOT be eliminated through diversification?",opts:["Company-specific risk","Unsystematic risk","Systematic risk","Idiosyncratic risk"],ans:2},
+  {q:"What is the formula for the present value of a perpetuity paying C per period at rate r?",opts:["PV = C × r","PV = C / r","PV = C × (1+r)^n","PV = C / (1+r)^n"],ans:1},
+  {q:"A bond with a coupon rate higher than the prevailing market rate will trade at:",opts:["Par value","A premium","A discount","Zero value"],ans:1},
+  {q:"Which of the following is a money market instrument?",opts:["Corporate bond","Ordinary share","Treasury bill","Preference share"],ans:2},
+  {q:"The capital market primarily facilitates:",opts:["Short-term financing under 1 year","Medium and long-term financing","Overnight borrowing only","Foreign exchange transactions only"],ans:1},
+  {q:"Beta measures:",opts:["Total risk of a portfolio","Sensitivity of a stock's return to market movements","Expected return of a stock","Dividend yield of a stock"],ans:1},
+  {q:"A risk-averse investor would prefer:",opts:["Higher risk for the same expected return","Lower expected return for any risk level","Lower risk for the same expected return","Higher risk for lower expected return"],ans:2},
+  {q:"'Liquidity' in financial markets refers to:",opts:["Ability to generate high returns","Ease of converting an asset to cash without significant price impact","Total amount of funds in the market","Stability of interest rates"],ans:1},
+  {q:"The Efficient Market Hypothesis (EMH) states that:",opts:["Markets always produce the highest returns","Asset prices fully reflect all available information","Investors can consistently earn above-market returns","All listed companies are profitable"],ans:1},
+  {q:"The yield curve plots:",opts:["Stock prices against time","Bond yields against their maturities","Company earnings against share price","Interest rates against inflation"],ans:1},
+  {q:"An Initial Public Offering (IPO) is:",opts:["A company buying back its shares","A company issuing shares to the public for the first time","A government issuing bonds to institutions","A merger between listed companies"],ans:1},
+  {q:"A characteristic of equity securities is:",opts:["Fixed coupon payments","Guaranteed principal repayment","Residual claim on assets","Priority over bonds in liquidation"],ans:2},
+  {q:"The price-to-earnings (P/E) ratio measures:",opts:["How much investors pay for each unit of earnings","The total market capitalisation","The dividend yield","The book value per share"],ans:0},
+  {q:"In a falling interest rate environment, existing bond prices will:",opts:["Fall","Remain unchanged","Rise","Become highly volatile"],ans:2},
+  {q:"Which of the following is a derivative instrument?",opts:["Treasury bill","Corporate bond","Put option","Ordinary share"],ans:2},
+  {q:"The required rate of return on an investment is determined by:",opts:["Dividend history alone","Risk-free rate plus a risk premium","Only the inflation rate","Only the central bank policy rate"],ans:1},
+  {q:"The purpose of a rights issue is to:",opts:["Give shareholders the right to vote","Allow existing shareholders to buy new shares at a discount before the public","Distribute profits to shareholders","Repurchase shares from the market"],ans:1},
+  {q:"Which financial statement shows a company's financial position at a specific point in time?",opts:["Income statement","Cash flow statement","Balance sheet","Statement of changes in equity"],ans:2},
+  {q:"The Internal Rate of Return (IRR) is:",opts:["The rate required by the market","The discount rate that makes NPV equal to zero","The annual interest rate on government bonds","Return on equity of a company"],ans:1},
+  {q:"Systematic risk is also known as:",opts:["Diversifiable risk","Company-specific risk","Market risk","Credit risk"],ans:2},
+  {q:"Preference shares differ from ordinary shares in that they:",opts:["Always have full voting rights","Have a fixed dividend and priority over ordinary shares in liquidation","Are always convertible to bonds","Have higher expected capital gains"],ans:1},
+  {q:"'Short selling' means:",opts:["Selling shares held less than one year","Selling borrowed shares intending to repurchase at a lower price","Selling shares in small quantities","Selling shares at closing price"],ans:1},
+  {q:"The Dividend Discount Model (DDM) values a stock as:",opts:["Sum of all future dividends at face value","Present value of all expected future dividends","Book value per share","Last dividend multiplied by earnings growth"],ans:1},
+  {q:"A 'bull market' is characterised by:",opts:["Falling prices and negative sentiment","Rising prices and positive investor sentiment","Stable prices with high volatility","Declining trading volumes"],ans:1},
+  {q:"The 'face value' of a bond is:",opts:["The current market price","The price at which the bond was issued","The principal amount repaid at maturity","The present value of coupon payments"],ans:2},
+  {q:"Which of the following is NOT a function of stock exchanges?",opts:["Providing a trading platform","Price discovery","Making direct loans to companies","Enhancing liquidity"],ans:2},
+  {q:"Asset allocation refers to:",opts:["Distributing investments across different asset classes","Selling underperforming assets","Allocating profits to shareholders","Choosing specific securities within an asset class"],ans:0},
+  {q:"The 'risk premium' in investment is:",opts:["The fee paid to a financial advisor","The extra return expected over the risk-free rate for bearing additional risk","Insurance premium for investments","Difference between buying and selling price"],ans:1},
+  {q:"'Market capitalisation' is best described as:",opts:["Total assets of a company","Total annual revenue","Total market value of all outstanding shares","Par value of all issued shares"],ans:2},
+  {q:"When a security is 'overvalued':",opts:["Its market price is below intrinsic value","Its market price is above its intrinsic value","Its price equals book value","It has excessive trading volume"],ans:1},
+  {q:"The 'ex-dividend' date is:",opts:["The date the dividend is paid","The date after which new shareholders will not receive the upcoming dividend","The date of the dividend announcement","The date the company's books close"],ans:1},
+  {q:"For a bond trading at a discount, the coupon rate compared to YTM is:",opts:["Coupon rate > YTM","Coupon rate = YTM","Coupon rate < YTM","No relationship exists"],ans:2},
+  {q:"Which factor would MOST likely increase a stock's intrinsic value?",opts:["A decrease in earnings per share","An increase in the company's risk profile","A reduction in the company's cost of capital","A decrease in dividend growth rate"],ans:2},
+  {q:"The 'secondary market' is where:",opts:["Newly issued securities are sold for the first time","Previously issued securities are bought and sold between investors","Derivatives contracts are created","Only government bonds are traded"],ans:1},
+  {q:"Working capital is calculated as:",opts:["Total assets minus total liabilities","Current assets minus current liabilities","Total equity minus total debt","Fixed assets minus depreciation"],ans:1},
+  {q:"The 'bid-ask spread' is:",opts:["Difference between dividends and earnings","Difference between highest buy price and lowest sell price","Annual management fee","Interest rate differential between two currencies"],ans:1},
+  {q:"Which investment vehicle pools money from many investors and invests in a diversified portfolio?",opts:["Savings account","Treasury bill","Mutual fund","Corporate bond"],ans:2},
+  {q:"'Duration' of a bond measures:",opts:["Time to maturity only","Weighted average time to receive all cash flows, reflecting price sensitivity to interest rate changes","Coupon payment frequency","Credit rating period"],ans:1},
+  {q:"In efficient markets, the relationship between risk and expected return is:",opts:["Higher risk leads to lower expected returns","Lower risk leads to higher expected returns","Higher risk leads to higher expected returns","Risk has no impact on expected returns"],ans:2},
+  {q:"An investor buys a GHS 1,000 bond with 8% annual coupon at GHS 1,000. The current yield is:",opts:["6%","7%","8%","9%"],ans:2},
+  {q:"A characteristic of a zero-coupon bond is:",opts:["Pays regular interest semi-annually","Trades at par value only","Is issued at a discount and pays no periodic interest","Has variable coupon payments"],ans:2},
+  {q:"The 'holding period return' measures:",opts:["Return during a partial holding period","Only the dividends received","The return from purchase to final sale","Return relative to a benchmark"],ans:2},
+  {q:"A high price-to-book (P/B) ratio indicates:",opts:["The stock trades below accounting value","The market values assets more than their book value","Low profitability","Undervalued shares"],ans:1},
+  {q:"'Market depth' refers to:",opts:["How far prices deviate from fair value","The amount of buy and sell orders at various price levels","Total number of listed companies","Geographic coverage of an exchange"],ans:1},
+  {q:"The NPV rule states: accept a project when:",opts:["NPV < 0","NPV = 0 only","NPV ≥ 0","NPV is negative and falling"],ans:2},
+  {q:"'Rebalancing' in portfolio management means:",opts:["Moving all investments to a single asset class","Selling all positions and reinvesting","Adjusting portfolio holdings back to target asset allocation","Only adding new funds"],ans:2},
+  {q:"'Arbitrage' is best defined as:",opts:["Investing in high-risk assets for higher returns","Simultaneous purchase and sale in different markets to profit from price differences","Borrowing at a low rate to invest at a higher rate","Hedging against all market risks"],ans:1}
+],
+2: [
+  {q:"The Ghana Stock Exchange (GSE) was established in:",opts:["1980","1990","1995","2000"],ans:1},
+  {q:"The GSE Composite Index tracks:",opts:["All companies listed on the GSE","Only banking sector stocks","The 10 largest listed companies","Only foreign-listed companies"],ans:0},
+  {q:"Which body regulates the securities market in Ghana?",opts:["Bank of Ghana","Securities and Exchange Commission (SEC) Ghana","Ghana Revenue Authority","Ministry of Finance"],ans:1},
+  {q:"'T+3' settlement means trades are settled:",opts:["3 minutes after execution","3 hours after execution","3 business days after the trade date","3 weeks after execution"],ans:2},
+  {q:"A 'blue chip' stock refers to:",opts:["Any stock listed on a foreign exchange","A speculative high-growth stock","Shares of a large, nationally recognised, financially sound company","A stock that pays no dividends"],ans:2},
+  {q:"The ex-rights date is the date:",opts:["Rights expire","After which buyers of shares will not receive the rights","Rights are first traded on the exchange","Rights are exercised"],ans:1},
+  {q:"'Earnings per share' (EPS) is calculated as:",opts:["Total earnings divided by market capitalisation","Net profit divided by number of outstanding shares","Dividends divided by number of shares","Operating profit divided by total assets"],ans:1},
+  {q:"A stock's '52-week high' represents:",opts:["Average price over 52 weeks","Highest price traded in the last 52 weeks","Target price set by analysts","Opening price 52 weeks ago"],ans:1},
+  {q:"When a company issues bonus shares:",opts:["Shareholders pay a discounted price for new shares","New shares are issued to existing shareholders at no cost from retained earnings","The company raises new capital from outside investors","Shares are sold to institutional investors only"],ans:1},
+  {q:"A 'limit order' in equity trading means:",opts:["Trading at the prevailing market price","Setting a maximum buy price or minimum sell price","Trading only in limited quantities","Restricting trades to certain time periods"],ans:1},
+  {q:"Dividend yield of a share is calculated as:",opts:["Dividend per share / Earnings per share","(Dividend per share / Market price) × 100","Total dividends / Total revenues × 100","Net income / Total equity × 100"],ans:1},
+  {q:"'Dilution' in corporate finance refers to:",opts:["Reducing company debt","Decreasing the percentage ownership of existing shareholders through issuing new shares","Distributing excess cash to shareholders","Reducing the face value of existing shares"],ans:1},
+  {q:"A 'market order' is executed at:",opts:["A predetermined price set by the investor","The best available current market price","The closing price of the previous day","A price negotiated with the stockbroker"],ans:1},
+  {q:"Which event would typically cause a stock's price to FALL?",opts:["Better-than-expected earnings","A major acquisition at a high premium","Central bank cuts interest rates","Company announces share buyback"],ans:1},
+  {q:"The primary market is where:",opts:["Institutional investors trade among themselves","Securities are sold to investors for the first time by the issuing company","Only government securities are traded","Old securities are exchanged for new ones"],ans:1},
+  {q:"A stock split achieves:",opts:["Reduces shares outstanding and increases price per share","Increases shares outstanding and proportionally reduces price per share","Converts bonds into shares","Merges two classes of shares into one"],ans:1},
+  {q:"'Technical analysis' involves:",opts:["Analysing a company's financial statements","Using price charts and statistical indicators to predict future price movements","Evaluating management quality","Assessing macroeconomic conditions"],ans:1},
+  {q:"'Insider trading' refers to:",opts:["Trading by employees of the exchange","Trading securities based on material non-public information","Trading by institutional investors","Large block trading between institutions"],ans:1},
+  {q:"A company's 'float' refers to:",opts:["Total number of authorised shares","Total number of shares available for public trading","Number of shares held by insiders","Shares issued but not yet listed"],ans:1},
+  {q:"Which indicates a stock is potentially undervalued using the P/E ratio?",opts:["P/E ratio much higher than industry average","P/E ratio lower than industry average with strong fundamentals","P/E ratio equal to the risk-free rate","P/E ratio above 100"],ans:1},
+  {q:"A reverse stock split would:",opts:["Decrease the share price and increase shares outstanding","Increase the share price and decrease shares outstanding, with no change in market cap","Always increase market capitalisation","Reduce the company's total equity"],ans:1},
+  {q:"'Market sentiment' describes:",opts:["Objective fundamental value of all stocks","Overall attitude and feeling of investors toward the market","Official government views on the stock market","Technical indicators of market movement"],ans:1},
+  {q:"Preference shares typically do NOT have:",opts:["Fixed dividend rights","Priority over ordinary shares in liquidation","Voting rights in ordinary circumstances","Cumulative dividend features"],ans:2},
+  {q:"A stockbroker's role on the GSE includes:",opts:["Setting share prices","Acting as intermediaries between buyers and sellers of securities","Approving new listings on the exchange","Managing central bank reserves"],ans:1},
+  {q:"A 'circuit breaker' in equity markets is:",opts:["A mechanism that automatically executes large orders","A temporary halt in trading when prices move beyond a threshold","An electronic trading system","A rule restricting foreign investors"],ans:1},
+  {q:"The purpose of a 'prospectus' in an IPO is:",opts:["A document setting the final share price","A legal disclosure document providing information to prospective investors","A trading agreement between the company and stockbrokers","A report published after the IPO"],ans:1},
+  {q:"In a rights issue, 'nil paid rights' refers to:",opts:["Rights that cannot be sold","Rights that have not been exercised or sold and can be traded","Rights issued free to employees","Rights with expired subscription periods"],ans:1},
+  {q:"'Momentum investing' involves:",opts:["Investing in companies with the most debt","Buying rising securities and selling falling ones","Investing based purely on fundamental analysis","Trading based on insider information"],ans:1},
+  {q:"When a company 'delists' from the exchange, it means:",opts:["The company's shares are temporarily suspended","The company's shares are permanently removed from the exchange","The company reduces its authorised capital","The company merges with another listed company"],ans:1},
+  {q:"'Book building' in an IPO refers to:",opts:["Auditing a company's financial statements","The process of generating investor demand to determine the IPO price","Publishing the company's prospectus","Finalising the underwriting agreement"],ans:1},
+  {q:"A 'call option' on a share gives the holder:",opts:["The obligation to sell shares at a specified price","The right but not the obligation to buy shares at a specified price","The right to receive dividends only","The obligation to buy at prevailing market price"],ans:1},
+  {q:"The GSE Financial Stock Index (FSI) specifically tracks:",opts:["All companies listed on the GSE","Financial sector stocks listed on the GSE","Foreign stocks listed in Ghana","Government bond prices"],ans:1},
+  {q:"'Value investing' involves:",opts:["Buying the fastest-growing companies regardless of price","Buying securities believed to be trading below their intrinsic value","Investing based on price momentum","Following the trend of institutional investors"],ans:1},
+  {q:"'Market liquidity risk' is:",opts:["The risk that a company defaults on its debt","The risk of being unable to sell an investment quickly without a significant price concession","The risk of currency depreciation","The risk of inflation eroding returns"],ans:1},
+  {q:"An 'anchor investor' in an IPO is:",opts:["The company's largest shareholder pre-IPO","A large institutional investor who commits to buying a significant portion of the IPO","The lead stockbroker managing the IPO","The auditing firm verifying the IPO prospectus"],ans:1},
+  {q:"'Earnings quality' in equity analysis refers to:",opts:["The total amount of earnings reported","The sustainability, predictability, and accuracy of reported earnings","The growth rate of earnings over time","Earnings relative to competitors"],ans:1},
+  {q:"When the GSE Composite Index rises sharply, this generally indicates:",opts:["Declining investor confidence","Rising investor confidence and increasing share prices on average","Government intervention in the market","Reduced trading activity"],ans:1},
+  {q:"A 'growth stock' differs from a 'value stock' in that it:",opts:["Pays higher dividends","Is expected to grow above average and typically has a higher P/E ratio","Has lower market capitalisation","Has lower volatility"],ans:1},
+  {q:"A 'Dealing Member' on the GSE is:",opts:["Managing the GSE's own portfolio","Licensed intermediaries authorised to trade securities on behalf of clients","Approving new company listings","Setting daily trading limits"],ans:1},
+  {q:"The Gordon Growth Model assumes:",opts:["Dividends remain constant forever","Dividends grow at a constant perpetual rate","Dividends grow at a variable rate for 5 years then stop","No dividends are paid"],ans:1},
+  {q:"'Price discovery' in stock markets refers to:",opts:["Investigation of insider trading","The process by which market prices are determined through supply and demand","Calculation of intrinsic stock value by analysts","Listing prices set by regulatory authorities"],ans:1},
+  {q:"'Return on equity' (ROE) measures:",opts:["Return generated on total assets","How much profit a company generates with shareholders' equity","The stock's price return over a period","Yield from dividends relative to share price"],ans:1},
+  {q:"When a company announces a higher-than-expected dividend, the stock price typically:",opts:["Falls significantly","Rises due to positive investor sentiment","Remains unchanged as dividends are irrelevant","Falls due to reduced retained earnings"],ans:1},
+  {q:"The 'ask price' in a securities transaction is:",opts:["The price a buyer is willing to pay","The price a seller is willing to accept","The midpoint between buyer and seller prices","The last traded price"],ans:1},
+  {q:"Which is typically NOT disclosed in a company's annual report?",opts:["Management discussion and analysis","Competitor's internal financial strategies","Audited financial statements","Corporate governance report"],ans:1},
+  {q:"In technical analysis, 'support level' refers to:",opts:["A price level where selling pressure increases","A price level where buying interest prevents further price declines","The highest price a stock has reached","The minimum price set by the exchange"],ans:1},
+  {q:"The purpose of an 'escrow account' in securities transactions is:",opts:["To hold the company's retained earnings","To hold funds until conditions of a transaction are met","To collect dividend payments","To store trading records"],ans:1},
+  {q:"A 'takeover bid' is an attempt by:",opts:["The government to nationalise a company","An acquirer to purchase enough shares to gain controlling interest in a target company","A company to list additional shares","Institutional investors to influence management"],ans:1},
+  {q:"'Free float' as a percentage is:",opts:["Shares held by government divided by total shares","Shares held by insiders divided by total shares","Publicly traded shares divided by total shares outstanding","Total authorised shares divided by issued shares"],ans:2}
+],
+3: [
+  {q:"A characteristic of a fixed income security is:",opts:["Ownership in the issuing company","A promise to make periodic interest payments and repay principal","Variable returns based on market performance","No obligation to repay the face value"],ans:1},
+  {q:"Ghana Government's short-term debt instrument is:",opts:["Ghana Government Bond","Treasury bill (T-bill)","Commercial paper","Certificate of deposit"],ans:1},
+  {q:"T-bills in Ghana are typically issued with maturities of:",opts:["30, 60, and 90 days","91, 182, and 364 days","180, 270, and 360 days","1, 2, and 5 years"],ans:1},
+  {q:"The Bank of Ghana conducts T-bill auctions:",opts:["Monthly","Quarterly","Weekly","Annually"],ans:2},
+  {q:"'Yield to maturity' (YTM) of a bond is:",opts:["The coupon rate only","The total return anticipated if held until it matures","The current yield of the bond","The discount rate applied to the face value"],ans:1},
+  {q:"When market interest rates rise, existing bond prices:",opts:["Also rise","Fall","Remain unchanged","Convert to equity"],ans:1},
+  {q:"A bond with GHS 1,000 face value and 15% annual coupon pays how much annually?",opts:["GHS 50","GHS 100","GHS 150","GHS 200"],ans:2},
+  {q:"The 'current yield' of a bond is:",opts:["The YTM of the bond","Annual coupon payment divided by the current market price","The coupon rate divided by the face value","Yield at the time of issuance"],ans:1},
+  {q:"'Credit risk' in fixed income investing refers to:",opts:["The risk that interest rates will change","The risk that the issuer will fail to make scheduled payments","The risk that inflation will erode returns","The risk of currency depreciation"],ans:1},
+  {q:"A bond rated 'AAA' by a credit rating agency is considered:",opts:["Highest risk","Speculative grade","Highest quality with minimal credit risk","Unrated and therefore risky"],ans:2},
+  {q:"'Accrued interest' in bond trading refers to:",opts:["Interest paid in advance by the issuer","Interest that has accumulated since the last coupon payment date","Penalty interest charged to late payments","Total interest over the bond's lifetime"],ans:1},
+  {q:"The 'clean price' of a bond is:",opts:["The total price including accrued interest","The quoted price of the bond excluding accrued interest","The face value of the bond","The price after all fees"],ans:1},
+  {q:"'Callable bonds' give the issuer the right to:",opts:["Convert bonds into shares","Redeem the bonds before the maturity date","Increase the coupon rate","Transfer the bond obligation to a third party"],ans:1},
+  {q:"Among bonds with similar characteristics, which has the longest duration?",opts:["High coupon, short maturity","Low coupon, long maturity","High coupon, long maturity","Zero coupon, short maturity"],ans:1},
+  {q:"The purpose of a 'sinking fund' in bond agreements is:",opts:["To invest proceeds in equity markets","To set aside funds periodically for repayment of bond principal","To manage the company's working capital","To fund dividend payments"],ans:1},
+  {q:"'Convertible bonds' allow:",opts:["The issuer to convert to variable rate payments","The bondholder to convert bonds into equity shares of the issuing company","The bonds to be transferred to another investor","The bondholder to change the maturity date"],ans:1},
+  {q:"The 'par value' of a bond is:",opts:["The current market price","The face value or principal amount to be repaid at maturity","Present value of all future coupon payments","The issue price"],ans:1},
+  {q:"'Floating rate bonds' have:",opts:["Coupon payments that change based on a reference interest rate","No coupon payments","Fixed coupon payments throughout their life","Coupon payments linked to stock market returns"],ans:0},
+  {q:"In Ghana's fixed income market, primary dealers of government securities are:",opts:["Individual retail investors","Licensed financial institutions approved by the Bank of Ghana","Only the Securities and Exchange Commission","Foreign investors exclusively"],ans:1},
+  {q:"'Convexity' in bond analysis measures:",opts:["A bond's credit quality","The curvature of the price-yield relationship; bonds with higher convexity gain more when rates fall","The shape of the yield curve","The speed of coupon payments"],ans:1},
+  {q:"A zero-coupon bond priced at GHS 600 with face value GHS 1,000 due in 5 years has a YTM of approximately:",opts:["7.5%","10.8%","5.0%","8.0%"],ans:1},
+  {q:"'Yield spread' between two bonds is:",opts:["The sum of their yields","The difference between the yields of two bonds, often reflecting credit risk","The average yield of the two bonds","The coupon rate difference"],ans:1},
+  {q:"Which instrument has the LOWEST credit risk in Ghana?",opts:["Corporate commercial paper","Bank certificates of deposit","Ghana Government Treasury bills","Municipal bonds"],ans:2},
+  {q:"'Duration' as a risk measure tells an investor approximately:",opts:["How long a bond will take to fully repay","How much a bond's price will change for a 1% change in interest rates","The time to the first coupon payment","The credit rating review period"],ans:1},
+  {q:"'Yield to call' is most relevant for:",opts:["Zero-coupon bonds","Convertible bonds","Callable bonds that may be redeemed before maturity","Variable rate bonds"],ans:2},
+  {q:"If inflation rises unexpectedly, existing fixed-rate bond investors:",opts:["Benefit as their real returns increase","Are harmed as the real value of their fixed payments declines","Are unaffected by inflation","Receive automatic compensation"],ans:1},
+  {q:"An 'inverted yield curve' occurs when:",opts:["Long-term rates are higher than short-term rates","Short-term rates are higher than long-term rates","All maturities have the same yield","Yields are rising across all maturities"],ans:1},
+  {q:"A bond with a 10% coupon and YTM of 12% trades:",opts:["At par (GHS 1,000)","At a premium (above par)","At a discount (below par)","At zero value"],ans:2},
+  {q:"'Inflation-indexed bonds' are bonds where:",opts:["The coupon and principal are fixed","Principal and interest payments are adjusted for inflation","The bond only pays when inflation exceeds a threshold","The bond is linked to the stock market index"],ans:1},
+  {q:"The 'bank rate' set by the Bank of Ghana:",opts:["Determines the inter-bank lending rate","Serves as a benchmark influencing short-term interest rates in Ghana","Is the rate banks charge retail customers only","Has no influence on bond yields"],ans:1},
+  {q:"'Subordinated debt' ranks:",opts:["Above senior secured debt in liquidation","Below senior debt but above equity in the priority of claims","Equal to senior secured debt","Above all other claims"],ans:1},
+  {q:"To minimise reinvestment risk, a bond investor should:",opts:["Buy coupon-paying bonds with high coupons","Buy zero-coupon bonds or immunise the portfolio","Buy bonds with the shortest maturities","Invest in floating rate bonds only"],ans:1},
+  {q:"'Liquidity premium' in fixed income is:",opts:["A reward for investing in riskier bonds","Extra yield demanded by investors to compensate for holding less liquid bonds","The spread between corporate and government bonds","The yield difference between domestic and foreign bonds"],ans:1},
+  {q:"The 'primary dealer system' in Ghana's government securities market helps:",opts:["Reduce the number of investors in T-bills","Ensure effective distribution and liquidity of government securities","Limit foreign investment in government bonds","Reduce government borrowing costs by eliminating auctions"],ans:1},
+  {q:"'Benchmark yield' in the bond market is typically:",opts:["The yield of the most recently issued T-bill","The yield of the most liquid on-the-run government bond used as a reference rate","The average yield of all corporate bonds","The Bank of Ghana policy rate"],ans:1},
+  {q:"'Debt-to-equity ratio' in a bond issuer's credit analysis measures:",opts:["Return on equity of the issuer","Financial leverage; proportion of debt relative to equity financing","Yield premium over equity returns","Ratio of bond coupon to dividend"],ans:1},
+  {q:"'Coupon stripping' involves:",opts:["Reducing the coupon rate of an existing bond","Separating coupon payments from principal to create separate zero-coupon instruments","Combining multiple bonds into one","Converting a bond to a variable rate instrument"],ans:1},
+  {q:"Which factor would NOT cause bond yields to rise?",opts:["An increase in inflation expectations","A credit rating upgrade of the bond issuer","An increase in government borrowing","Rising market interest rates"],ans:1},
+  {q:"'Amortising bonds' are bonds where:",opts:["The principal is repaid in full at maturity","The principal is repaid in scheduled instalments over the bond's life","Coupon payments increase over time","No coupon is paid until maturity"],ans:1},
+  {q:"'Negative convexity' describes:",opts:["A bond whose price increases faster than expected when rates fall","A bond whose price increases less than expected when rates fall (typical of callable bonds)","A bond with negative coupons","A bond trading below par"],ans:1},
+  {q:"A 'Eurobond' is:",opts:["A bond issued only in European countries","A bond issued in a currency different from the currency of the country where it is issued","A bond issued by the European Union","A bond denominated only in Euros"],ans:1},
+  {q:"The 'default spread' on a corporate bond is:",opts:["The corporate bond's yield minus the same-maturity government bond yield","The difference between coupon and current yield","The yield difference between two government bonds","The spread between bid and ask prices"],ans:0},
+  {q:"Bond 'immunisation' means:",opts:["Protecting the portfolio from all types of risk","Structuring the portfolio so interest rate changes don't affect the ability to meet a future liability","Investing only in government securities","Diversifying across different maturities"],ans:1},
+  {q:"The 'par yield' of a bond is:",opts:["The coupon rate that makes the bond trade at par","The yield of any government bond","The yield of bonds rated AAA","The yield at original issuance"],ans:0},
+  {q:"'Convexity adjustment' is applied to:",opts:["Improve the accuracy of duration-based interest rate risk estimates","Calculate the credit rating of a bond","Determine the tax implications","Adjust for currency risk"],ans:0},
+  {q:"A 'bullet bond' structure means:",opts:["The bond has very short maturity","All principal is repaid in one payment at maturity","The bond has accelerating coupon payments","The bond can be called before maturity"],ans:1},
+  {q:"In Ghana, public debt is primarily managed by:",opts:["Securities and Exchange Commission","Ghana Stock Exchange","Bank of Ghana, with oversight from the Ministry of Finance","Ghana Revenue Authority"],ans:2},
+  {q:"'Commercial paper' is typically:",opts:["A long-term fixed income instrument","An unsecured short-term debt instrument issued by creditworthy corporations","A government-guaranteed instrument","A mortgage-backed security"],ans:1},
+  {q:"The 'term premium' in government bond yields is driven primarily by:",opts:["Credit risk of the issuer","Uncertainty about future short-term interest rates and inflation over the bond's life","The bond's coupon rate","The exchange rate"],ans:1},
+  {q:"A bond that pays interest semi-annually will have a YTM calculation based on:",opts:["Annual periods","Semi-annual periods compounded to an annual figure","Quarterly periods only","Daily compounding always"],ans:1}
+],
+4: [
+  {q:"Modern Portfolio Theory (MPT) was developed by:",opts:["Warren Buffett","Harry Markowitz","William Sharpe","Eugene Fama"],ans:1},
+  {q:"The 'efficient frontier' represents:",opts:["Portfolios that maximise risk for each return level","Portfolios that offer the maximum expected return for each level of risk","Only government bond portfolios","Portfolios with zero risk"],ans:1},
+  {q:"CAPM states that the expected return on an asset equals:",opts:["Risk-free rate minus beta times market premium","Risk-free rate plus beta times the market risk premium","Market return plus alpha","Dividend yield plus capital gains"],ans:1},
+  {q:"A beta of 1.5 means the asset is:",opts:["150% as risky as the market total","50% more volatile than the market","Moving in the opposite direction to the market","Always earning 50% more than the market"],ans:1},
+  {q:"The 'Sharpe ratio' measures:",opts:["A portfolio's total return","Excess return per unit of total risk (standard deviation)","Excess return per unit of systematic risk","The portfolio's correlation with the market"],ans:1},
+  {q:"'Systematic risk' in a portfolio CANNOT be:",opts:["Measured with beta","Eliminated through diversification","Related to market movements","Felt by all investors in a market"],ans:1},
+  {q:"'Alpha' in portfolio management represents:",opts:["The portfolio's beta","The excess return above the benchmark-adjusted expected return","The total return of the portfolio","The risk-free rate component"],ans:1},
+  {q:"The 'Treynor ratio' is:",opts:["Total return divided by standard deviation","Excess return divided by beta (systematic risk)","Total return divided by beta","Excess return divided by standard deviation"],ans:1},
+  {q:"Correlation between two assets ranges from:",opts:["0 to 1","-1 to +1","0 to infinity","-2 to +2"],ans:1},
+  {q:"When two assets are perfectly negatively correlated (ρ = -1), combining them can:",opts:["Double the total risk","Theoretically eliminate all portfolio risk","Increase systematic risk","Reduce only unsystematic risk"],ans:1},
+  {q:"'Passive investing' typically involves:",opts:["Frequently trading to outperform the market","Replicating the performance of a market index","Investing only in fixed income securities","Selecting stocks based on fundamental analysis"],ans:1},
+  {q:"The 'information ratio' measures:",opts:["Quality of financial data","Active return divided by tracking error","Total portfolio return divided by risk","Correlation between active and passive returns"],ans:1},
+  {q:"'Tracking error' in portfolio management is:",opts:["The deviation of returns from the benchmark","The error in the portfolio manager's forecast","The standard deviation of the portfolio's total returns","The difference between gross and net returns"],ans:0},
+  {q:"'Asset-liability management' involves:",opts:["Matching investments to maximise return","Managing assets and liabilities together to ensure obligations can be met","Divesting underperforming assets","Maximising the asset side of the balance sheet"],ans:1},
+  {q:"In CAPM, the Security Market Line (SML) plots:",opts:["Portfolio return against standard deviation","Expected return against beta","Actual return against market return","Dividend yield against price"],ans:1},
+  {q:"Portfolio diversification is most effective when assets have:",opts:["High positive correlation","Low or negative correlation","Identical betas","The same expected returns"],ans:1},
+  {q:"'Jensen's Alpha' measures:",opts:["Portfolio's total return above the market","The portfolio's actual return minus its CAPM-predicted expected return","Risk-adjusted return using standard deviation","The portfolio's correlation with the benchmark"],ans:1},
+  {q:"'Rebalancing' a portfolio means:",opts:["Selling all assets and reinvesting","Adjusting the portfolio back to the original target asset allocation","Increasing equity exposure in a bull market","Moving all assets to cash"],ans:1},
+  {q:"'Dollar-cost averaging' involves:",opts:["Investing all capital at once when prices are low","Investing a fixed amount regularly regardless of price","Investing only in US dollar assets","Timing the market by buying at exact lows"],ans:1},
+  {q:"'Value at Risk' (VaR) measures:",opts:["The maximum possible loss over any time period","The maximum expected loss over a given period at a specified confidence level","The expected return of the portfolio","The minimum return guaranteed"],ans:1},
+  {q:"A fund manager who consistently beats the benchmark generates:",opts:["Beta returns","Positive alpha","Risk-free returns","Passive returns"],ans:1},
+  {q:"'Liability-driven investing' (LDI) is most commonly used by:",opts:["Retail investors seeking growth","Pension funds seeking to match assets to future liabilities","Hedge funds seeking absolute returns","Government bond investors"],ans:1},
+  {q:"The efficient market hypothesis in its STRONG form states prices reflect:",opts:["Only historical price information","All public information","All public and private information","No information reliably"],ans:2},
+  {q:"'Factor investing' (Smart Beta) seeks to:",opts:["Simply track a market cap-weighted index","Exploit specific return factors (value, momentum, size) systematically","Invest only in large-cap stocks","Minimise tracking error against the benchmark"],ans:1},
+  {q:"'Drawdown' measures in portfolio performance:",opts:["The annualised return of the portfolio","The peak-to-trough decline in portfolio value over a period","The withdrawal rate for the portfolio","The portfolio's standard deviation"],ans:1},
+  {q:"'Duration matching' or 'immunisation' in fixed income portfolios protects against:",opts:["Credit risk","Interest rate risk for a specific horizon","Currency risk","Liquidity risk"],ans:1},
+  {q:"The Capital Market Line (CML) in MPT represents:",opts:["The expected return-beta tradeoff","The efficient frontier when a risk-free asset is included, showing all optimal portfolios","Returns available only to institutional investors","The relationship between bond yields and equity returns"],ans:1},
+  {q:"'Passive management' is associated with:",opts:["Higher management fees","Lower fees and typically matching market returns","Attempts to select outperforming stocks","Frequent portfolio rebalancing based on market views"],ans:1},
+  {q:"Standard deviation of portfolio returns measures:",opts:["The portfolio's systematic risk","The total variability (risk) of portfolio returns","The downside risk only","The portfolio's tracking error"],ans:1},
+  {q:"The 'separation theorem' in portfolio theory states:",opts:["All investors hold the same risky portfolio","The optimal risky portfolio is the same for all investors, regardless of risk preference","Bonds should be separated from equities completely","Portfolio management should be separated from financial planning"],ans:1},
+  {q:"'Hedge funds' typically differ from mutual funds in that they:",opts:["Only invest in government securities","Use leverage, short selling, and complex strategies with fewer regulations","Have higher liquidity and daily redemption","Are open to all retail investors without restrictions"],ans:1},
+  {q:"'Strategic asset allocation' involves:",opts:["Daily adjustment of portfolio weights based on market conditions","Setting long-term target weightings across asset classes based on investment objectives","Investing only in high-growth assets","Reacting to short-term market movements"],ans:1},
+  {q:"In performance attribution, the 'allocation effect' measures:",opts:["Stock selection skill of the portfolio manager","The value added by the manager's decision to overweight or underweight asset classes","The currency impact on portfolio returns","The effect of rebalancing costs"],ans:1},
+  {q:"'Active management' is justified when:",opts:["All markets are highly efficient","The manager's skill generates enough alpha to cover higher fees","The portfolio has no systematic risk","Market volatility is low"],ans:1},
+  {q:"The 'optimal portfolio' for a risk-averse investor:",opts:["Is always the minimum variance portfolio","Maximises expected return for the investor's acceptable risk level","Contains only risk-free assets","Has the highest possible expected return"],ans:1},
+  {q:"'Basis risk' in hedging refers to:",opts:["The risk that a hedging instrument does not perfectly offset the risk being hedged","The credit risk of the hedging counterparty","The risk of basis points in interest rates","The cost of entering a hedge"],ans:0},
+  {q:"The 'M-squared' (M²) performance measure:",opts:["Measures portfolio beta","Adjusts the portfolio's return to match the market's risk level for fair comparison","Measures only the downside risk","Compares two active managers' alphas"],ans:1},
+  {q:"'Tactical asset allocation' differs from strategic allocation in that it:",opts:["Focuses only on long-term goals","Makes short-term deviations from strategic weights based on current market views","Never changes portfolio weights","Ignores market conditions"],ans:1},
+  {q:"A correlation coefficient of +0.8 between two assets means:",opts:["They move in opposite directions most of the time","They tend to move strongly in the same direction","They are independent of each other","They always move identically"],ans:1},
+  {q:"The 'benchmark' in portfolio management is:",opts:["The portfolio manager's personal return target","A standard index against which portfolio performance is measured","The portfolio's minimum acceptable return","The return on the risk-free rate"],ans:1},
+  {q:"'Sortino ratio' differs from Sharpe ratio in that it uses:",opts:["Total risk (standard deviation) in the denominator","Downside deviation (risk below the minimum acceptable return) in the denominator","Beta in the denominator","Correlation with the market"],ans:1},
+  {q:"An investor on the 'efficient frontier':",opts:["Can reduce risk without reducing expected return","Cannot reduce risk without reducing expected return, and cannot increase return without increasing risk","Has the minimum risk for all possible returns","Has the maximum return for all possible risk levels"],ans:1},
+  {q:"'Currency risk' in an international portfolio can be managed by:",opts:["Only investing domestically","Currency hedging using forwards, futures, or options","Investing in only highly developed markets","Holding all assets in USD"],ans:1},
+  {q:"'Portable alpha' is a strategy that:",opts:["Transfers benchmark return between portfolios","Separates alpha generation from beta exposure, allowing alpha to be ported onto any market exposure","Achieves alpha through passive strategies","Guarantees a fixed return"],ans:1},
+  {q:"'Risk budgeting' in portfolio management involves:",opts:["Calculating the total fees associated with risk management","Allocating risk across different portfolio components to maximise return efficiency","Setting a maximum loss limit for the portfolio","Limiting investment to low-risk instruments"],ans:1},
+  {q:"'Arbitrage Pricing Theory' (APT) is:",opts:["A model using only beta to explain asset returns","A multifactor model where returns are influenced by multiple systematic risk factors","A theory that markets are always arbitrage-free","A model for pricing derivative instruments"],ans:1},
+  {q:"'Calmar ratio' in portfolio analysis is:",opts:["Total return divided by standard deviation","Annualised return divided by maximum drawdown","Excess return divided by beta","Total return divided by tracking error"],ans:1},
+  {q:"'Portfolio tilting' toward value stocks means:",opts:["Overweighting expensive growth stocks","Overweighting stocks with low price-to-book or price-to-earnings ratios","Holding only stocks that pay high dividends","Reducing equity exposure during market downturns"],ans:1},
+  {q:"'Expected shortfall' (CVaR) measures:",opts:["The average return below VaR, capturing tail risk beyond VaR","The maximum possible loss in the portfolio","The variance of returns below the expected value","The return shortfall compared to the benchmark"],ans:0},
+  {q:"The goal of 'liability-driven investment' (LDI) for a pension fund is to:",opts:["Maximise total return regardless of liabilities","Match the interest rate sensitivity of assets to liabilities to reduce funded status risk","Invest only in equities for long-term growth","Minimise investment expenses"],ans:1}
+],
+5: [
+  {q:"The Securities Industry Act of Ghana was enacted in:",opts:["1990","1993","2000","2016"],ans:3},
+  {q:"The primary mandate of the SEC Ghana is:",opts:["To manage government revenue","To regulate and develop the securities industry to protect investors","To issue government bonds","To manage the Bank of Ghana's reserves"],ans:1},
+  {q:"Under the Securities Industry Act, who can legally conduct investment advisory business in Ghana?",opts:["Any individual with a business registration","Only persons licensed by the SEC","Banks only","Any company with paid-up capital above GHS 100,000"],ans:1},
+  {q:"'Market manipulation' in securities markets includes:",opts:["Buying securities based on public information","Artificial transactions to distort market prices or mislead investors","Diversifying a portfolio","Short selling within regulatory limits"],ans:1},
+  {q:"'Front running' in securities trading is:",opts:["Being the first investor to buy a newly listed stock","Trading on advance knowledge of pending client orders to benefit from anticipated price movement","Purchasing shares just before quarterly results","Acting as a market maker"],ans:1},
+  {q:"'Know Your Customer' (KYC) procedures are designed to:",opts:["Maximise transaction volumes","Verify client identities, assess suitability, and prevent money laundering","Collect client complaints","Ensure clients receive high returns"],ans:1},
+  {q:"Under SEC Ghana rules, client funds must be maintained:",opts:["Mixed with the firm's own operational funds","Separate from the firm's own funds in designated client accounts","In government T-bills only","Offshore to protect against local risks"],ans:1},
+  {q:"'Churning' in investment accounts refers to:",opts:["Frequent rebalancing to maintain target allocation","Excessive trading of client accounts to generate commissions, against client interests","Investing in high-turnover sectors","Regular portfolio review"],ans:1},
+  {q:"The CFA Institute Code of Ethics requires members to:",opts:["Act in the best interests of their employer first","Act professionally and ethically, placing client interests above personal interests","Focus only on achieving maximum returns","Follow only local regulations"],ans:1},
+  {q:"'Material non-public information' (MNPI) includes:",opts:["Company press releases published on the GSE","Confidential merger details known only to company insiders","Analyst reports published in financial newspapers","Company financial results after announcement"],ans:1},
+  {q:"The concept of 'fiduciary duty' in investment management requires the manager to:",opts:["Act primarily in the firm's interest","Act solely in the best interests of the client","Follow all client instructions regardless of legality","Prioritise regulatory compliance over client interests"],ans:1},
+  {q:"In Ghana, investor complaints about securities firms are handled by:",opts:["Ghana Revenue Authority","Securities and Exchange Commission Ghana","Ministry of Finance","Bank of Ghana"],ans:1},
+  {q:"A 'Ponzi scheme' is fraud where:",opts:["Investors are misled about derivatives","Returns are paid to earlier investors using funds from new investors, not actual profits","A company inflates its reported earnings","Prices are manipulated through wash trading"],ans:1},
+  {q:"Under Ghana's Anti-Money Laundering Act, securities firms must report suspicious transactions to:",opts:["Only report amounts above GHS 1 million","The Financial Intelligence Centre (FIC) regardless of amount","The GSE board only","The SEC Ghana only for amounts above GHS 500,000"],ans:1},
+  {q:"'Suitability' in investment recommendations means:",opts:["Recommending products that maximise the firm's revenue","Recommending investments appropriate for the client's risk profile, objectives, and financial situation","Ensuring all clients are invested in the same products","Only offering government-approved products"],ans:1},
+  {q:"The 'cooling-off period' after an IPO refers to:",opts:["A period when the market is closed for analysis","A regulatory period during which investors can withdraw IPO applications","A waiting period before an IPO can be launched after rejection","A blackout period for analyst research"],ans:1},
+  {q:"Under SEC Ghana rules, due diligence before recommending financial products is:",opts:["Required before hiring new staff","Required before recommending products to clients or undertaking new business activities","Required only when filing annual tax returns","Only required when conducting staff training"],ans:1},
+  {q:"'Conflicts of interest' in securities firms are best managed by:",opts:["Concealing them from clients","Disclosing them to clients and managing them appropriately","Avoiding all business that might create conflicts","Delegating all conflicted decisions to junior staff"],ans:1},
+  {q:"The 'Securities Industry Tribunal' in Ghana is responsible for:",opts:["Approving new stock exchange listings","Hearing appeals against SEC decisions and resolving securities disputes","Setting interest rates for the securities market","Publishing the annual state of the securities market report"],ans:1},
+  {q:"A 'pump and dump' scheme involves:",opts:["Promoting a stock through false claims to inflate prices, then selling at the elevated price","Selling securities at a loss to offset capital gains","Investing in IPOs and selling quickly after listing","Diversifying a large portfolio across asset classes"],ans:0},
+  {q:"'Fit and proper' requirements for SEC Ghana licensees assess:",opts:["Academic qualifications only","Competence, integrity, financial soundness, and honesty of license applicants","Physical fitness of staff","IT infrastructure of the firm"],ans:1},
+  {q:"'Best execution' obligation requires investment firms to:",opts:["Achieve the maximum possible return at all times","Execute client orders on the most favourable terms reasonably available","Only use the GSE for all executions","Execute all orders immediately regardless of market conditions"],ans:1},
+  {q:"Under Ghana's Securities Industry Act (Act 929), 'Collective Investment Schemes' include:",opts:["Bank savings accounts","Mutual funds and unit trusts","Government pension schemes only","Individual securities accounts"],ans:1},
+  {q:"'Prospectus liability' holds that:",opts:["Only the CEO is liable for false statements in a prospectus","Persons responsible for a misleading prospectus can be held liable for investor losses","Companies cannot be sued if auditors approved the document","Investors assume all risk once they subscribe based on a prospectus"],ans:1},
+  {q:"The 'prudent investor rule' requires investment managers to:",opts:["Only invest in government-approved instruments","Invest with reasonable care, skill, and caution as a prudent expert would","Guarantee returns to clients","Maximise returns without considering risk"],ans:1},
+  {q:"'Blackout periods' for insiders of listed companies prohibit:",opts:["All trading on the exchange","Insiders from trading in the company's securities around material information announcements","The exchange from opening for maintenance","Foreign investors during earnings season"],ans:1},
+  {q:"'Mis-selling' of financial products occurs when:",opts:["Investment products are sold at a discount","Financial products are sold without adequate information or against the client's best interest","A product is sold to the wrong geographic market","A product is sold below its intrinsic value"],ans:1},
+  {q:"Under the CFA Institute Standards, the standard on 'Loyalty, Prudence, and Care' requires members to:",opts:["Act in the interest of their employing organisation first","Place their clients' interests before their own or their employer's","Follow the highest-paying client's instructions","Balance equally between employer and client interests"],ans:1},
+  {q:"'Stress testing' in investment risk management involves:",opts:["Testing staff performance under pressure","Evaluating portfolio performance under hypothetical extreme adverse scenarios","Testing IT systems for security breaches","Auditing compliance systems"],ans:1},
+  {q:"'Registration of securities' with the SEC Ghana entails:",opts:["Listing the securities on the GSE automatically","A formal review and approval process ensuring disclosure requirements are met before public offering","Setting the price of the securities","Assigning credit ratings"],ans:1},
+  {q:"'Ethical leadership' in a financial firm involves:",opts:["Maximising profits to meet shareholder targets","Setting the tone from the top to foster a culture of integrity and compliance","Ensuring legal compliance only","Delegating ethical decisions to the compliance department"],ans:1},
+  {q:"A 'naked short sale' is:",opts:["A short sale covered by borrowed shares","A short sale in which the seller does not borrow or ensure the ability to borrow the shares","A short sale of government securities","A short sale executed on an overseas exchange"],ans:1},
+  {q:"'Benchmark manipulation' (like the LIBOR scandal) involves:",opts:["Making a benchmark index more accessible to investors","Submitting false rates or data to influence a financial benchmark for personal gain","Changing the methodology of an index","Investing heavily in benchmark constituents"],ans:1},
+  {q:"'Regulatory capital' for securities firms means:",opts:["The firm's total assets","The minimum capital regulated firms must hold to absorb losses and protect clients","Capital raised through government grants","Cash held in regulatory-approved accounts"],ans:1},
+  {q:"'Market integrity' requires:",opts:["All investors to achieve the same return","Fair, transparent, and efficient markets where all participants have equal access to information","Government intervention to prevent price volatility","Equal market share for all registered firms"],ans:1},
+  {q:"Under Ghana's Companies Act, a company's directors owe fiduciary duty to:",opts:["The company's creditors only","The company and its shareholders","The government","The company's largest institutional investor"],ans:1},
+  {q:"An investment firm's 'compliance officer' is responsible for:",opts:["Managing the firm's investment portfolio","Ensuring the firm adheres to all applicable laws, regulations, and internal policies","Auditing the firm's financial statements","Marketing the firm's services"],ans:1},
+  {q:"'Ring-fencing' client assets in a securities firm serves to:",opts:["Reduce the firm's tax liability","Protect client assets from being used by or claimed by the firm's creditors","Facilitate efficient settlement of trades","Enable easy asset transfer between client accounts"],ans:1},
+  {q:"'Voluntary disclosure' beyond mandatory requirements signals to investors:",opts:["The company has more information than regulators know","Management confidence and commitment to transparency, potentially reducing the cost of capital","That the company is facing regulatory pressure","The company is attempting to delay mandatory disclosures"],ans:1},
+  {q:"The maximum penalty for insider trading under Ghana's Securities Industry Act (Act 929) includes:",opts:["Only a fine of up to GHS 10,000","A fine and/or imprisonment for a term specified in the Act","Suspension of trading privileges only","Licence revocation without any additional penalties"],ans:1},
+  {q:"'Anti-Money Laundering' (AML) obligations of securities firms include:",opts:["Only onboarding large institutional clients","Implementing Customer Due Diligence (CDD), record-keeping, and reporting suspicious transactions","Blocking all cash transactions","Only reporting transactions by foreign clients"],ans:1},
+  {q:"'Systemic risk' in financial markets refers to:",opts:["The risk of a single company failing","The risk of collapse of an entire financial system or market due to interconnected failures","The risk of regulatory changes","Operational risk at a single institution"],ans:1},
+  {q:"'Regulatory arbitrage' refers to:",opts:["Using different regulatory frameworks across jurisdictions to avoid stricter regulation","Earning returns from regulatory differences between bond markets","Trading during different regulatory trading sessions","Using government connections to gain competitive advantage"],ans:0},
+  {q:"The 'Central Securities Depository' (CSD) in Ghana is responsible for:",opts:["Issuing new government securities","The electronic holding, settlement, and transfer of securities","Regulating stockbrokers","Publishing daily bond yields"],ans:1},
+  {q:"'Conduct of Business' rules require securities firms to:",opts:["Prioritise profitability over client protection","Treat clients fairly, provide clear information, and avoid mis-selling","Share client information freely with other market participants","Only work with accredited institutional investors"],ans:1},
+  {q:"'Accredited investor' or 'sophisticated investor' requirements exist to:",opts:["Restrict all investment to wealthy individuals","Allow access to higher-risk, less-regulated investment products for investors with sufficient knowledge and resources","Prevent institutional investors from accessing retail products","Ensure all investors take professional advice"],ans:1},
+  {q:"Listed companies in Ghana are required to report material changes:",opts:["Only in annual reports","Promptly, to ensure investors have timely access to material information","Only if the change affects dividend payments","Only after board approval"],ans:1},
+  {q:"'Money laundering' involves:",opts:["Converting large sums into small denomination notes","Disguising the origins of illegally obtained money to make it appear legitimate","Transferring money to offshore accounts legally","Using financial services to avoid paying taxes"],ans:1},
+  {q:"'Whistle-blower' in securities regulation is:",opts:["A regulator who closes down non-compliant firms","A person who reports suspected violations of securities laws or regulations","An investor who complains about low returns","A staff member who enforces internal compliance policies"],ans:1},
+  {q:"Under SEC Ghana regulations, reporting material changes by listed companies is required:",opts:["Only in annual reports","Promptly, to ensure investors have timely access to material information","Only if the change affects dividends","Only after board approval"],ans:1}
+]
+};
+
+// ─── STATE ─────────────────────────────────────────────────────────────────
+const SECTION_META = {
+  1:{title:'Section 1: Investment Fundamentals',desc:'Free — 50 Multiple Choice Questions',sub:'Investment Fundamentals — Free practice section'},
+  2:{title:'Section 2: Equity Markets',desc:'Paid — 50 Multiple Choice Questions',sub:'Equity Markets — GSE, share valuation, trading & corporate actions'},
+  3:{title:'Section 3: Fixed Income',desc:'Paid — 50 Multiple Choice Questions',sub:'Fixed Income — Bonds, T-bills, yields & Ghana government securities'},
+  4:{title:'Section 4: Portfolio Management',desc:'Paid — 50 Multiple Choice Questions',sub:'Portfolio Management — CAPM, MPT, risk management & performance'},
+  5:{title:'Section 5: Regulations & Ethics',desc:'Paid — 50 Multiple Choice Questions',sub:'Regulations & Ethics — SEC Ghana, professional conduct & compliance'}
+};
+
+let currentSection = 1;
+let currentQ = 0;
+let userAnswers = {};
+let submitted = {};
+let paidSections = {{ paid_sections | tojson }};
+
+function hasSectionAccess(s){ return s === 1 || paidSections.includes(s); }
+
+function switchSection(s){
+  if(!hasSectionAccess(s)){
+    showLocked(s);
+    return;
+  }
+  currentSection = s;
+  currentQ = 0;
+  userAnswers = {};
+  updateTabs();
+  updateSectionMeta();
+  if(submitted[s]){
+    showResults(s);
+  } else {
+    showExam();
+    renderQuestion();
+  }
+}
+
+function updateTabs(){
+  for(let i=1;i<=5;i++){
+    const tab = document.getElementById('tab-'+i);
+    tab.className = 'tab-btn';
+    if(i === currentSection) tab.classList.add('active');
+    else if(!hasSectionAccess(i)) tab.classList.add('locked');
+    const icon = tab.querySelector('i');
+    if(icon){
+      icon.className = hasSectionAccess(i) ? (i===1?'fas fa-unlock-alt mr-1 text-green-500':'fas fa-unlock-alt mr-1 text-blue-500') : 'fas fa-lock mr-1';
+    }
+  }
+}
+
+function updateSectionMeta(){
+  const m = SECTION_META[currentSection];
+  document.getElementById('section-title').textContent = m.title;
+  document.getElementById('section-desc').textContent = m.desc;
+  document.getElementById('section-subtitle').textContent = m.sub;
+}
+
+function showExam(){
+  document.getElementById('exam-panel').classList.remove('hidden');
+  document.getElementById('results-panel').classList.add('hidden');
+  document.getElementById('locked-panel').classList.add('hidden');
+}
+
+function showResults(s){
+  document.getElementById('exam-panel').classList.add('hidden');
+  document.getElementById('results-panel').classList.remove('hidden');
+  document.getElementById('locked-panel').classList.add('hidden');
+  renderResults(s || currentSection);
+}
+
+function showLocked(s){
+  document.getElementById('exam-panel').classList.add('hidden');
+  document.getElementById('results-panel').classList.add('hidden');
+  document.getElementById('locked-panel').classList.remove('hidden');
+  document.getElementById('pay-section').value = s;
+}
+
+function renderQuestion(){
+  const qs = QUESTIONS[currentSection];
+  const q = qs[currentQ];
+  const total = qs.length;
+  document.getElementById('q-num').textContent = 'Question '+(currentQ+1);
+  document.getElementById('q-text').textContent = q.q;
+  document.getElementById('q-counter').textContent = (currentQ+1)+' / '+total;
+  document.getElementById('progress-fill').style.width = (((currentQ+1)/total)*100)+'%';
+  const answeredCount = Object.keys(userAnswers).length;
+  document.getElementById('answered-count').textContent = answeredCount+' answered';
+  const area = document.getElementById('options-area');
+  area.innerHTML = '';
+  q.opts.forEach((opt,i)=>{
+    const lbl = document.createElement('label');
+    lbl.className = 'option-label';
+    const selected = userAnswers[currentQ] === i;
+    if(selected) lbl.classList.add('selected');
+    lbl.innerHTML = `<input type="radio" name="opt" value="${i}" ${selected?'checked':''}/>
+      <div class="opt-circle">${['A','B','C','D'][i]}</div>
+      <span class="text-gray-700 text-sm leading-relaxed">${opt}</span>`;
+    lbl.addEventListener('click',()=>selectAnswer(i));
+    area.appendChild(lbl);
+  });
+  document.getElementById('btn-prev').disabled = currentQ === 0;
+  const isLast = currentQ === total - 1;
+  document.getElementById('btn-next').classList.toggle('hidden', isLast);
+  document.getElementById('btn-submit').classList.toggle('hidden', !isLast);
+}
+
+function selectAnswer(idx){
+  userAnswers[currentQ] = idx;
+  document.querySelectorAll('.option-label').forEach((lbl,i)=>{
+    lbl.classList.toggle('selected', i === idx);
+    const circle = lbl.querySelector('.opt-circle');
+    if(circle) circle.style.cssText = i===idx?'border-color:#1d4ed8;background:#1d4ed8;color:#fff':'';
+  });
+  document.getElementById('answered-count').textContent = Object.keys(userAnswers).length+' answered';
+}
+
+function nextQuestion(){
+  if(currentQ < QUESTIONS[currentSection].length - 1){
+    currentQ++;
+    renderQuestion();
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+}
+
+function prevQuestion(){
+  if(currentQ > 0){
+    currentQ--;
+    renderQuestion();
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+}
+
+function submitSection(){
+  submitted[currentSection] = true;
+  showResults(currentSection);
+}
+
+function renderResults(s){
+  const qs = QUESTIONS[s];
+  let correct = 0;
+  qs.forEach((q,i)=>{ if(userAnswers[i] === q.ans) correct++; });
+  const pct = Math.round((correct/qs.length)*100);
+  document.getElementById('score-pct').textContent = pct+'%';
+  document.getElementById('score-fraction').textContent = correct+' / '+qs.length+' correct';
+  let grade = '';
+  if(pct>=80) grade='Excellent! Ready for the GISI exam.';
+  else if(pct>=60) grade='Good performance — keep practising!';
+  else if(pct>=40) grade='Fair — review the material and try again.';
+  else grade='Keep studying — you will get there!';
+  document.getElementById('score-grade').textContent = grade;
+  const review = document.getElementById('review-area');
+  review.innerHTML = '';
+  qs.forEach((q,i)=>{
+    const userAns = userAnswers[i];
+    const isCorrect = userAns === q.ans;
+    const div = document.createElement('div');
+    div.className = 'mb-5 border-b border-gray-100 pb-4 last:border-0';
+    const status = isCorrect ? '<span class="text-xs font-bold text-green-600 bg-green-100 px-2 py-0.5 rounded-full">✓ Correct</span>' : '<span class="text-xs font-bold text-red-600 bg-red-100 px-2 py-0.5 rounded-full">✗ Wrong</span>';
+    const optLabels = ['A','B','C','D'];
+    let optHtml = '';
+    q.opts.forEach((opt,j)=>{
+      let cls = 'text-gray-500 text-xs';
+      let prefix = optLabels[j]+'. ';
+      if(j===q.ans){ cls='text-green-700 font-semibold text-xs'; prefix='✓ '+prefix; }
+      else if(j===userAns && userAns!==q.ans){ cls='text-red-600 text-xs line-through'; }
+      optHtml += `<div class="${cls}">${prefix}${opt}</div>`;
+    });
+    div.innerHTML = `<div class="flex items-start gap-2 mb-2">
+      <span class="text-xs font-bold text-gray-400 flex-shrink-0 mt-0.5">Q${i+1}</span>
+      <div class="flex-1">
+        <p class="text-sm font-semibold text-gray-800 mb-2">${q.q} ${status}</p>
+        <div class="grid grid-cols-2 gap-1">${optHtml}</div>
+      </div>
+    </div>`;
+    review.appendChild(div);
+  });
+  const nextBtn = document.getElementById('btn-continue');
+  if(s < 5){
+    const nextS = s + 1;
+    nextBtn.classList.remove('hidden');
+    nextBtn.onclick = ()=> switchSection(nextS);
+    nextBtn.innerHTML = `<i class="fas fa-arrow-right mr-2"></i>Continue to Section ${nextS}`;
+  } else {
+    nextBtn.classList.add('hidden');
+  }
+}
+
+function continueToNext(){ switchSection(currentSection+1); }
+
+function retrySection(){
+  userAnswers = {};
+  delete submitted[currentSection];
+  currentQ = 0;
+  showExam();
+  renderQuestion();
+}
+
+// ─── PAYMENT MODAL ─────────────────────────────────────────────────────────
+function openPayModal(plan){
+  document.getElementById('pay-plan').value = plan;
+  document.getElementById('pay-amount-text').textContent = plan==='bundle'?'GHS 200':'GHS 60';
+  document.getElementById('pay-modal').classList.remove('hidden');
+}
+
+function closePayModal(){
+  document.getElementById('pay-modal').classList.add('hidden');
+  document.getElementById('pay-error').classList.add('hidden');
+  document.getElementById('pay-form').reset();
+}
+
+async function submitPayment(e){
+  e.preventDefault();
+  const btn = document.getElementById('pay-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
+  const errDiv = document.getElementById('pay-error');
+  errDiv.classList.add('hidden');
+
+  const fd = new FormData();
+  fd.append('full_name', document.getElementById('pay-name').value.trim());
+  fd.append('email', document.getElementById('pay-email').value.trim());
+  fd.append('phone', document.getElementById('pay-phone').value.trim());
+  fd.append('plan', document.getElementById('pay-plan').value);
+  fd.append('section', document.getElementById('pay-section').value);
+  fd.append('reference', document.getElementById('pay-ref').value.trim());
+
+  try {
+    const res = await fetch('/gisi-exams/pay', {method:'POST', body:fd});
+    const data = await res.json();
+    if(data.success){
+      paidSections = data.paid_sections;
+      closePayModal();
+      updateTabs();
+      const s = parseInt(document.getElementById('pay-section').value);
+      switchSection(s);
+    } else {
+      errDiv.textContent = data.message;
+      errDiv.classList.remove('hidden');
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-unlock mr-2"></i>Confirm Payment & Unlock';
+    }
+  } catch(err) {
+    errDiv.textContent = 'Network error. Please try again.';
+    errDiv.classList.remove('hidden');
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-unlock mr-2"></i>Confirm Payment & Unlock';
+  }
+}
+
+// ─── INIT ──────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function(){
+  updateTabs();
+  updateSectionMeta();
+  renderQuestion();
+});
+</script>
+</body>
+</html>

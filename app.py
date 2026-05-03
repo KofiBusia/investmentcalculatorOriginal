@@ -289,6 +289,21 @@ class Donation(db.Model):
     created_at   = db.Column(db.DateTime, default=datetime.utcnow)
 
 
+# --- GISI EXAM PAYMENT MODEL ---
+class GISIPayment(db.Model):
+    __tablename__ = 'gisi_payments'
+    id           = db.Column(db.Integer, primary_key=True)
+    full_name    = db.Column(db.String(200), nullable=False)
+    email        = db.Column(db.String(200), nullable=False)
+    phone        = db.Column(db.String(50),  default='')
+    amount       = db.Column(db.Float,       nullable=False)
+    plan         = db.Column(db.String(30),  default='single')  # single | bundle
+    section      = db.Column(db.Integer,     default=0)
+    reference    = db.Column(db.String(200), default='', unique=True)
+    status       = db.Column(db.String(30),  default='Pending')
+    created_at   = db.Column(db.DateTime,    default=datetime.utcnow)
+
+
 # --- CONTACT MESSAGE MODEL ---
 class ContactMessage(db.Model):
     __tablename__ = 'contact_messages'
@@ -5151,6 +5166,69 @@ def download_stock_pitch_pptx():
         download_name='YIN_Stock_Pitch_Template.pptx',
         mimetype='application/vnd.openxmlformats-officedocument.presentationml.presentation'
     )
+
+
+# ── GISI EXAMS ───────────────────────────────────────────────────────────────
+@app.route('/gisi-exams')
+def gisi_exams():
+    paid_sections = session.get('gisi_paid_sections', [])
+    return render_template('hr_gisi_exams.html', paid_sections=paid_sections)
+
+
+@app.route('/gisi-exams/pay', methods=['POST'])
+def gisi_exams_pay():
+    full_name = request.form.get('full_name', '').strip()
+    email     = request.form.get('email', '').strip()
+    phone     = request.form.get('phone', '').strip()
+    plan      = request.form.get('plan', 'single')
+    section   = int(request.form.get('section', 2))
+    reference = request.form.get('reference', '').strip()
+
+    if not full_name or not email or not reference:
+        return jsonify({'success': False, 'message': 'Please fill in all required fields.'}), 400
+
+    # Prevent duplicate references
+    existing = GISIPayment.query.filter_by(reference=reference).first()
+    if existing:
+        return jsonify({'success': False, 'message': 'This payment reference has already been used.'}), 400
+
+    amount = 200.0 if plan == 'bundle' else 60.0
+    pay = GISIPayment(full_name=full_name, email=email, phone=phone,
+                      amount=amount, plan=plan, section=section,
+                      reference=reference, status='Pending')
+    db.session.add(pay)
+    db.session.commit()
+
+    # Grant session access
+    paid = session.get('gisi_paid_sections', [])
+    if plan == 'bundle':
+        paid = paid + [2, 3, 4, 5]
+    else:
+        if section not in paid:
+            paid.append(section)
+    session['gisi_paid_sections'] = list(set(paid))
+
+    # Email admin
+    try:
+        msg = Message(
+            f'GISI Exam Payment – {full_name} – GHS{amount:.0f}',
+            sender=app.config.get('MAIL_DEFAULT_SENDER', 'noreply@investright.onrender.com'),
+            recipients=['kyeikofi@gmail.com']
+        )
+        msg.html = (
+            f'<h3>GISI Exam Payment Received</h3>'
+            f'<p><b>Name:</b> {full_name}</p>'
+            f'<p><b>Email:</b> {email}</p>'
+            f'<p><b>Phone:</b> {phone}</p>'
+            f'<p><b>Plan:</b> {plan} — GHS{amount:.0f}</p>'
+            f'<p><b>Section:</b> {section if plan == "single" else "2-5 (Bundle)"}</p>'
+            f'<p><b>Reference:</b> {reference}</p>'
+        )
+        mail.send(msg)
+    except Exception:
+        pass
+
+    return jsonify({'success': True, 'paid_sections': session['gisi_paid_sections']})
 
 
 @app.route('/jobs/<int:job_id>/apply', methods=['GET', 'POST'])
