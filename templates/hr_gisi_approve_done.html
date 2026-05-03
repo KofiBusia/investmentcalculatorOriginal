@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>GISI Payment {% if already %}Already Approved{% else %}Approved{% endif %} — InvestIQ Admin</title>
+<style>
+  body{font-family:'Segoe UI',Arial,sans-serif;background:#f0f4ff;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;padding:24px;}
+  .card{background:#fff;border-radius:20px;padding:48px 40px;max-width:520px;width:100%;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.1);border:1px solid #e2e8f0;}
+  .icon{width:80px;height:80px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:40px;margin:0 auto 24px;}
+  .icon.green{background:#dcfce7;}
+  .icon.yellow{background:#fef9c3;}
+  h1{font-size:24px;font-weight:800;color:#1e293b;margin:0 0 12px;}
+  p{color:#64748b;font-size:15px;line-height:1.6;margin:0 0 12px;}
+  .code-box{background:#eff6ff;border:2px dashed #3b82f6;border-radius:12px;padding:16px 24px;display:inline-block;margin:16px 0;}
+  .code-box span{font-family:monospace;font-size:28px;font-weight:900;color:#1d4ed8;letter-spacing:3px;}
+  table{width:100%;border-collapse:collapse;text-align:left;margin:20px 0;font-size:14px;}
+  td{padding:8px 10px;border-bottom:1px solid #f1f5f9;}
+  td:first-child{color:#64748b;font-weight:600;width:120px;}
+  td:last-child{color:#1e293b;font-weight:700;}
+</style>
+</head>
+<body>
+<div class="card">
+  {% if already %}
+  <div class="icon yellow">⚠️</div>
+  <h1>Already Approved</h1>
+  <p>This payment was already approved. The access code was sent to the user at the time of approval.</p>
+  {% else %}
+  <div class="icon green">✅</div>
+  <h1>Payment Approved!</h1>
+  <p>The access code below has been sent to <strong>{{ pay.email }}</strong>.</p>
+  <div class="code-box"><span>{{ pay.access_code }}</span></div>
+  {% endif %}
+  <table>
+    <tr><td>Name</td><td>{{ pay.full_name }}</td></tr>
+    <tr><td>Email</td><td>{{ pay.email }}</td></tr>
+    <tr><td>Phone</td><td>{{ pay.phone or '—' }}</td></tr>
+    <tr><td>Amount</td><td>GHS {{ "%.0f"|format(pay.amount) }}</td></tr>
+    <tr><td>Plan</td><td>{{ pay.plan.title() }} {% if pay.plan == 'bundle' %}(Sections 2–5){% else %}(Section {{ pay.section }}){% endif %}</td></tr>
+    <tr><td>MoMo Ref</td><td style="font-family:monospace;">{{ pay.reference }}</td></tr>
+  </table>
+  <a href="/gisi-exams" style="display:inline-block;background:linear-gradient(135deg,#1e3a5f,#1d4ed8);color:#fff;text-decoration:none;padding:12px 32px;border-radius:10px;font-weight:700;font-size:15px;">View GISI Exams Page</a>
+</div>
+</body>
+</html>

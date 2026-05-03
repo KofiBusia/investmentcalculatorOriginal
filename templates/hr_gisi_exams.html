@@ -170,7 +170,13 @@
           <button class="mt-3 w-full py-2 bg-green-600 text-white rounded-lg font-semibold text-sm hover:bg-green-700 transition-all">Select</button>
         </div>
       </div>
-      <p class="text-xs text-gray-400">Proceeds support YIN's financial literacy programmes for young Ghanaian investors.</p>
+      <p class="text-xs text-gray-400 mt-2">Proceeds support YIN's financial literacy programmes for young Ghanaian investors.</p>
+      <div style="margin-top:20px;padding-top:20px;border-top:1.5px dashed #e2e8f0;">
+        <p class="text-sm text-gray-500 mb-3">Already paid and received your access code?</p>
+        <button onclick="openCodeModal()" style="background:none;border:2px solid #1d4ed8;color:#1d4ed8;border-radius:10px;padding:10px 24px;font-weight:700;font-size:14px;cursor:pointer;transition:all .2s;" onmouseover="this.style.background='#1d4ed8';this.style.color='#fff'" onmouseout="this.style.background='none';this.style.color='#1d4ed8'">
+          <i class="fas fa-key mr-2"></i>Enter My Access Code
+        </button>
+      </div>
     </div>
   </div>
 
@@ -178,52 +184,128 @@
 
 <!-- PAYMENT MODAL -->
 <div id="pay-modal" class="modal-overlay hidden">
-  <div class="modal">
-    <div class="flex items-center justify-between mb-5">
-      <h3 class="text-xl font-extrabold text-gray-800"><i class="fas fa-mobile-alt text-blue-600 mr-2"></i>Complete Payment</h3>
-      <button onclick="closePayModal()" class="text-gray-400 hover:text-gray-600 text-xl leading-none">&times;</button>
+  <div class="modal" style="max-width:560px;max-height:90vh;overflow-y:auto;">
+
+    <!-- STEP 1: Payment Form (default view) -->
+    <div id="modal-step-1">
+      <div class="flex items-center justify-between mb-5">
+        <div>
+          <h3 class="text-xl font-extrabold text-gray-800"><i class="fas fa-mobile-alt text-blue-600 mr-2"></i>Support &amp; Unlock Access</h3>
+          <p class="text-xs text-gray-400 mt-0.5">Your payment supports YIN's financial literacy in Ghana</p>
+        </div>
+        <button onclick="closePayModal()" class="text-gray-400 hover:text-gray-600 text-2xl leading-none ml-4 flex-shrink-0">&times;</button>
+      </div>
+
+      <!-- MoMo payment box -->
+      <div style="background:linear-gradient(135deg,#fef9c3,#fef3c7);border:2px solid #fbbf24;border-radius:14px;padding:18px 20px;margin-bottom:18px;">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+          <div style="width:36px;height:36px;background:#f59e0b;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i class="fas fa-mobile-alt" style="color:#fff;font-size:16px;"></i>
+          </div>
+          <div>
+            <div style="font-weight:800;color:#92400e;font-size:15px;">Step 1 — Send Payment via MTN MoMo</div>
+            <div style="font-size:12px;color:#b45309;">Amount: <span id="pay-amount-text" style="font-weight:800;font-size:14px;">GHS 60</span></div>
+          </div>
+        </div>
+        <div style="background:#fff;border-radius:10px;padding:14px 16px;border:1px solid #fde68a;">
+          <div style="font-size:12px;color:#92400e;font-weight:600;margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em;">MTN Mobile Money Number</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+            <span id="momo-number-display" style="font-family:monospace;font-size:26px;font-weight:900;color:#1e293b;letter-spacing:2px;">0503566913</span>
+            <button onclick="copyMoMo()" id="copy-btn" style="background:#f59e0b;color:#fff;border:none;border-radius:8px;padding:8px 14px;font-weight:700;font-size:12px;cursor:pointer;flex-shrink:0;transition:all .15s;">
+              <i class="fas fa-copy mr-1"></i>Copy
+            </button>
+          </div>
+          <div style="font-size:11px;color:#b45309;margin-top:6px;"><i class="fas fa-user mr-1"></i>Account Name: <strong>InvestIQ / YIN Ghana</strong></div>
+        </div>
+        <div style="margin-top:10px;font-size:12px;color:#92400e;"><i class="fas fa-info-circle mr-1"></i>After sending, copy the transaction reference from your MoMo SMS and paste it below.</div>
+      </div>
+
+      <!-- How it works -->
+      <div style="background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:12px;padding:14px 16px;margin-bottom:18px;">
+        <div style="font-weight:700;color:#166534;font-size:13px;margin-bottom:8px;"><i class="fas fa-clock mr-1"></i>How It Works — What Happens Next</div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <div style="display:flex;align-items:flex-start;gap:8px;font-size:13px;color:#15803d;">
+            <span style="background:#16a34a;color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0;margin-top:1px;">1</span>
+            <span>Submit this form — admin is notified instantly</span>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:8px;font-size:13px;color:#15803d;">
+            <span style="background:#16a34a;color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0;margin-top:1px;">2</span>
+            <span>Admin verifies your MoMo payment (within ~10 minutes)</span>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:8px;font-size:13px;color:#15803d;">
+            <span style="background:#16a34a;color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0;margin-top:1px;">3</span>
+            <span>You receive a unique <strong>Access Code</strong> by email</span>
+          </div>
+          <div style="display:flex;align-items:flex-start;gap:8px;font-size:13px;color:#15803d;">
+            <span style="background:#16a34a;color:#fff;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0;margin-top:1px;">4</span>
+            <span>Enter the code here to unlock your section(s) immediately</span>
+          </div>
+        </div>
+      </div>
+
+      <form id="pay-form" onsubmit="submitPayment(event)">
+        <input type="hidden" id="pay-plan" value="single"/>
+        <input type="hidden" id="pay-section" value="2"/>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+          <div>
+            <label style="display:block;font-size:11px;font-weight:700;color:#475569;margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em;">Full Name *</label>
+            <input type="text" id="pay-name" placeholder="Your full name" required style="width:100%;box-sizing:border-box;"/>
+          </div>
+          <div>
+            <label style="display:block;font-size:11px;font-weight:700;color:#475569;margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em;">Email Address *</label>
+            <input type="email" id="pay-email" placeholder="you@email.com" required style="width:100%;box-sizing:border-box;"/>
+          </div>
+        </div>
+        <div style="margin-bottom:12px;">
+          <label style="display:block;font-size:11px;font-weight:700;color:#475569;margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em;">Phone Number (optional)</label>
+          <input type="tel" id="pay-phone" placeholder="0XX-XXX-XXXX" style="width:100%;box-sizing:border-box;"/>
+        </div>
+        <div style="margin-bottom:16px;">
+          <label style="display:block;font-size:11px;font-weight:700;color:#475569;margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em;">MoMo Transaction Reference *</label>
+          <input type="text" id="pay-ref" placeholder="e.g. S241234567890" required style="width:100%;box-sizing:border-box;font-family:monospace;font-size:15px;font-weight:700;"/>
+          <p style="font-size:11px;color:#94a3b8;margin:4px 0 0;">Found in your MoMo SMS confirmation message.</p>
+        </div>
+        <div id="pay-error" style="display:none;margin-bottom:12px;font-size:13px;color:#dc2626;background:#fef2f2;border:1.5px solid #fecaca;border-radius:8px;padding:10px 14px;"></div>
+        <button type="submit" id="pay-btn" style="width:100%;padding:14px;background:linear-gradient(135deg,#0f172a,#1d4ed8);color:#fff;border:none;border-radius:12px;font-weight:800;font-size:16px;cursor:pointer;transition:opacity .2s;">
+          <i class="fas fa-paper-plane mr-2"></i>Submit Payment for Approval
+        </button>
+        <p style="font-size:11px;text-align:center;color:#94a3b8;margin:8px 0 0;"><i class="fas fa-shield-alt mr-1"></i>Your access code will be emailed to you within ~10 minutes after admin verification.</p>
+      </form>
     </div>
 
-    <!-- Payment instructions -->
-    <div class="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-5">
-      <div class="font-bold text-blue-800 mb-2"><i class="fas fa-info-circle mr-1"></i>Payment Instructions</div>
-      <ol class="text-sm text-blue-700 space-y-1 list-decimal list-inside">
-        <li>Send <strong id="pay-amount-text">GHS 60</strong> via Mobile Money</li>
-        <li>MTN MoMo: <strong>0244-XXXXXXX</strong> (InvestIQ / YIN)</li>
-        <li>Vodafone Cash: <strong>020-XXXXXXX</strong></li>
-        <li>AirtelTigo: <strong>027-XXXXXXX</strong></li>
-        <li>Enter your MoMo transaction reference below</li>
-      </ol>
+    <!-- STEP 2: Pending confirmation (shown after submit) -->
+    <div id="modal-step-2" style="display:none;text-align:center;padding:8px 0;">
+      <div style="width:72px;height:72px;background:linear-gradient(135deg,#fef3c7,#fde68a);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;font-size:36px;">⏳</div>
+      <h3 style="font-size:22px;font-weight:800;color:#1e293b;margin:0 0 10px;">Payment Submitted!</h3>
+      <p style="color:#475569;font-size:15px;margin:0 0 20px;line-height:1.6;">Your payment has been received for review. The admin will verify your MoMo transaction and send your <strong>Access Code</strong> to <strong id="pending-email"></strong> within approximately <strong>10 minutes</strong>.</p>
+
+      <div style="background:#f8fafc;border:2px dashed #cbd5e1;border-radius:14px;padding:20px;margin-bottom:20px;">
+        <div style="font-size:13px;font-weight:700;color:#475569;margin-bottom:12px;text-transform:uppercase;letter-spacing:.05em;">Once you receive your code by email</div>
+        <input type="text" id="redeem-code" placeholder="Enter your Access Code (e.g. GISI-A3F8C2)" style="width:100%;box-sizing:border-box;text-align:center;font-family:monospace;font-size:18px;font-weight:800;letter-spacing:2px;text-transform:uppercase;padding:12px;border:2px solid #e2e8f0;border-radius:10px;outline:none;"/>
+        <div id="redeem-error" style="display:none;font-size:12px;color:#dc2626;margin-top:6px;"></div>
+        <button onclick="redeemCode()" id="redeem-btn" style="width:100%;margin-top:10px;padding:13px;background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;border:none;border-radius:10px;font-weight:800;font-size:15px;cursor:pointer;">
+          <i class="fas fa-unlock-alt mr-2"></i>Enter Code &amp; Unlock Now
+        </button>
+      </div>
+      <button onclick="closePayModal()" style="background:none;border:1.5px solid #e2e8f0;color:#64748b;border-radius:8px;padding:10px 24px;font-size:13px;font-weight:600;cursor:pointer;">Close &amp; Come Back Later</button>
     </div>
 
-    <form id="pay-form" onsubmit="submitPayment(event)">
-      <input type="hidden" id="pay-plan" value="single"/>
-      <input type="hidden" id="pay-section" value="2"/>
-      <div class="grid grid-cols-2 gap-3 mb-3">
-        <div>
-          <label class="block text-xs font-semibold text-gray-600 mb-1">Full Name *</label>
-          <input type="text" id="pay-name" placeholder="Your full name" required/>
-        </div>
-        <div>
-          <label class="block text-xs font-semibold text-gray-600 mb-1">Email *</label>
-          <input type="email" id="pay-email" placeholder="your@email.com" required/>
-        </div>
-      </div>
-      <div class="mb-3">
-        <label class="block text-xs font-semibold text-gray-600 mb-1">Phone Number</label>
-        <input type="tel" id="pay-phone" placeholder="0XX-XXX-XXXX"/>
-      </div>
-      <div class="mb-4">
-        <label class="block text-xs font-semibold text-gray-600 mb-1">MoMo Transaction Reference *</label>
-        <input type="text" id="pay-ref" placeholder="e.g. S241234567890" required/>
-        <p class="text-xs text-gray-400 mt-1">You can find this in your MoMo SMS confirmation.</p>
-      </div>
-      <div id="pay-error" class="hidden mb-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg p-3"></div>
-      <button type="submit" id="pay-btn" class="w-full py-3 bg-gradient-to-r from-blue-700 to-blue-500 text-white rounded-xl font-bold text-base hover:opacity-90 transition-all">
-        <i class="fas fa-unlock mr-2"></i>Confirm Payment &amp; Unlock
-      </button>
-      <p class="text-xs text-center text-gray-400 mt-2">Access is granted immediately after submission.</p>
-    </form>
+  </div>
+</div>
+
+<!-- ACCESS CODE MODAL (standalone — for returning users) -->
+<div id="code-modal" class="modal-overlay hidden">
+  <div class="modal" style="max-width:460px;text-align:center;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+      <h3 style="font-size:19px;font-weight:800;color:#1e293b;margin:0;"><i class="fas fa-key" style="color:#f59e0b;margin-right:8px;"></i>Enter Access Code</h3>
+      <button onclick="closeCodeModal()" style="background:none;border:none;color:#94a3b8;font-size:24px;cursor:pointer;line-height:1;">&times;</button>
+    </div>
+    <p style="color:#64748b;font-size:14px;margin:0 0 20px;line-height:1.6;">Already have an access code from your approval email? Enter it below to unlock your section(s).</p>
+    <input type="text" id="standalone-code" placeholder="GISI-XXXXXX" style="width:100%;box-sizing:border-box;text-align:center;font-family:monospace;font-size:22px;font-weight:900;letter-spacing:3px;text-transform:uppercase;padding:14px;border:2px solid #e2e8f0;border-radius:12px;outline:none;"/>
+    <div id="standalone-error" style="display:none;font-size:13px;color:#dc2626;margin:8px 0;"></div>
+    <button onclick="redeemStandalone()" style="width:100%;margin-top:12px;padding:14px;background:linear-gradient(135deg,#1e3a5f,#1d4ed8);color:#fff;border:none;border-radius:12px;font-weight:800;font-size:16px;cursor:pointer;">
+      <i class="fas fa-unlock-alt mr-2"></i>Unlock My Sections
+    </button>
   </div>
 </div>
 
@@ -690,22 +772,37 @@ function retrySection(){
 function openPayModal(plan){
   document.getElementById('pay-plan').value = plan;
   document.getElementById('pay-amount-text').textContent = plan==='bundle'?'GHS 200':'GHS 60';
+  document.getElementById('modal-step-1').style.display = 'block';
+  document.getElementById('modal-step-2').style.display = 'none';
   document.getElementById('pay-modal').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
 }
 
 function closePayModal(){
   document.getElementById('pay-modal').classList.add('hidden');
-  document.getElementById('pay-error').classList.add('hidden');
+  document.body.style.overflow = '';
+  document.getElementById('pay-error').style.display = 'none';
   document.getElementById('pay-form').reset();
+  document.getElementById('modal-step-1').style.display = 'block';
+  document.getElementById('modal-step-2').style.display = 'none';
+}
+
+function copyMoMo(){
+  navigator.clipboard.writeText('0503566913').then(()=>{
+    const btn = document.getElementById('copy-btn');
+    btn.innerHTML = '<i class="fas fa-check mr-1"></i>Copied!';
+    btn.style.background = '#16a34a';
+    setTimeout(()=>{ btn.innerHTML = '<i class="fas fa-copy mr-1"></i>Copy'; btn.style.background = '#f59e0b'; }, 2000);
+  });
 }
 
 async function submitPayment(e){
   e.preventDefault();
   const btn = document.getElementById('pay-btn');
   btn.disabled = true;
-  btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Processing...';
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Submitting...';
   const errDiv = document.getElementById('pay-error');
-  errDiv.classList.add('hidden');
+  errDiv.style.display = 'none';
 
   const fd = new FormData();
   fd.append('full_name', document.getElementById('pay-name').value.trim());
@@ -718,24 +815,92 @@ async function submitPayment(e){
   try {
     const res = await fetch('/gisi-exams/pay', {method:'POST', body:fd});
     const data = await res.json();
+    if(data.success && data.pending){
+      document.getElementById('pending-email').textContent = fd.get('email');
+      document.getElementById('modal-step-1').style.display = 'none';
+      document.getElementById('modal-step-2').style.display = 'block';
+    } else if(!data.success){
+      errDiv.textContent = data.message;
+      errDiv.style.display = 'block';
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-paper-plane mr-2"></i>Submit Payment for Approval';
+    }
+  } catch(err){
+    errDiv.textContent = 'Network error. Please try again.';
+    errDiv.style.display = 'block';
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fas fa-paper-plane mr-2"></i>Submit Payment for Approval';
+  }
+}
+
+async function redeemCode(){
+  const code = document.getElementById('redeem-code').value.trim().toUpperCase();
+  const errDiv = document.getElementById('redeem-error');
+  const btn = document.getElementById('redeem-btn');
+  errDiv.style.display = 'none';
+  if(!code){ errDiv.textContent = 'Please enter your access code.'; errDiv.style.display = 'block'; return; }
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Verifying...';
+  await _redeemRequest(code, errDiv, btn, 'redeem-btn', '<i class="fas fa-unlock-alt mr-2"></i>Enter Code & Unlock Now');
+}
+
+async function redeemStandalone(){
+  const code = document.getElementById('standalone-code').value.trim().toUpperCase();
+  const errDiv = document.getElementById('standalone-error');
+  const btn = document.querySelector('#code-modal button:last-of-type');
+  errDiv.style.display = 'none';
+  if(!code){ errDiv.textContent = 'Please enter your access code.'; errDiv.style.display = 'block'; return; }
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Verifying...';
+  await _redeemRequest(code, errDiv, btn, null, '<i class="fas fa-unlock-alt mr-2"></i>Unlock My Sections');
+}
+
+async function _redeemRequest(code, errDiv, btn, btnId, btnLabel){
+  const fd = new FormData();
+  fd.append('code', code);
+  try {
+    const res = await fetch('/gisi-exams/redeem', {method:'POST', body:fd});
+    const data = await res.json();
     if(data.success){
       paidSections = data.paid_sections;
       closePayModal();
+      closeCodeModal();
       updateTabs();
-      const s = parseInt(document.getElementById('pay-section').value);
-      switchSection(s);
+      showRedeemSuccess(data.name, data.sections_unlocked);
     } else {
       errDiv.textContent = data.message;
-      errDiv.classList.remove('hidden');
+      errDiv.style.display = 'block';
       btn.disabled = false;
-      btn.innerHTML = '<i class="fas fa-unlock mr-2"></i>Confirm Payment & Unlock';
+      btn.innerHTML = btnLabel;
     }
-  } catch(err) {
+  } catch(err){
     errDiv.textContent = 'Network error. Please try again.';
-    errDiv.classList.remove('hidden');
+    errDiv.style.display = 'block';
     btn.disabled = false;
-    btn.innerHTML = '<i class="fas fa-unlock mr-2"></i>Confirm Payment & Unlock';
+    btn.innerHTML = btnLabel;
   }
+}
+
+function showRedeemSuccess(name, sections){
+  const banner = document.createElement('div');
+  const sLabel = sections.length > 1 ? `Sections ${sections[0]}–${sections[sections.length-1]}` : `Section ${sections[0]}`;
+  banner.style.cssText = 'position:fixed;top:80px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;padding:16px 28px;border-radius:14px;box-shadow:0 8px 32px rgba(22,163,74,.4);z-index:9999;font-weight:700;font-size:15px;text-align:center;max-width:420px;width:calc(100% - 48px);';
+  banner.innerHTML = `<div style="font-size:22px;margin-bottom:6px;">🎉 Access Granted!</div><div>Welcome, ${name || 'Student'}! ${sLabel} unlocked. Good luck!</div>`;
+  document.body.appendChild(banner);
+  setTimeout(()=>banner.remove(), 5000);
+  // Switch to first unlocked section
+  if(sections.length > 0) switchSection(sections[0]);
+}
+
+// ─── CODE MODAL (returning users) ──────────────────────────────────────────
+function openCodeModal(){
+  document.getElementById('code-modal').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeCodeModal(){
+  document.getElementById('code-modal').classList.add('hidden');
+  document.body.style.overflow = '';
 }
 
 // ─── INIT ──────────────────────────────────────────────────────────────────

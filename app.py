@@ -292,16 +292,19 @@ class Donation(db.Model):
 # --- GISI EXAM PAYMENT MODEL ---
 class GISIPayment(db.Model):
     __tablename__ = 'gisi_payments'
-    id           = db.Column(db.Integer, primary_key=True)
-    full_name    = db.Column(db.String(200), nullable=False)
-    email        = db.Column(db.String(200), nullable=False)
-    phone        = db.Column(db.String(50),  default='')
-    amount       = db.Column(db.Float,       nullable=False)
-    plan         = db.Column(db.String(30),  default='single')  # single | bundle
-    section      = db.Column(db.Integer,     default=0)
-    reference    = db.Column(db.String(200), default='', unique=True)
-    status       = db.Column(db.String(30),  default='Pending')
-    created_at   = db.Column(db.DateTime,    default=datetime.utcnow)
+    id            = db.Column(db.Integer, primary_key=True)
+    full_name     = db.Column(db.String(200), nullable=False)
+    email         = db.Column(db.String(200), nullable=False)
+    phone         = db.Column(db.String(50),  default='')
+    amount        = db.Column(db.Float,       nullable=False)
+    plan          = db.Column(db.String(30),  default='single')  # single | bundle
+    section       = db.Column(db.Integer,     default=0)
+    reference     = db.Column(db.String(200), default='', unique=True)
+    status        = db.Column(db.String(30),  default='Pending')  # Pending | Approved | Rejected
+    admin_token   = db.Column(db.String(64),  default='', unique=True)  # one-time admin approve link token
+    access_code   = db.Column(db.String(20),  default='', unique=True)  # code sent to user after approval
+    approved_at   = db.Column(db.DateTime,    nullable=True)
+    created_at    = db.Column(db.DateTime,    default=datetime.utcnow)
 
 
 # --- CONTACT MESSAGE MODEL ---
@@ -5177,6 +5180,7 @@ def gisi_exams():
 
 @app.route('/gisi-exams/pay', methods=['POST'])
 def gisi_exams_pay():
+    import secrets as _sec
     full_name = request.form.get('full_name', '').strip()
     email     = request.form.get('email', '').strip()
     phone     = request.form.get('phone', '').strip()
@@ -5190,45 +5194,167 @@ def gisi_exams_pay():
     # Prevent duplicate references
     existing = GISIPayment.query.filter_by(reference=reference).first()
     if existing:
-        return jsonify({'success': False, 'message': 'This payment reference has already been used.'}), 400
+        return jsonify({'success': False, 'message': 'This MoMo reference has already been submitted. Contact support if this is an error.'}), 400
 
-    amount = 200.0 if plan == 'bundle' else 60.0
-    pay = GISIPayment(full_name=full_name, email=email, phone=phone,
-                      amount=amount, plan=plan, section=section,
-                      reference=reference, status='Pending')
+    amount       = 200.0 if plan == 'bundle' else 60.0
+    admin_token  = _sec.token_urlsafe(32)
+    access_code  = 'GISI-' + _sec.token_hex(3).upper()
+
+    pay = GISIPayment(
+        full_name=full_name, email=email, phone=phone,
+        amount=amount, plan=plan, section=section,
+        reference=reference, status='Pending',
+        admin_token=admin_token, access_code=access_code
+    )
     db.session.add(pay)
     db.session.commit()
 
-    # Grant session access
-    paid = session.get('gisi_paid_sections', [])
-    if plan == 'bundle':
-        paid = paid + [2, 3, 4, 5]
-    else:
-        if section not in paid:
-            paid.append(section)
-    session['gisi_paid_sections'] = list(set(paid))
+    base = request.host_url.rstrip('/')
+    approve_url = f"{base}/gisi-exams/approve/{admin_token}"
+    reject_url  = f"{base}/gisi-exams/reject/{admin_token}"
+    section_label = f"Section {section}" if plan == 'single' else "Sections 2–5 (Bundle)"
 
-    # Email admin
+    # Email admin with approve/reject buttons
     try:
         msg = Message(
-            f'GISI Exam Payment – {full_name} – GHS{amount:.0f}',
+            f'[ACTION REQUIRED] GISI Exam Payment — {full_name} — GHS{amount:.0f}',
             sender=app.config.get('MAIL_DEFAULT_SENDER', 'noreply@investright.onrender.com'),
             recipients=['kyeikofi@gmail.com']
         )
-        msg.html = (
-            f'<h3>GISI Exam Payment Received</h3>'
-            f'<p><b>Name:</b> {full_name}</p>'
-            f'<p><b>Email:</b> {email}</p>'
-            f'<p><b>Phone:</b> {phone}</p>'
-            f'<p><b>Plan:</b> {plan} — GHS{amount:.0f}</p>'
-            f'<p><b>Section:</b> {section if plan == "single" else "2-5 (Bundle)"}</p>'
-            f'<p><b>Reference:</b> {reference}</p>'
+        msg.html = f'''
+<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#f8fafc;border-radius:12px;overflow:hidden;">
+  <div style="background:linear-gradient(135deg,#0f172a,#1e3a5f);padding:28px 32px;text-align:center;">
+    <h1 style="color:#fff;margin:0;font-size:22px;">⚡ GISI Exam — Payment Approval Required</h1>
+    <p style="color:#93c5fd;margin:8px 0 0;font-size:14px;">InvestIQ Talent Hub</p>
+  </div>
+  <div style="padding:28px 32px;background:#fff;">
+    <table style="width:100%;border-collapse:collapse;font-size:15px;">
+      <tr><td style="padding:8px 0;color:#64748b;width:140px;font-weight:600;">Name</td><td style="padding:8px 0;color:#1e293b;font-weight:700;">{full_name}</td></tr>
+      <tr style="background:#f8fafc;"><td style="padding:8px 6px;color:#64748b;font-weight:600;">Email</td><td style="padding:8px 6px;color:#1e293b;">{email}</td></tr>
+      <tr><td style="padding:8px 0;color:#64748b;font-weight:600;">Phone</td><td style="padding:8px 0;color:#1e293b;">{phone or "—"}</td></tr>
+      <tr style="background:#f8fafc;"><td style="padding:8px 6px;color:#64748b;font-weight:600;">Plan</td><td style="padding:8px 6px;color:#1e293b;">{plan.title()} — <strong>GHS{amount:.0f}</strong></td></tr>
+      <tr><td style="padding:8px 0;color:#64748b;font-weight:600;">Access</td><td style="padding:8px 0;color:#1e293b;">{section_label}</td></tr>
+      <tr style="background:#f8fafc;"><td style="padding:8px 6px;color:#64748b;font-weight:600;">MoMo Ref</td><td style="padding:8px 6px;color:#1e293b;font-family:monospace;font-weight:700;font-size:16px;">{reference}</td></tr>
+      <tr><td style="padding:8px 0;color:#64748b;font-weight:600;">Access Code</td><td style="padding:8px 0;color:#1e293b;font-family:monospace;font-weight:700;font-size:16px;letter-spacing:2px;">{access_code}</td></tr>
+      <tr style="background:#f8fafc;"><td style="padding:8px 6px;color:#64748b;font-weight:600;">Submitted</td><td style="padding:8px 6px;color:#1e293b;">{datetime.utcnow().strftime("%d %b %Y, %H:%M UTC")}</td></tr>
+    </table>
+    <p style="margin:20px 0 8px;color:#475569;font-size:14px;">Please verify the MoMo payment against your MTN MoMo records, then click the appropriate button:</p>
+    <div style="text-align:center;margin:24px 0;">
+      <a href="{approve_url}" style="display:inline-block;background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;text-decoration:none;padding:14px 36px;border-radius:10px;font-weight:700;font-size:16px;margin:0 8px;">✅ Approve &amp; Send Access Code</a>
+      <a href="{reject_url}" style="display:inline-block;background:#dc2626;color:#fff;text-decoration:none;padding:14px 36px;border-radius:10px;font-weight:700;font-size:16px;margin:8px;">❌ Reject</a>
+    </div>
+    <p style="font-size:12px;color:#94a3b8;text-align:center;margin-top:16px;">These links are one-time use and expire after action. The user is currently waiting for approval.</p>
+  </div>
+</div>'''
+        mail.send(msg)
+    except Exception as e:
+        logger.error(f'GISI admin email failed: {e}')
+
+    sections_unlocking = list(range(2, 6)) if plan == 'bundle' else [section]
+    return jsonify({
+        'success': True,
+        'pending': True,
+        'sections_unlocking': sections_unlocking,
+        'email': email
+    })
+
+
+@app.route('/gisi-exams/approve/<admin_token>')
+def gisi_exams_approve(admin_token):
+    pay = GISIPayment.query.filter_by(admin_token=admin_token).first_or_404()
+    if pay.status == 'Approved':
+        return render_template('hr_gisi_approve_done.html', already=True, pay=pay)
+    if pay.status == 'Rejected':
+        return '<h2 style="font-family:sans-serif;color:#dc2626;text-align:center;margin-top:80px;">This payment was already rejected.</h2>', 400
+
+    pay.status = 'Approved'
+    pay.approved_at = datetime.utcnow()
+    db.session.commit()
+
+    section_label = f"Section {pay.section}" if pay.plan == 'single' else "Sections 2–5 (Bundle)"
+    base = request.host_url.rstrip('/')
+    exam_url = f"{base}/gisi-exams"
+
+    # Email user with access code
+    try:
+        msg = Message(
+            f'✅ GISI Exam Access Approved — Your Access Code Inside',
+            sender=app.config.get('MAIL_DEFAULT_SENDER', 'noreply@investright.onrender.com'),
+            recipients=[pay.email]
         )
+        msg.html = f'''
+<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#f8fafc;border-radius:12px;overflow:hidden;">
+  <div style="background:linear-gradient(135deg,#0f172a,#1e3a5f);padding:32px;text-align:center;">
+    <div style="width:64px;height:64px;background:#16a34a;border-radius:50%;margin:0 auto 16px;display:flex;align-items:center;justify-content:center;font-size:32px;">✅</div>
+    <h1 style="color:#fff;margin:0;font-size:24px;">Payment Approved!</h1>
+    <p style="color:#93c5fd;margin:8px 0 0;font-size:15px;">Your GISI Exam access is now ready</p>
+  </div>
+  <div style="padding:32px;background:#fff;text-align:center;">
+    <p style="color:#475569;font-size:16px;margin-bottom:24px;">Hi <strong>{pay.full_name}</strong>, your payment of <strong>GHS{pay.amount:.0f}</strong> for <strong>{section_label}</strong> has been verified and approved.</p>
+    <p style="color:#1e293b;font-size:15px;font-weight:600;margin-bottom:12px;">Your Personal Access Code</p>
+    <div style="background:linear-gradient(135deg,#eff6ff,#dbeafe);border:2px dashed #3b82f6;border-radius:14px;padding:20px 32px;display:inline-block;margin-bottom:24px;">
+      <span style="font-family:monospace;font-size:32px;font-weight:900;color:#1d4ed8;letter-spacing:4px;">{pay.access_code}</span>
+    </div>
+    <p style="color:#64748b;font-size:14px;margin-bottom:24px;">Enter this code on the GISI Exams page to unlock your section(s). This code is unique to you — please keep it safe.</p>
+    <a href="{exam_url}" style="display:inline-block;background:linear-gradient(135deg,#1e3a5f,#1d4ed8);color:#fff;text-decoration:none;padding:16px 40px;border-radius:12px;font-weight:700;font-size:17px;">Start Exam Now →</a>
+    <p style="font-size:12px;color:#94a3b8;margin-top:24px;">Thank you for supporting YIN's financial literacy programmes in Ghana.<br/>InvestIQ Talent Hub — <a href="{base}" style="color:#3b82f6;">{base}</a></p>
+  </div>
+</div>'''
+        mail.send(msg)
+    except Exception as e:
+        logger.error(f'GISI user approval email failed: {e}')
+
+    return render_template('hr_gisi_approve_done.html', already=False, pay=pay)
+
+
+@app.route('/gisi-exams/reject/<admin_token>')
+def gisi_exams_reject(admin_token):
+    pay = GISIPayment.query.filter_by(admin_token=admin_token).first_or_404()
+    if pay.status != 'Pending':
+        return f'<h2 style="font-family:sans-serif;text-align:center;margin-top:80px;">This payment has already been processed ({pay.status}).</h2>'
+    pay.status = 'Rejected'
+    db.session.commit()
+    # Email user to notify rejection
+    try:
+        msg = Message(
+            'GISI Exam Payment — Unable to Verify',
+            sender=app.config.get('MAIL_DEFAULT_SENDER', 'noreply@investright.onrender.com'),
+            recipients=[pay.email]
+        )
+        msg.html = f'''
+<div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:40px 32px;background:#fff;border-radius:12px;border:1px solid #e2e8f0;">
+  <h2 style="color:#dc2626;margin-top:0;">Payment Could Not Be Verified</h2>
+  <p style="color:#475569;">Hi <strong>{pay.full_name}</strong>,</p>
+  <p style="color:#475569;">We were unable to verify your MoMo payment reference <strong>{pay.reference}</strong> for GHS{pay.amount:.0f}.</p>
+  <p style="color:#475569;">Please double-check the reference and resubmit, or contact us at <a href="mailto:kyeikofi@gmail.com">kyeikofi@gmail.com</a> for assistance.</p>
+  <p style="color:#94a3b8;font-size:13px;margin-top:24px;">InvestIQ Talent Hub</p>
+</div>'''
         mail.send(msg)
     except Exception:
         pass
+    return '<div style="font-family:Arial,sans-serif;text-align:center;padding:80px 32px;"><h2 style="color:#dc2626;">Payment Rejected</h2><p style="color:#64748b;">The user has been notified by email.</p></div>'
 
-    return jsonify({'success': True, 'paid_sections': session['gisi_paid_sections']})
+
+@app.route('/gisi-exams/redeem', methods=['POST'])
+def gisi_exams_redeem():
+    code = request.form.get('code', '').strip().upper()
+    if not code:
+        return jsonify({'success': False, 'message': 'Please enter your access code.'}), 400
+
+    pay = GISIPayment.query.filter_by(access_code=code, status='Approved').first()
+    if not pay:
+        return jsonify({'success': False, 'message': 'Invalid or unrecognised access code. Please check your approval email.'}), 400
+
+    paid = session.get('gisi_paid_sections', [])
+    if pay.plan == 'bundle':
+        paid = list(set(paid + [2, 3, 4, 5]))
+    else:
+        if pay.section not in paid:
+            paid.append(pay.section)
+    session['gisi_paid_sections'] = paid
+
+    sections_unlocked = [2, 3, 4, 5] if pay.plan == 'bundle' else [pay.section]
+    return jsonify({'success': True, 'paid_sections': paid, 'sections_unlocked': sections_unlocked, 'name': pay.full_name})
 
 
 @app.route('/jobs/<int:job_id>/apply', methods=['GET', 'POST'])
