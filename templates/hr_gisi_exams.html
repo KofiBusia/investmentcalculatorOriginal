@@ -59,12 +59,12 @@
       <i class="fas fa-award"></i> Professional Certification Preparation
     </div>
     <h1 class="text-4xl md:text-5xl font-extrabold mb-4">Securities Industry Practice Questions</h1>
-    <p class="text-blue-200 text-lg max-w-2xl mx-auto">Practice with 250 multiple-choice questions across 5 sections. <span class="text-yellow-300 font-semibold">Section 1 is free.</span> Sections 2–5 require a small access fee.</p>
+    <p class="text-blue-200 text-lg max-w-2xl mx-auto">250 multiple-choice questions across 5 professional subjects. <span class="text-yellow-300 font-semibold">Corporate Finance is free.</span> Choose any subject — access is independent per subject.</p>
     <div class="flex flex-wrap justify-center gap-4 mt-6 text-sm">
-      <div class="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full"><i class="fas fa-list text-blue-300"></i> 5 Sections</div>
+      <div class="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full"><i class="fas fa-list text-blue-300"></i> 5 Subjects</div>
       <div class="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full"><i class="fas fa-question text-blue-300"></i> 50 Questions Each</div>
       <div class="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full"><i class="fas fa-check-circle text-green-300"></i> Instant Results</div>
-      <div class="flex items-center gap-2 bg-green-500/20 border border-green-400/40 px-3 py-1.5 rounded-full text-green-300"><i class="fas fa-unlock"></i> Section 1 Free</div>
+      <div class="flex items-center gap-2 bg-green-500/20 border border-green-400/40 px-3 py-1.5 rounded-full text-green-300"><i class="fas fa-unlock"></i> Corporate Finance Free</div>
     </div>
   </div>
 </div>
@@ -86,11 +86,11 @@
   <!-- SECTION TABS -->
   <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 mb-6">
     <div class="flex gap-2 flex-wrap">
-      <button onclick="switchSection(1)" id="tab-1" class="tab-btn active"><i class="fas fa-unlock-alt mr-1 text-green-500"></i>Section 1<span class="ml-1 text-xs bg-green-100 text-green-700 px-1.5 rounded-full font-semibold">FREE</span></button>
-      <button onclick="switchSection(2)" id="tab-2" class="tab-btn locked"><i class="fas fa-lock mr-1"></i>Section 2</button>
-      <button onclick="switchSection(3)" id="tab-3" class="tab-btn locked"><i class="fas fa-lock mr-1"></i>Section 3</button>
-      <button onclick="switchSection(4)" id="tab-4" class="tab-btn locked"><i class="fas fa-lock mr-1"></i>Section 4</button>
-      <button onclick="switchSection(5)" id="tab-5" class="tab-btn locked"><i class="fas fa-lock mr-1"></i>Section 5</button>
+      <button onclick="switchSection(1)" id="tab-1" class="tab-btn active"><i class="fas fa-unlock-alt mr-1 text-green-500"></i>Corporate Finance<span class="ml-1 text-xs bg-green-100 text-green-700 px-1.5 rounded-full font-semibold">FREE</span></button>
+      <button onclick="switchSection(2)" id="tab-2" class="tab-btn locked"><i class="fas fa-lock mr-1"></i>Financial Infrastructure</button>
+      <button onclick="switchSection(3)" id="tab-3" class="tab-btn locked"><i class="fas fa-lock mr-1"></i>Investment Analysis</button>
+      <button onclick="switchSection(4)" id="tab-4" class="tab-btn locked"><i class="fas fa-lock mr-1"></i>Legal &amp; Regulatory</button>
+      <button onclick="switchSection(5)" id="tab-5" class="tab-btn locked"><i class="fas fa-lock mr-1"></i>Risk Management</button>
     </div>
     <div class="mt-3 text-sm text-gray-500" id="section-subtitle">Investment Fundamentals — Free practice section</div>
   </div>
@@ -101,7 +101,7 @@
     <!-- Section title + progress -->
     <div class="flex items-center justify-between mb-4">
       <div>
-        <h2 class="text-xl font-extrabold text-gray-800" id="section-title">Section 1: Investment Fundamentals</h2>
+        <h2 class="text-xl font-extrabold text-gray-800" id="section-title">Corporate Finance</h2>
         <p class="text-sm text-gray-500 mt-0.5" id="section-desc">Free — 50 Multiple Choice Questions</p>
       </div>
       <div class="text-right">
@@ -164,30 +164,45 @@
       <div class="w-20 h-20 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
         <i class="fas fa-lock text-yellow-500 text-3xl"></i>
       </div>
-      <h2 class="text-2xl font-extrabold text-gray-800 mb-2">Section Locked</h2>
-      <p class="text-gray-500 mb-6 max-w-md mx-auto">A small access fee is required to unlock this section and continue your practice.</p>
-      <div class="flex flex-col sm:flex-row gap-4 justify-center mb-6">
-        <div class="flex-1 max-w-xs border-2 border-blue-200 rounded-2xl p-5 text-left hover:border-blue-400 transition-all cursor-pointer" onclick="openPayModal('single')">
-          <div class="text-xs font-semibold text-blue-500 mb-1">SINGLE SECTION</div>
-          <div class="text-3xl font-extrabold text-gray-800 mb-1">GHS 60</div>
-          <div class="text-sm text-gray-500">Access this section only</div>
-          <button class="mt-3 w-full py-2 bg-blue-600 text-white rounded-lg font-semibold text-sm hover:bg-blue-700 transition-all">Select</button>
+      <h2 class="text-2xl font-extrabold text-gray-800 mb-2" id="locked-subject-name">Subject Locked</h2>
+
+      <!-- LOGIN REQUIRED -->
+      <div id="login-required-content" style="display:none;">
+        <p class="text-gray-500 mb-6 max-w-md mx-auto">You need to be logged in to access paid subjects. Log in or create a free account, then purchase access to any subject you choose.</p>
+        <div class="flex justify-center gap-3 flex-wrap mb-4">
+          <a href="/login?next=/gisi-exams" class="inline-block px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all text-sm"><i class="fas fa-sign-in-alt mr-2"></i>Log In</a>
+          <a href="/signup?next=/gisi-exams" class="inline-block px-8 py-3 border-2 border-blue-200 text-blue-700 font-bold rounded-xl hover:border-blue-400 transition-all text-sm"><i class="fas fa-user-plus mr-2"></i>Create Free Account</a>
         </div>
-        <div class="flex-1 max-w-xs border-2 border-green-300 rounded-2xl p-5 text-left relative hover:border-green-500 transition-all cursor-pointer bg-green-50" onclick="openPayModal('bundle')">
-          <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-green-500 text-white text-xs font-bold px-3 py-0.5 rounded-full">BEST VALUE</div>
-          <div class="text-xs font-semibold text-green-600 mb-1">ALL 4 SECTIONS (2–5)</div>
-          <div class="text-3xl font-extrabold text-gray-800 mb-1">GHS 200</div>
-          <div class="text-sm text-gray-500">Save GHS 40 vs buying individually</div>
-          <button class="mt-3 w-full py-2 bg-green-600 text-white rounded-lg font-semibold text-sm hover:bg-green-700 transition-all">Select</button>
+        <p class="text-xs text-gray-400">Registration is free. Access fees apply only to paid subjects.</p>
+      </div>
+
+      <!-- PAYMENT REQUIRED (logged in but not paid) -->
+      <div id="payment-required-content" style="display:none;">
+        <p class="text-gray-500 mb-6 max-w-md mx-auto">A small access fee is required to unlock this subject. Purchase any subject independently or get all 4 paid subjects at once.</p>
+        <div class="flex flex-col sm:flex-row gap-4 justify-center mb-6">
+          <div class="flex-1 max-w-xs border-2 border-blue-200 rounded-2xl p-5 text-left hover:border-blue-400 transition-all cursor-pointer" onclick="openPayModal('single')">
+            <div class="text-xs font-semibold text-blue-500 mb-1">SINGLE SUBJECT</div>
+            <div class="text-3xl font-extrabold text-gray-800 mb-1">GHS 60</div>
+            <div class="text-sm text-gray-500" id="single-subject-label">Access this subject only</div>
+            <button class="mt-3 w-full py-2 bg-blue-600 text-white rounded-lg font-semibold text-sm hover:bg-blue-700 transition-all">Select</button>
+          </div>
+          <div class="flex-1 max-w-xs border-2 border-green-300 rounded-2xl p-5 text-left relative hover:border-green-500 transition-all cursor-pointer bg-green-50" onclick="openPayModal('bundle')">
+            <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-green-500 text-white text-xs font-bold px-3 py-0.5 rounded-full">BEST VALUE</div>
+            <div class="text-xs font-semibold text-green-600 mb-1">ALL 4 PAID SUBJECTS</div>
+            <div class="text-3xl font-extrabold text-gray-800 mb-1">GHS 200</div>
+            <div class="text-sm text-gray-500">Save GHS 40 vs buying individually</div>
+            <button class="mt-3 w-full py-2 bg-green-600 text-white rounded-lg font-semibold text-sm hover:bg-green-700 transition-all">Select</button>
+          </div>
+        </div>
+        <p class="text-xs text-gray-400 mt-2">Access fees support InvestIQ's financial education programmes for Ghanaian investors.</p>
+        <div style="margin-top:20px;padding-top:20px;border-top:1.5px dashed #e2e8f0;">
+          <p class="text-sm text-gray-500 mb-3">Already paid and received your access code?</p>
+          <button onclick="openCodeModal()" style="background:none;border:2px solid #1d4ed8;color:#1d4ed8;border-radius:10px;padding:10px 24px;font-weight:700;font-size:14px;cursor:pointer;transition:all .2s;" onmouseover="this.style.background='#1d4ed8';this.style.color='#fff'" onmouseout="this.style.background='none';this.style.color='#1d4ed8'">
+            <i class="fas fa-key mr-2"></i>Enter My Access Code
+          </button>
         </div>
       </div>
-      <p class="text-xs text-gray-400 mt-2">Access fees support InvestIQ's financial education programmes for Ghanaian investors.</p>
-      <div style="margin-top:20px;padding-top:20px;border-top:1.5px dashed #e2e8f0;">
-        <p class="text-sm text-gray-500 mb-3">Already paid and received your access code?</p>
-        <button onclick="openCodeModal()" style="background:none;border:2px solid #1d4ed8;color:#1d4ed8;border-radius:10px;padding:10px 24px;font-weight:700;font-size:14px;cursor:pointer;transition:all .2s;" onmouseover="this.style.background='#1d4ed8';this.style.color='#fff'" onmouseout="this.style.background='none';this.style.color='#1d4ed8'">
-          <i class="fas fa-key mr-2"></i>Enter My Access Code
-        </button>
-      </div>
+
     </div>
   </div>
 
@@ -599,12 +614,16 @@ const QUESTIONS = {
 
 // ─── STATE ─────────────────────────────────────────────────────────────────
 const SECTION_META = {
-  1:{title:'Section 1: Investment Fundamentals',desc:'Free — 50 Multiple Choice Questions',sub:'Investment Fundamentals — Free practice section'},
-  2:{title:'Section 2: Equity Markets',desc:'Paid — 50 Multiple Choice Questions',sub:'Equity Markets — GSE, share valuation, trading & corporate actions'},
-  3:{title:'Section 3: Fixed Income',desc:'Paid — 50 Multiple Choice Questions',sub:'Fixed Income — Bonds, T-bills, yields & Ghana government securities'},
-  4:{title:'Section 4: Portfolio Management',desc:'Paid — 50 Multiple Choice Questions',sub:'Portfolio Management — CAPM, MPT, risk management & performance'},
-  5:{title:'Section 5: Regulations & Ethics',desc:'Paid — 50 Multiple Choice Questions',sub:'Regulations & Ethics — SEC Ghana, professional conduct & compliance'}
+  1:{title:'Corporate Finance',desc:'Professional Level — 50 Multiple Choice Questions (Free)',sub:'Corporate Finance (Professional Level) — Free practice section'},
+  2:{title:'Financial Infrastructure',desc:'Professional Level — 50 Multiple Choice Questions',sub:'Financial Infrastructure (Professional Level)'},
+  3:{title:'Investment Analysis',desc:'Professional Level — 50 Multiple Choice Questions',sub:'Investment Analysis (Professional Level)'},
+  4:{title:'Legal & Regulatory Framework',desc:'Professional Level — 50 Multiple Choice Questions',sub:'Legal and Regulatory Framework'},
+  5:{title:'Risk Management',desc:'Professional Level — 50 Multiple Choice Questions',sub:'Risk Management (Professional Level)'}
 };
+const SUBJECT_NAMES = {1:'Corporate Finance',2:'Financial Infrastructure',3:'Investment Analysis',4:'Legal & Regulatory Framework',5:'Risk Management'};
+const isLoggedIn = {{ 'true' if current_user.is_authenticated else 'false' }};
+const userEmail  = '{{ current_user.email if current_user.is_authenticated else "" }}';
+const userName   = '{{ current_user.full_name if current_user.is_authenticated else "" }}';
 
 let currentSection = 1;
 let currentQ = 0;
@@ -670,6 +689,17 @@ function showLocked(s){
   document.getElementById('results-panel').classList.add('hidden');
   document.getElementById('locked-panel').classList.remove('hidden');
   document.getElementById('pay-section').value = s;
+  const subjectName = SUBJECT_NAMES[s] || ('Subject ' + s);
+  document.getElementById('locked-subject-name').textContent = subjectName + ' — Locked';
+  const singleLbl = document.getElementById('single-subject-label');
+  if(singleLbl) singleLbl.textContent = 'Access ' + subjectName + ' only';
+  if(!isLoggedIn){
+    document.getElementById('login-required-content').style.display = 'block';
+    document.getElementById('payment-required-content').style.display = 'none';
+  } else {
+    document.getElementById('login-required-content').style.display = 'none';
+    document.getElementById('payment-required-content').style.display = 'block';
+  }
 }
 
 function renderQuestion(){
@@ -793,7 +823,21 @@ function retrySection(){
 // ─── PAYMENT MODAL ─────────────────────────────────────────────────────────
 function openPayModal(plan){
   document.getElementById('pay-plan').value = plan;
+  document.getElementById('pay-section').value = currentSection;
   document.getElementById('pay-amount-text').textContent = plan==='bundle'?'GHS 200':'GHS 60';
+  // Pre-fill logged-in user details (read-only so the code is always tied to their account)
+  const nameEl  = document.getElementById('pay-name');
+  const emailEl = document.getElementById('pay-email');
+  if(isLoggedIn && userName){
+    nameEl.value    = userName;
+    nameEl.readOnly = true;
+    nameEl.style.background = '#f8fafc';
+  }
+  if(isLoggedIn && userEmail){
+    emailEl.value    = userEmail;
+    emailEl.readOnly = true;
+    emailEl.style.background = '#f8fafc';
+  }
   document.getElementById('modal-step-1').style.display = 'block';
   document.getElementById('modal-step-2').style.display = 'none';
   document.getElementById('pay-modal').classList.remove('hidden');
@@ -888,7 +932,9 @@ async function _redeemRequest(code, errDiv, btn, btnId, btnLabel){
       closePayModal();
       closeCodeModal();
       updateTabs();
-      showRedeemSuccess(data.name, data.sections_unlocked);
+      showRedeemSuccess(data.name, data.paid_sections);
+    } else if(data.login_required){
+      window.location.href = '/login?next=/gisi-exams';
     } else {
       errDiv.textContent = data.message;
       errDiv.style.display = 'block';
@@ -905,13 +951,17 @@ async function _redeemRequest(code, errDiv, btn, btnId, btnLabel){
 
 function showRedeemSuccess(name, sections){
   const banner = document.createElement('div');
-  const sLabel = sections.length > 1 ? `Sections ${sections[0]}–${sections[sections.length-1]}` : `Section ${sections[0]}`;
-  banner.style.cssText = 'position:fixed;top:80px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;padding:16px 28px;border-radius:14px;box-shadow:0 8px 32px rgba(22,163,74,.4);z-index:9999;font-weight:700;font-size:15px;text-align:center;max-width:420px;width:calc(100% - 48px);';
-  banner.innerHTML = `<div style="font-size:22px;margin-bottom:6px;">🎉 Access Granted!</div><div>Welcome, ${name || 'Student'}! ${sLabel} unlocked. Good luck!</div>`;
+  const unlocked = sections.filter(s => s !== 1);
+  const sLabel = unlocked.length > 1
+    ? unlocked.map(s => SUBJECT_NAMES[s] || s).join(', ')
+    : (unlocked.length === 1 ? SUBJECT_NAMES[unlocked[0]] : 'your subject');
+  banner.style.cssText = 'position:fixed;top:80px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;padding:16px 28px;border-radius:14px;box-shadow:0 8px 32px rgba(22,163,74,.4);z-index:9999;font-weight:700;font-size:15px;text-align:center;max-width:480px;width:calc(100% - 48px);';
+  banner.innerHTML = `<div style="font-size:22px;margin-bottom:6px;">🎉 Access Granted!</div><div>Welcome, ${name || 'Student'}! <strong>${sLabel}</strong> unlocked. Good luck!</div>`;
   document.body.appendChild(banner);
-  setTimeout(()=>banner.remove(), 5000);
-  // Switch to first unlocked section
-  if(sections.length > 0) switchSection(sections[0]);
+  setTimeout(()=>banner.remove(), 6000);
+  // Switch to first newly unlocked paid section
+  if(unlocked.length > 0) switchSection(unlocked[0]);
+  else if(sections.length > 0) switchSection(sections[0]);
 }
 
 // ─── CODE MODAL (returning users) ──────────────────────────────────────────

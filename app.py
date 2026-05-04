@@ -5193,7 +5193,14 @@ def download_stock_pitch_pptx():
 # ── GISI EXAMS ───────────────────────────────────────────────────────────────
 @app.route('/gisi-exams')
 def gisi_exams():
-    paid_sections = session.get('gisi_paid_sections', [])
+    paid_sections = []
+    if current_user.is_authenticated:
+        payments = GISIPayment.query.filter_by(email=current_user.email, status='Approved').all()
+        for pay in payments:
+            if pay.plan == 'bundle':
+                paid_sections = list(set(paid_sections + [2, 3, 4, 5]))
+            elif pay.section not in paid_sections:
+                paid_sections.append(pay.section)
     return render_template('hr_gisi_exams.html', paid_sections=paid_sections)
 
 
@@ -5362,6 +5369,9 @@ def gisi_exams_reject(admin_token):
 
 @app.route('/gisi-exams/redeem', methods=['POST'])
 def gisi_exams_redeem():
+    if not current_user.is_authenticated:
+        return jsonify({'success': False, 'message': 'Please log in to redeem your access code.', 'login_required': True}), 401
+
     code = request.form.get('code', '').strip().upper()
     if not code:
         return jsonify({'success': False, 'message': 'Please enter your access code.'}), 400
@@ -5370,16 +5380,19 @@ def gisi_exams_redeem():
     if not pay:
         return jsonify({'success': False, 'message': 'Invalid or unrecognised access code. Please check your approval email.'}), 400
 
-    paid = session.get('gisi_paid_sections', [])
-    if pay.plan == 'bundle':
-        paid = list(set(paid + [2, 3, 4, 5]))
-    else:
-        if pay.section not in paid:
-            paid.append(pay.section)
-    session['gisi_paid_sections'] = paid
+    if pay.email.lower() != current_user.email.lower():
+        return jsonify({'success': False, 'message': 'This access code was issued to a different account. Please use the code sent to your registered email address.'}), 403
 
-    sections_unlocked = [2, 3, 4, 5] if pay.plan == 'bundle' else [pay.section]
-    return jsonify({'success': True, 'paid_sections': paid, 'sections_unlocked': sections_unlocked, 'name': pay.full_name})
+    # Reload all paid sections from DB for this user
+    payments = GISIPayment.query.filter_by(email=current_user.email, status='Approved').all()
+    paid = []
+    for p in payments:
+        if p.plan == 'bundle':
+            paid = list(set(paid + [2, 3, 4, 5]))
+        elif p.section not in paid:
+            paid.append(p.section)
+
+    return jsonify({'success': True, 'paid_sections': paid, 'name': pay.full_name})
 
 
 @app.route('/jobs/<int:job_id>/apply', methods=['GET', 'POST'])
