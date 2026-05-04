@@ -7066,8 +7066,8 @@ def admin_yin_toggle(prog_id):
 
 @app.route('/super-admin/yin-registrations-csv')
 def super_admin_yin_csv():
-    if not session.get('is_super_admin'):
-        return redirect(url_for('super_admin_login'))
+    if not session.get('admin_logged_in') and not session.get('super_admin_logged_in'):
+        return redirect(url_for('admin_login'))
     rows = YINRegistration.query.order_by(YINRegistration.created_at.desc()).all()
     import csv, io
     out = io.StringIO()
