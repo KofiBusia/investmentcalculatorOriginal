@@ -715,7 +715,6 @@ function nextQuestion(){
   if(currentQ < QUESTIONS[currentSection].length - 1){
     currentQ++;
     renderQuestion();
-    window.scrollTo({top:0,behavior:'smooth'});
   }
 }
 
@@ -723,7 +722,6 @@ function prevQuestion(){
   if(currentQ > 0){
     currentQ--;
     renderQuestion();
-    window.scrollTo({top:0,behavior:'smooth'});
   }
 }
 
