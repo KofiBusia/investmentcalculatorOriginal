@@ -30,6 +30,13 @@
   input[type="text"],input[type="email"],input[type="tel"]{width:100%;border:1.5px solid #e2e8f0;border-radius:8px;padding:.65rem .9rem;font-size:.9rem;outline:none;transition:border .2s;}
   input:focus{border-color:#1d4ed8;box-shadow:0 0 0 3px rgba(29,78,216,.1);}
   .score-card{background:linear-gradient(135deg,#1e3a5f,#1d4ed8);color:#fff;border-radius:16px;padding:2rem;text-align:center;}
+  #timer-bar{transition:border-color .4s,background .4s;}
+  .timer-warning{border-color:#fbbf24!important;background:#fffbeb!important;}
+  .timer-warning #timer-display{color:#d97706!important;}
+  .timer-danger{border-color:#ef4444!important;background:#fef2f2!important;}
+  .timer-danger #timer-display{color:#dc2626!important;}
+  @keyframes timerPulse{0%,100%{opacity:1}50%{opacity:.55}}
+  .timer-danger #timer-display{animation:timerPulse 1s infinite;}
 </style>
 </head>
 <body>
@@ -109,7 +116,14 @@
         <div class="text-xs text-gray-400">Questions</div>
       </div>
     </div>
-    <div class="progress-bar mb-6"><div class="progress-fill" id="progress-fill" style="width:2%"></div></div>
+    <div class="progress-bar mb-4"><div class="progress-fill" id="progress-fill" style="width:2%"></div></div>
+
+    <!-- Timer -->
+    <div id="timer-bar" class="flex items-center justify-center gap-3 mb-5 py-2.5 px-4 rounded-xl border-2 border-blue-100 bg-blue-50">
+      <i class="fas fa-clock text-blue-500 text-sm"></i>
+      <span class="text-sm font-semibold text-blue-600">Time Remaining:</span>
+      <span id="timer-display" class="text-xl font-extrabold text-blue-700 font-mono tracking-widest">60:00</span>
+    </div>
 
     <!-- Question -->
     <div id="question-area">
@@ -401,7 +415,36 @@ const QUESTIONS = {
   {q:"'Market depth' refers to:",opts:["How far prices deviate from fair value","The amount of buy and sell orders at various price levels","Total number of listed companies","Geographic coverage of an exchange"],ans:1},
   {q:"The NPV rule states: accept a project when:",opts:["NPV < 0","NPV = 0 only","NPV ≥ 0","NPV is negative and falling"],ans:2},
   {q:"'Rebalancing' in portfolio management means:",opts:["Moving all investments to a single asset class","Selling all positions and reinvesting","Adjusting portfolio holdings back to target asset allocation","Only adding new funds"],ans:2},
-  {q:"'Arbitrage' is best defined as:",opts:["Investing in high-risk assets for higher returns","Simultaneous purchase and sale in different markets to profit from price differences","Borrowing at a low rate to invest at a higher rate","Hedging against all market risks"],ans:1}
+  {q:"'Arbitrage' is best defined as:",opts:["Investing in high-risk assets for higher returns","Simultaneous purchase and sale in different markets to profit from price differences","Borrowing at a low rate to invest at a higher rate","Hedging against all market risks"],ans:1},
+  {q:"Which of the following best describes a 'financial intermediary'?",opts:["A government regulatory body","An institution that channels funds between savers and borrowers","A stock exchange facilitating trades","A credit rating agency"],ans:1},
+  {q:"'Gross Domestic Product' (GDP) measures:",opts:["The total value of all goods and services produced in a country in a year","The total exports minus imports","Government tax revenue","The total market value of listed shares"],ans:0},
+  {q:"When a central bank RAISES interest rates, the likely effect on bond prices is:",opts:["Bond prices rise","Bond prices fall","Bond prices are unaffected","Bond prices become volatile but remain unchanged on average"],ans:1},
+  {q:"'Inflation' erodes the purchasing power of:",opts:["Only fixed-rate bonds","Only savings accounts","All fixed nominal cash flows and savings","Only government bonds"],ans:2},
+  {q:"A 'recession' is technically defined as:",opts:["A fall in a country's GDP for one quarter","Two or more consecutive quarters of negative GDP growth","A decline in the stock market of more than 20%","Rising unemployment for six months"],ans:1},
+  {q:"'Quantitative easing' (QE) by a central bank involves:",opts:["Raising short-term interest rates","Creating new money to purchase assets, expanding the money supply","Increasing reserve requirements for commercial banks","Selling government bonds to reduce liquidity"],ans:1},
+  {q:"'Exchange rate risk' (currency risk) arises when:",opts:["Interest rates change unexpectedly","Investments are denominated in a foreign currency","The stock market declines sharply","Credit spreads widen"],ans:1},
+  {q:"A 'balanced fund' typically invests in:",opts:["Only equity securities","Only fixed income securities","A mixture of equities and bonds","Only money market instruments"],ans:2},
+  {q:"'Open-ended' investment funds allow investors to:",opts:["Trade units only on a stock exchange at market prices","Buy and sell units directly from/to the fund at the net asset value","Invest only in closed-end vehicles","Access underlying assets directly"],ans:1},
+  {q:"The 'net asset value' (NAV) per unit of a fund is:",opts:["The market price of the fund if traded on an exchange","Total fund assets minus liabilities divided by number of units outstanding","The fund's total assets divided by the number of investors","The issue price of units when the fund was launched"],ans:1},
+  {q:"'Compounding' refers to:",opts:["Dividing returns into equal parts over a period","Earning returns on previously earned returns","Calculating simple interest over multiple periods","Adjusting returns for inflation"],ans:1},
+  {q:"The 'rule of 72' estimates:",opts:["The risk-free rate of return","The time required for an investment to double at a given interest rate","The dividend payout ratio","The P/E ratio of the market"],ans:1},
+  {q:"A 'nominal return' differs from a 'real return' in that it:",opts:["Excludes dividends","Does not adjust for inflation","Is always higher than the real return","Is the return after tax"],ans:1},
+  {q:"'Leverage' in investing means:",opts:["Investing equal amounts across all asset classes","Using borrowed funds to increase the potential return (and risk) on investments","Investing only in long-term assets","Reducing portfolio volatility"],ans:1},
+  {q:"Which financial institution is responsible for monetary policy in Ghana?",opts:["Securities and Exchange Commission","Ghana Stock Exchange","Bank of Ghana","Ministry of Finance"],ans:2},
+  {q:"'Moral hazard' in financial services arises when:",opts:["Interest rates are too high for borrowers","One party takes on more risk because another party bears the cost","Investors diversify insufficiently","Regulators impose excessive rules"],ans:1},
+  {q:"'Asymmetric information' in financial markets occurs when:",opts:["All investors have the same information at the same time","One party to a transaction has more or better information than the other","Information is released simultaneously to all investors","Prices fully reflect all available information"],ans:1},
+  {q:"A 'hedge' in investment management is:",opts:["Investing in high-growth stocks","A position taken to offset the risk of another position","Borrowing at a low rate and lending at a higher rate","Diversifying across international markets"],ans:1},
+  {q:"'Securitisation' involves:",opts:["Issuing shares in a new company","Converting illiquid assets (like loans) into tradeable securities","Regulating access to capital markets","Converting bonds to equity"],ans:1},
+  {q:"'Venture capital' typically finances:",opts:["Early-stage, high-growth potential companies","Large established companies seeking expansion capital","Government infrastructure projects","Distressed companies undergoing restructuring"],ans:0},
+  {q:"'Fintech' (financial technology) broadly refers to:",opts:["Banking regulation and compliance tools","Technology-driven innovation in financial services","Financial training and certification","Traditional banking infrastructure"],ans:1},
+  {q:"A 'robo-advisor' in financial services is:",opts:["A human financial advisor who uses AI tools","An automated platform providing algorithm-driven financial advice with minimal human intervention","A regulatory chatbot for compliance","An AI used solely for trading fixed income"],ans:1},
+  {q:"'Blockchain' technology in financial services is primarily known for:",opts:["Centralised database management","Providing a distributed, immutable ledger for recording transactions","Replacing all traditional banking","Eliminating the need for regulatory oversight"],ans:1},
+  {q:"'Crowdfunding' as a financing method involves:",opts:["A single institutional investor funding a project","Raising small amounts of capital from a large number of people, typically via an online platform","Government grants for small businesses","Peer-to-peer lending between two companies"],ans:1},
+  {q:"'Central bank digital currency' (CBDC) is:",opts:["A privately issued cryptocurrency","A digital form of sovereign currency issued by a central bank","A stablecoin pegged to gold","A blockchain-based payment token"],ans:1},
+  {q:"'ESG investing' considers:",opts:["Only the financial returns from an investment","Environmental, social, and governance factors alongside financial returns","Exotic, speculative, and growth factors","Equity, security, and governance performance metrics"],ans:1},
+  {q:"The 'primary purpose' of insurance in financial services is:",opts:["To generate investment returns for policyholders","To transfer and pool risk, providing financial protection against specified events","To regulate capital markets","To fund government expenditures"],ans:1},
+  {q:"'Peer-to-peer (P2P) lending' bypasses traditional intermediaries by:",opts:["Connecting borrowers directly with lenders through an online platform","Allowing borrowers to access central bank funds directly","Enabling companies to issue bonds directly to retail investors","Providing microfinance through mobile money"],ans:0},
+  {q:"'Systemic risk' refers to the risk of:",opts:["A single company failing and losing investor money","Collapse of an entire financial system or market due to interconnected failures","Currency depreciation over time","A specific sector underperforming the market"],ans:1}
 ],
 2: [
   {q:"The Ghana Stock Exchange (GSE) was established in:",opts:["1980","1990","1995","2000"],ans:1},
@@ -453,7 +496,36 @@ const QUESTIONS = {
   {q:"The purpose of an 'escrow account' in securities transactions is:",opts:["To hold the company's retained earnings","To hold funds until conditions of a transaction are met","To collect dividend payments","To store trading records"],ans:1},
   {q:"A 'takeover bid' is an attempt by:",opts:["The government to nationalise a company","An acquirer to purchase enough shares to gain controlling interest in a target company","A company to list additional shares","Institutional investors to influence management"],ans:1},
   {q:"'Free float' as a percentage is:",opts:["Shares held by government divided by total shares","Shares held by insiders divided by total shares","Publicly traded shares divided by total shares outstanding","Total authorised shares divided by issued shares"],ans:2},
-  {q:"The Central Securities Depository (CSD) in Ghana is primarily responsible for:",opts:["Setting share prices on the GSE","The electronic holding and transfer of securities ownership records","Approving new company listings","Collecting stamp duty on share transactions"],ans:1}
+  {q:"The Central Securities Depository (CSD) in Ghana is primarily responsible for:",opts:["Setting share prices on the GSE","The electronic holding and transfer of securities ownership records","Approving new company listings","Collecting stamp duty on share transactions"],ans:1},
+  {q:"'Dematerialisation' in securities markets means:",opts:["Physical certificates are destroyed when securities are sold","Securities exist electronically, eliminating the need for physical paper certificates","Securities can only be traded through dematerialised exchanges","Settlement occurs on the same day"],ans:1},
+  {q:"'Market makers' in securities markets:",opts:["Set prices administratively for all securities","Stand ready to buy and sell securities at quoted prices, providing liquidity","Only execute orders for large institutional investors","Regulate trading on the exchange"],ans:1},
+  {q:"The 'clearing' process in securities markets involves:",opts:["The matching of buy and sell orders and calculation of obligations","The physical delivery of securities to investors","The publication of trade prices","The settlement of trades three days after execution"],ans:0},
+  {q:"'Settlement' in securities markets refers to:",opts:["The agreement to buy or sell a security","The actual transfer of funds and securities between buyer and seller","The clearing of trade obligations","The matching of orders on the exchange"],ans:1},
+  {q:"A 'nominee account' in securities holding means:",opts:["Securities are held in the name of the beneficial owner","Securities are held in the name of a nominee on behalf of the beneficial owner","Securities are held by the government","Shares are jointly held by two investors"],ans:1},
+  {q:"In securities markets, 'algorithmic trading' involves:",opts:["Trading decisions made exclusively by human brokers","The use of computer programs to automatically execute trades based on predefined rules","Trading using only fundamental analysis","Trading restricted to institutional investors"],ans:1},
+  {q:"'Dark pools' in equity trading are:",opts:["Illegal off-exchange trading platforms","Private trading venues where large orders can be executed anonymously","Platforms exclusively for short-selling","Trading platforms operating only after market hours"],ans:1},
+  {q:"A 'broker-dealer' differs from a pure broker in that it:",opts:["Only executes client orders","Can act as both an agent (broker) and as a principal (dealer trading for its own account)","Only deals in fixed income securities","Only operates in the primary market"],ans:1},
+  {q:"'Order book' transparency in equity markets means:",opts:["Investors can see all company financial reports in real time","Pending buy and sell orders are publicly visible, providing pre-trade transparency","All completed trades are visible to all investors","Regulatory filings are publicly accessible"],ans:1},
+  {q:"'Short interest' in a stock represents:",opts:["The number of shares owned by short-term investors","The total number of shares that have been sold short and not yet covered","The percentage of shares with falling prices","The daily trading volume relative to outstanding shares"],ans:1},
+  {q:"'High-frequency trading' (HFT) is characterised by:",opts:["Long-term buy and hold strategies","Extremely rapid execution of large numbers of orders using sophisticated algorithms","Manual execution of large client block trades","Trading based only on fundamental research"],ans:1},
+  {q:"'Exchange Traded Funds' (ETFs) differ from traditional mutual funds in that they:",opts:["Can only invest in government securities","Trade on a stock exchange like shares, with prices that fluctuate throughout the day","Are only available to institutional investors","Have no management fees"],ans:1},
+  {q:"The 'total expense ratio' (TER) of an investment fund includes:",opts:["Only the annual management charge","The annual management charge plus all other ongoing costs (administration, custody, etc.)","The performance fee and transaction costs","Only the entry and exit fees"],ans:1},
+  {q:"'Price impact' in large trade execution refers to:",opts:["The tax impact of realising a gain","The effect that a large order has on the market price","The effect of inflation on investment returns","The difference between the issue price and market price"],ans:1},
+  {q:"'SWIFT' (Society for Worldwide Interbank Financial Telecommunication) is:",opts:["A global stock exchange","A messaging network used by financial institutions to securely exchange information about financial transactions","A global regulatory body for banks","A credit rating agency"],ans:1},
+  {q:"The role of a 'custodian bank' in securities markets is to:",opts:["Execute trades on behalf of fund managers","Safeguard and administer securities and cash on behalf of institutional investors","Regulate securities issuance","Provide investment advice to retail investors"],ans:1},
+  {q:"'Straight-through processing' (STP) in financial markets means:",opts:["Settlement occurs within one day","Trade information flows electronically from initiation to settlement without manual intervention","Trading is automated without regulatory oversight","Trades are settled without clearing"],ans:1},
+  {q:"'Initial margin' in futures trading represents:",opts:["The total cost of the futures contract","A good-faith deposit required when entering into a futures contract","The profit or loss on the futures position","The daily mark-to-market payment"],ans:1},
+  {q:"'Variation margin' in futures is:",opts:["The initial deposit paid when entering a futures contract","The daily cash payment required to maintain a futures position based on daily price changes","A fixed fee charged by the exchange","The final settlement payment"],ans:1},
+  {q:"'Central counterparty clearing' (CCP) reduces risk by:",opts:["Eliminating the need for settlement","Becoming the buyer to every seller and the seller to every buyer, managing counterparty risk","Guaranteeing profits for all market participants","Ensuring all trades are settled immediately"],ans:1},
+  {q:"'ISIN' (International Securities Identification Number) is:",opts:["A trading platform identifier","A 12-character alphanumeric code that uniquely identifies a securities issuance","A credit rating code","An exchange-specific trading code"],ans:1},
+  {q:"'Circuit breakers' in securities markets are triggered when:",opts:["Trading volumes fall below a minimum threshold","Prices move beyond a specified percentage within a session, causing a temporary trading halt","A company fails to meet listing requirements","Margin calls exceed a threshold"],ans:1},
+  {q:"'Margin lending' in securities markets allows investors to:",opts:["Borrow against their investment portfolio to leverage returns","Deposit margin at the central bank","Avoid paying capital gains tax","Purchase insurance against market losses"],ans:0},
+  {q:"'Transfer agent' services in securities markets include:",opts:["Executing trades between brokers","Maintaining ownership records, processing transfers, and managing dividend payments","Providing investment research","Auditing listed company accounts"],ans:1},
+  {q:"'Open interest' in derivatives markets represents:",opts:["The total trading volume in a day","The total number of outstanding (open) derivative contracts not yet settled","The number of new contracts opened each day","The interest rate embedded in the derivatives contract"],ans:1},
+  {q:"A 'circuit breaker' pausing trading during large market moves primarily aims to:",opts:["Allow short sellers to cover positions","Prevent panic-driven cascading price movements and give investors time to reassess","Generate commission revenue for the exchange","Allow regulators to investigate insider trading"],ans:1},
+  {q:"In Ghana, the 'Ghana Interbank Settlement System' (GISS) is used for:",opts:["Settling equity trades on the GSE","Settling large-value interbank payments","Managing the central bank's foreign exchange reserves","Clearing government bond trades"],ans:1},
+  {q:"'Programme trading' (basket trading) in equity markets involves:",opts:["Trading a single large block of shares in one company","Simultaneously buying or selling a basket of multiple stocks, often to replicate an index","Trading in government bonds only","Automated trading using only technical signals"],ans:1},
+  {q:"An 'electronic communication network' (ECN) is:",opts:["A regulatory reporting network","An alternative trading system that automatically matches buy and sell orders","The communication network of stock exchange staff","An algorithm for detecting market manipulation"],ans:1}
 ],
 3: [
   {q:"A characteristic of a fixed income security is:",opts:["Ownership in the issuing company","A promise to make periodic interest payments and repay principal","Variable returns based on market performance","No obligation to repay the face value"],ans:1},
@@ -505,7 +577,35 @@ const QUESTIONS = {
   {q:"In Ghana, public debt is primarily managed by:",opts:["Securities and Exchange Commission","Ghana Stock Exchange","Bank of Ghana, with oversight from the Ministry of Finance","Ghana Revenue Authority"],ans:2},
   {q:"'Commercial paper' is typically:",opts:["A long-term fixed income instrument","An unsecured short-term debt instrument issued by creditworthy corporations","A government-guaranteed instrument","A mortgage-backed security"],ans:1},
   {q:"The 'term premium' in government bond yields is driven primarily by:",opts:["Credit risk of the issuer","Uncertainty about future short-term interest rates and inflation over the bond's life","The bond's coupon rate","The exchange rate"],ans:1},
-  {q:"A bond that pays interest semi-annually will have a YTM calculation based on:",opts:["Annual periods","Semi-annual periods compounded to an annual figure","Quarterly periods only","Daily compounding always"],ans:1}
+  {q:"A bond that pays interest semi-annually will have a YTM calculation based on:",opts:["Annual periods","Semi-annual periods compounded to an annual figure","Quarterly periods only","Daily compounding always"],ans:1},
+  {q:"'Fundamental analysis' of equities focuses on:",opts:["Price charts and trading volumes","A company's financial health, management quality, and competitive position to determine intrinsic value","Market sentiment and momentum indicators","Technical price patterns only"],ans:1},
+  {q:"The 'enterprise value' (EV) of a company is calculated as:",opts:["Market capitalisation minus total debt","Market capitalisation plus total debt minus cash and cash equivalents","Total assets minus total liabilities","Book value plus goodwill"],ans:1},
+  {q:"'EV/EBITDA' ratio is preferred over P/E for comparing companies because it:",opts:["Is always lower and more conservative","Adjusts for differences in capital structure, taxes, and non-cash charges","Is easier to calculate","Is regulated by accounting standards"],ans:1},
+  {q:"'Price-to-Sales' (P/S) ratio is particularly useful for valuing:",opts:["Profitable large-cap companies with stable earnings","Unprofitable or early-stage companies with revenue but no earnings","Bond-heavy financial institutions","Companies with no revenues"],ans:1},
+  {q:"In equity valuation, 'terminal value' represents:",opts:["The value of the company at its next earnings release","The present value of all cash flows beyond the explicit forecast period","The liquidation value of the company's assets","The price at which insiders last traded"],ans:1},
+  {q:"'Free cash flow to equity' (FCFE) is:",opts:["Cash flow from operations before capital expenditure","Cash flow available to equity holders after all expenses, debt repayments, and required investments","Operating profit after tax","Net income plus depreciation"],ans:1},
+  {q:"'EBIT margin' (operating margin) is calculated as:",opts:["Gross profit divided by revenue","Earnings before interest and tax divided by revenue","Net income divided by revenue","EBITDA divided by total assets"],ans:1},
+  {q:"A company with a 'current ratio' below 1 indicates:",opts:["Excellent short-term liquidity","Strong asset management","Current liabilities exceed current assets, a potential liquidity concern","The company is growing rapidly"],ans:2},
+  {q:"'Debt service coverage ratio' (DSCR) assesses:",opts:["Equity valuation","A company's or project's ability to generate sufficient cash flow to meet debt obligations","Short-term liquidity","Fixed asset efficiency"],ans:1},
+  {q:"In fixed income analysis, 'key rate duration' measures:",opts:["The bond's total interest rate sensitivity","Sensitivity of bond price to changes at specific points on the yield curve","The bond's credit quality","The coupon reinvestment risk"],ans:1},
+  {q:"'Sovereign risk' in fixed income investing refers to:",opts:["The risk that a company defaults on its bonds","The risk that a national government defaults on its debt obligations","Currency exchange rate risk","The risk of rising global interest rates"],ans:1},
+  {q:"The 'option-adjusted spread' (OAS) adjusts the yield spread to:",opts:["Remove the impact of inflation","Remove the value of embedded options (like call provisions) to compare true credit spread","Include accrued interest","Adjust for currency risk"],ans:1},
+  {q:"'Repo' (repurchase agreement) transactions in fixed income involve:",opts:["Buying bonds and holding them to maturity","Selling securities with an agreement to repurchase them at a specified price and date","Exchanging fixed-rate for floating-rate bonds","Swapping coupon payments between two parties"],ans:1},
+  {q:"'Prepayment risk' is most relevant for:",opts:["Plain vanilla government bonds","Mortgage-backed securities, where underlying mortgages may be repaid early","Zero-coupon bonds","Floating rate notes"],ans:1},
+  {q:"'Credit Default Swap' (CDS) is a derivative where:",opts:["Two parties swap fixed and floating interest rate payments","The protection buyer pays a premium and receives compensation if a credit event occurs","The buyer receives the bond's coupon payments","The parties exchange currency cash flows"],ans:1},
+  {q:"'Carry trade' in the FX/bond market involves:",opts:["Holding physical commodities to profit from storage","Borrowing in a low-interest-rate currency and investing in a higher-yielding currency or asset","Trading only domestic currency bonds","Using leverage only in equity markets"],ans:1},
+  {q:"In derivatives, 'delta hedging' means:",opts:["Hedging interest rate risk using bond duration","Continuously adjusting an options position to maintain a delta-neutral portfolio","Using futures to hedge commodity price risk","Hedging currency risk using forward contracts"],ans:1},
+  {q:"'Contango' in futures markets describes a situation where:",opts:["The futures price is below the expected spot price at maturity","The futures price is above the current spot price","The spot and futures prices are equal","The futures price is negative"],ans:1},
+  {q:"'Backwardation' in futures markets occurs when:",opts:["The futures price is above the current spot price","The futures price is below the current spot price (often due to high convenience yield)","The futures price equals the expected future spot price","Settlement is deferred to a future date"],ans:1},
+  {q:"'Interest rate swap' involves:",opts:["Exchanging ownership of two different bonds","Two parties agreeing to exchange periodic interest payments, typically fixed for floating","Buying options on interest rates","Swapping the notional principal of two loans"],ans:1},
+  {q:"The 'intrinsic value' of an option is:",opts:["The total premium paid for the option","The amount by which the option is in-the-money (positive payoff if exercised immediately)","The time value of the option","The volatility premium embedded in the option price"],ans:1},
+  {q:"'Implied volatility' in options pricing reflects:",opts:["Historical price volatility of the underlying asset","The market's expectation of future volatility, implied by the observed option price","The actual volatility of the underlying over the option's life","The volatility of the option price itself"],ans:1},
+  {q:"'Put-call parity' in options theory states that:",opts:["Puts and calls with the same strike have the same price","A specific relationship must hold between the prices of European puts, calls, and the underlying asset to prevent arbitrage","American options always cost more than European options","Options expire worthless more often than not"],ans:1},
+  {q:"A 'protective put' strategy involves:",opts:["Buying put options and selling calls simultaneously","Owning an asset and buying a put option on it to limit downside risk","Selling put options to generate income","Buying a put and borrowing at the risk-free rate"],ans:1},
+  {q:"'Basis' in futures hedging is defined as:",opts:["The difference between the futures price and the expected spot price","The difference between the spot price and the futures price of the asset being hedged","The commission charged by the broker","The daily price limit on the futures exchange"],ans:1},
+  {q:"A 'currency swap' involves:",opts:["Exchanging only interest payments in the same currency","Exchanging both principal and interest payments in different currencies","Converting bonds from one currency to another","Buying forward contracts on currency"],ans:1},
+  {q:"'Working capital management' focuses on optimising:",opts:["The company's long-term capital structure","The efficiency of current assets and current liabilities to maintain liquidity","The company's dividend policy","Fixed asset investment decisions"],ans:1},
+  {q:"'Debt-to-equity ratio' is a measure of a company's:",opts:["Profitability","Financial leverage — the proportion of debt financing relative to equity","Liquidity","Asset turnover efficiency"],ans:1}
 ],
 4: [
   {q:"Modern Portfolio Theory (MPT) was developed by:",opts:["Warren Buffett","Harry Markowitz","William Sharpe","Eugene Fama"],ans:1},
@@ -557,7 +657,32 @@ const QUESTIONS = {
   {q:"'Calmar ratio' in portfolio analysis is:",opts:["Total return divided by standard deviation","Annualised return divided by maximum drawdown","Excess return divided by beta","Total return divided by tracking error"],ans:1},
   {q:"'Portfolio tilting' toward value stocks means:",opts:["Overweighting expensive growth stocks","Overweighting stocks with low price-to-book or price-to-earnings ratios","Holding only stocks that pay high dividends","Reducing equity exposure during market downturns"],ans:1},
   {q:"'Expected shortfall' (CVaR) measures:",opts:["The average return below VaR, capturing tail risk beyond VaR","The maximum possible loss in the portfolio","The variance of returns below the expected value","The return shortfall compared to the benchmark"],ans:0},
-  {q:"The goal of 'liability-driven investment' (LDI) for a pension fund is to:",opts:["Maximise total return regardless of liabilities","Match the interest rate sensitivity of assets to liabilities to reduce funded status risk","Invest only in equities for long-term growth","Minimise investment expenses"],ans:1}
+  {q:"The goal of 'liability-driven investment' (LDI) for a pension fund is to:",opts:["Maximise total return regardless of liabilities","Match the interest rate sensitivity of assets to liabilities to reduce funded status risk","Invest only in equities for long-term growth","Minimise investment expenses"],ans:1},
+  {q:"The 'Securities Industry Act, 2016 (Act 929)' is the primary legislation governing:",opts:["Banking in Ghana","The securities industry, including licensing, conduct, and enforcement","Ghana's insurance sector","Tax treatment of investment income"],ans:1},
+  {q:"Under Act 929, the SEC Ghana's power to suspend or revoke a licence applies when:",opts:["A licensee fails to achieve target returns","A licensee violates provisions of Act 929 or conditions of its licence","A licensee changes its fee structure","A licensee fails to list on the GSE"],ans:1},
+  {q:"Under Act 929, a 'Collective Investment Scheme' (CIS) must:",opts:["Only be offered to institutional investors","Be registered with and authorised by SEC Ghana before being offered to the public","Be listed on the GSE to raise capital","Only invest in government securities"],ans:1},
+  {q:"Ghana's 'Financial Intelligence Centre Act, 2012 (Act 838)' established the FIC to:",opts:["Regulate the Ghana Stock Exchange","Receive, analyse, and disseminate financial intelligence on money laundering and terrorist financing","Oversee banks' capital adequacy","Manage Ghana's foreign exchange reserves"],ans:1},
+  {q:"'Customer Due Diligence' (CDD) under Ghana's AML laws requires securities firms to:",opts:["Only verify large corporate clients","Identify and verify clients, understand the nature of their business, and monitor transactions on an ongoing basis","Only check clients at account opening","Report all transactions to the SEC"],ans:1},
+  {q:"'Enhanced Due Diligence' (EDD) is applied under Ghana's AML regime to:",opts:["All retail clients","Higher risk clients, including politically exposed persons (PEPs) and clients in high-risk jurisdictions","Only foreign institutional investors","All new clients regardless of risk"],ans:1},
+  {q:"A 'Politically Exposed Person' (PEP) in AML terminology is:",opts:["An investor who lobbies politicians","A person entrusted with a prominent public function, posing potentially higher money laundering risk","Any government employee","A person with a criminal record"],ans:1},
+  {q:"'FATF' (Financial Action Task Force) Recommendations are:",opts:["Binding legal instruments in Ghana","Internationally recognised standards for combating money laundering and terrorist financing","A set of investment performance benchmarks","Reporting standards for financial statements"],ans:1},
+  {q:"The 'three lines of defence' model in compliance and risk management involves:",opts:["Regulators, courts, and police as the three lines","Business operations, risk/compliance function, and internal audit as the three lines","Board, management, and regulators","Front office, middle office, and back office in that order"],ans:1},
+  {q:"'Mandatory disclosure' requirements for listed companies in Ghana require:",opts:["Only annual financial statements","Regular financial reporting, material event notifications, and shareholder disclosures as specified by SEC regulations","Only disclosing dividend decisions","Disclosing only information requested by the regulator"],ans:1},
+  {q:"'Continuous disclosure' obligations for listed companies mean:",opts:["Disclosing information once a year in the annual report","Promptly disclosing any information that could materially affect the share price","Only disclosing information when requested by a shareholder","Providing a monthly trading update"],ans:1},
+  {q:"The 'Takeover Code' in Ghana governs:",opts:["The process for new listings on the GSE","Rules and procedures for companies acquiring significant stakes in or control of listed companies","Day-to-day trading rules","Credit rating requirements for listed companies"],ans:1},
+  {q:"'Capital adequacy' requirements for securities firms are designed to:",opts:["Ensure firms charge competitive fees","Ensure firms hold sufficient financial resources to absorb losses and continue operations","Limit the size of securities firms","Guarantee returns to clients"],ans:1},
+  {q:"'Fitness and propriety' assessments for directors of securities firms assess:",opts:["Physical health and educational qualifications","Honesty, integrity, competence, and financial soundness of key persons","Technical skills in finance only","Years of experience in the securities industry"],ans:1},
+  {q:"'Risk-based supervision' by regulators involves:",opts:["Applying the same level of scrutiny to all regulated firms","Allocating supervisory resources based on the risk posed by individual firms to regulatory objectives","Only supervising the largest firms","Conducting annual inspections of all firms"],ans:1},
+  {q:"'Data protection' obligations for securities firms in Ghana are governed by:",opts:["The Securities Industry Act only","The Data Protection Act 2012 (Act 843) requiring lawful processing of personal data","Only international GDPR standards","Only internal company policies"],ans:1},
+  {q:"'Inducements' (gifts and entertainment) rules in financial services are intended to:",opts:["Encourage investment in the securities industry","Prevent undue incentives that could compromise an employee's duty to act in the client's best interest","Limit competition between securities firms","Regulate social events at securities firms"],ans:1},
+  {q:"'Whistleblower protection' in Ghana's securities regulatory framework is designed to:",opts:["Encourage anonymous tips without any protection","Protect individuals who report suspected violations in good faith from retaliation","Allow firms to identify and sanction whistleblowers","Encourage only internal reporting mechanisms"],ans:1},
+  {q:"'Proportionality' in financial regulation means:",opts:["All firms must comply with identical requirements","Regulatory requirements are calibrated to the nature, scale, and complexity of a firm's activities","Smaller firms are exempt from all regulations","Penalties are proportional only to firm size"],ans:1},
+  {q:"'Regulatory sandbox' programmes in financial services allow:",opts:["Firms to avoid regulation permanently","Innovative firms to test new products in a controlled environment with regulatory oversight","Regulators to test new enforcement approaches","Only fintech startups to operate without licences"],ans:1},
+  {q:"'Anti-bribery and corruption' laws applicable to Ghanaian financial services firms include:",opts:["Only the Companies Act requirements","Ghana's Office of the Special Prosecutor Act and relevant anti-corruption legislation","Only international standards","No specific legislation — only professional codes apply"],ans:1},
+  {q:"'Record-keeping' obligations for securities firms under SEC Ghana rules require:",opts:["Only storing client transaction records for 1 year","Maintaining comprehensive records for a specified minimum period to enable regulatory review","Only records of client complaints","Records accessible only to senior management"],ans:1},
+  {q:"'Conflicts of interest' disclosures in securities advisory require:",opts:["Disclosing conflicts only when they exceed a materiality threshold","Proactively identifying, disclosing, and managing conflicts so they don't adversely affect clients","Disclosing conflicts only upon client request","Eliminating all conflicts by excluding conflicted transactions"],ans:1},
+  {q:"'Sanctions' in financial services regulation may include:",opts:["Only warnings for first-time offenders","A range of actions including financial penalties, licence revocation, public censure, and criminal prosecution","Only financial penalties","Only criminal prosecution"],ans:1},
+  {q:"'Principles-based regulation' in financial services relies on:",opts:["Detailed, prescriptive rules for every situation","High-level principles that firms must interpret and apply to achieve regulatory outcomes","Criminal penalties for all breaches","Self-regulation without oversight"],ans:1}
 ],
 5: [
   {q:"The Securities Industry Act of Ghana was enacted in:",opts:["1990","1993","2000","2016"],ans:3},
@@ -609,7 +734,34 @@ const QUESTIONS = {
   {q:"Listed companies in Ghana are required to report material changes:",opts:["Only in annual reports","Promptly, to ensure investors have timely access to material information","Only if the change affects dividend payments","Only after board approval"],ans:1},
   {q:"'Money laundering' involves:",opts:["Converting large sums into small denomination notes","Disguising the origins of illegally obtained money to make it appear legitimate","Transferring money to offshore accounts legally","Using financial services to avoid paying taxes"],ans:1},
   {q:"'Whistle-blower' in securities regulation is:",opts:["A regulator who closes down non-compliant firms","A person who reports suspected violations of securities laws or regulations","An investor who complains about low returns","A staff member who enforces internal compliance policies"],ans:1},
-  {q:"Under SEC Ghana regulations, reporting material changes by listed companies is required:",opts:["Only in annual reports","Promptly, to ensure investors have timely access to material information","Only if the change affects dividends","Only after board approval"],ans:1}
+  {q:"Under SEC Ghana regulations, reporting material changes by listed companies is required:",opts:["Only in annual reports","Promptly, to ensure investors have timely access to material information","Only if the change affects dividends","Only after board approval"],ans:1},
+  {q:"'Market risk' in investment portfolios refers to:",opts:["The risk of counterparty default","The risk of losses due to adverse movements in market prices (interest rates, equities, FX, commodities)","Operational failures in trading systems","The risk of inadequate liquidity"],ans:1},
+  {q:"'Operational risk' is defined by Basel II/III as:",opts:["The risk of financial loss from credit defaults","The risk of loss from inadequate or failed internal processes, people, systems, or external events","Market risk arising from volatile trading","Reputational risk from business decisions"],ans:1},
+  {q:"'Basel III' capital framework requires banks to hold:",opts:["Only equity capital","A minimum common equity Tier 1 (CET1) capital ratio, plus additional Tier 1 and Tier 2 capital requirements","Only government bond collateral","A fixed amount of capital regardless of risk exposure"],ans:1},
+  {q:"'Risk-weighted assets' (RWA) in banking regulation reflect:",opts:["Only the market value of assets","The total of assets weighted by their credit risk, used to calculate regulatory capital requirements","Off-balance sheet exposures only","Only sovereign debt holdings"],ans:1},
+  {q:"'Stress testing' in risk management is used to:",opts:["Test employee performance under pressure","Evaluate portfolio or firm resilience under hypothetical adverse scenarios beyond normal conditions","Set normal risk limits for trading","Audit the accuracy of the firm's financial statements"],ans:1},
+  {q:"'Scenario analysis' differs from sensitivity analysis in that it:",opts:["Considers only one variable changing at a time","Considers multiple factors changing simultaneously to assess the impact of a coherent scenario","Only applies to credit portfolios","Is used exclusively for regulatory capital calculations"],ans:1},
+  {q:"'Risk appetite' in enterprise risk management is:",opts:["The maximum loss a firm can legally sustain","The amount and type of risk an organisation is willing to accept in pursuit of its objectives","The regulatory minimum capital requirement","The average risk taken by all competitors"],ans:1},
+  {q:"'COSO' (Committee of Sponsoring Organizations) framework is used for:",opts:["Setting international accounting standards","Enterprise risk management and internal control, providing a widely used risk management framework","Regulating credit rating agencies","Setting capital adequacy standards for banks"],ans:1},
+  {q:"'ISO 31000' is an international standard for:",opts:["Financial reporting standards","Risk management, providing principles, a framework, and a process for managing risk","IT security risk management only","Insurance product standards"],ans:1},
+  {q:"'Key Risk Indicators' (KRIs) in operational risk management are:",opts:["Metrics used only after a risk event has occurred","Early warning metrics that signal changes in risk exposure before risk events materialise","Financial performance measures","Regulatory compliance scores"],ans:1},
+  {q:"'Expected loss' (EL) in credit risk is calculated as:",opts:["Probability of Default × Loss Given Default","Probability of Default × Loss Given Default × Exposure at Default","Exposure at Default × Loss Given Default","Probability of Default × Exposure at Default"],ans:1},
+  {q:"'Counterparty credit risk' (CCR) is the risk that:",opts:["A bond issuer defaults on interest payments","The counterparty in a derivatives or securities transaction defaults before final settlement","A retail borrower defaults on a personal loan","The market price of a security declines"],ans:1},
+  {q:"'Netting agreements' in derivatives risk management serve to:",opts:["Increase overall exposure to counterparties","Reduce gross credit exposure by allowing offsetting positions to be netted against each other","Eliminate the need for collateral","Guarantee settlement of all derivatives"],ans:1},
+  {q:"'Model risk' arises from:",opts:["Using outdated computers in trading","Errors or limitations in financial models that lead to incorrect pricing, risk measurement, or decision-making","Regulatory model approval delays","Market volatility affecting model outputs"],ans:1},
+  {q:"'Business continuity planning' (BCP) in operational risk management ensures:",opts:["Maximum profitability during normal operations","The organisation can continue or rapidly resume critical operations after a disruptive event","Elimination of all operational failures","Staff are financially compensated during disruptions"],ans:1},
+  {q:"'Cyber risk' as a component of operational risk includes:",opts:["Only external hacking attacks","Threats from data breaches, system failures, ransomware, and cyber-attacks that could disrupt operations or cause losses","Only risks from internal system failures","Regulatory risk related to data protection laws"],ans:1},
+  {q:"'Climate risk' in financial risk management includes:",opts:["Only physical risks from extreme weather events","Physical risks from climate change impacts and transition risks from moving to a low-carbon economy","Only regulatory requirements from climate legislation","Only risks to energy sector investments"],ans:1},
+  {q:"'Economic capital' (EC) in banks differs from regulatory capital in that it:",opts:["Is set by regulators based on standardised rules","Is internally estimated by the bank to reflect the actual risk profile of its portfolio","Is always lower than regulatory capital","Is calculated only for credit risk"],ans:1},
+  {q:"'ICAAP' (Internal Capital Adequacy Assessment Process) requires banks to:",opts:["Follow only regulatory capital calculations","Internally assess their own capital needs under stress, beyond minimum regulatory requirements","Eliminate the need for external audit of capital adequacy","Only consider credit risk in capital assessments"],ans:1},
+  {q:"'Tail risk' in portfolio risk management refers to:",opts:["The risk of missing the benchmark by a small margin","The risk of extreme losses occurring in the tails of the return distribution, beyond what VaR captures","The risk of holding assets with long maturities","The risk of regulatory capital changes"],ans:1},
+  {q:"'Enterprise Risk Management' (ERM) takes a:",opts:["Siloed, department-by-department approach to risk","Holistic, organisation-wide approach to identifying, assessing, and managing all risks in an integrated manner","Pure quantitative approach to risk","Compliance-only approach to risk management"],ans:1},
+  {q:"'Recovery and Resolution Planning' (RRP) for systemically important financial institutions ensures:",opts:["Unlimited government bailouts of failing banks","Firms have credible plans for recovery under stress or orderly resolution without taxpayer bailout","All risks are eliminated before a firm can operate","Regulatory approval for all new products"],ans:1},
+  {q:"'Wrong-way risk' in credit risk management occurs when:",opts:["Counterparty credit risk decreases as market conditions worsen","Counterparty credit exposure and the counterparty's probability of default increase at the same time","The collateral value is positively correlated with market recovery","Portfolio diversification reduces credit risk"],ans:1},
+  {q:"'Unexpected loss' (UL) in credit risk represents variability around expected loss and must be covered by:",opts:["Loan loss provisions","Economic capital","Regulatory fines","Insurance policies"],ans:1},
+  {q:"'Risk Control Self-Assessment' (RCSA) involves:",opts:["Regulators independently assessing a firm's risks","Business units identifying, assessing, and evaluating their own risks and controls through structured review","Only the risk management department conducting risk reviews","External auditors reviewing risk management practices"],ans:1},
+  {q:"'Collateral management' in derivatives markets is designed to:",opts:["Generate investment returns on posted assets","Mitigate counterparty credit risk by requiring parties to post margin or collateral","Eliminate liquidity risk in derivatives","Reduce operational costs"],ans:1},
+  {q:"'Systemic risk' in the financial system is most effectively managed through:",opts:["Individual firm risk management only","Macroprudential regulation targeting the financial system as a whole, not just individual institutions","Restricting investment to government securities","Eliminating derivatives markets"],ans:1}
 ]
 };
 
@@ -631,6 +783,54 @@ let currentQ = 0;
 let userAnswers = {};
 let submitted = {};
 let paidSections = {{ paid_sections | tojson }};
+let sessionQuestions = [];
+let timerInterval = null;
+let timerSeconds = 3600;
+
+function shuffleArray(arr){
+  const a=[...arr];
+  for(let i=a.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    [a[i],a[j]]=[a[j],a[i]];
+  }
+  return a;
+}
+
+function initSessionQuestions(){
+  const pool=shuffleArray(QUESTIONS[currentSection]);
+  sessionQuestions=pool.slice(0,50);
+}
+
+function startTimer(){
+  stopTimer();
+  timerSeconds=3600;
+  updateTimerDisplay();
+  timerInterval=setInterval(function(){
+    timerSeconds--;
+    updateTimerDisplay();
+    if(timerSeconds<=0){
+      stopTimer();
+      alert('Time is up! Submitting your answers now.');
+      submitSection();
+    }
+  },1000);
+}
+
+function stopTimer(){
+  if(timerInterval){clearInterval(timerInterval);timerInterval=null;}
+}
+
+function updateTimerDisplay(){
+  const m=Math.floor(timerSeconds/60);
+  const s=timerSeconds%60;
+  const el=document.getElementById('timer-display');
+  if(el) el.textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+  const bar=document.getElementById('timer-bar');
+  if(!bar) return;
+  bar.classList.remove('timer-warning','timer-danger');
+  if(timerSeconds<=300) bar.classList.add('timer-danger');
+  else if(timerSeconds<=600) bar.classList.add('timer-warning');
+}
 
 function hasSectionAccess(s){ return s === 1 || paidSections.includes(s); }
 
@@ -639,14 +839,17 @@ function switchSection(s){
     showLocked(s);
     return;
   }
+  stopTimer();
   currentSection = s;
   currentQ = 0;
   userAnswers = {};
+  initSessionQuestions();
   updateTabs();
   updateSectionMeta();
   if(submitted[s]){
     showResults(s);
   } else {
+    startTimer();
     showExam();
     renderQuestion();
   }
@@ -679,6 +882,7 @@ function showExam(){
 }
 
 function showResults(s){
+  stopTimer();
   document.getElementById('exam-panel').classList.add('hidden');
   document.getElementById('results-panel').classList.remove('hidden');
   document.getElementById('locked-panel').classList.add('hidden');
@@ -704,7 +908,7 @@ function showLocked(s){
 }
 
 function renderQuestion(){
-  const qs = QUESTIONS[currentSection];
+  const qs = sessionQuestions;
   const q = qs[currentQ];
   const total = qs.length;
   document.getElementById('q-num').textContent = 'Question '+(currentQ+1);
@@ -743,7 +947,7 @@ function selectAnswer(idx){
 }
 
 function nextQuestion(){
-  if(currentQ < QUESTIONS[currentSection].length - 1){
+  if(currentQ < sessionQuestions.length - 1){
     currentQ++;
     renderQuestion();
   }
@@ -762,7 +966,7 @@ function submitSection(){
 }
 
 function renderResults(s){
-  const qs = QUESTIONS[s];
+  const qs = sessionQuestions;
   let correct = 0;
   qs.forEach((q,i)=>{ if(userAnswers[i] === q.ans) correct++; });
   const pct = Math.round((correct/qs.length)*100);
@@ -817,6 +1021,8 @@ function retrySection(){
   userAnswers = {};
   delete submitted[currentSection];
   currentQ = 0;
+  initSessionQuestions();
+  startTimer();
   showExam();
   renderQuestion();
 }
@@ -978,8 +1184,10 @@ function closeCodeModal(){
 
 // ─── INIT ──────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', function(){
+  initSessionQuestions();
   updateTabs();
   updateSectionMeta();
+  startTimer();
   renderQuestion();
 });
 </script>
