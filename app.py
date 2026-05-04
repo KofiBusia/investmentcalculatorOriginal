@@ -5376,9 +5376,15 @@ def gisi_exams_redeem():
     if not code:
         return jsonify({'success': False, 'message': 'Please enter your access code.'}), 400
 
-    pay = GISIPayment.query.filter_by(access_code=code, status='Approved').first()
-    if not pay:
-        return jsonify({'success': False, 'message': 'Invalid or unrecognised access code. Please check your approval email.'}), 400
+    # Check if the code exists at all (any status)
+    pay_any = GISIPayment.query.filter_by(access_code=code).first()
+    if not pay_any:
+        return jsonify({'success': False, 'message': 'Access code not recognised. Please check the code in your approval email and try again.'}), 400
+    if pay_any.status == 'Pending':
+        return jsonify({'success': False, 'message': 'Your payment is still awaiting admin approval. You will receive your access code by email once confirmed — usually within 5 minutes.'}), 400
+    if pay_any.status == 'Rejected':
+        return jsonify({'success': False, 'message': 'This payment was rejected. Please contact kyeikofi@gmail.com for assistance.'}), 400
+    pay = pay_any  # status is Approved
 
     if pay.email.lower() != current_user.email.lower():
         return jsonify({'success': False, 'message': 'This access code was issued to a different account. Please use the code sent to your registered email address.'}), 403
