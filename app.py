@@ -5237,7 +5237,7 @@ def gisi_exams_pay():
     try:
         msg = Message(
             f'[ACTION REQUIRED] Practice Questions Payment — {full_name} — GHS{amount:.0f}',
-            sender=app.config.get('MAIL_DEFAULT_SENDER', 'noreply@investright.onrender.com'),
+            sender=app.config.get('MAIL_USERNAME', 'kyeikofi@gmail.com'),
             recipients=['kyeikofi@gmail.com']
         )
         msg.html = f'''
@@ -5304,7 +5304,7 @@ def gisi_exams_approve(admin_token):
     try:
         msg = Message(
             f'✅ Practice Questions Access Approved — Your Access Code Inside',
-            sender=app.config.get('MAIL_DEFAULT_SENDER', 'noreply@investright.onrender.com'),
+            sender=app.config.get('MAIL_USERNAME', 'kyeikofi@gmail.com'),
             recipients=[pay.email]
         )
         msg.html = f'''
@@ -5343,7 +5343,7 @@ def gisi_exams_reject(admin_token):
     try:
         msg = Message(
             'Securities Industry Practice Questions — Payment Unable to Verify',
-            sender=app.config.get('MAIL_DEFAULT_SENDER', 'noreply@investright.onrender.com'),
+            sender=app.config.get('MAIL_USERNAME', 'kyeikofi@gmail.com'),
             recipients=[pay.email]
         )
         msg.html = f'''
