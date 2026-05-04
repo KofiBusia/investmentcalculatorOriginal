@@ -48,13 +48,16 @@ if _raw_db_url.startswith('postgres://'):
     _raw_db_url = _raw_db_url.replace('postgres://', 'postgresql://', 1)
 
 app.config.update(
-    SECRET_KEY=os.getenv('SECRET_KEY', 'e1efa2b32b1bac66588d074bac02a168212082d8befd0b6466f5ee37a8c2836a'),
+    SECRET_KEY=os.environ['SECRET_KEY'],
     MAX_CONTENT_LENGTH=50 * 1024 * 1024,  # 50 MB limit for book uploads
     SESSION_TYPE='filesystem',
     SESSION_FILE_THRESHOLD=500,
     SESSION_PERMANENT=True,
     PERMANENT_SESSION_LIFETIME=86400,
     WTF_CSRF_TIME_LIMIT=7200,
+    SESSION_COOKIE_SAMESITE='Lax',
+    SESSION_COOKIE_SECURE=os.getenv('FLASK_ENV', 'production') == 'production',
+    SESSION_COOKIE_HTTPONLY=True,
     SQLALCHEMY_DATABASE_URI=_raw_db_url,
     SQLALCHEMY_TRACK_MODIFICATIONS=False,
     SESSION_FILE_DIR=os.path.join(os.path.dirname(__file__), 'instance', 'sessions'),
@@ -975,7 +978,7 @@ def google_callback():
 # ── ADMIN: USER CSV EXPORT ────────────────────────────────────────────────────
 @app.route('/admin/users')
 def admin_users():
-    if not session.get('admin'):
+    if not session.get('admin_logged_in'):
         return redirect(url_for('admin_login'))
     users = SiteUser.query.order_by(SiteUser.created_at.desc()).all()
     return render_template('admin_users.html', users=users)
@@ -983,7 +986,7 @@ def admin_users():
 
 @app.route('/admin/users/export')
 def admin_users_export():
-    if not session.get('admin'):
+    if not session.get('admin_logged_in'):
         return redirect(url_for('admin_login'))
     users = SiteUser.query.order_by(SiteUser.created_at.desc()).all()
     si = io.StringIO()
@@ -1039,7 +1042,7 @@ def book_request(book_id):
 
 @app.route('/admin/books')
 def admin_books():
-    if not session.get('admin'):
+    if not session.get('admin_logged_in'):
         return redirect(url_for('admin_login'))
     books = Book.query.order_by(Book.created_at.desc()).all()
     return render_template('admin_books.html', books=books)
@@ -1047,7 +1050,7 @@ def admin_books():
 
 @app.route('/admin/books/new', methods=['GET', 'POST'])
 def admin_book_new():
-    if not session.get('admin'):
+    if not session.get('admin_logged_in'):
         return redirect(url_for('admin_login'))
     error = None
     if request.method == 'POST':
@@ -1078,7 +1081,7 @@ def admin_book_new():
 
 @app.route('/admin/books/<int:book_id>/edit', methods=['GET', 'POST'])
 def admin_book_edit(book_id):
-    if not session.get('admin'):
+    if not session.get('admin_logged_in'):
         return redirect(url_for('admin_login'))
     book  = Book.query.get_or_404(book_id)
     error = None
@@ -1104,7 +1107,7 @@ def admin_book_edit(book_id):
 
 @app.route('/admin/books/<int:book_id>/delete', methods=['POST'])
 def admin_book_delete(book_id):
-    if not session.get('admin'):
+    if not session.get('admin_logged_in'):
         return redirect(url_for('admin_login'))
     book = Book.query.get_or_404(book_id)
     db.session.delete(book)
@@ -1114,7 +1117,7 @@ def admin_book_delete(book_id):
 
 @app.route('/admin/book-requests')
 def admin_book_requests():
-    if not session.get('admin'):
+    if not session.get('admin_logged_in'):
         return redirect(url_for('admin_login'))
     requests_list = BookRequest.query.order_by(BookRequest.created_at.desc()).all()
     return render_template('admin_book_requests.html', requests=requests_list)
@@ -1162,7 +1165,7 @@ def donate_page():
 
 @app.route('/admin/donations')
 def admin_donations():
-    if not session.get('admin'):
+    if not session.get('admin_logged_in'):
         return redirect(url_for('admin_login'))
     donations = Donation.query.order_by(Donation.created_at.desc()).all()
     return render_template('admin_donations.html', donations=donations)
@@ -3211,8 +3214,8 @@ def videos():
 # ================================================================
 # --- ADMIN SECTION ---
 # ================================================================
-ADMIN_PASSWORD       = os.getenv('ADMIN_PASSWORD',       'investiq2026admin')
-SUPER_ADMIN_PASSWORD = os.getenv('SUPER_ADMIN_PASSWORD', 'SuperAdmin@2026!')
+ADMIN_PASSWORD       = os.environ['ADMIN_PASSWORD']
+SUPER_ADMIN_PASSWORD = os.environ['SUPER_ADMIN_PASSWORD']
 
 
 def admin_required(f):
