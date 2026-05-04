@@ -5266,7 +5266,11 @@ def gisi_exams_pay():
   </div>
 </div>'''
         mail.send(msg)
+        email_ok = True
+        email_error = None
     except Exception as e:
+        email_ok = False
+        email_error = str(e)
         logger.error(f'GISI admin email failed: {e}')
 
     sections_unlocking = list(range(2, 6)) if plan == 'bundle' else [section]
@@ -5274,7 +5278,9 @@ def gisi_exams_pay():
         'success': True,
         'pending': True,
         'sections_unlocking': sections_unlocking,
-        'email': email
+        'email': email,
+        'email_ok': email_ok,
+        'email_error': email_error
     })
 
 
