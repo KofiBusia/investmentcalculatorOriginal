@@ -123,6 +123,9 @@
       <i class="fas fa-clock text-blue-500 text-sm"></i>
       <span class="text-sm font-semibold text-blue-600">Time Remaining:</span>
       <span id="timer-display" class="text-xl font-extrabold text-blue-700 font-mono tracking-widest">60:00</span>
+      <button id="timer-start-btn" onclick="startTimer()" style="margin-left:8px;padding:5px 16px;background:#1d4ed8;color:#fff;border:none;border-radius:8px;font-weight:700;font-size:13px;cursor:pointer;transition:background .2s;" onmouseover="this.style.background='#1e40af'" onmouseout="this.style.background='#1d4ed8'">
+        <i class="fas fa-play mr-1"></i>Start
+      </button>
     </div>
 
     <!-- Question -->
@@ -805,6 +808,8 @@ function startTimer(){
   stopTimer();
   timerSeconds=3600;
   updateTimerDisplay();
+  const btn=document.getElementById('timer-start-btn');
+  if(btn) btn.style.display='none';
   timerInterval=setInterval(function(){
     timerSeconds--;
     updateTimerDisplay();
@@ -818,6 +823,17 @@ function startTimer(){
 
 function stopTimer(){
   if(timerInterval){clearInterval(timerInterval);timerInterval=null;}
+}
+
+function resetTimer(){
+  stopTimer();
+  timerSeconds=3600;
+  const el=document.getElementById('timer-display');
+  if(el) el.textContent='60:00';
+  const bar=document.getElementById('timer-bar');
+  if(bar) bar.classList.remove('timer-warning','timer-danger');
+  const btn=document.getElementById('timer-start-btn');
+  if(btn) btn.style.display='';
 }
 
 function updateTimerDisplay(){
@@ -839,7 +855,6 @@ function switchSection(s){
     showLocked(s);
     return;
   }
-  stopTimer();
   currentSection = s;
   currentQ = 0;
   userAnswers = {};
@@ -849,7 +864,7 @@ function switchSection(s){
   if(submitted[s]){
     showResults(s);
   } else {
-    startTimer();
+    resetTimer();
     showExam();
     renderQuestion();
   }
@@ -1022,7 +1037,7 @@ function retrySection(){
   delete submitted[currentSection];
   currentQ = 0;
   initSessionQuestions();
-  startTimer();
+  resetTimer();
   showExam();
   renderQuestion();
 }
@@ -1187,7 +1202,6 @@ document.addEventListener('DOMContentLoaded', function(){
   initSessionQuestions();
   updateTabs();
   updateSectionMeta();
-  startTimer();
   renderQuestion();
 });
 </script>
