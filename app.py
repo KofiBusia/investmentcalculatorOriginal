@@ -7051,7 +7051,34 @@ def admin_yin_programs():
             db.session.add(YINProgram(name=name, description=desc))
             db.session.commit()
     programs = YINProgram.query.order_by(YINProgram.created_at.desc()).all()
-    return render_template('admin_yin_programs.html', programs=programs)
+    reg_counts = {
+        prog.id: YINRegistration.query.filter_by(program_id=prog.id).count()
+        for prog in programs
+    }
+    return render_template('admin_yin_programs.html', programs=programs, reg_counts=reg_counts)
+
+
+@app.route('/admin/yin-programs/<int:prog_id>/registrations-csv')
+def admin_yin_program_csv(prog_id):
+    if not session.get('admin_logged_in') and not session.get('super_admin_logged_in'):
+        return redirect(url_for('admin_login'))
+    prog = YINProgram.query.get_or_404(prog_id)
+    rows = YINRegistration.query.filter_by(program_id=prog_id).order_by(YINRegistration.created_at.desc()).all()
+    import csv, io
+    out = io.StringIO()
+    w = csv.writer(out)
+    w.writerow(['ID','Program','Full Name','Phone','Email','Institution','Type','How Heard','Existing Member','YIN Code','Confirmed','Date'])
+    for r in rows:
+        w.writerow([r.id, r.program_name, r.full_name, r.phone, r.email,
+                    r.institution, r.institution_type, r.how_heard,
+                    'Yes' if r.is_existing_member else 'No',
+                    r.yin_code, 'Yes' if r.confirmed else 'No',
+                    r.created_at.strftime('%Y-%m-%d %H:%M')])
+    out.seek(0)
+    from flask import Response
+    safe_name = prog.name.replace(' ', '_').replace('/', '-')[:40]
+    return Response(out.getvalue(), mimetype='text/csv',
+                    headers={'Content-Disposition': f'attachment;filename=YIN_{safe_name}_registrations.csv'})
 
 
 @app.route('/admin/yin-programs/<int:prog_id>/toggle', methods=['POST'])
