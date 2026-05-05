@@ -157,7 +157,8 @@
       <!-- Phone -->
       <div>
         <label class="block text-sm font-semibold text-gray-700 mb-1"><i class="fas fa-phone text-blue-500 mr-1"></i>Phone Number</label>
-        <input type="tel" name="phone" placeholder="+233 XX XXX XXXX" class="input-field"/>
+        <input type="tel" name="phone" placeholder="e.g. 0503566913" maxlength="10" pattern="0[2359]\d{8}" class="input-field"/>
+        <p class="text-xs text-gray-400 mt-1">10-digit Ghana number, no spaces (e.g. 0503566913)</p>
       </div>
 
       <!-- Email -->
