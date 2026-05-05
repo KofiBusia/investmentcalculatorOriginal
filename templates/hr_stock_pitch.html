@@ -784,6 +784,99 @@ function closeDrawer(){document.getElementById('mobile-drawer').style.left='-280
   </div>
 </section>
 
+<!-- ── DONATION SECTION ── -->
+<section style="padding:72px 24px;background:linear-gradient(135deg,#0f172a 0%,#1a1200 50%,#0f172a 100%);position:relative;overflow:hidden;">
+
+  <!-- Gold shimmer rings -->
+  <div style="position:absolute;inset:0;pointer-events:none;overflow:hidden;">
+    <div style="position:absolute;top:-80px;left:50%;transform:translateX(-50%);width:600px;height:600px;border-radius:50%;border:1.5px solid rgba(251,191,36,.08);"></div>
+    <div style="position:absolute;top:-40px;left:50%;transform:translateX(-50%);width:440px;height:440px;border-radius:50%;border:1.5px solid rgba(251,191,36,.12);"></div>
+    <div style="position:absolute;top:0;left:50%;transform:translateX(-50%);width:280px;height:280px;border-radius:50%;border:1.5px solid rgba(251,191,36,.18);"></div>
+  </div>
+
+  <div style="max-width:680px;margin:0 auto;text-align:center;position:relative;z-index:1;">
+
+    <!-- Crown icon -->
+    <div style="width:72px;height:72px;margin:0 auto 20px;background:linear-gradient(135deg,#f59e0b,#d97706);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 0 40px rgba(245,158,11,.35),0 0 80px rgba(245,158,11,.15);">
+      <i class="fas fa-crown" style="color:#fff;font-size:28px;"></i>
+    </div>
+
+    <!-- Heading -->
+    <div style="display:inline-block;background:linear-gradient(90deg,#f59e0b,#fde68a,#f59e0b);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-size:clamp(1.6rem,4vw,2.2rem);font-weight:900;letter-spacing:-.5px;margin-bottom:10px;">
+      Support the Developer
+    </div>
+    <p style="color:#94a3b8;font-size:.98rem;line-height:1.75;max-width:520px;margin:0 auto 32px;">
+      This guide, the calculators, the job board, exam prep — all built by one developer for Ghana's next generation of finance professionals. If it has added value to your journey, consider buying them a coffee (or a stock 📈).
+    </p>
+
+    <!-- Gold card -->
+    <div style="background:linear-gradient(135deg,#1c1400,#2d1f00,#1c1400);border:2px solid;border-image:linear-gradient(135deg,#f59e0b,#fde68a,#d97706,#fbbf24) 1;border-radius:20px;padding:32px 28px;box-shadow:0 0 60px rgba(245,158,11,.12),inset 0 1px 0 rgba(253,230,138,.1);">
+
+      <!-- Step 1 -->
+      <div style="margin-bottom:22px;">
+        <div style="font-size:.7rem;font-weight:800;color:#f59e0b;letter-spacing:.12em;text-transform:uppercase;margin-bottom:10px;">Step 1 — Send via MTN Mobile Money</div>
+        <div style="background:rgba(0,0,0,.35);border:1px solid rgba(251,191,36,.2);border-radius:12px;padding:18px 20px;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+          <div>
+            <div style="font-size:.7rem;color:#78716c;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:4px;">MoMo Number</div>
+            <div id="donate-number" style="font-family:monospace;font-size:2rem;font-weight:900;color:#fde68a;letter-spacing:4px;">0503566913</div>
+            <div style="font-size:.75rem;color:#78716c;margin-top:2px;">Kofi Kyei · InvestIQ / MarketMind</div>
+          </div>
+          <button onclick="copyDonateNumber()" id="donate-copy-btn" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;border:none;border-radius:10px;padding:12px 20px;font-weight:800;font-size:.85rem;cursor:pointer;white-space:nowrap;box-shadow:0 4px 16px rgba(245,158,11,.35);transition:all .2s;" onmouseover="this.style.transform='scale(1.04)'" onmouseout="this.style.transform='scale(1)'">
+            <i class="fas fa-copy mr-1"></i>Copy
+          </button>
+        </div>
+      </div>
+
+      <!-- Step 2 -->
+      <div style="margin-bottom:24px;">
+        <div style="font-size:.7rem;font-weight:800;color:#f59e0b;letter-spacing:.12em;text-transform:uppercase;margin-bottom:10px;">Step 2 — Any amount. Every cedi counts.</div>
+        <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+          <div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:10px;padding:12px 18px;text-align:center;">
+            <div style="font-size:1.1rem;font-weight:900;color:#fde68a;">GHS 5</div>
+            <div style="font-size:.7rem;color:#78716c;margin-top:2px;">Coffee ☕</div>
+          </div>
+          <div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:10px;padding:12px 18px;text-align:center;">
+            <div style="font-size:1.1rem;font-weight:900;color:#fde68a;">GHS 20</div>
+            <div style="font-size:.7rem;color:#78716c;margin-top:2px;">Lunch 🍛</div>
+          </div>
+          <div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:10px;padding:12px 18px;text-align:center;">
+            <div style="font-size:1.1rem;font-weight:900;color:#fde68a;">GHS 50</div>
+            <div style="font-size:.7rem;color:#78716c;margin-top:2px;">Stock 📈</div>
+          </div>
+          <div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.2);border-radius:10px;padding:12px 18px;text-align:center;">
+            <div style="font-size:1.1rem;font-weight:900;color:#fde68a;">Your call</div>
+            <div style="font-size:.7rem;color:#78716c;margin-top:2px;">Anything 🙏</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Divider -->
+      <div style="height:1px;background:linear-gradient(90deg,transparent,rgba(251,191,36,.2),transparent);margin-bottom:20px;"></div>
+
+      <!-- Thank you note -->
+      <p style="font-size:.82rem;color:#78716c;line-height:1.65;margin:0;">
+        <i class="fas fa-heart" style="color:#f59e0b;margin-right:5px;"></i>
+        No account needed. Send directly on your phone, then keep learning. Your support keeps this platform free and growing for every young Ghanaian entering the financial markets.
+      </p>
+    </div>
+
+  </div>
+</section>
+
+<script>
+function copyDonateNumber(){
+  navigator.clipboard.writeText('0503566913').then(function(){
+    var btn=document.getElementById('donate-copy-btn');
+    btn.innerHTML='<i class="fas fa-check mr-1"></i>Copied!';
+    btn.style.background='linear-gradient(135deg,#16a34a,#15803d)';
+    setTimeout(function(){
+      btn.innerHTML='<i class="fas fa-copy mr-1"></i>Copy';
+      btn.style.background='linear-gradient(135deg,#f59e0b,#d97706)';
+    },2500);
+  });
+}
+</script>
+
 <!-- Footer -->
 <footer class="bg-gray-900 text-gray-400 text-center py-6 text-sm">
   <p>© 2025 Young Investors Network × InvestIQ · <a href="/" class="text-blue-400 hover:text-blue-300">investright.onrender.com</a></p>
