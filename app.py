@@ -7129,8 +7129,9 @@ def admin_yin_programs():
         for prog in programs
     }
     dedup_deleted = request.args.get('dedup_deleted', type=int)
+    phones_fixed = request.args.get('phones_fixed', type=int)
     return render_template('admin_yin_programs.html', programs=programs, reg_counts=reg_counts,
-                           dedup_deleted=dedup_deleted)
+                           dedup_deleted=dedup_deleted, phones_fixed=phones_fixed)
 
 
 @app.route('/admin/yin-programs/<int:prog_id>/registrations-csv')
@@ -7187,6 +7188,30 @@ def admin_yin_deduplicate():
             deleted += 1
     db.session.commit()
     return redirect(url_for('admin_yin_programs', dedup_deleted=deleted))
+
+
+@app.route('/admin/yin-registrations/normalize-phones', methods=['POST'])
+def admin_yin_normalize_phones():
+    if not session.get('admin_logged_in'):
+        return redirect(url_for('admin_login'))
+    all_regs = YINRegistration.query.all()
+    fixed = 0
+    for reg in all_regs:
+        changed = False
+        if reg.phone:
+            normed = _normalize_phone(reg.phone)
+            if normed != reg.phone:
+                reg.phone = normed
+                changed = True
+        if reg.email:
+            cleaned = reg.email.lower().strip()
+            if cleaned != reg.email:
+                reg.email = cleaned
+                changed = True
+        if changed:
+            fixed += 1
+    db.session.commit()
+    return redirect(url_for('admin_yin_programs', phones_fixed=fixed))
 
 
 @app.route('/admin/yin-programs/<int:prog_id>/toggle', methods=['POST'])
