@@ -6925,6 +6925,39 @@ def api_cv_submit():
 
 # ── YIN PROGRAMS ──────────────────────────────────────────────────────────────
 
+import re as _re
+
+def _normalize_phone(phone):
+    """Strip formatting and convert +233/233 prefix to leading 0."""
+    p = _re.sub(r'[\s\-\(\)\.]', '', phone.strip())
+    if p.startswith('+233'):
+        p = '0' + p[4:]
+    elif p.startswith('233') and len(p) == 12:
+        p = '0' + p[3:]
+    return p
+
+def _validate_phone(phone):
+    """Return (valid:bool, normalized:str). Must be 10 digits starting with 0."""
+    p = _normalize_phone(phone)
+    if _re.match(r'^0[2359]\d{8}$', p):
+        return True, p
+    return False, p
+
+def _validate_email(email):
+    """Basic structural email check."""
+    return bool(_re.match(r'^[^\s@]+@[^\s@]+\.[^\s@]+$', email.strip()))
+
+def _yin_duplicate_check(email, phone_norm):
+    """Return existing registration if email OR phone already registered."""
+    q = YINRegistration.query.filter(
+        db.or_(
+            YINRegistration.email == email.lower().strip(),
+            YINRegistration.phone == phone_norm
+        )
+    ).first()
+    return q
+
+
 @app.route('/yin-register', methods=['GET', 'POST'])
 def yin_register_page():
     programs = YINProgram.query.filter_by(is_active=True).order_by(YINProgram.created_at.desc()).all()
@@ -6944,9 +6977,26 @@ def yin_register_page():
     existing_code = request.form.get('existing_yin_code', '').strip().upper()
     confirmed    = request.form.get('confirmed') == 'on'
 
-    if not full_name or not email:
+    # ── Validate required fields ──
+    if not full_name or not email or not phone:
         return render_template('hr_yin_register.html', programs=programs,
-                               error='Full name and email are required.')
+                               error='Full name, email, and phone number are required.')
+
+    if not _validate_email(email):
+        return render_template('hr_yin_register.html', programs=programs,
+                               error='Please enter a valid email address (e.g. name@example.com).')
+
+    phone_ok, phone_norm = _validate_phone(phone)
+    if not phone_ok:
+        return render_template('hr_yin_register.html', programs=programs,
+                               error='Please enter a valid Ghana phone number — 10 digits starting with 0 (e.g. 0244123456).')
+
+    # ── Duplicate check ──
+    existing_reg = _yin_duplicate_check(email, phone_norm)
+    if existing_reg:
+        return render_template('hr_yin_register.html', programs=programs,
+                               error=f'You are already registered. Your YIN code is {existing_reg.yin_code}. '
+                                     f'Check your records or contact admin if you think this is an error.')
 
     # Resolve program; fall back to first active, or create a General one
     prog = None
@@ -6955,10 +7005,9 @@ def yin_register_page():
     if prog is None:
         prog = YINProgram.query.filter_by(is_active=True).first()
     if prog is None:
-        # Create a persistent General Membership programme as fallback
         prog = YINProgram(name='General Membership', description='General YIN membership registration.', is_active=True)
         db.session.add(prog)
-        db.session.flush()  # get prog.id without full commit
+        db.session.flush()
 
     prog_name = prog.name
 
@@ -6975,7 +7024,7 @@ def yin_register_page():
     reg = YINRegistration(
         program_id=prog.id,
         program_name=prog_name,
-        full_name=full_name, phone=phone, email=email,
+        full_name=full_name, phone=phone_norm, email=email.lower().strip(),
         institution=institution, institution_type=inst_type,
         how_heard=how_heard, is_existing_member=is_existing,
         yin_code=yin_code, confirmed=confirmed,
@@ -7007,10 +7056,34 @@ def yin_register(prog_id):
     existing_code    = request.form.get('existing_yin_code', '').strip().upper()
     confirmed        = request.form.get('confirmed') == 'on'
 
-    if not full_name or not email:
+    _active_programs = YINProgram.query.filter_by(is_active=True).all()
+
+    if not full_name or not email or not phone:
         return render_template('hr_yin_programs.html',
-                               programs=YINProgram.query.filter_by(is_active=True).all(),
-                               error='Full name and email are required.', open_prog_id=prog_id)
+                               programs=_active_programs,
+                               error='Full name, email, and phone number are required.',
+                               open_prog_id=prog_id)
+
+    if not _validate_email(email):
+        return render_template('hr_yin_programs.html',
+                               programs=_active_programs,
+                               error='Please enter a valid email address (e.g. name@example.com).',
+                               open_prog_id=prog_id)
+
+    phone_ok, phone_norm = _validate_phone(phone)
+    if not phone_ok:
+        return render_template('hr_yin_programs.html',
+                               programs=_active_programs,
+                               error='Please enter a valid Ghana phone number (e.g. 0244123456 or 0541234567).',
+                               open_prog_id=prog_id)
+
+    existing_reg = _yin_duplicate_check(email, phone_norm)
+    if existing_reg:
+        return render_template('hr_yin_programs.html',
+                               programs=_active_programs,
+                               error=f'You are already registered (YIN Code: {existing_reg.yin_code}). '
+                                     f'Contact us if you need assistance.',
+                               open_prog_id=prog_id)
 
     # Generate or use YIN code
     if is_existing:
@@ -7027,7 +7100,7 @@ def yin_register(prog_id):
 
     reg = YINRegistration(
         program_id=prog.id, program_name=prog.name,
-        full_name=full_name, phone=phone, email=email,
+        full_name=full_name, phone=phone_norm, email=email,
         institution=institution, institution_type=institution_type,
         how_heard=how_heard, is_existing_member=is_existing,
         yin_code=yin_code, confirmed=confirmed,
@@ -7035,7 +7108,7 @@ def yin_register(prog_id):
     db.session.add(reg)
     db.session.commit()
     return render_template('hr_yin_programs.html',
-                           programs=YINProgram.query.filter_by(is_active=True).all(),
+                           programs=_active_programs,
                            success=True, new_code=yin_code, is_existing=is_existing,
                            registered_prog=prog.name)
 
@@ -7055,7 +7128,9 @@ def admin_yin_programs():
         prog.id: YINRegistration.query.filter_by(program_id=prog.id).count()
         for prog in programs
     }
-    return render_template('admin_yin_programs.html', programs=programs, reg_counts=reg_counts)
+    dedup_deleted = request.args.get('dedup_deleted', type=int)
+    return render_template('admin_yin_programs.html', programs=programs, reg_counts=reg_counts,
+                           dedup_deleted=dedup_deleted)
 
 
 @app.route('/admin/yin-programs/<int:prog_id>/registrations-csv')
@@ -7079,6 +7154,39 @@ def admin_yin_program_csv(prog_id):
     safe_name = prog.name.replace(' ', '_').replace('/', '-')[:40]
     return Response(out.getvalue(), mimetype='text/csv',
                     headers={'Content-Disposition': f'attachment;filename=YIN_{safe_name}_registrations.csv'})
+
+
+@app.route('/admin/yin-registrations/deduplicate', methods=['POST'])
+def admin_yin_deduplicate():
+    if not session.get('admin_logged_in'):
+        return redirect(url_for('admin_login'))
+    all_regs = YINRegistration.query.order_by(YINRegistration.id.asc()).all()
+    seen_emails = {}
+    seen_phones = {}
+    to_delete = set()
+    for reg in all_regs:
+        email_key = (reg.email or '').lower().strip()
+        phone_key = _normalize_phone(reg.phone) if reg.phone else ''
+        duplicate = False
+        if email_key and email_key in seen_emails:
+            duplicate = True
+        if phone_key and phone_key in seen_phones:
+            duplicate = True
+        if duplicate:
+            to_delete.add(reg.id)
+        else:
+            if email_key:
+                seen_emails[email_key] = reg.id
+            if phone_key:
+                seen_phones[phone_key] = reg.id
+    deleted = 0
+    for reg_id in to_delete:
+        reg = YINRegistration.query.get(reg_id)
+        if reg:
+            db.session.delete(reg)
+            deleted += 1
+    db.session.commit()
+    return redirect(url_for('admin_yin_programs', dedup_deleted=deleted))
 
 
 @app.route('/admin/yin-programs/<int:prog_id>/toggle', methods=['POST'])
