@@ -123,29 +123,61 @@
     {% endif %}
   </div>
 
-  <!-- Result Banners -->
-  {% if phones_fixed is not none %}
-  <div class="mt-4 px-4 py-3 rounded-lg border {% if phones_fixed > 0 %}bg-blue-50 border-blue-200 text-blue-800{% else %}bg-green-50 border-green-200 text-green-800{% endif %} text-sm font-semibold flex items-center gap-2">
-    {% if phones_fixed > 0 %}
-    <i class="fas fa-wrench"></i> {{ phones_fixed }} record{% if phones_fixed != 1 %}s{% endif %} fixed — phone numbers normalised to 0XXXXXXXXX format.
-    {% else %}
-    <i class="fas fa-check-circle"></i> All phone numbers are already in the correct format.
-    {% endif %}
-  </div>
-  {% endif %}
+  <!-- Data Maintenance Card -->
+  <div class="card mt-8 p-6">
+    <h2 class="text-base font-bold text-gray-700 mb-1 flex items-center gap-2">
+      <i class="fas fa-tools text-blue-600"></i> Data Maintenance
+    </h2>
+    <p class="text-xs text-gray-400 mb-5">Run these in order — fix phone formats first, then remove duplicates.</p>
 
-  {% if dedup_deleted is not none %}
-  <div class="mt-3 px-4 py-3 rounded-lg border {% if dedup_deleted > 0 %}bg-amber-50 border-amber-200 text-amber-800{% else %}bg-green-50 border-green-200 text-green-800{% endif %} text-sm font-semibold flex items-center gap-2">
-    {% if dedup_deleted > 0 %}
-    <i class="fas fa-trash-alt"></i> {{ dedup_deleted }} duplicate registration{% if dedup_deleted != 1 %}s{% endif %} removed. Database is now clean.
-    {% else %}
-    <i class="fas fa-check-circle"></i> No duplicates found. All registrations are unique.
+    <!-- Result Banners -->
+    {% if phones_fixed is not none %}
+    <div class="mb-4 px-4 py-3 rounded-lg border {% if phones_fixed > 0 %}bg-blue-50 border-blue-200 text-blue-800{% else %}bg-green-50 border-green-200 text-green-800{% endif %} text-sm font-semibold flex items-center gap-2">
+      {% if phones_fixed > 0 %}
+      <i class="fas fa-wrench"></i> {{ phones_fixed }} record{% if phones_fixed != 1 %}s{% endif %} fixed — phone numbers normalised to 0XXXXXXXXX format.
+      {% else %}
+      <i class="fas fa-check-circle"></i> All phone numbers are already in the correct format.
+      {% endif %}
+    </div>
     {% endif %}
+
+    {% if dedup_deleted is not none %}
+    <div class="mb-4 px-4 py-3 rounded-lg border {% if dedup_deleted > 0 %}bg-amber-50 border-amber-200 text-amber-800{% else %}bg-green-50 border-green-200 text-green-800{% endif %} text-sm font-semibold flex items-center gap-2">
+      {% if dedup_deleted > 0 %}
+      <i class="fas fa-trash-alt"></i> {{ dedup_deleted }} duplicate registration{% if dedup_deleted != 1 %}s{% endif %} removed. Database is now clean.
+      {% else %}
+      <i class="fas fa-check-circle"></i> No duplicates found. All registrations are unique.
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <div class="flex flex-wrap gap-3">
+      <!-- Step 1 -->
+      <form method="POST" action="/admin/yin-registrations/normalize-phones"
+            onsubmit="return confirm('This will reformat all stored phone numbers to the standard 0XXXXXXXXX format and lowercase all emails. Continue?')">
+        <button type="submit"
+                class="flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm text-white cursor-pointer border-0"
+                style="background:linear-gradient(135deg,#1e40af,#3b82f6);">
+          <i class="fas fa-wrench"></i>
+          <span>Step 1 — Fix Phone Formats</span>
+        </button>
+      </form>
+
+      <!-- Step 2 -->
+      <form method="POST" action="/admin/yin-registrations/deduplicate"
+            onsubmit="return confirm('This will permanently delete duplicate registrations, keeping the oldest entry per email/phone. Run Step 1 first. Continue?')">
+        <button type="submit"
+                class="flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm text-white cursor-pointer border-0"
+                style="background:linear-gradient(135deg,#92400e,#d97706);">
+          <i class="fas fa-broom"></i>
+          <span>Step 2 — Remove Duplicates</span>
+        </button>
+      </form>
+    </div>
   </div>
-  {% endif %}
 
   <!-- Quick Links -->
-  <div class="mt-6 flex flex-wrap gap-3 text-sm items-center">
+  <div class="mt-5 flex flex-wrap gap-3 text-sm items-center">
     <a href="/yin-programs" class="text-blue-600 hover:underline flex items-center gap-1">
       <i class="fas fa-external-link-alt text-xs"></i> View Public Page
     </a>
@@ -153,20 +185,6 @@
     <a href="/super-admin/yin-registrations-csv" class="text-green-600 hover:underline flex items-center gap-1">
       <i class="fas fa-download text-xs"></i> Download All Registrations CSV
     </a>
-    <span class="text-gray-300">|</span>
-    <form method="POST" action="/admin/yin-registrations/normalize-phones"
-          onsubmit="return confirm('This will reformat all stored phone numbers to the 0XXXXXXXXX standard. Continue?')">
-      <button type="submit" class="text-blue-700 hover:underline flex items-center gap-1 bg-transparent border-none cursor-pointer text-sm font-normal p-0">
-        <i class="fas fa-wrench text-xs"></i> Fix Phone Formats
-      </button>
-    </form>
-    <span class="text-gray-300">|</span>
-    <form method="POST" action="/admin/yin-registrations/deduplicate"
-          onsubmit="return confirm('This will permanently delete duplicate registrations (keeping the oldest per email/phone). Run Fix Phone Formats first for best results. Continue?')">
-      <button type="submit" class="text-amber-700 hover:underline flex items-center gap-1 bg-transparent border-none cursor-pointer text-sm font-normal p-0">
-        <i class="fas fa-broom text-xs"></i> Clean Duplicates
-      </button>
-    </form>
   </div>
 
 </div>
