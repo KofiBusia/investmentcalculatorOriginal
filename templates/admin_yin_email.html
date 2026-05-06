@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Email YIN Members — Admin</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+<style>
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #f1f5f9; min-height: 100vh; }
+  .topbar { background: #1e293b; border-bottom: 1px solid #334155; padding: 0 28px; height: 56px; display: flex; align-items: center; justify-content: space-between; }
+  .brand { font-size: 1rem; font-weight: 800; color: #f1f5f9; display: flex; align-items: center; gap: 8px; text-decoration: none; }
+  .back-btn { display: flex; align-items: center; gap: 6px; padding: 7px 14px; background: rgba(100,116,139,.15); color: #94a3b8; border: 1px solid rgba(100,116,139,.25); border-radius: 8px; font-size: .82rem; font-weight: 600; text-decoration: none; transition: all .2s; }
+  .back-btn:hover { background: rgba(100,116,139,.3); color: #e2e8f0; }
+  .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+  .input-field { display: block; width: 100%; border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 9px 12px; font-size: .9rem; outline: none; transition: border-color .2s; background: #fff; }
+  .input-field:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
+  .tag { display: inline-flex; align-items: center; gap: 4px; background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; border-radius: 6px; padding: 2px 8px; font-size: .75rem; font-weight: 700; cursor: pointer; transition: background .15s; }
+  .tag:hover { background: #dbeafe; }
+  #preview-box { background: #f8fafc; border: 1.5px solid #e2e8f0; border-radius: 10px; padding: 20px; min-height: 80px; }
+  #preview-box h4 { font-size: .8rem; font-weight: 700; color: #64748b; margin: 0 0 8px; text-transform: uppercase; letter-spacing: .06em; }
+</style>
+</head>
+<body>
+
+<!-- Topbar -->
+<div class="topbar">
+  <a href="/admin/dashboard" class="brand">
+    <i class="fas fa-chart-line" style="color:#3b82f6;"></i> InvestIQ <span style="color:#64748b;font-weight:400;">/ Admin</span>
+  </a>
+  <a href="/admin/yin-programs" class="back-btn"><i class="fas fa-arrow-left"></i> YIN Programmes</a>
+</div>
+
+<div class="max-w-3xl mx-auto px-4 py-10">
+
+  <!-- Page title -->
+  <div class="mb-8">
+    <h1 class="text-2xl font-extrabold text-gray-800 flex items-center gap-3">
+      <span class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:linear-gradient(135deg,#1e3a5f,#2563eb);">
+        <i class="fas fa-envelope text-white text-sm"></i>
+      </span>
+      Email YIN Members
+    </h1>
+    <p class="text-gray-500 text-sm mt-1">Compose and send a message to all or selected YIN registrants.</p>
+  </div>
+
+  <!-- Mail not configured warning -->
+  {% if not mail_ready %}
+  <div class="mb-6 px-4 py-4 rounded-xl border border-red-200 bg-red-50 flex items-start gap-3">
+    <i class="fas fa-exclamation-triangle text-red-500 mt-0.5"></i>
+    <div>
+      <p class="font-bold text-red-700 text-sm">Email sending is not configured</p>
+      <p class="text-red-600 text-xs mt-1">Set <code class="bg-red-100 px-1 rounded">MAIL_PASSWORD</code> to your Gmail App Password in the <code class="bg-red-100 px-1 rounded">.env</code> file, then restart the server. Until then, emails cannot be sent.</p>
+      <a href="https://myaccount.google.com/apppasswords" target="_blank" class="text-xs font-semibold text-red-700 underline mt-1 inline-block">How to create a Gmail App Password →</a>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Success result -->
+  {% if sent is defined and sent is not none %}
+  <div class="mb-6 px-5 py-5 rounded-xl border {% if sent > 0 %}border-green-200 bg-green-50{% else %}border-gray-200 bg-gray-50{% endif %}">
+    <div class="flex items-center gap-3 mb-2">
+      <i class="fas fa-paper-plane {% if sent > 0 %}text-green-600{% else %}text-gray-400{% endif %} text-lg"></i>
+      <p class="font-extrabold {% if sent > 0 %}text-green-800{% else %}text-gray-600{% endif %}">
+        {% if sent > 0 %}{{ sent }} email{% if sent != 1 %}s{% endif %} sent successfully!{% else %}No emails were sent.{% endif %}
+      </p>
+    </div>
+    {% if failed > 0 %}
+    <p class="text-sm text-red-600 font-semibold"><i class="fas fa-times-circle mr-1"></i>{{ failed }} failed to send.</p>
+    {% if failed_addrs %}
+    <p class="text-xs text-red-500 mt-1">Failed: {{ failed_addrs | join(', ') }}</p>
+    {% endif %}
+    {% endif %}
+    <a href="/admin/yin-email" class="mt-3 inline-block text-sm font-semibold text-blue-700 hover:underline"><i class="fas fa-plus mr-1"></i>Send another email</a>
+  </div>
+  {% else %}
+
+  <!-- Error -->
+  {% if error %}
+  <div class="mb-5 px-4 py-3 rounded-lg border border-red-200 bg-red-50 text-red-700 text-sm font-semibold flex items-center gap-2">
+    <i class="fas fa-exclamation-circle"></i> {{ error }}
+  </div>
+  {% endif %}
+
+  <!-- Compose form -->
+  <form method="POST" action="/admin/yin-email" onsubmit="return confirmSend()">
+    <div class="card p-6 space-y-5">
+
+      <!-- Recipients -->
+      <div>
+        <label class="block text-sm font-bold text-gray-700 mb-1.5">
+          <i class="fas fa-users text-blue-500 mr-1"></i> Recipients
+        </label>
+        <select name="prog_id" id="prog_select" onchange="updateCount()" class="input-field">
+          <option value="">All YIN Members ({{ total }} total)</option>
+          {% for prog in programs %}
+          <option value="{{ prog.id }}" data-count="{{ prog_counts[prog.id] }}" {% if form_prog == prog.id|string %}selected{% endif %}>
+            {{ prog.name }} — {{ prog_counts[prog.id] }} member{% if prog_counts[prog.id] != 1 %}s{% endif %}{% if not prog.is_active %} (inactive){% endif %}
+          </option>
+          {% endfor %}
+        </select>
+        <p id="count-hint" class="text-xs text-gray-400 mt-1">Sending to <strong id="count-label">all {{ total }}</strong> registered member{% if total != 1 %}s{% endif %}.</p>
+      </div>
+
+      <!-- Subject -->
+      <div>
+        <label class="block text-sm font-bold text-gray-700 mb-1.5">
+          <i class="fas fa-tag text-blue-500 mr-1"></i> Subject <span class="text-red-500">*</span>
+        </label>
+        <input type="text" name="subject" required placeholder="e.g. Important update from YIN" class="input-field" value="{{ form_subject or '' }}" id="subject-input"/>
+      </div>
+
+      <!-- Body -->
+      <div>
+        <label class="block text-sm font-bold text-gray-700 mb-1">
+          <i class="fas fa-align-left text-blue-500 mr-1"></i> Message Body <span class="text-red-500">*</span>
+        </label>
+        <p class="text-xs text-gray-400 mb-2">Use <span class="tag" onclick="insertVar('{name}')"><i class="fas fa-user"></i> {name}</span> and <span class="tag" onclick="insertVar('{yin_code}')"><i class="fas fa-id-badge"></i> {yin_code}</span> — they are replaced with each member's actual name and code.</p>
+        <textarea name="body" id="body-input" required rows="12"
+                  placeholder="Dear {name},&#10;&#10;We are pleased to inform you...&#10;&#10;Your YIN Code is {yin_code}.&#10;&#10;Warm regards,&#10;The YIN Team"
+                  class="input-field resize-y" style="font-size:.88rem;line-height:1.7;" oninput="updatePreview()">{{ form_body or '' }}</textarea>
+      </div>
+
+      <!-- Live preview -->
+      <div>
+        <label class="block text-sm font-bold text-gray-700 mb-1.5"><i class="fas fa-eye text-blue-500 mr-1"></i> Preview (sample member)</label>
+        <div id="preview-box">
+          <h4>Email Preview</h4>
+          <div id="preview-text" class="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed"></div>
+        </div>
+      </div>
+
+      <!-- Send button -->
+      <div class="pt-2 flex items-center gap-4">
+        <button type="submit" {% if not mail_ready %}disabled{% endif %}
+                class="flex items-center gap-2 px-7 py-3 rounded-xl font-extrabold text-sm text-white cursor-pointer border-0 {% if not mail_ready %}opacity-40{% endif %}"
+                style="background:linear-gradient(135deg,#1e3a5f,#2563eb);">
+          <i class="fas fa-paper-plane"></i> Send to All Recipients
+        </button>
+        <span class="text-xs text-gray-400">This will send an individual email to every recipient.</span>
+      </div>
+    </div>
+  </form>
+  {% endif %}
+
+</div>
+
+<script>
+const progCounts = { {% for prog in programs %}"{{ prog.id }}": {{ prog_counts[prog.id] }},{% endfor %} };
+const totalAll = {{ total }};
+
+// Recipient count hint
+const progSelect = document.getElementById('prog_select');
+const countLabel = document.getElementById('count-label');
+function updateCount() {
+  const opt = progSelect.options[progSelect.selectedIndex];
+  if (!progSelect.value) {
+    countLabel.textContent = 'all ' + totalAll;
+  } else {
+    const n = opt.dataset.count || '?';
+    countLabel.textContent = n + ' member' + (n == '1' ? '' : 's') + ' in "' + opt.text.split(' —')[0] + '"';
+  }
+}
+
+// Insert variable at cursor
+function insertVar(v) {
+  const ta = document.getElementById('body-input');
+  const s = ta.selectionStart, e = ta.selectionEnd;
+  ta.value = ta.value.slice(0, s) + v + ta.value.slice(e);
+  ta.selectionStart = ta.selectionEnd = s + v.length;
+  ta.focus();
+  updatePreview();
+}
+
+// Live preview — replace placeholders with sample values
+function updatePreview() {
+  const raw = document.getElementById('body-input').value;
+  const preview = raw.replace(/\{name\}/g, 'Kofi Mensah').replace(/\{yin_code\}/g, 'YIN0042');
+  document.getElementById('preview-text').textContent = preview;
+}
+updatePreview();
+
+// Confirm dialog before sending
+function confirmSend() {
+  const count = countLabel.textContent;
+  return confirm('Send this email to ' + count + ' member(s)?\n\nThis cannot be undone.');
+}
+</script>
+</body>
+</html>

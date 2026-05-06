@@ -7109,6 +7109,85 @@ def yin_register(prog_id):
                            registered_prog=prog.name)
 
 
+def _yin_email_html(body_text, reg):
+    """Wrap plain-text body in a branded HTML email for a YIN member."""
+    paragraphs = ''.join(
+        f'<p style="margin:0 0 16px 0;line-height:1.7;color:#1e293b;">{p.strip()}</p>'
+        for p in body_text.split('\n') if p.strip()
+    )
+    return f"""<!DOCTYPE html><html><body style="margin:0;padding:0;background:#f1f5f9;">
+<div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:32px auto;">
+  <div style="background:linear-gradient(135deg,#1e3a5f,#2563eb);padding:28px 32px;border-radius:12px 12px 0 0;">
+    <p style="margin:0 0 4px;color:rgba(255,255,255,.7);font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;">Young Investors Network</p>
+    <h1 style="margin:0;color:#fff;font-size:1.25rem;font-weight:800;">InvestIQ Platform</h1>
+  </div>
+  <div style="background:#fff;padding:36px 32px;border:1px solid #e2e8f0;border-top:none;border-radius:0 0 12px 12px;">
+    {paragraphs}
+    <hr style="border:none;border-top:1px solid #e2e8f0;margin:28px 0 20px;"/>
+    <p style="margin:0;color:#94a3b8;font-size:.78rem;line-height:1.6;">
+      Your YIN Code: <strong style="color:#1e3a5f;">{reg.yin_code or 'N/A'}</strong><br/>
+      Sent to <a href="mailto:{reg.email}" style="color:#2563eb;">{reg.email}</a> as a registered YIN member.<br/>
+      &copy; {__import__('datetime').date.today().year} InvestIQ / Young Investors Network
+    </p>
+  </div>
+</div></body></html>"""
+
+
+@app.route('/admin/yin-email', methods=['GET', 'POST'])
+def admin_yin_email():
+    if not session.get('admin_logged_in'):
+        return redirect(url_for('admin_login'))
+
+    programs = YINProgram.query.order_by(YINProgram.created_at.desc()).all()
+    mail_ready = bool(app.config.get('MAIL_PASSWORD') and
+                      'your_gmail' not in (app.config.get('MAIL_PASSWORD') or ''))
+
+    prog_counts = {p.id: YINRegistration.query.filter_by(program_id=p.id).count() for p in programs}
+
+    if request.method == 'GET':
+        total = YINRegistration.query.count()
+        return render_template('admin_yin_email.html', programs=programs,
+                               total=total, mail_ready=mail_ready, prog_counts=prog_counts)
+
+    subject  = request.form.get('subject', '').strip()
+    body     = request.form.get('body', '').strip()
+    prog_id  = request.form.get('prog_id', '').strip()
+
+    if not subject or not body:
+        total = YINRegistration.query.count()
+        return render_template('admin_yin_email.html', programs=programs,
+                               total=total, mail_ready=mail_ready, prog_counts=prog_counts,
+                               error='Subject and message body are required.',
+                               form_subject=subject, form_body=body, form_prog=prog_id)
+
+    if prog_id and prog_id.isdigit():
+        regs = YINRegistration.query.filter_by(program_id=int(prog_id)).all()
+    else:
+        regs = YINRegistration.query.all()
+
+    sent = 0
+    failed_addrs = []
+    for reg in regs:
+        if not reg.email:
+            continue
+        personal = body.replace('{name}', reg.full_name or 'Member') \
+                       .replace('{yin_code}', reg.yin_code or 'N/A')
+        html_body = _yin_email_html(personal, reg)
+        try:
+            msg = Message(subject, recipients=[reg.email], html=html_body)
+            mail.send(msg)
+            sent += 1
+        except Exception as e:
+            logger.error(f'YIN email failed to {reg.email}: {e}')
+            failed_addrs.append(reg.email)
+
+    total = YINRegistration.query.count()
+    return render_template('admin_yin_email.html', programs=programs,
+                           total=total, mail_ready=mail_ready, prog_counts=prog_counts,
+                           sent=sent, failed=len(failed_addrs),
+                           failed_addrs=failed_addrs)
+
+
 @app.route('/admin/yin-programs', methods=['GET', 'POST'])
 def admin_yin_programs():
     if not session.get('admin_logged_in'):
