@@ -132,7 +132,7 @@
 
     <!-- Result Banners -->
     {% if phones_fixed is not none %}
-    <div class="mb-4 px-4 py-3 rounded-lg border {% if phones_fixed > 0 %}bg-blue-50 border-blue-200 text-blue-800{% else %}bg-green-50 border-green-200 text-green-800{% endif %} text-sm font-semibold flex items-center gap-2">
+    <div class="mb-3 px-4 py-3 rounded-lg border {% if phones_fixed > 0 %}bg-blue-50 border-blue-200 text-blue-800{% else %}bg-green-50 border-green-200 text-green-800{% endif %} text-sm font-semibold flex items-center gap-2">
       {% if phones_fixed > 0 %}
       <i class="fas fa-wrench"></i> {{ phones_fixed }} record{% if phones_fixed != 1 %}s{% endif %} fixed — phone numbers normalised to 0XXXXXXXXX format.
       {% else %}
@@ -142,7 +142,7 @@
     {% endif %}
 
     {% if dedup_deleted is not none %}
-    <div class="mb-4 px-4 py-3 rounded-lg border {% if dedup_deleted > 0 %}bg-amber-50 border-amber-200 text-amber-800{% else %}bg-green-50 border-green-200 text-green-800{% endif %} text-sm font-semibold flex items-center gap-2">
+    <div class="mb-3 px-4 py-3 rounded-lg border {% if dedup_deleted > 0 %}bg-amber-50 border-amber-200 text-amber-800{% else %}bg-green-50 border-green-200 text-green-800{% endif %} text-sm font-semibold flex items-center gap-2">
       {% if dedup_deleted > 0 %}
       <i class="fas fa-trash-alt"></i> {{ dedup_deleted }} duplicate registration{% if dedup_deleted != 1 %}s{% endif %} removed. Database is now clean.
       {% else %}
@@ -151,26 +151,49 @@
     </div>
     {% endif %}
 
+    {% if codes_fixed is not none %}
+    <div class="mb-3 px-4 py-3 rounded-lg border {% if codes_fixed > 0 %}bg-purple-50 border-purple-200 text-purple-800{% else %}bg-green-50 border-green-200 text-green-800{% endif %} text-sm font-semibold flex items-center gap-2">
+      {% if codes_fixed > 0 %}
+      <i class="fas fa-id-badge"></i> {{ codes_fixed }} YIN code{% if codes_fixed != 1 %}s{% endif %} assigned — duplicate and missing codes resolved.
+      {% else %}
+      <i class="fas fa-check-circle"></i> All YIN codes are unique and present.
+      {% endif %}
+    </div>
+    {% endif %}
+
+    <p class="text-xs text-gray-400 mb-4">Run in order: Step 1 → Step 2 → Step 3</p>
+
     <div class="flex flex-wrap gap-3">
       <!-- Step 1 -->
       <form method="POST" action="/admin/yin-registrations/normalize-phones"
-            onsubmit="return confirm('This will reformat all stored phone numbers to the standard 0XXXXXXXXX format and lowercase all emails. Continue?')">
+            onsubmit="return confirm('Reformat all stored phone numbers to 0XXXXXXXXX and lowercase emails. Continue?')">
         <button type="submit"
                 class="flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm text-white cursor-pointer border-0"
                 style="background:linear-gradient(135deg,#1e40af,#3b82f6);">
-          <i class="fas fa-wrench"></i>
+          <i class="fas fa-phone"></i>
           <span>Step 1 — Fix Phone Formats</span>
         </button>
       </form>
 
       <!-- Step 2 -->
       <form method="POST" action="/admin/yin-registrations/deduplicate"
-            onsubmit="return confirm('This will permanently delete duplicate registrations, keeping the oldest entry per email/phone. Run Step 1 first. Continue?')">
+            onsubmit="return confirm('Permanently delete duplicate registrations (keeps oldest per email/phone). Run Step 1 first. Continue?')">
         <button type="submit"
                 class="flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm text-white cursor-pointer border-0"
                 style="background:linear-gradient(135deg,#92400e,#d97706);">
           <i class="fas fa-broom"></i>
           <span>Step 2 — Remove Duplicates</span>
+        </button>
+      </form>
+
+      <!-- Step 3 -->
+      <form method="POST" action="/admin/yin-registrations/fix-codes"
+            onsubmit="return confirm('Assign new unique YIN codes to anyone with a missing or duplicate code. Existing unique codes are untouched. Continue?')">
+        <button type="submit"
+                class="flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm text-white cursor-pointer border-0"
+                style="background:linear-gradient(135deg,#4a044e,#9333ea);">
+          <i class="fas fa-id-badge"></i>
+          <span>Step 3 — Fix YIN Codes</span>
         </button>
       </form>
     </div>

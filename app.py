@@ -6957,6 +6957,20 @@ def _yin_duplicate_check(email, phone_norm):
     ).first()
     return q
 
+def _generate_yin_code():
+    """Return next unique YIN code.
+    Reads every existing code, builds the full set of used numbers,
+    then returns max+1 — guaranteed unique even after dedup deletes entries."""
+    rows = db.session.query(YINRegistration.yin_code).filter(
+        YINRegistration.yin_code.like('YIN%')
+    ).all()
+    used = set()
+    for (code,) in rows:
+        if code and len(code) > 3 and code[3:].isdigit():
+            used.add(int(code[3:]))
+    next_n = (max(used) + 1) if used else 1
+    return f'YIN{next_n:04d}'
+
 
 @app.route('/yin-register', methods=['GET', 'POST'])
 def yin_register_page():
@@ -7012,14 +7026,7 @@ def yin_register_page():
     prog_name = prog.name
 
     # Generate or use existing YIN code
-    if is_existing:
-        yin_code = existing_code
-    else:
-        last = YINRegistration.query.filter(
-            YINRegistration.yin_code.like('YIN%')
-        ).order_by(YINRegistration.id.desc()).first()
-        next_num = (int(last.yin_code[3:]) + 1) if (last and last.yin_code and last.yin_code[3:].isdigit()) else 1
-        yin_code = f'YIN{next_num:04d}'
+    yin_code = existing_code if is_existing else _generate_yin_code()
 
     reg = YINRegistration(
         program_id=prog.id,
@@ -7085,18 +7092,7 @@ def yin_register(prog_id):
                                      f'Contact us if you need assistance.',
                                open_prog_id=prog_id)
 
-    # Generate or use YIN code
-    if is_existing:
-        yin_code = existing_code
-    else:
-        last = YINRegistration.query.filter(
-            YINRegistration.yin_code.like('YIN%')
-        ).order_by(YINRegistration.id.desc()).first()
-        if last and last.yin_code and last.yin_code[3:].isdigit():
-            next_num = int(last.yin_code[3:]) + 1
-        else:
-            next_num = 1
-        yin_code = f'YIN{next_num:04d}'
+    yin_code = existing_code if is_existing else _generate_yin_code()
 
     reg = YINRegistration(
         program_id=prog.id, program_name=prog.name,
@@ -7129,9 +7125,11 @@ def admin_yin_programs():
         for prog in programs
     }
     dedup_deleted = request.args.get('dedup_deleted', type=int)
-    phones_fixed = request.args.get('phones_fixed', type=int)
+    phones_fixed  = request.args.get('phones_fixed', type=int)
+    codes_fixed   = request.args.get('codes_fixed', type=int)
     return render_template('admin_yin_programs.html', programs=programs, reg_counts=reg_counts,
-                           dedup_deleted=dedup_deleted, phones_fixed=phones_fixed)
+                           dedup_deleted=dedup_deleted, phones_fixed=phones_fixed,
+                           codes_fixed=codes_fixed)
 
 
 @app.route('/admin/yin-programs/<int:prog_id>/registrations-csv')
@@ -7212,6 +7210,41 @@ def admin_yin_normalize_phones():
             fixed += 1
     db.session.commit()
     return redirect(url_for('admin_yin_programs', phones_fixed=fixed))
+
+
+@app.route('/admin/yin-registrations/fix-codes', methods=['POST'])
+def admin_yin_fix_codes():
+    if not session.get('admin_logged_in'):
+        return redirect(url_for('admin_login'))
+    all_regs = YINRegistration.query.order_by(YINRegistration.id.asc()).all()
+
+    # Build set of already-used codes (first occurrence wins, duplicates flagged)
+    seen = {}      # code -> first reg.id that owns it
+    to_fix = []    # regs that need a new code (duplicate or missing)
+    for reg in all_regs:
+        code = (reg.yin_code or '').strip()
+        if not code:
+            to_fix.append(reg)
+        elif code in seen:
+            to_fix.append(reg)   # keep oldest owner, reassign this one
+        else:
+            seen[code] = reg.id
+
+    # Collect all currently-used numeric values
+    used_nums = set()
+    for code in seen:
+        if len(code) > 3 and code[3:].isdigit():
+            used_nums.add(int(code[3:]))
+
+    fixed = 0
+    for reg in to_fix:
+        n = (max(used_nums) + 1) if used_nums else 1
+        used_nums.add(n)
+        reg.yin_code = f'YIN{n:04d}'
+        fixed += 1
+
+    db.session.commit()
+    return redirect(url_for('admin_yin_programs', codes_fixed=fixed))
 
 
 @app.route('/admin/yin-programs/<int:prog_id>/toggle', methods=['POST'])
