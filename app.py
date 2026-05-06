@@ -514,6 +514,7 @@ class YINRegistration(db.Model):
     is_existing_member = db.Column(db.Boolean, default=False)
     yin_code         = db.Column(db.String(20), default='', index=True)  # existing or generated
     confirmed        = db.Column(db.Boolean, default=False)
+    welcome_sent     = db.Column(db.Boolean, default=False, server_default='0')
     created_at       = db.Column(db.DateTime, default=datetime.utcnow)
 
 
@@ -5675,7 +5676,7 @@ def training_page():
 
             booking = TrainingBooking(
                 booking_type=booking_type,
-                full_name=request.form.get('full_name', '').strip(),
+                full_name=_dedup_name(request.form.get('full_name', '').strip()),
                 email=request.form.get('email', '').strip().lower(),
                 phone=request.form.get('phone', '').strip(),
                 organization=request.form.get('organization', '').strip(),
@@ -6266,7 +6267,82 @@ def admin_training():
     if not session.get('admin_logged_in'):
         return redirect(url_for('admin_login'))
     bookings = TrainingBooking.query.order_by(TrainingBooking.created_at.desc()).all()
-    return render_template('hr_admin_training.html', bookings=bookings)
+    mail_ready = bool(app.config.get('MAIL_PASSWORD') and
+                      'your_gmail' not in (app.config.get('MAIL_PASSWORD') or ''))
+    sent  = request.args.get('training_sent', type=int)
+    failed = request.args.get('training_failed', type=int)
+    return render_template('hr_admin_training.html', bookings=bookings,
+                           mail_ready=mail_ready, training_sent=sent, training_failed=failed)
+
+
+@app.route('/admin/training/send-payment-info', methods=['POST'])
+def admin_training_send_payment_info():
+    """One-click: email every training applicant their programme fee and encouragement."""
+    if not session.get('admin_logged_in'):
+        return redirect(url_for('admin_login'))
+    bookings = TrainingBooking.query.all()
+    sent = 0
+    failed = 0
+    year = __import__('datetime').date.today().year
+    for b in bookings:
+        if not b.email:
+            continue
+        price, duration = _training_price(b.category)
+        dur_line = f' ({duration})' if duration else ''
+        prog_label = b.category or 'your selected programme'
+        html = f"""<!DOCTYPE html>
+<html><body style="margin:0;padding:0;background:#f1f5f9;">
+<div style="font-family:'Segoe UI',Arial,sans-serif;max-width:620px;margin:32px auto;">
+  <div style="background:linear-gradient(135deg,#0f2744,#1d4ed8);padding:32px 36px 24px;border-radius:14px 14px 0 0;text-align:center;">
+    <p style="margin:0 0 6px;color:rgba(255,255,255,.6);font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;">InvestIQ Professional Training</p>
+    <h1 style="margin:0;color:#fff;font-size:1.5rem;font-weight:900;">Your Training Details</h1>
+  </div>
+  <div style="background:#1d4ed8;padding:18px 36px;text-align:center;">
+    <p style="margin:0 0 4px;color:rgba(255,255,255,.75);font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;">Programme Fee</p>
+    <div style="display:inline-block;background:#fff;color:#0f2744;font-size:2rem;font-weight:900;padding:8px 28px;border-radius:10px;letter-spacing:.04em;">{price}</div>
+    <p style="margin:6px 0 0;color:rgba(255,255,255,.65);font-size:.8rem;">{prog_label}{dur_line}</p>
+  </div>
+  <div style="background:#fff;padding:32px 36px;border:1px solid #e2e8f0;border-top:none;">
+    <p style="margin:0 0 16px;font-size:1rem;color:#1e293b;line-height:1.7;">Dear <strong>{b.full_name}</strong>,</p>
+    <p style="margin:0 0 16px;font-size:.95rem;color:#334155;line-height:1.8;">
+      Thank you for booking <strong>{prog_label}</strong> with InvestIQ. We are excited to have you join us.
+    </p>
+    <p style="margin:0 0 16px;font-size:.95rem;color:#334155;line-height:1.8;">
+      The fee for this programme is <strong style="color:#1d4ed8;">{price}</strong>{dur_line}. Payment should be made via <strong>MTN Mobile Money</strong> to:
+    </p>
+    <div style="background:#f0fdf4;border:1.5px solid #6ee7b7;border-radius:10px;padding:18px 22px;margin:20px 0;text-align:center;">
+      <p style="margin:0 0 4px;font-size:.8rem;font-weight:700;color:#065f46;text-transform:uppercase;letter-spacing:.06em;">MoMo Payment Number</p>
+      <p style="margin:0;font-size:1.8rem;font-weight:900;color:#065f46;letter-spacing:.15em;font-family:monospace;">0503566913</p>
+      <p style="margin:6px 0 0;font-size:.8rem;color:#047857;">Send exactly <strong>{price}</strong> and use your name as reference</p>
+    </div>
+    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:20px 24px;margin:20px 0;">
+      <p style="margin:0 0 12px;font-weight:800;color:#0f2744;font-size:.95rem;">What this training will do for you 🚀</p>
+      <p style="margin:0 0 10px;font-size:.88rem;color:#334155;line-height:1.7;">📈 <strong>Build in-demand skills</strong> — practical, hands-on training taught by certified industry professionals.</p>
+      <p style="margin:0 0 10px;font-size:.88rem;color:#334155;line-height:1.7;">🏆 <strong>Earn a certificate</strong> — recognised by employers across Ghana's financial services sector.</p>
+      <p style="margin:0;font-size:.88rem;color:#334155;line-height:1.7;">🤝 <strong>Unlock opportunities</strong> — graduates from this programme go on to better roles, promotions, and higher earnings.</p>
+    </div>
+    <p style="margin:0 0 16px;font-size:.95rem;color:#334155;line-height:1.8;">
+      Once payment is confirmed, our team will send your final schedule and joining instructions. If you have any questions, reply to this email or call us directly.
+    </p>
+    <p style="margin:0 0 4px;font-weight:700;color:#1e293b;">The InvestIQ Training Team</p>
+    <p style="margin:0;font-size:.85rem;color:#64748b;">InvestIQ Professional Training · Ghana</p>
+  </div>
+  <div style="background:#f1f5f9;padding:16px 36px;border-radius:0 0 14px 14px;border:1px solid #e2e8f0;border-top:none;text-align:center;">
+    <p style="margin:0;color:#94a3b8;font-size:.75rem;">&copy; {year} InvestIQ · Sent to {b.email}</p>
+  </div>
+</div></body></html>"""
+        try:
+            msg = Message(
+                subject=f'Your Training Fee & Next Steps — {prog_label}',
+                recipients=[b.email],
+                html=html
+            )
+            mail.send(msg)
+            sent += 1
+        except Exception as e:
+            logger.error(f'Training payment email failed → {b.email}: {e}')
+            failed += 1
+    return redirect(url_for('admin_training', training_sent=sent, training_failed=failed))
 
 
 # ============================================================
@@ -6865,7 +6941,7 @@ def api_training_book():
 
     b = TrainingBooking(
         booking_type=data.get('booking_type', 'individual'),
-        full_name=data.get('full_name', '').strip(),
+        full_name=_dedup_name(data.get('full_name', '').strip()),
         email=data.get('email', '').strip().lower(),
         phone=data.get('phone', '').strip(),
         organization=data.get('organization', '').strip(),
@@ -6926,6 +7002,51 @@ def api_cv_submit():
 # ── YIN PROGRAMS ──────────────────────────────────────────────────────────────
 
 import re as _re
+
+# ── Patch DB columns that may be missing on existing deployments ──────────────
+def _patch_db_columns():
+    stmts = [
+        "ALTER TABLE yin_registrations ADD COLUMN welcome_sent BOOLEAN NOT NULL DEFAULT 0",
+    ]
+    with db.engine.connect() as conn:
+        for sql in stmts:
+            try:
+                conn.execute(db.text(sql))
+                conn.commit()
+            except Exception:
+                pass  # column already exists
+with app.app_context():
+    _patch_db_columns()
+
+
+def _dedup_name(name):
+    """Fix 'John Doe John Doe' doubled names typed into the form."""
+    name = ' '.join(name.split())
+    parts = name.split()
+    n = len(parts)
+    if n >= 2 and n % 2 == 0:
+        half = n // 2
+        if [p.lower() for p in parts[:half]] == [p.lower() for p in parts[half:]]:
+            return ' '.join(parts[:half])
+    return name
+
+
+# Training programme → (price label, duration)
+_TRAINING_PRICES = {
+    'financial analysis':          ('GHS 100', '3 days'),
+    'company valuation':           ('GHS 150', '3 days'),
+    'portfolio management':        ('GHS 300', '3 days'),
+    'hr management professional':  ('GHS 200', '3 days'),
+}
+
+def _training_price(category):
+    """Return (price_str, duration_str) for a training category, or defaults."""
+    key = (category or '').lower().strip()
+    for k, v in _TRAINING_PRICES.items():
+        if k in key:
+            return v
+    return ('TBD — our team will contact you', '')
+
 
 def _normalize_phone(phone):
     """Strip formatting and ensure leading 0 on Ghana numbers."""
@@ -7040,6 +7161,8 @@ def yin_register_page():
     )
     db.session.add(reg)
     db.session.commit()
+    _send_yin_welcome(reg)
+    db.session.commit()
 
     return render_template('hr_yin_register.html', programs=programs,
                            success=True, new_code=yin_code,
@@ -7104,6 +7227,8 @@ def yin_register(prog_id):
         yin_code=yin_code, confirmed=confirmed,
     )
     db.session.add(reg)
+    db.session.commit()
+    _send_yin_welcome(reg)
     db.session.commit()
     return render_template('hr_yin_programs.html',
                            programs=_active_programs,
@@ -7204,32 +7329,42 @@ def _yin_welcome_html(reg):
 </body></html>"""
 
 
+def _send_yin_welcome(reg):
+    """Send welcome email to one member and mark welcome_sent=True. Returns True on success."""
+    try:
+        msg = Message(
+            subject='Your YIN Code & Welcome to the Young Investors Network 🎉',
+            recipients=[reg.email],
+            html=_yin_welcome_html(reg)
+        )
+        mail.send(msg)
+        reg.welcome_sent = True
+        return True
+    except Exception as e:
+        logger.error(f'YIN welcome email failed → {reg.email}: {e}')
+        return False
+
+
 @app.route('/admin/yin-send-codes', methods=['POST'])
 def admin_yin_send_codes():
-    """One-click: send every YIN member their welcome email with their YIN code."""
+    """One-click: send welcome email to every member who has NOT yet received one."""
     if not session.get('admin_logged_in'):
         return redirect(url_for('admin_login'))
-    regs = YINRegistration.query.order_by(
+    regs = YINRegistration.query.filter_by(welcome_sent=False).order_by(
         db.cast(db.func.substr(YINRegistration.yin_code, 4), db.Integer).asc()
     ).all()
     sent = 0
-    failed = []
+    failed = 0
     for reg in regs:
         if not reg.email:
             continue
-        try:
-            msg = Message(
-                subject='Your YIN Code & Welcome to the Young Investors Network 🎉',
-                recipients=[reg.email],
-                html=_yin_welcome_html(reg)
-            )
-            mail.send(msg)
+        if _send_yin_welcome(reg):
             sent += 1
-        except Exception as e:
-            logger.error(f'YIN welcome email failed → {reg.email}: {e}')
-            failed.append(reg.email)
+        else:
+            failed += 1
+    db.session.commit()
     return redirect(url_for('admin_yin_programs',
-                            codes_sent=sent, codes_failed=len(failed)))
+                            codes_sent=sent, codes_failed=failed))
 
 
 @app.route('/admin/yin-email', methods=['GET', 'POST'])

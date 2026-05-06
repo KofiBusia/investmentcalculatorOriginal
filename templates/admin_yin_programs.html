@@ -51,7 +51,7 @@
         <h2 class="text-base font-extrabold text-blue-900 flex items-center gap-2 mb-1">
           <i class="fas fa-paper-plane text-blue-600"></i> Send YIN Codes to All Members
         </h2>
-        <p class="text-sm text-blue-700">Sends every registered member a branded welcome email with their personal YIN code. One click — no composing needed.</p>
+        <p class="text-sm text-blue-700">Sends a branded welcome email with their YIN code to every member who has <strong>not yet received one</strong>. New members are emailed automatically on registration.</p>
         {% if codes_sent is not none %}
         <p class="mt-2 text-sm font-bold {% if codes_sent > 0 %}text-green-700{% else %}text-gray-500{% endif %}">
           <i class="fas fa-check-circle mr-1"></i> {{ codes_sent }} email{% if codes_sent != 1 %}s{% endif %} sent successfully{% if codes_failed %} · <span class="text-red-600">{{ codes_failed }} failed</span>{% endif %}.
