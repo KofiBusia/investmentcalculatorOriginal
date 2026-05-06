@@ -570,6 +570,7 @@ with app.app_context():
             "ALTER TABLE gisi_payments ADD COLUMN IF NOT EXISTS admin_token VARCHAR(64)",
             "ALTER TABLE gisi_payments ADD COLUMN IF NOT EXISTS access_code VARCHAR(20)",
             "ALTER TABLE gisi_payments ADD COLUMN IF NOT EXISTS approved_at TIMESTAMP",
+            "ALTER TABLE yin_registrations ADD COLUMN IF NOT EXISTS welcome_sent BOOLEAN NOT NULL DEFAULT FALSE",
         ]
         for _sql in _migrate_sql:
             try:
@@ -7002,21 +7003,6 @@ def api_cv_submit():
 # ── YIN PROGRAMS ──────────────────────────────────────────────────────────────
 
 import re as _re
-
-# ── Patch DB columns that may be missing on existing deployments ──────────────
-def _patch_db_columns():
-    stmts = [
-        "ALTER TABLE yin_registrations ADD COLUMN welcome_sent BOOLEAN NOT NULL DEFAULT 0",
-    ]
-    with db.engine.connect() as conn:
-        for sql in stmts:
-            try:
-                conn.execute(db.text(sql))
-                conn.commit()
-            except Exception:
-                pass  # column already exists
-with app.app_context():
-    _patch_db_columns()
 
 
 def _dedup_name(name):
