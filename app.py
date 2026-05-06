@@ -6928,12 +6928,14 @@ def api_cv_submit():
 import re as _re
 
 def _normalize_phone(phone):
-    """Strip formatting and convert +233/233 prefix to leading 0."""
+    """Strip formatting and ensure leading 0 on Ghana numbers."""
     p = _re.sub(r'[\s\-\(\)\.]', '', phone.strip())
     if p.startswith('+233'):
         p = '0' + p[4:]
     elif p.startswith('233') and len(p) == 12:
         p = '0' + p[3:]
+    elif _re.match(r'^[2359]\d{8}$', p):  # 9-digit missing leading 0
+        p = '0' + p
     return p
 
 def _validate_phone(phone):
@@ -7225,7 +7227,8 @@ def admin_yin_program_csv(prog_id):
     w = csv.writer(out)
     w.writerow(['YIN Code','Full Name','Phone','Email','Program','Institution','Type','How Heard','Existing Member','Confirmed','Date Registered'])
     for r in rows:
-        w.writerow([r.yin_code, r.full_name, r.phone, r.email,
+        phone_cell = f'="{r.phone}"' if r.phone else ''
+        w.writerow([r.yin_code, r.full_name, phone_cell, r.email,
                     r.program_name, r.institution, r.institution_type, r.how_heard,
                     'Yes' if r.is_existing_member else 'No',
                     'Yes' if r.confirmed else 'No',
@@ -7364,7 +7367,8 @@ def super_admin_yin_csv():
     w = csv.writer(out)
     w.writerow(['YIN Code','Full Name','Phone','Email','Program','Institution','Type','How Heard','Existing Member','Confirmed','Date Registered'])
     for r in rows:
-        w.writerow([r.yin_code, r.full_name, r.phone, r.email,
+        phone_cell = f'="{r.phone}"' if r.phone else ''
+        w.writerow([r.yin_code, r.full_name, phone_cell, r.email,
                     r.program_name, r.institution, r.institution_type, r.how_heard,
                     'Yes' if r.is_existing_member else 'No',
                     'Yes' if r.confirmed else 'No',
