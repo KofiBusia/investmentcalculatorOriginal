@@ -7135,6 +7135,103 @@ def _yin_email_html(body_text, reg):
 </div></body></html>"""
 
 
+def _yin_welcome_html(reg):
+    """Branded welcome email with the member's YIN code — sent in one click."""
+    year = __import__('datetime').date.today().year
+    name = reg.full_name or 'Member'
+    code = reg.yin_code or 'N/A'
+    return f"""<!DOCTYPE html>
+<html><body style="margin:0;padding:0;background:#f1f5f9;">
+<div style="font-family:'Segoe UI',Arial,sans-serif;max-width:620px;margin:32px auto;">
+
+  <!-- Header -->
+  <div style="background:linear-gradient(135deg,#0f2744,#1d4ed8);padding:36px 36px 28px;border-radius:14px 14px 0 0;text-align:center;">
+    <p style="margin:0 0 6px;color:rgba(255,255,255,.6);font-size:.75rem;letter-spacing:.12em;text-transform:uppercase;">Young Investors Network</p>
+    <h1 style="margin:0;color:#fff;font-size:1.6rem;font-weight:900;letter-spacing:-.01em;">Welcome to YIN 🎉</h1>
+    <p style="margin:10px 0 0;color:rgba(255,255,255,.8);font-size:.95rem;">Your membership is confirmed</p>
+  </div>
+
+  <!-- YIN Code badge -->
+  <div style="background:#1d4ed8;padding:20px 36px;text-align:center;">
+    <p style="margin:0 0 6px;color:rgba(255,255,255,.7);font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;">Your Personal YIN Code</p>
+    <div style="display:inline-block;background:#fff;color:#0f2744;font-size:2rem;font-weight:900;letter-spacing:.15em;padding:10px 32px;border-radius:10px;">{code}</div>
+    <p style="margin:8px 0 0;color:rgba(255,255,255,.65);font-size:.78rem;">Keep this code — it identifies you in the network</p>
+  </div>
+
+  <!-- Body -->
+  <div style="background:#fff;padding:36px 36px 28px;border:1px solid #e2e8f0;border-top:none;">
+    <p style="margin:0 0 18px;font-size:1rem;color:#1e293b;line-height:1.7;">Dear <strong>{name}</strong>,</p>
+
+    <p style="margin:0 0 18px;font-size:.95rem;color:#334155;line-height:1.8;">
+      Congratulations on joining the <strong>Young Investors Network (YIN)</strong> — a community of driven young people building knowledge, skills, and connections in Ghana's financial markets.
+    </p>
+
+    <p style="margin:0 0 18px;font-size:.95rem;color:#334155;line-height:1.8;">
+      Your YIN Code <strong style="color:#1d4ed8;">{code}</strong> is your unique membership identifier. Quote it in all YIN activities, events, and communications.
+    </p>
+
+    <!-- 3 reasons -->
+    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:24px 28px;margin:24px 0;">
+      <p style="margin:0 0 16px;font-weight:800;color:#0f2744;font-size:.95rem;">Why your YIN membership matters 🚀</p>
+      <p style="margin:0 0 12px;font-size:.88rem;color:#334155;line-height:1.7;">
+        📈 <strong>Build real investment knowledge</strong> — access curated resources, exam prep tools, and capital markets insights on InvestIQ.
+      </p>
+      <p style="margin:0 0 12px;font-size:.88rem;color:#334155;line-height:1.7;">
+        🤝 <strong>Grow your network</strong> — connect with like-minded peers, mentors, and industry professionals shaping Ghana's financial future.
+      </p>
+      <p style="margin:0;font-size:.88rem;color:#334155;line-height:1.7;">
+        🏆 <strong>Open doors to opportunities</strong> — training programmes, stock pitch competitions, internships, and career pathways — all within YIN.
+      </p>
+    </div>
+
+    <p style="margin:0 0 18px;font-size:.95rem;color:#334155;line-height:1.8;">
+      The best investment you will ever make is in yourself. We are glad you have taken this step, and we look forward to growing with you.
+    </p>
+
+    <p style="margin:0 0 4px;font-size:.95rem;color:#1e293b;font-weight:700;">The YIN Team</p>
+    <p style="margin:0;font-size:.85rem;color:#64748b;">Young Investors Network · InvestIQ Platform</p>
+  </div>
+
+  <!-- Footer -->
+  <div style="background:#f1f5f9;padding:18px 36px;border-radius:0 0 14px 14px;border:1px solid #e2e8f0;border-top:none;text-align:center;">
+    <p style="margin:0;color:#94a3b8;font-size:.75rem;line-height:1.7;">
+      This email was sent to {reg.email} because you registered as a YIN member.<br/>
+      &copy; {year} InvestIQ / Young Investors Network · Ghana
+    </p>
+  </div>
+
+</div>
+</body></html>"""
+
+
+@app.route('/admin/yin-send-codes', methods=['POST'])
+def admin_yin_send_codes():
+    """One-click: send every YIN member their welcome email with their YIN code."""
+    if not session.get('admin_logged_in'):
+        return redirect(url_for('admin_login'))
+    regs = YINRegistration.query.order_by(
+        db.cast(db.func.substr(YINRegistration.yin_code, 4), db.Integer).asc()
+    ).all()
+    sent = 0
+    failed = []
+    for reg in regs:
+        if not reg.email:
+            continue
+        try:
+            msg = Message(
+                subject='Your YIN Code & Welcome to the Young Investors Network 🎉',
+                recipients=[reg.email],
+                html=_yin_welcome_html(reg)
+            )
+            mail.send(msg)
+            sent += 1
+        except Exception as e:
+            logger.error(f'YIN welcome email failed → {reg.email}: {e}')
+            failed.append(reg.email)
+    return redirect(url_for('admin_yin_programs',
+                            codes_sent=sent, codes_failed=len(failed)))
+
+
 @app.route('/admin/yin-email', methods=['GET', 'POST'])
 def admin_yin_email():
     if not session.get('admin_logged_in'):
@@ -7209,9 +7306,15 @@ def admin_yin_programs():
     phones_fixed  = request.args.get('phones_fixed', type=int)
     codes_fixed   = request.args.get('codes_fixed', type=int)
     resequenced   = request.args.get('resequenced', type=int)
+    codes_sent    = request.args.get('codes_sent', type=int)
+    codes_failed  = request.args.get('codes_failed', type=int)
+    mail_ready    = bool(app.config.get('MAIL_PASSWORD') and
+                         'your_gmail' not in (app.config.get('MAIL_PASSWORD') or ''))
     return render_template('admin_yin_programs.html', programs=programs, reg_counts=reg_counts,
                            dedup_deleted=dedup_deleted, phones_fixed=phones_fixed,
-                           codes_fixed=codes_fixed, resequenced=resequenced)
+                           codes_fixed=codes_fixed, resequenced=resequenced,
+                           codes_sent=codes_sent, codes_failed=codes_failed,
+                           mail_ready=mail_ready)
 
 
 @app.route('/admin/yin-programs/<int:prog_id>/registrations-csv')
