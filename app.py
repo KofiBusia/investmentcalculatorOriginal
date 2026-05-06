@@ -165,6 +165,8 @@ class TrainingBooking(db.Model):
     other_program       = db.Column(db.String(200), default='')   # when category == 'Other'
     referral_code_used  = db.Column(db.String(20),  default='')   # code entered at booking
     status              = db.Column(db.String(50), default='Pending')
+    payment_email_sent  = db.Column(db.Boolean, default=False, server_default='0')
+    payment_email_sent_at = db.Column(db.DateTime, nullable=True)
     created_at          = db.Column(db.DateTime, default=datetime.utcnow)
 
 
@@ -571,6 +573,8 @@ with app.app_context():
             "ALTER TABLE gisi_payments ADD COLUMN IF NOT EXISTS access_code VARCHAR(20)",
             "ALTER TABLE gisi_payments ADD COLUMN IF NOT EXISTS approved_at TIMESTAMP",
             "ALTER TABLE yin_registrations ADD COLUMN IF NOT EXISTS welcome_sent BOOLEAN NOT NULL DEFAULT FALSE",
+            "ALTER TABLE training_bookings ADD COLUMN IF NOT EXISTS payment_email_sent BOOLEAN NOT NULL DEFAULT FALSE",
+            "ALTER TABLE training_bookings ADD COLUMN IF NOT EXISTS payment_email_sent_at TIMESTAMP",
         ]
         for _sql in _migrate_sql:
             try:
@@ -6339,10 +6343,13 @@ def admin_training_send_payment_info():
                 html=html
             )
             mail.send(msg)
+            b.payment_email_sent = True
+            b.payment_email_sent_at = datetime.utcnow()
             sent += 1
         except Exception as e:
             logger.error(f'Training payment email failed → {b.email}: {e}')
             failed += 1
+    db.session.commit()
     return redirect(url_for('admin_training', training_sent=sent, training_failed=failed))
 
 

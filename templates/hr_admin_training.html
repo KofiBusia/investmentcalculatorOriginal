@@ -73,6 +73,7 @@
           <th class="px-4 py-3 text-left text-gray-600 font-semibold">Program</th>
           <th class="px-4 py-3 text-left text-gray-600 font-semibold">Organisation</th>
           <th class="px-4 py-3 text-left text-gray-600 font-semibold">Preferred Date</th>
+          <th class="px-4 py-3 text-left text-gray-600 font-semibold">Payment Email</th>
           <th class="px-4 py-3 text-left text-gray-600 font-semibold">Submitted</th>
         </tr>
       </thead>
@@ -90,6 +91,20 @@
           <td class="px-4 py-3 text-gray-600">{{ b.category or '—' }}</td>
           <td class="px-4 py-3 text-gray-500">{{ b.organization or '—' }}</td>
           <td class="px-4 py-3 text-gray-500">{{ b.preferred_date or '—' }}</td>
+          <td class="px-4 py-3">
+            {% if b.payment_email_sent %}
+            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-700">
+              <i class="fas fa-check-circle"></i> Sent
+              {% if b.payment_email_sent_at %}
+              <span class="font-normal text-green-600">{{ b.payment_email_sent_at.strftime('%d %b') }}</span>
+              {% endif %}
+            </span>
+            {% else %}
+            <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-gray-100 text-gray-400">
+              <i class="fas fa-minus-circle"></i> Not sent
+            </span>
+            {% endif %}
+          </td>
           <td class="px-4 py-3 text-gray-400 text-xs">{{ b.created_at.strftime('%d %b %Y') }}</td>
         </tr>
         {% else %}
