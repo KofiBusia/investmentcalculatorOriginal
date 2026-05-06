@@ -161,7 +161,13 @@
     </div>
     {% endif %}
 
-    <p class="text-xs text-gray-400 mb-4">Run in order: Step 1 → Step 2 → Step 3</p>
+    {% if resequenced is not none %}
+    <div class="mb-3 px-4 py-3 rounded-lg border bg-teal-50 border-teal-200 text-teal-800 text-sm font-semibold flex items-center gap-2">
+      <i class="fas fa-sort-numeric-up"></i> Done — {{ resequenced }} member{% if resequenced != 1 %}s{% endif %} resequenced. Codes now run YIN0001 → YIN{{ '%04d' % resequenced }}.
+    </div>
+    {% endif %}
+
+    <p class="text-xs text-gray-400 mb-4">Run Step 1 → 2 → 3 to clean existing data. Use Resequence only once as a final cleanup.</p>
 
     <div class="flex flex-wrap gap-3">
       <!-- Step 1 -->
@@ -194,6 +200,17 @@
                 style="background:linear-gradient(135deg,#4a044e,#9333ea);">
           <i class="fas fa-id-badge"></i>
           <span>Step 3 — Fix YIN Codes</span>
+        </button>
+      </form>
+
+      <!-- Resequence -->
+      <form method="POST" action="/admin/yin-registrations/resequence"
+            onsubmit="return confirm('WARNING: This reassigns ALL YIN codes from YIN0001 upwards in registration-date order.\n\nEvery member gets a new code — only do this once as a final cleanup after Steps 1–3.\n\nContinue?')">
+        <button type="submit"
+                class="flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm text-white cursor-pointer border-0"
+                style="background:linear-gradient(135deg,#134e4a,#0d9488);">
+          <i class="fas fa-sort-numeric-up"></i>
+          <span>Resequence YIN Codes</span>
         </button>
       </form>
     </div>

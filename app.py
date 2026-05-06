@@ -7206,9 +7206,10 @@ def admin_yin_programs():
     dedup_deleted = request.args.get('dedup_deleted', type=int)
     phones_fixed  = request.args.get('phones_fixed', type=int)
     codes_fixed   = request.args.get('codes_fixed', type=int)
+    resequenced   = request.args.get('resequenced', type=int)
     return render_template('admin_yin_programs.html', programs=programs, reg_counts=reg_counts,
                            dedup_deleted=dedup_deleted, phones_fixed=phones_fixed,
-                           codes_fixed=codes_fixed)
+                           codes_fixed=codes_fixed, resequenced=resequenced)
 
 
 @app.route('/admin/yin-programs/<int:prog_id>/registrations-csv')
@@ -7216,16 +7217,18 @@ def admin_yin_program_csv(prog_id):
     if not session.get('admin_logged_in') and not session.get('super_admin_logged_in'):
         return redirect(url_for('admin_login'))
     prog = YINProgram.query.get_or_404(prog_id)
-    rows = YINRegistration.query.filter_by(program_id=prog_id).order_by(YINRegistration.created_at.desc()).all()
+    rows = YINRegistration.query.filter_by(program_id=prog_id).order_by(
+        db.cast(db.func.substr(YINRegistration.yin_code, 4), db.Integer).asc()
+    ).all()
     import csv, io
     out = io.StringIO()
     w = csv.writer(out)
-    w.writerow(['ID','Program','Full Name','Phone','Email','Institution','Type','How Heard','Existing Member','YIN Code','Confirmed','Date'])
+    w.writerow(['YIN Code','Full Name','Phone','Email','Program','Institution','Type','How Heard','Existing Member','Confirmed','Date Registered'])
     for r in rows:
-        w.writerow([r.id, r.program_name, r.full_name, r.phone, r.email,
-                    r.institution, r.institution_type, r.how_heard,
+        w.writerow([r.yin_code, r.full_name, r.phone, r.email,
+                    r.program_name, r.institution, r.institution_type, r.how_heard,
                     'Yes' if r.is_existing_member else 'No',
-                    r.yin_code, 'Yes' if r.confirmed else 'No',
+                    'Yes' if r.confirmed else 'No',
                     r.created_at.strftime('%Y-%m-%d %H:%M')])
     out.seek(0)
     from flask import Response
@@ -7326,6 +7329,19 @@ def admin_yin_fix_codes():
     return redirect(url_for('admin_yin_programs', codes_fixed=fixed))
 
 
+@app.route('/admin/yin-registrations/resequence', methods=['POST'])
+def admin_yin_resequence():
+    """Reassign YIN codes 0001, 0002, 0003… in strict registration-date order.
+    Every code changes — only run this as a one-time cleanup."""
+    if not session.get('admin_logged_in'):
+        return redirect(url_for('admin_login'))
+    regs = YINRegistration.query.order_by(YINRegistration.created_at.asc(), YINRegistration.id.asc()).all()
+    for i, reg in enumerate(regs, start=1):
+        reg.yin_code = f'YIN{i:04d}'
+    db.session.commit()
+    return redirect(url_for('admin_yin_programs', resequenced=len(regs)))
+
+
 @app.route('/admin/yin-programs/<int:prog_id>/toggle', methods=['POST'])
 def admin_yin_toggle(prog_id):
     if not session.get('admin_logged_in'):
@@ -7340,16 +7356,18 @@ def admin_yin_toggle(prog_id):
 def super_admin_yin_csv():
     if not session.get('admin_logged_in') and not session.get('super_admin_logged_in'):
         return redirect(url_for('admin_login'))
-    rows = YINRegistration.query.order_by(YINRegistration.created_at.desc()).all()
+    rows = YINRegistration.query.order_by(
+        db.cast(db.func.substr(YINRegistration.yin_code, 4), db.Integer).asc()
+    ).all()
     import csv, io
     out = io.StringIO()
     w = csv.writer(out)
-    w.writerow(['ID','Program','Full Name','Phone','Email','Institution','Type','How Heard','Existing Member','YIN Code','Confirmed','Date'])
+    w.writerow(['YIN Code','Full Name','Phone','Email','Program','Institution','Type','How Heard','Existing Member','Confirmed','Date Registered'])
     for r in rows:
-        w.writerow([r.id, r.program_name, r.full_name, r.phone, r.email,
-                    r.institution, r.institution_type, r.how_heard,
+        w.writerow([r.yin_code, r.full_name, r.phone, r.email,
+                    r.program_name, r.institution, r.institution_type, r.how_heard,
                     'Yes' if r.is_existing_member else 'No',
-                    r.yin_code, 'Yes' if r.confirmed else 'No',
+                    'Yes' if r.confirmed else 'No',
                     r.created_at.strftime('%Y-%m-%d %H:%M')])
     out.seek(0)
     from flask import Response
