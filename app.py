@@ -63,6 +63,13 @@ app.config.update(
     SESSION_COOKIE_HTTPONLY=True,
     SQLALCHEMY_DATABASE_URI=_raw_db_url,
     SQLALCHEMY_TRACK_MODIFICATIONS=False,
+    SQLALCHEMY_ENGINE_OPTIONS={
+        'pool_size': 5,       # persistent connections per worker
+        'max_overflow': 15,   # burst connections per worker (5+15=20 max per worker)
+        'pool_timeout': 30,   # seconds to wait for a connection before error
+        'pool_recycle': 300,  # recycle connections every 5 min (prevents Postgres timeouts)
+        'pool_pre_ping': True,# test connection health before use
+    },
     SESSION_FILE_DIR=os.path.join(os.path.dirname(__file__), 'instance', 'sessions'),
     UPLOAD_FOLDER=UPLOAD_FOLDER,
     # Flask-Mail (Gmail SMTP)
