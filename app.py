@@ -2308,12 +2308,17 @@ def portfolio_return():
             real_avg = (1 + nominal) / (1 + avg_infl) - 1 if (1 + avg_infl) != 0 else 0
 
             # Compound inflation from monthly rates (total period inflation, not geometric mean)
+            has_subperiod = False
             if mi_raw:
                 mi_rates = [float(x.strip()) / 100 for x in mi_raw.split(',') if x.strip()]
-                tw_infl  = 1.0
-                for i in mi_rates:
-                    tw_infl *= (1 + i)
-                tw_infl -= 1  # total compound inflation over the period
+                if mi_rates:
+                    tw_infl = 1.0
+                    for i in mi_rates:
+                        tw_infl *= (1 + i)
+                    tw_infl -= 1  # total compound inflation over the period
+                    has_subperiod = True
+                else:
+                    tw_infl = avg_infl
             else:
                 tw_infl = avg_infl
             real_tw = (1 + nominal) / (1 + tw_infl) - 1 if (1 + tw_infl) != 0 else 0
@@ -2334,9 +2339,10 @@ def portfolio_return():
                 method_label=_method_labels.get(method, method.replace('_', ' ').title()),
                 nominal_return=f'{nominal:.4%}',
                 avg_inflation=f'{avg_infl:.4%}',
-                compound_inflation=f'{tw_infl:.4%}',
+                compound_inflation=f'{tw_infl:.4%}' if has_subperiod else None,
+                has_subperiod=has_subperiod,
                 real_return_avg=f'{real_avg:.4%}',
-                real_return_tw=f'{real_tw:.4%}',
+                real_return_tw=f'{real_tw:.4%}' if has_subperiod else None,
             )
         except Exception as exc:
             error = str(exc)
