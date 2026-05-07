@@ -2333,6 +2333,8 @@ def portfolio_return():
                 method=method,
                 method_label=_method_labels.get(method, method.replace('_', ' ').title()),
                 nominal_return=f'{nominal:.4%}',
+                avg_inflation=f'{avg_infl:.4%}',
+                compound_inflation=f'{tw_infl:.4%}',
                 real_return_avg=f'{real_avg:.4%}',
                 real_return_tw=f'{real_tw:.4%}',
             )
