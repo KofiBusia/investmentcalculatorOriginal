@@ -21,6 +21,7 @@ from flask_migrate import Migrate
 from flask_session import Session
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from flask_mail import Mail, Message
+from flask_caching import Cache
 from dotenv import load_dotenv
 import statistics
 import csv
@@ -50,6 +51,8 @@ if _raw_db_url.startswith('postgres://'):
 app.config.update(
     SECRET_KEY=os.environ['SECRET_KEY'],
     MAX_CONTENT_LENGTH=50 * 1024 * 1024,  # 50 MB limit for book uploads
+    CACHE_TYPE='SimpleCache',
+    CACHE_DEFAULT_TIMEOUT=300,
     SESSION_TYPE='filesystem',
     SESSION_FILE_THRESHOLD=500,
     SESSION_PERMANENT=True,
@@ -97,6 +100,7 @@ logger.info("Application initialized")
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
 mail = Mail(app)
+cache = Cache(app)
 login_manager = LoginManager(app)
 login_manager.login_view = 'user_login'
 login_manager.login_message = 'Please log in to access this page.'
@@ -811,6 +815,7 @@ def enforce_freemium():
 
 # --- ROUTES ---
 @app.route('/')
+@cache.cached(timeout=300)
 def index():
     """Render the homepage."""
     logger.debug("Rendering index page")
@@ -3209,6 +3214,7 @@ def valuation_performance_calc():
 # ================================================================
 
 @app.route('/articles')
+@cache.cached(timeout=300, query_string=True)
 def articles():
     """Public articles listing."""
     category = request.args.get('category', '')
@@ -3231,6 +3237,7 @@ def article_detail(article_id):
 
 
 @app.route('/videos')
+@cache.cached(timeout=300)
 def videos():
     """Public videos listing."""
     vids = Video.query.filter_by(is_published=True).order_by(Video.created_at.desc()).all()
@@ -5217,6 +5224,7 @@ Always consult a qualified financial advisor.
 # ============================================================
 
 @app.route('/jobs')
+@cache.cached(timeout=300)
 def jobs_page():
     listings = JobListing.query.filter_by(is_active=True).order_by(JobListing.created_at.desc()).all()
     return render_template('hr_jobs.html', listings=listings)
@@ -7206,6 +7214,7 @@ def yin_register_page():
 
 
 @app.route('/yin-programs')
+@cache.cached(timeout=300)
 def yin_programs():
     programs = YINProgram.query.filter_by(is_active=True).order_by(YINProgram.created_at.desc()).all()
     return render_template('hr_yin_programs.html', programs=programs)
