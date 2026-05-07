@@ -3312,6 +3312,29 @@ def content_admin_login():
     return redirect(url_for('admin_login'))
 
 
+# ---- BROKEN-LINK REDIRECTS (old or incorrect URLs referenced in templates/email) ----
+
+@app.route('/calculate-fcfe')
+def redirect_calculate_fcfe():
+    return redirect('/fcfe', code=301)
+
+@app.route('/pe-vc')
+def redirect_pe_vc():
+    return redirect('/private-equity', code=301)
+
+@app.route('/mna')
+def redirect_mna():
+    return redirect('/#calculators', code=302)
+
+@app.route('/fcf_forecasting')
+def redirect_fcf_forecasting():
+    return redirect('/fcfe', code=301)
+
+@app.route('/programs')
+def redirect_programs():
+    return redirect('/yin-programs', code=301)
+
+
 @app.route('/content-admin/logout')
 def content_admin_logout():
     return redirect(url_for('admin_logout'))
