@@ -143,7 +143,7 @@ body{background:linear-gradient(135deg,#f0f4f8,#e6f0ff);min-height:100vh;}
       </div>
 
       <!-- Result rows with plain-English explanations -->
-      <div class="result-row">
+      <div class="result-row" data-label="Method" data-value="{{ result.method_label }}">
         <div>
           <p class="text-gray-500 text-sm">Method</p>
           <p class="text-xs text-gray-400 mt-0.5">The formula used to calculate the return</p>
@@ -151,7 +151,7 @@ body{background:linear-gradient(135deg,#f0f4f8,#e6f0ff);min-height:100vh;}
         <span class="font-semibold text-gray-800 text-sm text-right">{{ result.method_label }}</span>
       </div>
 
-      <div class="result-row">
+      <div class="result-row" data-label="Nominal Return" data-value="{{ result.nominal_return }}">
         <div>
           <p class="text-gray-500 text-sm">Nominal Return</p>
           <p class="text-xs text-gray-400 mt-0.5">Raw investment gain for the period — before adjusting for inflation</p>
@@ -159,7 +159,7 @@ body{background:linear-gradient(135deg,#f0f4f8,#e6f0ff);min-height:100vh;}
         <span class="font-semibold text-indigo-700 text-sm text-right">{{ result.nominal_return }}</span>
       </div>
 
-      <div class="result-row">
+      <div class="result-row" data-label="Avg Inflation Rate (period)" data-value="{{ result.avg_inflation }}">
         <div>
           <p class="text-gray-500 text-sm">Avg Inflation Rate (period)</p>
           <p class="text-xs text-gray-400 mt-0.5">The inflation rate you entered, covering the same period as the return</p>
@@ -168,7 +168,7 @@ body{background:linear-gradient(135deg,#f0f4f8,#e6f0ff);min-height:100vh;}
       </div>
 
       {% if result.has_subperiod %}
-      <div class="result-row">
+      <div class="result-row" data-label="Compound Inflation Rate (period)" data-value="{{ result.compound_inflation }}">
         <div>
           <p class="text-gray-500 text-sm">Compound Inflation Rate (period)</p>
           <p class="text-xs text-gray-400 mt-0.5">Your monthly inflation rates chained together: (1+i₁)×(1+i₂)×… −1. More precise than simple averaging</p>
@@ -177,7 +177,7 @@ body{background:linear-gradient(135deg,#f0f4f8,#e6f0ff);min-height:100vh;}
       </div>
       {% endif %}
 
-      <div class="result-row">
+      <div class="result-row" data-label="Real Return (Avg Inflation)" data-value="{{ result.real_return_avg }}">
         <div>
           <p class="text-gray-500 text-sm">Real Return (Avg Inflation)</p>
           <p class="text-xs text-gray-400 mt-0.5">Purchasing-power gain after removing inflation: (1+Nominal)÷(1+Avg Inflation)−1. What your money actually grew by in real terms</p>
@@ -186,7 +186,7 @@ body{background:linear-gradient(135deg,#f0f4f8,#e6f0ff);min-height:100vh;}
       </div>
 
       {% if result.has_subperiod %}
-      <div class="result-row">
+      <div class="result-row" data-label="Real Return (Compound Inflation)" data-value="{{ result.real_return_tw }}">
         <div>
           <p class="text-gray-500 text-sm">Real Return (Compound Inflation)</p>
           <p class="text-xs text-gray-400 mt-0.5">Same as above but uses the more precise compound inflation rate from your monthly figures</p>
@@ -339,6 +339,23 @@ function validateCSV(inputId, msg) {
   }
   return true;
 }
+
+// Override base CSV function: read from data-label / data-value attributes
+window.investiqDownloadCSV = function(fn) {
+  var rows = [['Metric', 'Value']];
+  document.querySelectorAll('.result-row[data-label]').forEach(function(el) {
+    var l = el.dataset.label, v = el.dataset.value;
+    if (l && v) rows.push([l, v]);
+  });
+  if (rows.length <= 1) { alert('No results to download yet.'); return; }
+  var csv = rows.map(function(r) {
+    return r.map(function(c) { return '"' + String(c).replace(/"/g, '""') + '"'; }).join(',');
+  }).join('\n');
+  var a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = (fn || 'investiq_result') + '.csv';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+};
 
 document.querySelector('form').addEventListener('submit', function(e) {
   if (!validateCSV('data', 'Data must be comma-separated numbers (e.g., 0.05, -0.02).')) e.preventDefault();
