@@ -8,7 +8,8 @@ body{background:linear-gradient(135deg,#f0f4f8,#e6f0ff);min-height:100vh;}
 .input-field:focus{outline:none;border-color:#4f46e5;box-shadow:0 0 0 3px rgba(79,70,229,.1);}
 .result-row{display:flex;justify-content:space-between;align-items:center;padding:.6rem 0;border-bottom:1px solid #f1f5f9;}
 .result-row:last-child{border-bottom:none;}
-.method-hint{background:#f0f4ff;border:1px solid #c7d2fe;border-radius:.5rem;padding:.75rem 1rem;font-size:.82rem;color:#4338ca;margin-top:.5rem;display:none;}
+.method-hint{background:#f0f4ff;border:1px solid #c7d2fe;border-radius:.5rem;padding:.75rem 1rem;font-size:.82rem;color:#4338ca;margin-top:.5rem;display:none;line-height:1.6;}
+.field-note{font-size:.78rem;color:#64748b;margin-top:.3rem;}
 </style>
 
 <header class="py-8 px-4" style="background:linear-gradient(135deg,#4f46e5,#7c3aed);">
@@ -38,40 +39,66 @@ body{background:linear-gradient(135deg,#f0f4f8,#e6f0ff);min-height:100vh;}
     </div>
     {% endif %}
 
+    {% set sel = request.form.get('method', 'twr') %}
+
     <form method="POST" action="{{ url_for('portfolio_return') }}" class="space-y-5">
 
+      <!-- Method -->
       <div>
         <label class="block text-sm font-semibold text-gray-700 mb-1">Return Method</label>
         <select name="method" id="method" class="input-field" onchange="updateHint()" required>
-          <option value="twr">Time-Weighted Rate of Return (TWR)</option>
-          <option value="mwr">Money-Weighted Rate of Return (MWR)</option>
-          <option value="modified psa_dietz">Modified Dietz Method</option>
-          <option value="simple_dietz">Simple Dietz Method</option>
-          <option value="irr">Internal Rate of Return (IRR)</option>
-          <option value="hpr">Holding Period Return (HPR)</option>
-          <option value="annualized">Annualized Return</option>
-          <option value="geometric_mean">Geometric Mean Return</option>
-          <option value="arithmetic_mean">Arithmetic Mean Return</option>
+          <option value="twr"            {% if sel=='twr'             %}selected{% endif %}>Time-Weighted Rate of Return (TWR)</option>
+          <option value="mwr"            {% if sel=='mwr'             %}selected{% endif %}>Money-Weighted Rate of Return (MWR)</option>
+          <option value="modified_dietz" {% if sel=='modified_dietz'  %}selected{% endif %}>Modified Dietz Method</option>
+          <option value="simple_dietz"   {% if sel=='simple_dietz'    %}selected{% endif %}>Simple Dietz Method</option>
+          <option value="irr"            {% if sel=='irr'             %}selected{% endif %}>Internal Rate of Return (IRR)</option>
+          <option value="hpr"            {% if sel=='hpr'             %}selected{% endif %}>Holding Period Return (HPR)</option>
+          <option value="annualized"     {% if sel=='annualized'      %}selected{% endif %}>Annualized Return (CAGR)</option>
+          <option value="geometric_mean" {% if sel=='geometric_mean'  %}selected{% endif %}>Geometric Mean Return</option>
+          <option value="arithmetic_mean"{% if sel=='arithmetic_mean' %}selected{% endif %}>Arithmetic Mean Return</option>
         </select>
       </div>
 
+      <!-- Data -->
       <div>
-        <label class="block text-sm font-semibold text-gray-700 mb-1">Data <span class="text-gray-400 font-normal">(comma-separated)</span></label>
+        <label class="block text-sm font-semibold text-gray-700 mb-1">Data <span class="text-gray-400 font-normal">(comma-separated numbers)</span></label>
         <div id="method-hint" class="method-hint"></div>
-        <textarea name="data" id="data" rows="3" class="input-field mt-2" style="resize:vertical;" placeholder="Select a method above to see the expected format" required></textarea>
+        <textarea name="data" id="data" rows="3" class="input-field mt-2" style="resize:vertical;"
+                  placeholder="Select a method above to see the expected format"
+                  required>{{ request.form.get('data', '') }}</textarea>
       </div>
 
+      <!-- Average Inflation Rate -->
       <div>
-        <label class="block text-sm font-semibold text-gray-700 mb-1">Average Inflation Rate (%)</label>
+        <label class="block text-sm font-semibold text-gray-700 mb-1">
+          Average Inflation Rate (%)
+          <span class="text-indigo-500 font-normal text-xs ml-1">— for the same period as your return data</span>
+        </label>
         <input type="number" step="0.01" name="average_inflation" id="average_inflation"
                value="{{ request.form.get('average_inflation', '') }}"
-               placeholder="e.g., 3.5" class="input-field" required min="0"/>
+               placeholder="e.g. 5.0 for a quarterly period, 20.0 for an annual period"
+               class="input-field" required min="0"/>
+        <p class="field-note">
+          <i class="fas fa-info-circle text-indigo-400 mr-1"></i>
+          Match the period of your return: if you computed a <strong>quarterly</strong> return, enter the <strong>quarterly</strong> inflation rate (not the annual rate).
+          For Ghana Q1 2026, the quarterly inflation rate is approximately <strong>5.0%</strong>.
+          If you only know the annual rate (e.g. 20%), divide by 4 for quarterly data: 20 ÷ 4 = <strong>5.0%</strong>.
+        </p>
       </div>
 
+      <!-- Monthly Inflation Rates -->
       <div>
-        <label class="block text-sm font-semibold text-gray-700 mb-1">Monthly Inflation Rates (%) <span class="text-gray-400 font-normal">optional, comma-separated</span></label>
+        <label class="block text-sm font-semibold text-gray-700 mb-1">
+          Sub-period Inflation Rates (%) <span class="text-gray-400 font-normal">optional, comma-separated</span>
+        </label>
         <textarea name="monthly_inflation" id="monthly_inflation" rows="2" class="input-field" style="resize:vertical;"
-                  placeholder="e.g., 0.3, 0.4, 0.2">{{ request.form.get('monthly_inflation', '') }}</textarea>
+                  placeholder="e.g. 1.6, 1.7, 1.7  (one rate per month of your period)">{{ request.form.get('monthly_inflation', '') }}</textarea>
+        <p class="field-note">
+          <i class="fas fa-info-circle text-indigo-400 mr-1"></i>
+          Enter one inflation rate per sub-period (e.g. one per month for a quarterly return).
+          These are compounded together to give a <strong>total period inflation</strong> for the "Real (Compound Inflation)" result.
+          Leave blank to use the average rate above for both real-return columns.
+        </p>
       </div>
 
       <button type="submit" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-semibold transition-colors">
@@ -80,10 +107,11 @@ body{background:linear-gradient(135deg,#f0f4f8,#e6f0ff);min-height:100vh;}
     </form>
 
     <!-- Formula reference -->
-    <div class="mt-5 bg-indigo-50 rounded-xl p-4 text-xs text-indigo-700">
+    <div class="mt-5 bg-indigo-50 rounded-xl p-4 text-xs text-indigo-700 space-y-1">
       <p class="font-semibold mb-1">Key Formulas</p>
       <p class="font-mono">TWR = [(1+r₁)×(1+r₂)×…×(1+rₙ)] − 1</p>
-      <p class="font-mono mt-1">Real Return ≈ Nominal − Inflation</p>
+      <p class="font-mono">Modified Dietz = (EMV−BMV−CF) ÷ (BMV + CF×W)</p>
+      <p class="font-mono">Real Return = (1+Nominal) ÷ (1+Inflation) − 1  <span class="text-indigo-400">[Fisher]</span></p>
     </div>
   </div>
 
@@ -104,16 +132,16 @@ body{background:linear-gradient(135deg,#f0f4f8,#e6f0ff);min-height:100vh;}
             <p class="text-lg font-bold text-white">{{ result.real_return_avg }}</p>
           </div>
           <div class="bg-blue-600 rounded-xl p-4 text-center">
-            <p class="text-blue-100 text-xs mb-1">Real (TW Inflation)</p>
+            <p class="text-blue-100 text-xs mb-1">Real (Compound Inflation)</p>
             <p class="text-lg font-bold text-white">{{ result.real_return_tw }}</p>
           </div>
         </div>
       </div>
 
-      <div class="result-row"><span class="text-gray-500 text-sm">Method</span><span class="font-semibold text-gray-800 text-sm">{{ result.method|title }}</span></div>
+      <div class="result-row"><span class="text-gray-500 text-sm">Method</span><span class="font-semibold text-gray-800 text-sm">{{ result.method_label }}</span></div>
       <div class="result-row"><span class="text-gray-500 text-sm">Nominal Return</span><span class="font-semibold text-indigo-700 text-sm">{{ result.nominal_return }}</span></div>
       <div class="result-row"><span class="text-gray-500 text-sm">Real Return (Avg Inflation)</span><span class="font-semibold text-emerald-700 text-sm">{{ result.real_return_avg }}</span></div>
-      <div class="result-row"><span class="text-gray-500 text-sm">Real Return (TW Inflation)</span><span class="font-semibold text-blue-700 text-sm">{{ result.real_return_tw }}</span></div>
+      <div class="result-row"><span class="text-gray-500 text-sm">Real Return (Compound Inflation)</span><span class="font-semibold text-blue-700 text-sm">{{ result.real_return_tw }}</span></div>
 
       <div class="mt-5 flex gap-3 flex-wrap">
         <a href="{{ url_for('portfolio_return') }}" class="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg font-medium text-sm flex items-center gap-2">
@@ -135,62 +163,135 @@ body{background:linear-gradient(135deg,#f0f4f8,#e6f0ff);min-height:100vh;}
     <!-- Method Guide -->
     <div class="calc-card">
       <button type="button" onclick="toggleSection('method-guide','guide-icon')" class="w-full text-left font-bold text-gray-800 flex justify-between items-center">
-        <span><i class="fas fa-book-open mr-2 text-indigo-500"></i>Method Guide</span>
+        <span><i class="fas fa-book-open mr-2 text-indigo-500"></i>Method Guide &amp; Input Format</span>
         <span id="guide-icon" class="text-gray-400">➕</span>
       </button>
       <div id="method-guide" class="hidden mt-4 space-y-3 text-sm text-gray-600">
-        <div class="bg-indigo-50 rounded-lg p-3"><strong>TWR</strong> — Time-Weighted Return. Input: periodic returns as decimals, e.g. <code>0.05, -0.02, 0.03</code></div>
-        <div class="bg-blue-50 rounded-lg p-3"><strong>MWR</strong> — Money-Weighted Return. Input: cash flows (negative = outflow), e.g. <code>-1000, 200, 250, 600</code></div>
-        <div class="bg-purple-50 rounded-lg p-3"><strong>Modified Dietz</strong> — Input: initial value, final value, cash flow, weight, e.g. <code>1000, 1500, 200, 0.5</code></div>
-        <div class="bg-green-50 rounded-lg p-3"><strong>Simple Dietz</strong> — Input: initial value, final value, cash flow, e.g. <code>1000, 1500, 200</code></div>
-        <div class="bg-yellow-50 rounded-lg p-3"><strong>IRR</strong> — Internal Rate of Return. Input: cash flows, e.g. <code>-1000, 200, 300, 500</code></div>
-        <div class="bg-orange-50 rounded-lg p-3"><strong>HPR</strong> — Holding Period Return. Input: initial price, final price, dividend, e.g. <code>100, 120, 5</code></div>
-        <div class="bg-red-50 rounded-lg p-3"><strong>Annualized</strong> — Input: total return, number of years, e.g. <code>0.1, 2</code></div>
-        <div class="bg-pink-50 rounded-lg p-3"><strong>Geometric / Arithmetic Mean</strong> — Input: periodic returns as decimals, e.g. <code>0.05, 0.03, -0.02</code></div>
+
+        <div class="bg-indigo-50 rounded-lg p-3">
+          <p><strong>TWR — Time-Weighted Return</strong></p>
+          <p class="mt-1">Input: sub-period returns as <strong>decimals</strong> (not percentages).</p>
+          <p class="font-mono mt-1 text-xs">e.g. 0.05, -0.02, 0.03</p>
+          <p class="mt-1 text-xs text-gray-500">→ means +5%, −2%, +3% in successive periods. Eliminates the effect of cash flows.</p>
+        </div>
+
+        <div class="bg-blue-50 rounded-lg p-3">
+          <p><strong>MWR — Money-Weighted Return</strong></p>
+          <p class="mt-1">Input: cash flows. First value = initial outflow (<strong>negative</strong>), subsequent = inflows (<strong>positive</strong>).</p>
+          <p class="font-mono mt-1 text-xs">e.g. -1000, 200, 250, 600</p>
+          <p class="mt-1 text-xs text-gray-500">→ Invested GHS 1,000; received GHS 200, 250, and 600 at equal intervals.</p>
+        </div>
+
+        <div class="bg-purple-50 rounded-lg p-3">
+          <p><strong>Modified Dietz</strong></p>
+          <p class="mt-1">Input: <code>Initial Value, Final Value, Cash Flow, Weight W</code></p>
+          <p class="font-mono mt-1 text-xs">e.g. 155723413.70, 165933966.65, 2784769.61, 0.5</p>
+          <p class="mt-2 text-xs font-semibold text-purple-700">How to calculate W (the cash-flow weight):</p>
+          <p class="text-xs mt-1 font-mono bg-purple-100 rounded p-2">W = (Total period days − Days before cash flow) ÷ Total period days</p>
+          <ul class="text-xs mt-1 space-y-1 list-disc list-inside text-gray-600">
+            <li>Q1 = 90 days. Contribution arrives on Day 30 → W = (90−30)÷90 = <strong>0.667</strong></li>
+            <li>Arrives on Day 45 (midpoint) → W = (90−45)÷90 = <strong>0.5</strong></li>
+            <li>Arrives at very start (Day 0) → W = <strong>1.0</strong></li>
+            <li>Arrives at very end → W = <strong>0.0</strong></li>
+            <li>Timing unknown → use <strong>0.5</strong> (midpoint assumption)</li>
+          </ul>
+          <p class="mt-1 text-xs text-gray-500">→ Best method when trustees want inflows excluded from performance measurement (GIPS-compliant).</p>
+        </div>
+
+        <div class="bg-green-50 rounded-lg p-3">
+          <p><strong>Simple Dietz</strong></p>
+          <p class="mt-1">Input: <code>Initial Value, Final Value, Cash Flow</code></p>
+          <p class="font-mono mt-1 text-xs">e.g. 1000, 1500, 200</p>
+          <p class="mt-1 text-xs text-gray-500">→ Assumes all cash flows arrive at the midpoint (W = 0.5 is fixed). Simpler but less precise than Modified Dietz.</p>
+        </div>
+
+        <div class="bg-yellow-50 rounded-lg p-3">
+          <p><strong>IRR — Internal Rate of Return</strong></p>
+          <p class="mt-1">Input: cash flows. First = initial investment as <strong>negative</strong> number.</p>
+          <p class="font-mono mt-1 text-xs">e.g. -1000, 200, 300, 500</p>
+          <p class="mt-1 text-xs text-gray-500">→ Assumes equal spacing between cash flows. Same as MWR conceptually; solved numerically.</p>
+        </div>
+
+        <div class="bg-orange-50 rounded-lg p-3">
+          <p><strong>HPR — Holding Period Return</strong></p>
+          <p class="mt-1">Input: <code>Initial Price, Final Price, Income/Dividend</code></p>
+          <p class="font-mono mt-1 text-xs">e.g. 100, 120, 5</p>
+          <p class="mt-1 text-xs text-gray-500">→ If no dividend was received, enter 0 as the third value: <code>100, 120, 0</code>. Works for any asset.</p>
+        </div>
+
+        <div class="bg-red-50 rounded-lg p-3">
+          <p><strong>Annualized Return (CAGR)</strong></p>
+          <p class="mt-1">Input: <code>Total return (decimal), Number of years</code></p>
+          <p class="font-mono mt-1 text-xs">e.g. 0.4726, 0.25 &nbsp;(for a Q1 return of 47.26% over 0.25 years)</p>
+          <p class="mt-1 text-xs text-gray-500">→ Enter 0.25 for one quarter, 0.5 for six months, 1 for one year, 2 for two years, etc.</p>
+        </div>
+
+        <div class="bg-pink-50 rounded-lg p-3">
+          <p><strong>Geometric Mean Return</strong></p>
+          <p class="mt-1">Input: periodic returns as <strong>decimals</strong>.</p>
+          <p class="font-mono mt-1 text-xs">e.g. 0.05, 0.03, -0.02</p>
+          <p class="mt-1 text-xs text-gray-500">→ The per-period average compounded rate. More accurate than arithmetic mean for multi-period analysis.</p>
+        </div>
+
+        <div class="bg-gray-50 rounded-lg p-3">
+          <p><strong>Arithmetic Mean Return</strong></p>
+          <p class="mt-1">Input: periodic returns as <strong>decimals</strong>.</p>
+          <p class="font-mono mt-1 text-xs">e.g. 0.05, 0.03, -0.02</p>
+          <p class="mt-1 text-xs text-gray-500">→ Simple average of returns. Used for expected return estimation; tends to overstate multi-period compounded returns.</p>
+        </div>
+
       </div>
     </div>
   </div>
 </main>
 
 <script>
-const methodExamples = {
-    'twr': {hint:'Periodic returns as decimals', ex:'e.g. 0.05, -0.02, 0.03'},
-    'mwr': {hint:'Cash flows (negative = outflow, positive = inflow)', ex:'e.g. -1000, 200, 250, 600'},
-    'modified psa_dietz': {hint:'Initial value, Final value, Cash flow, Weight (0–1)', ex:'e.g. 1000, 1500, 200, 0.5'},
-    'simple_dietz': {hint:'Initial value, Final value, Cash flow', ex:'e.g. 1000, 1500, 200'},
-    'irr': {hint:'Cash flows (first is initial outflow, rest are inflows)', ex:'e.g. -1000, 200, 300, 500'},
-    'hpr': {hint:'Initial price, Final price, Dividend', ex:'e.g. 100, 120, 5'},
-    'annualized': {hint:'Total return (decimal), Number of years', ex:'e.g. 0.1, 2'},
-    'geometric_mean': {hint:'Periodic returns as decimals', ex:'e.g. 0.05, 0.03, -0.02'},
-    'arithmetic_mean': {hint:'Periodic returns as decimals', ex:'e.g. 0.05, 0.03, -0.02'},
+const _SEL = '{{ sel }}';
+
+const methodMeta = {
+  'twr':             {label:'Time-Weighted Return (TWR)',    hint:'Enter sub-period returns as <strong>decimals</strong> (e.g. 0.05 = 5%, -0.02 = -2%)', ex:'0.05, -0.02, 0.03'},
+  'mwr':             {label:'Money-Weighted Return (MWR)',   hint:'Cash flows — <strong>negative = outflow</strong>, positive = inflow, one per period', ex:'-1000, 200, 250, 600'},
+  'modified_dietz':  {label:'Modified Dietz',               hint:'<strong>Four values:</strong> Initial Value, Final Value, Cash Flow, Weight W<br><small>W = (Total days − Days before CF) ÷ Total days &nbsp;|&nbsp; use 0.5 if timing unknown</small>', ex:'155723413.70, 165933966.65, 2784769.61, 0.5'},
+  'simple_dietz':    {label:'Simple Dietz',                 hint:'<strong>Three values:</strong> Initial Value, Final Value, Cash Flow (assumes midpoint timing)', ex:'1000, 1500, 200'},
+  'irr':             {label:'Internal Rate of Return (IRR)', hint:'Cash flows — <strong>first value must be negative</strong> (initial outflow)', ex:'-1000, 200, 300, 500'},
+  'hpr':             {label:'Holding Period Return (HPR)',   hint:'<strong>Three values:</strong> Initial Price, Final Price, Dividend/Income (use 0 if none)', ex:'100, 120, 5'},
+  'annualized':      {label:'Annualized Return (CAGR)',      hint:'<strong>Two values:</strong> Total return as decimal, Number of years (0.25 = one quarter)', ex:'0.0473, 0.25'},
+  'geometric_mean':  {label:'Geometric Mean Return',        hint:'Sub-period returns as <strong>decimals</strong>', ex:'0.05, 0.03, -0.02'},
+  'arithmetic_mean': {label:'Arithmetic Mean Return',       hint:'Sub-period returns as <strong>decimals</strong>', ex:'0.05, 0.03, -0.02'},
 };
 
 function updateHint() {
-    const method = document.getElementById('method').value;
-    const hintDiv = document.getElementById('method-hint');
-    const dataField = document.getElementById('data');
-    const info = methodExamples[method];
-    if (info) {
-        hintDiv.innerHTML = `<strong>${info.hint}</strong> — ${info.ex}`;
-        hintDiv.style.display = 'block';
-        dataField.placeholder = info.ex;
-    }
+  const method = document.getElementById('method').value;
+  const hintDiv = document.getElementById('method-hint');
+  const dataField = document.getElementById('data');
+  const info = methodMeta[method];
+  if (info) {
+    hintDiv.innerHTML = `<i class="fas fa-info-circle mr-1"></i>${info.hint}<br><span class="font-mono text-xs opacity-80">e.g. ${info.ex}</span>`;
+    hintDiv.style.display = 'block';
+    dataField.placeholder = 'e.g. ' + info.ex;
+  }
 }
+
+// Restore selected method and re-run hint on page load (after POST with error/result)
+window.addEventListener('load', function() {
+  const sel = document.getElementById('method');
+  if (_SEL) sel.value = _SEL;
+  updateHint();
+});
 
 function validateCSV(inputId, msg) {
-    const val = document.getElementById(inputId).value.trim();
-    if (val) {
-        const parts = val.split(',').map(v => v.trim());
-        if (parts.some(v => isNaN(v) || v === '')) { alert(msg); return false; }
-    }
-    return true;
+  const val = document.getElementById(inputId).value.trim();
+  if (val) {
+    const parts = val.split(',').map(v => v.trim());
+    if (parts.some(v => isNaN(v) || v === '')) { alert(msg); return false; }
+  }
+  return true;
 }
 
-window.addEventListener('load', updateHint);
 document.querySelector('form').addEventListener('submit', function(e) {
-    if (!validateCSV('data', 'Data must be comma-separated numbers (e.g., 0.05, -0.02).')) e.preventDefault();
-    if (document.getElementById('monthly_inflation').value.trim() &&
-        !validateCSV('monthly_inflation', 'Monthly inflation rates must be comma-separated numbers.')) e.preventDefault();
+  if (!validateCSV('data', 'Data must be comma-separated numbers (e.g., 0.05, -0.02).')) e.preventDefault();
+  if (document.getElementById('monthly_inflation').value.trim() &&
+      !validateCSV('monthly_inflation', 'Sub-period inflation rates must be comma-separated numbers.')) e.preventDefault();
 });
 </script>
 {% endblock %}

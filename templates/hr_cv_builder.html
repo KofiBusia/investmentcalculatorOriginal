@@ -6,6 +6,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
 <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
 body{font-family:'Inter',sans-serif;background:#f0f4f8;}
 .hero-gradient{background:linear-gradient(135deg,#0f172a,#1e3a5f);}
@@ -576,8 +577,11 @@ body{font-family:'Inter',sans-serif;background:#f0f4f8;}
           <button onclick="downloadHTML()" class="bg-blue-900 hover:bg-blue-800 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1">
             <i class="fas fa-code"></i> HTML
           </button>
-          <button onclick="printCV()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1">
-            <i class="fas fa-file-pdf"></i> PDF
+          <button id="save-pdf-btn" onclick="savePDF()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1">
+            <i class="fas fa-folder-open"></i> <span id="save-pdf-label">Save PDF</span>
+          </button>
+          <button onclick="printCV()" class="bg-gray-500 hover:bg-gray-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1" title="Open print dialog">
+            <i class="fas fa-print"></i> Print
           </button>
         </div>
       </div>
@@ -982,8 +986,61 @@ function downloadHTML(){
 function printCV(){
   var cvHtml=document.getElementById('cv-content').innerHTML;
   var win=window.open('','_blank');
-  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>CV — '+fv('full_name')+'</title><style>'+buildCSS(currentTemplate)+'</style></head><body>'+cvHtml+'</body></html>');
-  win.document.close(); win.onload=function(){win.print();win.close();};
+  win.document.write('<!DOCTYPE html><html><head><meta charset="UTF-8"><title>CV — '+fv('full_name')+'</title><style>'+buildCSS(currentTemplate)+'@media print{body{margin:0;padding:12px;}@page{margin:12mm;size:A4;}}</style></head><body>'+cvHtml+'</body></html>');
+  win.document.close(); win.onload=function(){win.print();};
+}
+
+async function savePDF(){
+  var btn=document.getElementById('save-pdf-btn');
+  var lbl=document.getElementById('save-pdf-label');
+  var cvEl=document.getElementById('cv-content');
+  var name=(fv('full_name').replace(/\s+/g,'_')||'my_cv')+'.pdf';
+
+  // Show loading state
+  btn.disabled=true; lbl.textContent='Generating…';
+
+  var opt={
+    margin:[8,8,8,8],
+    filename:name,
+    image:{type:'jpeg',quality:0.98},
+    html2canvas:{scale:2,useCORS:true,logging:false,backgroundColor:'#ffffff'},
+    jsPDF:{unit:'mm',format:'a4',orientation:'portrait'}
+  };
+
+  try{
+    var blob=await html2pdf().set(opt).from(cvEl).outputPdf('blob');
+
+    // Chrome/Edge: open native OS "Save File" dialog
+    if('showSaveFilePicker' in window){
+      try{
+        var fh=await window.showSaveFilePicker({
+          suggestedName:name,
+          types:[{description:'PDF File',accept:{'application/pdf':['.pdf']}}]
+        });
+        var ws=await fh.createWritable();
+        await ws.write(blob);
+        await ws.close();
+        lbl.textContent='Saved!';
+        setTimeout(function(){btn.disabled=false;lbl.textContent='Save PDF';},2000);
+        return;
+      }catch(e){
+        if(e.name==='AbortError'){btn.disabled=false;lbl.textContent='Save PDF';return;}
+        // API failed — fall through to regular download
+      }
+    }
+
+    // Fallback: trigger browser download (saves to browser's default folder)
+    var url=URL.createObjectURL(blob);
+    var a=document.createElement('a'); a.href=url; a.download=name;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    lbl.textContent='Downloaded!';
+    setTimeout(function(){btn.disabled=false;lbl.textContent='Save PDF';},2000);
+  }catch(err){
+    console.error('PDF error:',err);
+    alert('Could not generate PDF. Use the Print button and choose "Save as PDF" as the destination.');
+    btn.disabled=false; lbl.textContent='Save PDF';
+  }
 }
 
 // ─── Boot ─────────────────────────────────────────────────────────────────

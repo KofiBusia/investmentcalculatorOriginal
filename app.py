@@ -2256,7 +2256,7 @@ def portfolio_return():
                 if len(nums) < 2:
                     raise ValueError('MWR needs at least 2 cash flows.')
                 nominal = _irr(nums)
-            elif method == 'modified psa_dietz':
+            elif method == 'modified_dietz':
                 if len(nums) != 4:
                     raise ValueError('Modified Dietz: initial_value, final_value, cash_flow, weight (0–1)')
                 v0, v1, cf, w = nums
@@ -2307,19 +2307,31 @@ def portfolio_return():
             # Real return — Fisher equation: (1+Rn)/(1+Ri) − 1
             real_avg = (1 + nominal) / (1 + avg_infl) - 1 if (1 + avg_infl) != 0 else 0
 
-            # Time-weighted inflation from monthly rates
+            # Compound inflation from monthly rates (total period inflation, not geometric mean)
             if mi_raw:
                 mi_rates = [float(x.strip()) / 100 for x in mi_raw.split(',') if x.strip()]
                 tw_infl  = 1.0
                 for i in mi_rates:
                     tw_infl *= (1 + i)
-                tw_infl = tw_infl ** (1 / len(mi_rates)) - 1 if mi_rates else avg_infl
+                tw_infl -= 1  # total compound inflation over the period
             else:
                 tw_infl = avg_infl
             real_tw = (1 + nominal) / (1 + tw_infl) - 1 if (1 + tw_infl) != 0 else 0
 
+            _method_labels = {
+                'twr':             'Time-Weighted Return (TWR)',
+                'mwr':             'Money-Weighted Return (MWR)',
+                'modified_dietz':  'Modified Dietz',
+                'simple_dietz':    'Simple Dietz',
+                'irr':             'Internal Rate of Return (IRR)',
+                'hpr':             'Holding Period Return (HPR)',
+                'annualized':      'Annualized Return (CAGR)',
+                'geometric_mean':  'Geometric Mean Return',
+                'arithmetic_mean': 'Arithmetic Mean Return',
+            }
             result = dict(
                 method=method,
+                method_label=_method_labels.get(method, method.replace('_', ' ').title()),
                 nominal_return=f'{nominal:.4%}',
                 real_return_avg=f'{real_avg:.4%}',
                 real_return_tw=f'{real_tw:.4%}',
