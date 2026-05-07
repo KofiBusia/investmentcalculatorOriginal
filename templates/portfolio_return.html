@@ -81,8 +81,10 @@ body{background:linear-gradient(135deg,#f0f4f8,#e6f0ff);min-height:100vh;}
         <p class="field-note">
           <i class="fas fa-info-circle text-indigo-400 mr-1"></i>
           Match the period of your return: if you computed a <strong>quarterly</strong> return, enter the <strong>quarterly</strong> inflation rate (not the annual rate).
-          For Ghana Q1 2026, the quarterly inflation rate is approximately <strong>5.0%</strong>.
-          If you only know the annual rate (e.g. 20%), divide by 4 for quarterly data: 20 ÷ 4 = <strong>5.0%</strong>.
+          If you only know the annual rate, convert it using the compound formula:
+          <strong>Quarterly rate = (1 + Annual rate)<sup>1/4</sup> − 1</strong>.
+          Example: 20% annual → (1.20)<sup>0.25</sup> − 1 = <strong>4.66%</strong> quarterly.
+          Simple division (20 ÷ 4 = 5%) is incorrect — it overstates the quarterly rate because inflation compounds.
         </p>
       </div>
 
