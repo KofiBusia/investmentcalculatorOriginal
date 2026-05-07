@@ -20,5 +20,5 @@ services:
         value: app
 databases:
   - name: investment_insights
-    plan: starter
+    plan: free
     region: oregon

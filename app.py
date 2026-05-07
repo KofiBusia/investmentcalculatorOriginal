@@ -64,8 +64,8 @@ app.config.update(
     SQLALCHEMY_DATABASE_URI=_raw_db_url,
     SQLALCHEMY_TRACK_MODIFICATIONS=False,
     SQLALCHEMY_ENGINE_OPTIONS={
-        'pool_size': 5,       # persistent connections per worker
-        'max_overflow': 15,   # burst connections per worker (5+15=20 max per worker)
+        'pool_size': 3,       # persistent connections per worker (4 workers x 3 = 12 base)
+        'max_overflow': 8,    # burst connections per worker (4 workers x 11 = 44 peak max)
         'pool_timeout': 30,   # seconds to wait for a connection before error
         'pool_recycle': 300,  # recycle connections every 5 min (prevents Postgres timeouts)
         'pool_pre_ping': True,# test connection health before use
