@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Get Access — GISI Prep — InvestIQ</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body{font-family:'Inter',sans-serif;background:#f0f4f8;}
+    .hero-bg{background:linear-gradient(135deg,#0f172a,#1e3a5f);}
+    .card{background:#fff;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,.08);}
+    .input-field{width:100%;padding:.7rem 1rem;border:1.5px solid #e2e8f0;border-radius:.5rem;font-size:.93rem;}
+    .input-field:focus{outline:none;border-color:#1d4ed8;box-shadow:0 0 0 3px rgba(29,78,216,.1);}
+    .plan-card{border:2px solid #e2e8f0;border-radius:12px;padding:1.25rem;cursor:pointer;transition:border-color .15s;}
+    .plan-card.active{border-color:#1d4ed8;background:#eff6ff;}
+  </style>
+</head>
+<body class="text-gray-800">
+<header class="hero-bg text-white py-8 px-4">
+  <div class="max-w-4xl mx-auto">
+    <nav class="flex justify-between items-center mb-6 flex-wrap gap-3">
+      <a href="/" class="flex items-center gap-2 text-white text-xl font-bold"><i class="fas fa-chart-line text-blue-300"></i> Invest<span class="text-blue-300">IQ</span></a>
+      <a href="/gisi-prep" class="text-blue-300 hover:text-white text-sm"><i class="fas fa-arrow-left mr-1"></i>Back to Courses</a>
+    </nav>
+    <h1 class="text-3xl font-extrabold mb-2"><i class="fas fa-unlock mr-3 text-blue-300"></i>Get GISI Exam Prep Access</h1>
+    <p class="text-blue-100">Pay via MTN MoMo — admin approves within minutes and emails your access code.</p>
+  </div>
+</header>
+
+<main class="max-w-4xl mx-auto px-4 py-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+
+  <!-- Payment Form -->
+  <div class="card p-6">
+    <h2 class="text-xl font-bold text-gray-800 mb-5"><i class="fas fa-mobile-alt mr-2 text-green-600"></i>Payment Details</h2>
+    <form method="POST" action="/gisi-prep/pay/submit" class="space-y-4">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+      <!-- Plan selection -->
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-2">Choose Plan</label>
+        <div class="space-y-3">
+          <div class="plan-card active" id="plan-all-card" onclick="selectPlan('all')">
+            <label class="flex items-center gap-3 cursor-pointer">
+              <input type="radio" name="plan" value="all" id="plan-all" checked class="text-blue-600" onchange="updateUI()"/>
+              <div>
+                <p class="font-bold text-gray-800">All Courses Bundle <span class="text-blue-700 ml-2">GHS 200</span></p>
+                <p class="text-sm text-gray-500">Unlock all 7 GISI courses permanently</p>
+              </div>
+            </label>
+          </div>
+          <div class="plan-card" id="plan-single-card" onclick="selectPlan('single')">
+            <label class="flex items-center gap-3 cursor-pointer">
+              <input type="radio" name="plan" value="single" id="plan-single" class="text-blue-600" onchange="updateUI()"/>
+              <div>
+                <p class="font-bold text-gray-800">Single Course <span class="text-blue-700 ml-2">GHS 60</span></p>
+                <p class="text-sm text-gray-500">Access one course of your choice</p>
+              </div>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Course selector (single plan) -->
+      <div id="course-selector">
+        <label class="block text-sm font-semibold text-gray-700 mb-1">Select Course</label>
+        <select name="course_id" class="input-field">
+          {% for c in courses if not c.is_free %}
+          <option value="{{ c.id }}" {% if selected_course and selected_course.id == c.id %}selected{% endif %}>{{ c.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-1">Full Name</label>
+        <input type="text" name="full_name" class="input-field" placeholder="Your full name" required />
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-1">Email Address</label>
+        <input type="email" name="email" class="input-field" placeholder="Where to send your access code" required
+               value="{{ current_user.email if current_user.is_authenticated else '' }}" />
+      </div>
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-1">Phone (optional)</label>
+        <input type="text" name="phone" class="input-field" placeholder="+233..." />
+      </div>
+
+      <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+        <h3 class="font-bold text-yellow-800 text-sm mb-2"><i class="fas fa-mobile-alt mr-1"></i>How to Pay via MTN MoMo</h3>
+        <ol class="text-sm text-yellow-700 space-y-1 list-decimal list-inside">
+          <li>Send <strong id="amount-display">GHS 200</strong> to <strong>0244 000 000</strong> (placeholder — confirm with admin)</li>
+          <li>Copy the <strong>MoMo Transaction Reference</strong> from the confirmation SMS</li>
+          <li>Paste it below and submit this form</li>
+          <li>Admin verifies within 5 minutes and emails your access code</li>
+        </ol>
+      </div>
+
+      <div>
+        <label class="block text-sm font-semibold text-gray-700 mb-1">MoMo Transaction Reference <span class="text-red-500">*</span></label>
+        <input type="text" name="reference" class="input-field" placeholder="e.g. 23894721834" required />
+        <p class="text-xs text-gray-400 mt-1">Found in your MTN MoMo confirmation SMS.</p>
+      </div>
+
+      <button type="submit" class="w-full py-3.5 bg-blue-700 hover:bg-blue-800 text-white rounded-xl font-bold text-lg">
+        <i class="fas fa-paper-plane mr-2"></i>Submit Payment — <span id="btn-amount">GHS 200</span>
+      </button>
+    </form>
+  </div>
+
+  <!-- Right: what you get -->
+  <div class="space-y-5">
+    <div class="card p-6">
+      <h3 class="font-bold text-gray-800 mb-4"><i class="fas fa-check-circle mr-2 text-green-500"></i>What You Get</h3>
+      <ul class="space-y-3 text-sm text-gray-600">
+        <li class="flex items-start gap-2"><i class="fas fa-check text-green-500 mt-0.5"></i>250 questions per course — no repeats until all seen</li>
+        <li class="flex items-start gap-2"><i class="fas fa-check text-green-500 mt-0.5"></i>50 randomised questions per session</li>
+        <li class="flex items-start gap-2"><i class="fas fa-check text-green-500 mt-0.5"></i>Instant feedback + explanation after each answer</li>
+        <li class="flex items-start gap-2"><i class="fas fa-check text-green-500 mt-0.5"></i>Session history and score tracking</li>
+        <li class="flex items-start gap-2"><i class="fas fa-check text-green-500 mt-0.5"></i>Covers exact GISI syllabus topics</li>
+        <li class="flex items-start gap-2"><i class="fas fa-infinity text-blue-500 mt-0.5"></i>Lifetime access — no expiry</li>
+      </ul>
+    </div>
+    <div class="card p-5">
+      <h3 class="font-bold text-gray-800 mb-2"><i class="fas fa-shield-alt mr-2 text-blue-500"></i>Safe & Secure</h3>
+      <p class="text-sm text-gray-500">Every payment is manually verified by our admin before access is granted. You will receive a unique access code by email once confirmed.</p>
+    </div>
+    <div class="card p-5 bg-blue-50 border border-blue-200">
+      <p class="text-sm text-blue-700"><i class="fas fa-seedling mr-2"></i><strong>Foundation Stage is FREE</strong> — no payment needed. Log in and start practising immediately!</p>
+      <a href="/gisi-prep" class="inline-block mt-3 text-sm font-semibold text-blue-700 underline">Try Foundation for free →</a>
+    </div>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}{% for cat, msg in messages %}
+    <div class="p-4 rounded-xl {% if cat=='danger' %}bg-red-50 text-red-700 border border-red-200{% else %}bg-green-50 text-green-700 border border-green-200{% endif %}">{{ msg }}</div>
+    {% endfor %}{% endif %}
+    {% endwith %}
+  </div>
+</main>
+<footer class="bg-gray-900 text-white py-6 mt-4"><div class="max-w-4xl mx-auto px-4 text-center"><p class="text-gray-400 text-sm">© 2026 InvestIQ. For educational purposes. Not affiliated with GISI.</p></div></footer>
+
+<script>
+function selectPlan(plan) {
+  document.getElementById('plan-all').checked  = plan === 'all';
+  document.getElementById('plan-single').checked = plan === 'single';
+  document.getElementById('plan-all-card').classList.toggle('active', plan === 'all');
+  document.getElementById('plan-single-card').classList.toggle('active', plan === 'single');
+  updateUI();
+}
+function updateUI() {
+  const isSingle = document.getElementById('plan-single').checked;
+  document.getElementById('course-selector').style.display = isSingle ? 'block' : 'none';
+  const amt = isSingle ? 'GHS 60' : 'GHS 200';
+  document.getElementById('amount-display').textContent = amt;
+  document.getElementById('btn-amount').textContent = amt;
+}
+// Init
+document.addEventListener('DOMContentLoaded', function() {
+  const isSingle = document.getElementById('plan-single').checked;
+  document.getElementById('course-selector').style.display = isSingle ? 'block' : 'none';
+  {% if selected_course %}selectPlan('single');{% endif %}
+});
+</script>
+</body>
+</html>

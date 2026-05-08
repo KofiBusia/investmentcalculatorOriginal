@@ -323,6 +323,120 @@ class GISIPayment(db.Model):
     created_at    = db.Column(db.DateTime,    default=datetime.utcnow)
 
 
+# --- GISI EXAM PREP MODELS ---
+class GISICourse(db.Model):
+    __tablename__ = 'gisi_courses'
+    id          = db.Column(db.Integer, primary_key=True)
+    name        = db.Column(db.String(200), nullable=False)
+    slug        = db.Column(db.String(100), unique=True, nullable=False)
+    short_name  = db.Column(db.String(80), default='')
+    description = db.Column(db.Text, default='')
+    level       = db.Column(db.String(50), default='Foundation')  # Foundation / Intermediate / Professional
+    is_free     = db.Column(db.Boolean, default=False)
+    price_single = db.Column(db.Float, default=60.0)
+    icon        = db.Column(db.String(50), default='fas fa-book')
+    color       = db.Column(db.String(30), default='blue')
+    is_active   = db.Column(db.Boolean, default=True)
+    sort_order  = db.Column(db.Integer, default=0)
+    created_at  = db.Column(db.DateTime, default=datetime.utcnow)
+    questions   = db.relationship('GISIQuestion', backref='course', lazy='dynamic')
+
+
+class GISIQuestion(db.Model):
+    __tablename__ = 'gisi_questions'
+    id            = db.Column(db.Integer, primary_key=True)
+    course_id     = db.Column(db.Integer, db.ForeignKey('gisi_courses.id'), nullable=False)
+    chapter       = db.Column(db.String(200), default='')
+    chapter_num   = db.Column(db.Integer, default=1)
+    question_text = db.Column(db.Text, nullable=False)
+    option_a      = db.Column(db.Text, nullable=False)
+    option_b      = db.Column(db.Text, nullable=False)
+    option_c      = db.Column(db.Text, nullable=False)
+    option_d      = db.Column(db.Text, nullable=False)
+    correct_answer = db.Column(db.String(1), nullable=False)  # a, b, c, or d
+    explanation   = db.Column(db.Text, default='')
+    difficulty    = db.Column(db.String(20), default='Medium')
+    created_at    = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+class GISIUserAccess(db.Model):
+    __tablename__ = 'gisi_user_access'
+    id              = db.Column(db.Integer, primary_key=True)
+    user_id         = db.Column(db.Integer, db.ForeignKey('site_users.id'), nullable=True)
+    email           = db.Column(db.String(200), nullable=False, index=True)
+    course_id       = db.Column(db.Integer, db.ForeignKey('gisi_courses.id'), nullable=True)  # NULL = all courses
+    access_type     = db.Column(db.String(10), default='single')  # single | all
+    amount_paid     = db.Column(db.Float, default=0.0)
+    payment_ref     = db.Column(db.String(200), default='')
+    payment_status  = db.Column(db.String(20), default='pending')  # pending | paid
+    admin_token     = db.Column(db.String(64), default='', unique=True)
+    access_code     = db.Column(db.String(20), default='', unique=True)
+    approved_at     = db.Column(db.DateTime, nullable=True)
+    created_at      = db.Column(db.DateTime, default=datetime.utcnow)
+    course          = db.relationship('GISICourse', backref='access_records', lazy=True)
+
+
+class GISIQuizAttempt(db.Model):
+    __tablename__    = 'gisi_quiz_attempts'
+    id               = db.Column(db.Integer, primary_key=True)
+    user_id          = db.Column(db.Integer, db.ForeignKey('site_users.id'), nullable=False)
+    course_id        = db.Column(db.Integer, db.ForeignKey('gisi_courses.id'), nullable=False)
+    questions_order  = db.Column(db.Text, default='[]')   # JSON list of question IDs
+    answers_given    = db.Column(db.Text, default='{}')   # JSON {question_id: chosen_answer}
+    current_index    = db.Column(db.Integer, default=0)
+    score            = db.Column(db.Integer, default=0)
+    total_questions  = db.Column(db.Integer, default=50)
+    is_complete      = db.Column(db.Boolean, default=False)
+    created_at       = db.Column(db.DateTime, default=datetime.utcnow)
+    completed_at     = db.Column(db.DateTime, nullable=True)
+    course           = db.relationship('GISICourse', backref='quiz_attempts', lazy=True)
+    user             = db.relationship('SiteUser', backref='gisi_attempts', lazy=True)
+
+    @property
+    def questions_list(self):
+        try:
+            return json.loads(self.questions_order)
+        except Exception:
+            return []
+
+    @property
+    def answers_dict(self):
+        try:
+            return json.loads(self.answers_given)
+        except Exception:
+            return {}
+
+    @property
+    def progress_pct(self):
+        if self.total_questions == 0:
+            return 0
+        return int((self.current_index / self.total_questions) * 100)
+
+    @property
+    def score_pct(self):
+        if self.total_questions == 0:
+            return 0
+        return round((self.score / self.total_questions) * 100, 1)
+
+
+def _check_gisi_access(user_id, email, course_id):
+    """Return True if user has paid access to this course (or it is free)."""
+    course = GISICourse.query.get(course_id)
+    if not course or course.is_free:
+        return True
+    # Check for all-access
+    all_access = GISIUserAccess.query.filter_by(
+        email=email, access_type='all', payment_status='paid'
+    ).first()
+    if all_access:
+        return True
+    # Check single-course access
+    single = GISIUserAccess.query.filter_by(
+        email=email, course_id=course_id, payment_status='paid'
+    ).first()
+    return single is not None
+
+
 # --- CONTACT MESSAGE MODEL ---
 class ContactMessage(db.Model):
     __tablename__ = 'contact_messages'
@@ -586,6 +700,9 @@ with app.app_context():
             "ALTER TABLE yin_registrations ADD COLUMN IF NOT EXISTS welcome_sent BOOLEAN NOT NULL DEFAULT FALSE",
             "ALTER TABLE training_bookings ADD COLUMN IF NOT EXISTS payment_email_sent BOOLEAN NOT NULL DEFAULT FALSE",
             "ALTER TABLE training_bookings ADD COLUMN IF NOT EXISTS payment_email_sent_at TIMESTAMP",
+            # GISI user access unique constraints may already exist — ignore errors
+            "ALTER TABLE gisi_user_access ADD COLUMN IF NOT EXISTS access_code VARCHAR(20)",
+            "ALTER TABLE gisi_user_access ADD COLUMN IF NOT EXISTS admin_token VARCHAR(64)",
         ]
         for _sql in _migrate_sql:
             try:
@@ -5465,6 +5582,408 @@ def gisi_exams_redeem():
     return jsonify({'success': True, 'paid_sections': paid, 'name': pay.full_name})
 
 
+# ============================================================
+# GISI EXAM PREP — NEW COURSE-BASED QUIZ SYSTEM
+# ============================================================
+
+@app.route('/gisi-prep')
+def gisi_prep_hub():
+    courses = GISICourse.query.filter_by(is_active=True).order_by(GISICourse.sort_order).all()
+    user_access = {}
+    if current_user.is_authenticated:
+        for c in courses:
+            user_access[c.id] = _check_gisi_access(current_user.id, current_user.email, c.id)
+    return render_template('gisi_hub.html', courses=courses, user_access=user_access)
+
+
+@app.route('/gisi-prep/course/<slug>')
+@login_required
+def gisi_course_detail(slug):
+    course = GISICourse.query.filter_by(slug=slug, is_active=True).first_or_404()
+    has_access = _check_gisi_access(current_user.id, current_user.email, course.id)
+    if not has_access:
+        return redirect(url_for('gisi_payment', course_slug=slug))
+    total_q = course.questions.count()
+    # Past attempts (most recent first)
+    attempts = GISIQuizAttempt.query.filter_by(
+        user_id=current_user.id, course_id=course.id
+    ).order_by(GISIQuizAttempt.created_at.desc()).limit(5).all()
+    # Questions seen across all completed attempts
+    seen_ids = set()
+    for att in GISIQuizAttempt.query.filter_by(user_id=current_user.id, course_id=course.id, is_complete=True).all():
+        seen_ids.update(att.answers_dict.keys())
+    remaining = total_q - len(seen_ids)
+    if remaining < 0:
+        remaining = 0
+    return render_template('gisi_course_detail.html', course=course, attempts=attempts,
+                           total_q=total_q, remaining=remaining, seen=len(seen_ids))
+
+
+@app.route('/gisi-prep/quiz/start/<int:course_id>', methods=['POST'])
+@login_required
+def gisi_quiz_start(course_id):
+    import random as _rand
+    course = GISICourse.query.get_or_404(course_id)
+    has_access = _check_gisi_access(current_user.id, current_user.email, course_id)
+    if not has_access:
+        return redirect(url_for('gisi_payment', course_slug=course.slug))
+
+    # Collect question IDs the user has already seen in completed attempts
+    seen_ids = set()
+    for att in GISIQuizAttempt.query.filter_by(
+            user_id=current_user.id, course_id=course_id, is_complete=True).all():
+        seen_ids.update(str(k) for k in att.answers_dict.keys())
+
+    all_ids = [str(q.id) for q in course.questions.all()]
+    unseen = [qid for qid in all_ids if qid not in seen_ids]
+
+    # If fewer than 50 unseen remain, reset (use all questions)
+    QUIZ_SIZE = 50
+    if len(unseen) < QUIZ_SIZE:
+        unseen = all_ids  # full reset
+
+    selected = _rand.sample(unseen, min(QUIZ_SIZE, len(unseen)))
+    _rand.shuffle(selected)
+
+    attempt = GISIQuizAttempt(
+        user_id=current_user.id,
+        course_id=course_id,
+        questions_order=json.dumps(selected),
+        answers_given='{}',
+        current_index=0,
+        score=0,
+        total_questions=len(selected),
+        is_complete=False
+    )
+    db.session.add(attempt)
+    db.session.commit()
+    return redirect(url_for('gisi_quiz_question', attempt_id=attempt.id))
+
+
+@app.route('/gisi-prep/quiz/<int:attempt_id>')
+@login_required
+def gisi_quiz_question(attempt_id):
+    attempt = GISIQuizAttempt.query.get_or_404(attempt_id)
+    if attempt.user_id != current_user.id:
+        abort(403)
+    if attempt.is_complete:
+        return redirect(url_for('gisi_quiz_results', attempt_id=attempt_id))
+
+    q_list = attempt.questions_list
+    idx = attempt.current_index
+    if idx >= len(q_list):
+        # Mark complete
+        attempt.is_complete = True
+        attempt.completed_at = datetime.utcnow()
+        db.session.commit()
+        return redirect(url_for('gisi_quiz_results', attempt_id=attempt_id))
+
+    q_id = int(q_list[idx])
+    question = GISIQuestion.query.get_or_404(q_id)
+    course = attempt.course
+    return render_template('gisi_quiz.html',
+                           attempt=attempt, question=question,
+                           q_num=idx + 1, total=attempt.total_questions,
+                           course=course, feedback=None, last_correct=None)
+
+
+@app.route('/gisi-prep/quiz/<int:attempt_id>/answer', methods=['POST'])
+@login_required
+def gisi_quiz_answer(attempt_id):
+    attempt = GISIQuizAttempt.query.get_or_404(attempt_id)
+    if attempt.user_id != current_user.id:
+        abort(403)
+    if attempt.is_complete:
+        return redirect(url_for('gisi_quiz_results', attempt_id=attempt_id))
+
+    q_list = attempt.questions_list
+    idx = attempt.current_index
+    q_id = int(q_list[idx])
+    question = GISIQuestion.query.get_or_404(q_id)
+    chosen = request.form.get('answer', '').strip().lower()
+    answers = attempt.answers_dict
+    answers[str(q_id)] = chosen
+    attempt.answers_given = json.dumps(answers)
+    is_correct = (chosen == question.correct_answer)
+    if is_correct:
+        attempt.score += 1
+    attempt.current_index = idx + 1
+    if attempt.current_index >= attempt.total_questions:
+        attempt.is_complete = True
+        attempt.completed_at = datetime.utcnow()
+        db.session.commit()
+        return redirect(url_for('gisi_quiz_results', attempt_id=attempt_id))
+    db.session.commit()
+
+    # Show feedback before next question
+    next_q_id = int(q_list[attempt.current_index])
+    next_q = GISIQuestion.query.get(next_q_id)
+    course = attempt.course
+    return render_template('gisi_quiz.html',
+                           attempt=attempt, question=next_q,
+                           q_num=attempt.current_index + 1, total=attempt.total_questions,
+                           course=course,
+                           feedback={'chosen': chosen, 'correct': question.correct_answer,
+                                     'is_correct': is_correct, 'explanation': question.explanation,
+                                     'prev_question': question},
+                           last_correct=is_correct)
+
+
+@app.route('/gisi-prep/quiz/<int:attempt_id>/results')
+@login_required
+def gisi_quiz_results(attempt_id):
+    attempt = GISIQuizAttempt.query.get_or_404(attempt_id)
+    if attempt.user_id != current_user.id:
+        abort(403)
+    answers = attempt.answers_dict
+    q_list = attempt.questions_list
+    questions_detail = []
+    for qid_str in q_list:
+        q = GISIQuestion.query.get(int(qid_str))
+        if q:
+            chosen = answers.get(qid_str, '')
+            questions_detail.append({
+                'question': q,
+                'chosen': chosen,
+                'correct': q.correct_answer,
+                'is_correct': chosen == q.correct_answer,
+            })
+    course = attempt.course
+    pass_mark = int(attempt.total_questions * 0.60)
+    passed = attempt.score >= pass_mark
+    return render_template('gisi_results.html', attempt=attempt, course=course,
+                           questions_detail=questions_detail, passed=passed, pass_mark=pass_mark)
+
+
+@app.route('/gisi-prep/pay')
+def gisi_payment():
+    course_slug = request.args.get('course_slug', '')
+    courses = GISICourse.query.filter_by(is_active=True).order_by(GISICourse.sort_order).all()
+    paid_courses = courses  # shown in selector
+    selected_course = None
+    if course_slug:
+        selected_course = GISICourse.query.filter_by(slug=course_slug).first()
+    return render_template('gisi_payment.html', courses=paid_courses,
+                           selected_course=selected_course)
+
+
+@app.route('/gisi-prep/pay/submit', methods=['POST'])
+def gisi_payment_submit():
+    import secrets as _sec
+    full_name  = request.form.get('full_name', '').strip()
+    email      = request.form.get('email', '').strip()
+    phone      = request.form.get('phone', '').strip()
+    plan       = request.form.get('plan', 'single')   # single | all
+    course_id  = request.form.get('course_id', '')
+    reference  = request.form.get('reference', '').strip()
+
+    if not full_name or not email or not reference:
+        flash('Please fill in all required fields.', 'danger')
+        return redirect(url_for('gisi_payment'))
+
+    # Duplicate check
+    if GISIUserAccess.query.filter_by(payment_ref=reference).first():
+        flash('This MoMo reference has already been submitted.', 'danger')
+        return redirect(url_for('gisi_payment'))
+
+    amount      = 200.0 if plan == 'all' else 60.0
+    admin_token = _sec.token_urlsafe(32)
+    access_code = 'GISI-' + _sec.token_hex(3).upper()
+    cid         = int(course_id) if course_id.isdigit() and plan == 'single' else None
+
+    access = GISIUserAccess(
+        email=email,
+        user_id=current_user.id if current_user.is_authenticated else None,
+        course_id=cid,
+        access_type=plan,
+        amount_paid=amount,
+        payment_ref=reference,
+        payment_status='pending',
+        admin_token=admin_token,
+        access_code=access_code,
+    )
+    db.session.add(access)
+    db.session.commit()
+
+    base        = request.host_url.rstrip('/')
+    approve_url = f"{base}/gisi-prep/access/approve/{admin_token}"
+    reject_url  = f"{base}/gisi-prep/access/reject/{admin_token}"
+    course_name = GISICourse.query.get(cid).name if cid else "All Courses (Bundle)"
+
+    try:
+        msg = Message(
+            f'[ACTION REQUIRED] GISI Prep Payment — {full_name} — GHS{amount:.0f}',
+            sender=app.config.get('MAIL_USERNAME', 'kyeikofi@gmail.com'),
+            recipients=['kyeikofi@gmail.com']
+        )
+        msg.html = f'''
+<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#f8fafc;border-radius:12px;overflow:hidden;">
+  <div style="background:linear-gradient(135deg,#0f172a,#1e3a5f);padding:28px 32px;text-align:center;">
+    <h1 style="color:#fff;margin:0;font-size:22px;">GISI Exam Prep — Payment Approval Required</h1>
+    <p style="color:#93c5fd;margin:8px 0 0;font-size:14px;">InvestIQ</p>
+  </div>
+  <div style="padding:28px 32px;background:#fff;">
+    <table style="width:100%;border-collapse:collapse;font-size:15px;">
+      <tr><td style="padding:8px 0;color:#64748b;font-weight:600;width:130px;">Name</td><td style="color:#1e293b;font-weight:700;">{full_name}</td></tr>
+      <tr style="background:#f8fafc;"><td style="padding:8px 6px;color:#64748b;font-weight:600;">Email</td><td style="padding:8px 6px;">{email}</td></tr>
+      <tr><td style="padding:8px 0;color:#64748b;font-weight:600;">Phone</td><td>{phone or "—"}</td></tr>
+      <tr style="background:#f8fafc;"><td style="padding:8px 6px;color:#64748b;font-weight:600;">Plan</td><td><strong>GHS{amount:.0f} — {plan.title()}</strong></td></tr>
+      <tr><td style="padding:8px 0;color:#64748b;font-weight:600;">Course</td><td>{course_name}</td></tr>
+      <tr style="background:#f8fafc;"><td style="padding:8px 6px;color:#64748b;font-weight:600;">MoMo Ref</td><td style="font-family:monospace;font-weight:700;font-size:16px;">{reference}</td></tr>
+      <tr><td style="padding:8px 0;color:#64748b;font-weight:600;">Access Code</td><td style="font-family:monospace;font-weight:700;font-size:16px;letter-spacing:2px;">{access_code}</td></tr>
+    </table>
+    <div style="text-align:center;margin:24px 0;">
+      <a href="{approve_url}" style="display:inline-block;background:#16a34a;color:#fff;text-decoration:none;padding:14px 36px;border-radius:10px;font-weight:700;font-size:16px;margin:0 8px;">✅ Approve</a>
+      <a href="{reject_url}" style="display:inline-block;background:#dc2626;color:#fff;text-decoration:none;padding:14px 36px;border-radius:10px;font-weight:700;font-size:16px;margin:8px;">❌ Reject</a>
+    </div>
+  </div>
+</div>'''
+        mail.send(msg)
+    except Exception as e:
+        logger.error(f'GISI prep admin email failed: {e}')
+
+    return render_template('gisi_payment_pending.html', email=email, full_name=full_name,
+                           amount=amount, course_name=course_name)
+
+
+@app.route('/gisi-prep/access/approve/<admin_token>')
+def gisi_access_approve(admin_token):
+    access = GISIUserAccess.query.filter_by(admin_token=admin_token).first_or_404()
+    if access.payment_status == 'paid':
+        return '<div style="font-family:sans-serif;text-align:center;padding:80px;"><h2 style="color:#16a34a;">Already approved.</h2></div>'
+    access.payment_status = 'paid'
+    access.approved_at = datetime.utcnow()
+    db.session.commit()
+
+    base = request.host_url.rstrip('/')
+    hub_url = f"{base}/gisi-prep"
+    if access.access_type == 'all':
+        course_name = 'All GISI Courses (Bundle)'
+    elif access.course_id:
+        c = GISICourse.query.get(access.course_id)
+        course_name = c.name if c else 'Your Course'
+    else:
+        course_name = 'Your Course'
+
+    try:
+        msg = Message('✅ GISI Exam Prep Access Approved — Your Access Code',
+                      sender=app.config.get('MAIL_USERNAME', 'kyeikofi@gmail.com'),
+                      recipients=[access.email])
+        msg.html = f'''
+<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#fff;border-radius:12px;border:1px solid #e2e8f0;overflow:hidden;">
+  <div style="background:linear-gradient(135deg,#0f172a,#1e3a5f);padding:32px;text-align:center;">
+    <h1 style="color:#fff;margin:0;font-size:24px;">Payment Approved!</h1>
+    <p style="color:#93c5fd;margin:8px 0 0;">GISI Exam Preparation — InvestIQ</p>
+  </div>
+  <div style="padding:32px;text-align:center;">
+    <p style="color:#475569;font-size:16px;">Your payment for <strong>{course_name}</strong> has been verified.</p>
+    <p style="font-weight:600;font-size:15px;margin-bottom:12px;">Your Access Code</p>
+    <div style="background:#eff6ff;border:2px dashed #3b82f6;border-radius:12px;padding:20px 32px;display:inline-block;margin-bottom:24px;">
+      <span style="font-family:monospace;font-size:32px;font-weight:900;color:#1d4ed8;letter-spacing:4px;">{access.access_code}</span>
+    </div>
+    <p style="color:#64748b;font-size:14px;margin-bottom:24px;">Enter this code on the GISI Prep Hub to unlock your course(s). Keep it safe — it is unique to you.</p>
+    <a href="{hub_url}" style="display:inline-block;background:linear-gradient(135deg,#1e3a5f,#1d4ed8);color:#fff;text-decoration:none;padding:16px 40px;border-radius:12px;font-weight:700;font-size:17px;">Start Practising →</a>
+  </div>
+</div>'''
+        mail.send(msg)
+    except Exception as e:
+        logger.error(f'GISI access approval email failed: {e}')
+
+    return f'''<div style="font-family:Arial,sans-serif;text-align:center;padding:80px 32px;max-width:500px;margin:0 auto;">
+<h2 style="color:#16a34a;">✅ Approved!</h2>
+<p style="color:#475569;">Access granted for <strong>{course_name}</strong>.<br>Access code <strong style="font-family:monospace;">{access.access_code}</strong> emailed to {access.email}.</p></div>'''
+
+
+@app.route('/gisi-prep/access/reject/<admin_token>')
+def gisi_access_reject(admin_token):
+    access = GISIUserAccess.query.filter_by(admin_token=admin_token).first_or_404()
+    if access.payment_status != 'pending':
+        return f'<div style="font-family:sans-serif;text-align:center;padding:80px;"><h2>Already processed ({access.payment_status}).</h2></div>'
+    access.payment_status = 'rejected'
+    db.session.commit()
+    try:
+        msg = Message('GISI Exam Prep — Payment Could Not Be Verified',
+                      sender=app.config.get('MAIL_USERNAME', 'kyeikofi@gmail.com'),
+                      recipients=[access.email])
+        msg.html = f'''<div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;padding:40px;border:1px solid #e2e8f0;border-radius:12px;">
+<h2 style="color:#dc2626;">Payment Could Not Be Verified</h2>
+<p>We were unable to verify your MoMo reference <strong>{access.payment_ref}</strong> for GHS{access.amount_paid:.0f}.</p>
+<p>Please resubmit with the correct reference or contact <a href="mailto:kyeikofi@gmail.com">kyeikofi@gmail.com</a>.</p></div>'''
+        mail.send(msg)
+    except Exception:
+        pass
+    return '<div style="font-family:sans-serif;text-align:center;padding:80px;"><h2 style="color:#dc2626;">Rejected. User notified.</h2></div>'
+
+
+@app.route('/gisi-prep/redeem', methods=['POST'])
+@login_required
+def gisi_prep_redeem():
+    code = request.form.get('code', '').strip().upper()
+    if not code:
+        return jsonify({'success': False, 'message': 'Please enter your access code.'}), 400
+    access = GISIUserAccess.query.filter_by(access_code=code).first()
+    if not access:
+        return jsonify({'success': False, 'message': 'Access code not recognised. Check your approval email.'}), 400
+    if access.payment_status == 'pending':
+        return jsonify({'success': False, 'message': 'Payment still awaiting admin approval — you will receive your code by email once confirmed.'}), 400
+    if access.payment_status == 'rejected':
+        return jsonify({'success': False, 'message': 'This payment was rejected. Contact kyeikofi@gmail.com.'}), 400
+    if access.email.lower() != current_user.email.lower():
+        return jsonify({'success': False, 'message': 'This code was issued to a different account.'}), 403
+    # Link to current user if not already
+    if not access.user_id:
+        access.user_id = current_user.id
+        db.session.commit()
+    return jsonify({'success': True, 'message': 'Access unlocked! Redirecting…', 'redirect': url_for('gisi_prep_hub')})
+
+
+@app.route('/gisi-prep/seed')
+def gisi_prep_seed():
+    """One-time seed: populate GISICourse records and questions from gisi_questions.py."""
+    if GISICourse.query.count() > 0:
+        return jsonify({'status': 'already seeded', 'courses': GISICourse.query.count(),
+                        'questions': GISIQuestion.query.count()})
+    try:
+        from gisi_questions import FOUNDATION_QUESTIONS, INTERMEDIATE_QUESTIONS
+    except ImportError:
+        return jsonify({'error': 'gisi_questions.py not found'}), 500
+
+    courses_data = [
+        {'name': 'Foundation Stage', 'slug': 'foundation', 'short_name': 'Foundation',
+         'description': 'Core principles of investment, securities markets, economics, accounting, fixed income, equity, CIS, regulation, risk, and ethics. Ideal for exam beginners.',
+         'level': 'Foundation', 'is_free': True, 'icon': 'fas fa-seedling', 'color': 'green', 'sort_order': 1,
+         'questions': FOUNDATION_QUESTIONS},
+        {'name': 'Intermediate Stage', 'slug': 'intermediate', 'short_name': 'Intermediate',
+         'description': 'Corporate finance, financial analysis, equity valuation, fixed income, derivatives, portfolio management, risk, M&A, alternatives, and advanced regulation.',
+         'level': 'Intermediate', 'is_free': False, 'icon': 'fas fa-chart-line', 'color': 'blue', 'sort_order': 2,
+         'questions': INTERMEDIATE_QUESTIONS},
+    ]
+
+    for cd in courses_data:
+        qs = cd.pop('questions')
+        course = GISICourse(**cd)
+        db.session.add(course)
+        db.session.flush()
+        for q in qs:
+            gq = GISIQuestion(
+                course_id=course.id,
+                chapter=q.get('chapter', ''),
+                chapter_num=q.get('chapter_num', 1),
+                question_text=q['question'],
+                option_a=q['a'],
+                option_b=q['b'],
+                option_c=q['c'],
+                option_d=q['d'],
+                correct_answer=q['answer'],
+                explanation=q.get('explanation', ''),
+                difficulty=q.get('difficulty', 'Medium'),
+            )
+            db.session.add(gq)
+    db.session.commit()
+    return jsonify({'status': 'ok', 'courses': GISICourse.query.count(),
+                    'questions': GISIQuestion.query.count()})
+
+
 @app.route('/jobs/<int:job_id>/apply', methods=['GET', 'POST'])
 def job_apply(job_id):
     job = JobListing.query.get_or_404(job_id)
@@ -6254,6 +6773,27 @@ def employer_profile():
                 db.session.commit()
                 success = 'Password changed successfully.'
     return render_template('hr_employer_profile.html', emp=emp, error=error, success=success)
+
+
+@app.route('/admin/gisi-access')
+def admin_gisi_access():
+    if not session.get('admin_logged_in'):
+        return redirect(url_for('admin_login'))
+    records = GISIUserAccess.query.order_by(GISIUserAccess.created_at.desc()).all()
+    courses = {c.id: c for c in GISICourse.query.all()}
+    return render_template('admin_gisi_access.html', records=records, courses=courses)
+
+
+@app.route('/admin/gisi-access/<int:record_id>/approve', methods=['POST'])
+def admin_gisi_approve(record_id):
+    if not session.get('admin_logged_in'):
+        return redirect(url_for('admin_login'))
+    access = GISIUserAccess.query.get_or_404(record_id)
+    access.payment_status = 'paid'
+    access.approved_at = datetime.utcnow()
+    db.session.commit()
+    flash('Access approved and user notified.', 'success')
+    return redirect(url_for('admin_gisi_access'))
 
 
 # Admin HR routes

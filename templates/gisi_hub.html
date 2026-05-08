@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GISI Exam Prep — InvestIQ</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body{font-family:'Inter',sans-serif;background:#f0f4f8;min-height:100vh;}
+    .hero-bg{background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 60%,#1d4ed8 100%);}
+    .card{background:#fff;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,.08);transition:transform .2s,box-shadow .2s;}
+    .card:hover{transform:translateY(-3px);box-shadow:0 8px 30px rgba(0,0,0,.12);}
+    .badge-free{background:#dcfce7;color:#15803d;font-size:.7rem;font-weight:700;padding:.2rem .6rem;border-radius:.25rem;}
+    .badge-locked{background:#fee2e2;color:#dc2626;font-size:.7rem;font-weight:700;padding:.2rem .6rem;border-radius:.25rem;}
+    .badge-unlocked{background:#dbeafe;color:#1d4ed8;font-size:.7rem;font-weight:700;padding:.2rem .6rem;border-radius:.25rem;}
+    .input-field{width:100%;padding:.65rem 1rem;border:1.5px solid #e2e8f0;border-radius:.5rem;font-size:.93rem;}
+    .input-field:focus{outline:none;border-color:#1d4ed8;box-shadow:0 0 0 3px rgba(29,78,216,.1);}
+  </style>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1910810542133525" crossorigin="anonymous"></script>
+</head>
+<body class="text-gray-800">
+
+<header class="hero-bg text-white py-12 px-4">
+  <div class="max-w-5xl mx-auto">
+    <nav class="flex justify-between items-center mb-8 flex-wrap gap-3">
+      <a href="/" class="flex items-center gap-2 text-white text-xl font-bold"><i class="fas fa-chart-line text-blue-300"></i> Invest<span class="text-blue-300">IQ</span></a>
+      <div class="flex gap-5 text-sm flex-wrap">
+        <a href="/" class="text-blue-300 hover:text-white">Home</a>
+        <a href="/#calculators" class="text-blue-300 hover:text-white">Calculators</a>
+        {% if current_user.is_authenticated %}
+        <a href="/logout" class="text-blue-300 hover:text-white">Logout</a>
+        {% else %}
+        <a href="/login" class="text-blue-300 hover:text-white">Login</a>
+        {% endif %}
+      </div>
+    </nav>
+    <div class="text-center">
+      <div class="inline-flex items-center gap-2 bg-blue-900/40 text-blue-200 px-4 py-1.5 rounded-full text-sm font-medium mb-4">
+        <i class="fas fa-graduation-cap"></i> GISI Examination Preparation
+      </div>
+      <h1 class="text-4xl md:text-5xl font-extrabold mb-4">Securities Industry<br><span class="text-blue-300">Exam Prep Hub</span></h1>
+      <p class="text-blue-100 text-lg max-w-2xl mx-auto">Practice questions for Ghana Investment and Securities Institute (GISI) exams. 250 dynamic questions per course — no repetition until you have seen them all.</p>
+    </div>
+  </div>
+</header>
+
+<main class="max-w-5xl mx-auto px-4 py-10">
+
+  <!-- Access Code Redemption -->
+  {% if current_user.is_authenticated %}
+  <div class="card p-5 mb-8 border-l-4 border-blue-500">
+    <h3 class="font-bold text-gray-800 mb-3"><i class="fas fa-key mr-2 text-blue-600"></i>Have an Access Code?</h3>
+    <div class="flex gap-3">
+      <input type="text" id="access-code-input" placeholder="Enter code e.g. GISI-ABC123" class="input-field max-w-xs" />
+      <button onclick="redeemCode()" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold text-sm">Unlock</button>
+    </div>
+    <p id="redeem-msg" class="text-sm mt-2 hidden"></p>
+  </div>
+  {% endif %}
+
+  <!-- Flash messages -->
+  {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+  {% for cat, msg in messages %}
+  <div class="mb-4 p-4 rounded-lg {% if cat=='danger' %}bg-red-50 text-red-700 border border-red-200{% else %}bg-green-50 text-green-700 border border-green-200{% endif %}">{{ msg }}</div>
+  {% endfor %}
+  {% endif %}
+  {% endwith %}
+
+  <!-- Course Grid -->
+  <h2 class="text-2xl font-bold text-gray-800 mb-6">Available Courses</h2>
+  {% if courses %}
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+    {% for course in courses %}
+    {% set has_acc = user_access.get(course.id, false) %}
+    <div class="card p-6">
+      <div class="flex items-start justify-between mb-4">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-xl flex items-center justify-center text-white text-xl
+            {% if course.color == 'green' %}bg-green-500{% elif course.color == 'blue' %}bg-blue-600{% elif course.color == 'purple' %}bg-purple-600{% elif course.color == 'orange' %}bg-orange-500{% else %}bg-gray-600{% endif %}">
+            <i class="{{ course.icon }}"></i>
+          </div>
+          <div>
+            <h3 class="font-bold text-gray-800 text-lg">{{ course.name }}</h3>
+            <span class="text-xs text-gray-500 font-medium">{{ course.level }} Stage</span>
+          </div>
+        </div>
+        <div>
+          {% if course.is_free %}
+          <span class="badge-free">FREE</span>
+          {% elif has_acc %}
+          <span class="badge-unlocked">UNLOCKED</span>
+          {% else %}
+          <span class="badge-locked">LOCKED</span>
+          {% endif %}
+        </div>
+      </div>
+      <p class="text-sm text-gray-600 mb-4">{{ course.description }}</p>
+      <div class="flex items-center gap-3 text-sm text-gray-500 mb-5">
+        <span><i class="fas fa-question-circle mr-1 text-blue-400"></i>250 Questions</span>
+        <span><i class="fas fa-play-circle mr-1 text-blue-400"></i>50 per session</span>
+      </div>
+      {% if course.is_free or has_acc %}
+        {% if current_user.is_authenticated %}
+        <a href="/gisi-prep/course/{{ course.slug }}" class="block w-full text-center py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors">
+          <i class="fas fa-play mr-2"></i>Start Practising
+        </a>
+        {% else %}
+        <a href="/login?next=/gisi-prep/course/{{ course.slug }}" class="block w-full text-center py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-semibold transition-colors">
+          <i class="fas fa-sign-in-alt mr-2"></i>Login to Start
+        </a>
+        {% endif %}
+      {% else %}
+      <div class="space-y-2">
+        <p class="text-sm text-gray-500 font-medium"><i class="fas fa-lock mr-1 text-red-400"></i>GHS {{ "%.0f"|format(course.price_single) }} for this course &nbsp;·&nbsp; GHS 200 for all courses</p>
+        <a href="/gisi-prep/pay?course_slug={{ course.slug }}" class="block w-full text-center py-3 bg-gradient-to-r from-blue-700 to-blue-900 hover:from-blue-800 hover:to-blue-950 text-white rounded-lg font-semibold transition-colors">
+          <i class="fas fa-unlock mr-2"></i>Get Access — GHS {{ "%.0f"|format(course.price_single) }}
+        </a>
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="card p-10 text-center mb-10">
+    <i class="fas fa-books text-5xl text-gray-200 mb-4"></i>
+    <p class="text-gray-500">Courses are being loaded. Please check back shortly.</p>
+  </div>
+  {% endif %}
+
+  <!-- Why InvestIQ GISI Prep -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-10">
+    <div class="card p-5 text-center">
+      <i class="fas fa-random text-3xl text-blue-500 mb-3"></i>
+      <h4 class="font-bold text-gray-800 mb-1">No Repetition</h4>
+      <p class="text-sm text-gray-500">Questions are tracked — you won't see the same question twice until you've been through the full 250-question pool.</p>
+    </div>
+    <div class="card p-5 text-center">
+      <i class="fas fa-lightbulb text-3xl text-yellow-500 mb-3"></i>
+      <h4 class="font-bold text-gray-800 mb-1">Instant Feedback</h4>
+      <p class="text-sm text-gray-500">See the correct answer and explanation immediately after each question.</p>
+    </div>
+    <div class="card p-5 text-center">
+      <i class="fas fa-chart-bar text-3xl text-green-500 mb-3"></i>
+      <h4 class="font-bold text-gray-800 mb-1">Track Your Progress</h4>
+      <p class="text-sm text-gray-500">View your scores across sessions and see your improvement over time.</p>
+    </div>
+  </div>
+
+</main>
+
+<footer class="bg-gray-900 text-white py-6 mt-4">
+  <div class="max-w-5xl mx-auto px-4 text-center">
+    <p class="text-gray-400 text-sm">© 2026 InvestIQ. For educational purposes. Not affiliated with GISI.</p>
+  </div>
+</footer>
+
+<script>
+async function redeemCode() {
+  const code = document.getElementById('access-code-input').value.trim();
+  const msg = document.getElementById('redeem-msg');
+  if (!code) { msg.className='text-sm mt-2 text-red-600'; msg.textContent='Enter your access code.'; msg.classList.remove('hidden'); return; }
+  const fd = new FormData();
+  fd.append('code', code);
+  const r = await fetch('/gisi-prep/redeem', {method:'POST', body:fd});
+  const d = await r.json();
+  msg.classList.remove('hidden');
+  if (d.success) {
+    msg.className='text-sm mt-2 text-green-600 font-semibold';
+    msg.textContent = d.message;
+    setTimeout(() => { window.location = d.redirect || '/gisi-prep'; }, 1200);
+  } else {
+    msg.className='text-sm mt-2 text-red-600';
+    msg.textContent = d.message;
+  }
+}
+</script>
+</body>
+</html>
