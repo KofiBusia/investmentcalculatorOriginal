@@ -1261,12 +1261,10 @@ async function preloadDynamicSections(){
   }
 }
 
-document.addEventListener('DOMContentLoaded', function(){
-  initSessionQuestions();
-  updateTabs();
-  updateSectionMeta();
-  renderQuestion();
-  // Preload Foundation & Intermediate questions in background
+document.addEventListener('DOMContentLoaded', async function(){
+  // switchSection handles async fetch + renders — use it for the initial load
+  await switchSection(6);
+  // Preload Intermediate in background while user reads Foundation questions
   preloadDynamicSections();
 });
 </script>
