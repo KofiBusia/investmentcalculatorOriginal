@@ -939,7 +939,6 @@ def enforce_freemium():
 
 # --- ROUTES ---
 @app.route('/')
-@cache.cached(timeout=300)
 def index():
     """Render the homepage."""
     logger.debug("Rendering index page")
@@ -3338,7 +3337,6 @@ def valuation_performance_calc():
 # ================================================================
 
 @app.route('/articles')
-@cache.cached(timeout=300, query_string=True)
 def articles():
     """Public articles listing."""
     category = request.args.get('category', '')
@@ -3361,7 +3359,6 @@ def article_detail(article_id):
 
 
 @app.route('/videos')
-@cache.cached(timeout=300)
 def videos():
     """Public videos listing."""
     vids = Video.query.filter_by(is_published=True).order_by(Video.created_at.desc()).all()
@@ -5348,7 +5345,6 @@ Always consult a qualified financial advisor.
 # ============================================================
 
 @app.route('/jobs')
-@cache.cached(timeout=300)
 def jobs_page():
     listings = JobListing.query.filter_by(is_active=True).order_by(JobListing.created_at.desc()).all()
     return render_template('hr_jobs.html', listings=listings)
@@ -7787,7 +7783,6 @@ def yin_register_page():
 
 
 @app.route('/yin-programs')
-@cache.cached(timeout=300)
 def yin_programs():
     programs = YINProgram.query.filter_by(is_active=True).order_by(YINProgram.created_at.desc()).all()
     return render_template('hr_yin_programs.html', programs=programs)
