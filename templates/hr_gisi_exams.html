@@ -66,12 +66,12 @@
       <i class="fas fa-award"></i> Professional Certification Preparation
     </div>
     <h1 class="text-4xl md:text-5xl font-extrabold mb-4">Securities Industry Practice Questions</h1>
-    <p class="text-blue-200 text-lg max-w-2xl mx-auto">250 questions per subject across 7 subjects. <span class="text-yellow-300 font-semibold">Corporate Finance &amp; Foundation Stage are free.</span> Questions never repeat until you've seen the full pool.</p>
+    <p class="text-blue-200 text-lg max-w-2xl mx-auto">250 questions per subject across 7 subjects. <span class="text-yellow-300 font-semibold">Foundation Stage is free.</span> Questions never repeat until you've seen the full pool.</p>
     <div class="flex flex-wrap justify-center gap-4 mt-6 text-sm">
       <div class="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full"><i class="fas fa-list text-blue-300"></i> 7 Subjects</div>
       <div class="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full"><i class="fas fa-question text-blue-300"></i> 50 Questions Each</div>
       <div class="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full"><i class="fas fa-check-circle text-green-300"></i> Instant Results</div>
-      <div class="flex items-center gap-2 bg-green-500/20 border border-green-400/40 px-3 py-1.5 rounded-full text-green-300"><i class="fas fa-unlock"></i> 2 Free Subjects</div>
+      <div class="flex items-center gap-2 bg-green-500/20 border border-green-400/40 px-3 py-1.5 rounded-full text-green-300"><i class="fas fa-unlock"></i> Foundation Stage Free</div>
     </div>
   </div>
 </div>
@@ -93,15 +93,15 @@
   <!-- SECTION TABS -->
   <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 mb-6">
     <div class="flex gap-2 flex-wrap">
-      <button onclick="switchSection(1)" id="tab-1" class="tab-btn active"><i class="fas fa-unlock-alt mr-1 text-green-500"></i>Corporate Finance<span class="ml-1 text-xs bg-green-100 text-green-700 px-1.5 rounded-full font-semibold">FREE</span></button>
+      <button onclick="switchSection(1)" id="tab-1" class="tab-btn locked"><i class="fas fa-lock mr-1"></i>Corporate Finance</button>
       <button onclick="switchSection(2)" id="tab-2" class="tab-btn locked"><i class="fas fa-lock mr-1"></i>Financial Infrastructure</button>
       <button onclick="switchSection(3)" id="tab-3" class="tab-btn locked"><i class="fas fa-lock mr-1"></i>Investment Analysis</button>
       <button onclick="switchSection(4)" id="tab-4" class="tab-btn locked"><i class="fas fa-lock mr-1"></i>Legal &amp; Regulatory</button>
       <button onclick="switchSection(5)" id="tab-5" class="tab-btn locked"><i class="fas fa-lock mr-1"></i>Risk Management</button>
-      <button onclick="switchSection(6)" id="tab-6" class="tab-btn"><i class="fas fa-unlock-alt mr-1 text-green-500"></i>Foundation Stage<span class="ml-1 text-xs bg-green-100 text-green-700 px-1.5 rounded-full font-semibold">FREE</span></button>
+      <button onclick="switchSection(6)" id="tab-6" class="tab-btn active"><i class="fas fa-unlock-alt mr-1 text-green-500"></i>Foundation Stage<span class="ml-1 text-xs bg-green-100 text-green-700 px-1.5 rounded-full font-semibold">FREE</span></button>
       <button onclick="switchSection(7)" id="tab-7" class="tab-btn locked"><i class="fas fa-lock mr-1"></i>Intermediate Stage</button>
     </div>
-    <div class="mt-3 text-sm text-gray-500" id="section-subtitle">Investment Fundamentals — Free practice section</div>
+    <div class="mt-3 text-sm text-gray-500" id="section-subtitle">GISI Foundation Stage — Free practice section</div>
   </div>
 
   <!-- EXAM PANEL -->
@@ -110,8 +110,8 @@
     <!-- Section title + progress -->
     <div class="flex items-center justify-between mb-4">
       <div>
-        <h2 class="text-xl font-extrabold text-gray-800" id="section-title">Corporate Finance</h2>
-        <p class="text-sm text-gray-500 mt-0.5" id="section-desc">Free — 50 Multiple Choice Questions</p>
+        <h2 class="text-xl font-extrabold text-gray-800" id="section-title">Foundation Stage</h2>
+        <p class="text-sm text-gray-500 mt-0.5" id="section-desc">GISI Foundation Stage — Free — 50 Questions</p>
       </div>
       <div class="text-right">
         <div class="text-2xl font-extrabold text-blue-700" id="q-counter">1 / 50</div>
@@ -197,7 +197,7 @@
 
       <!-- PAYMENT REQUIRED (logged in but not paid) -->
       <div id="payment-required-content" style="display:none;">
-        <p class="text-gray-500 mb-6 max-w-md mx-auto">A small access fee is required to unlock this subject. Purchase any subject independently or get all 5 paid subjects at once.</p>
+        <p class="text-gray-500 mb-6 max-w-md mx-auto">A small access fee is required to unlock this subject. Purchase any subject independently or get all 6 paid subjects at once.</p>
         <div class="flex flex-col sm:flex-row gap-4 justify-center mb-6">
           <div class="flex-1 max-w-xs border-2 border-blue-200 rounded-2xl p-5 text-left hover:border-blue-400 transition-all cursor-pointer" onclick="openPayModal('single')">
             <div class="text-xs font-semibold text-blue-500 mb-1">SINGLE SUBJECT</div>
@@ -207,9 +207,9 @@
           </div>
           <div class="flex-1 max-w-xs border-2 border-green-300 rounded-2xl p-5 text-left relative hover:border-green-500 transition-all cursor-pointer bg-green-50" onclick="openPayModal('bundle')">
             <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-green-500 text-white text-xs font-bold px-3 py-0.5 rounded-full">BEST VALUE</div>
-            <div class="text-xs font-semibold text-green-600 mb-1">ALL 5 PAID SUBJECTS</div>
+            <div class="text-xs font-semibold text-green-600 mb-1">ALL 6 PAID SUBJECTS</div>
             <div class="text-3xl font-extrabold text-gray-800 mb-1">GHS 200</div>
-            <div class="text-sm text-gray-500">Save GHS 100 vs buying individually</div>
+            <div class="text-sm text-gray-500">Save GHS 160 vs buying individually</div>
             <button class="mt-3 w-full py-2 bg-green-600 text-white rounded-lg font-semibold text-sm hover:bg-green-700 transition-all">Select</button>
           </div>
         </div>
@@ -772,7 +772,7 @@ const QUESTIONS = {
 
 // ─── STATE ─────────────────────────────────────────────────────────────────
 const SECTION_META = {
-  1:{title:'Corporate Finance',desc:'Professional Level — 50 Multiple Choice Questions (Free)',sub:'Corporate Finance (Professional Level) — Free practice section'},
+  1:{title:'Corporate Finance',desc:'Professional Level — 50 Multiple Choice Questions',sub:'Corporate Finance (Professional Level)'},
   2:{title:'Financial Infrastructure',desc:'Professional Level — 50 Multiple Choice Questions',sub:'Financial Infrastructure (Professional Level)'},
   3:{title:'Investment Analysis',desc:'Professional Level — 50 Multiple Choice Questions',sub:'Investment Analysis (Professional Level)'},
   4:{title:'Legal & Regulatory Framework',desc:'Professional Level — 50 Multiple Choice Questions',sub:'Legal and Regulatory Framework'},
@@ -785,7 +785,7 @@ const isLoggedIn = {{ 'true' if current_user.is_authenticated else 'false' }};
 const userEmail  = '{{ current_user.email if current_user.is_authenticated else "" }}';
 const userName   = '{{ current_user.full_name if current_user.is_authenticated else "" }}';
 
-let currentSection = 1;
+let currentSection = 6;
 let currentQ = 0;
 let userAnswers = {};
 let submitted = {};
@@ -880,7 +880,7 @@ function updateTimerDisplay(){
   else if(timerSeconds<=600) bar.classList.add('timer-warning');
 }
 
-function hasSectionAccess(s){ return s === 1 || s === 6 || paidSections.includes(s); }
+function hasSectionAccess(s){ return s === 6 || paidSections.includes(s); }
 
 async function switchSection(s){
   if(!hasSectionAccess(s)){
@@ -925,7 +925,7 @@ function updateTabs(){
     else if(!hasSectionAccess(i)) tab.classList.add('locked');
     const icon = tab.querySelector('i');
     if(icon){
-      const freeSection = (i===1||i===6);
+      const freeSection = (i===6);
       icon.className = hasSectionAccess(i) ? (freeSection?'fas fa-unlock-alt mr-1 text-green-500':'fas fa-unlock-alt mr-1 text-blue-500') : 'fas fa-lock mr-1';
     }
   }
@@ -1225,7 +1225,7 @@ async function _redeemRequest(code, errDiv, btn, btnId, btnLabel){
 
 function showRedeemSuccess(name, sections){
   const banner = document.createElement('div');
-  const unlocked = sections.filter(s => s !== 1 && s !== 6);
+  const unlocked = sections.filter(s => s !== 6);
   const sLabel = unlocked.length > 1
     ? unlocked.map(s => SUBJECT_NAMES[s] || s).join(', ')
     : (unlocked.length === 1 ? SUBJECT_NAMES[unlocked[0]] : 'your subject');
@@ -1296,7 +1296,7 @@ document.addEventListener('DOMContentLoaded', function(){
 
       <p style="margin:0 0 14px;">
         <strong style="color:#cbd5e1;">2. Access Fees.</strong>
-        Sections 1 and 6 (Corporate Finance and Foundation Stage) are provided free of charge. Sections 2–5 and 7 (Intermediate Stage) require a one-time access fee (GHS 60 per section or GHS 200 for a bundle covering all 5 paid sections). Access fees are <strong style="color:#cbd5e1;">non-refundable</strong> once an access code has been issued and the relevant section(s) unlocked.
+        Section 6 (Foundation Stage) is provided free of charge. All other sections (1–5 and 7) require a one-time access fee (GHS 60 per section or GHS 200 for a bundle covering all 6 paid sections). Access fees are <strong style="color:#cbd5e1;">non-refundable</strong> once an access code has been issued and the relevant section(s) unlocked.
       </p>
 
       <p style="margin:0 0 14px;">

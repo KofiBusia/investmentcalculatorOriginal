@@ -5379,7 +5379,7 @@ def gisi_exams():
         payments = GISIPayment.query.filter_by(email=current_user.email, status='Approved').all()
         for pay in payments:
             if pay.plan == 'bundle':
-                paid_sections = list(set(paid_sections + [2, 3, 4, 5, 7]))
+                paid_sections = list(set(paid_sections + [1, 2, 3, 4, 5, 7]))
             elif pay.section not in paid_sections:
                 paid_sections.append(pay.section)
     return render_template('hr_gisi_exams.html', paid_sections=paid_sections)
@@ -5461,7 +5461,7 @@ def gisi_exams_pay():
         email_error = str(e)
         logger.error(f'GISI admin email failed: {e}')
 
-    sections_unlocking = [2, 3, 4, 5, 7] if plan == 'bundle' else [section]
+    sections_unlocking = [1, 2, 3, 4, 5, 7] if plan == 'bundle' else [section]
     return jsonify({
         'success': True,
         'pending': True,
@@ -5575,7 +5575,7 @@ def gisi_exams_redeem():
     paid = []
     for p in payments:
         if p.plan == 'bundle':
-            paid = list(set(paid + [2, 3, 4, 5, 7]))
+            paid = list(set(paid + [1, 2, 3, 4, 5, 7]))
         elif p.section not in paid:
             paid.append(p.section)
 
