@@ -66,12 +66,12 @@
       <i class="fas fa-award"></i> Professional Certification Preparation
     </div>
     <h1 class="text-4xl md:text-5xl font-extrabold mb-4">Securities Industry Practice Questions</h1>
-    <p class="text-blue-200 text-lg max-w-2xl mx-auto">250 multiple-choice questions across 5 professional subjects. <span class="text-yellow-300 font-semibold">Corporate Finance is free.</span> Choose any subject — access is independent per subject.</p>
+    <p class="text-blue-200 text-lg max-w-2xl mx-auto">250 questions per subject across 7 subjects. <span class="text-yellow-300 font-semibold">Corporate Finance &amp; Foundation Stage are free.</span> Questions never repeat until you've seen the full pool.</p>
     <div class="flex flex-wrap justify-center gap-4 mt-6 text-sm">
-      <div class="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full"><i class="fas fa-list text-blue-300"></i> 5 Subjects</div>
+      <div class="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full"><i class="fas fa-list text-blue-300"></i> 7 Subjects</div>
       <div class="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full"><i class="fas fa-question text-blue-300"></i> 50 Questions Each</div>
       <div class="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-full"><i class="fas fa-check-circle text-green-300"></i> Instant Results</div>
-      <div class="flex items-center gap-2 bg-green-500/20 border border-green-400/40 px-3 py-1.5 rounded-full text-green-300"><i class="fas fa-unlock"></i> Corporate Finance Free</div>
+      <div class="flex items-center gap-2 bg-green-500/20 border border-green-400/40 px-3 py-1.5 rounded-full text-green-300"><i class="fas fa-unlock"></i> 2 Free Subjects</div>
     </div>
   </div>
 </div>
@@ -98,6 +98,8 @@
       <button onclick="switchSection(3)" id="tab-3" class="tab-btn locked"><i class="fas fa-lock mr-1"></i>Investment Analysis</button>
       <button onclick="switchSection(4)" id="tab-4" class="tab-btn locked"><i class="fas fa-lock mr-1"></i>Legal &amp; Regulatory</button>
       <button onclick="switchSection(5)" id="tab-5" class="tab-btn locked"><i class="fas fa-lock mr-1"></i>Risk Management</button>
+      <button onclick="switchSection(6)" id="tab-6" class="tab-btn"><i class="fas fa-unlock-alt mr-1 text-green-500"></i>Foundation Stage<span class="ml-1 text-xs bg-green-100 text-green-700 px-1.5 rounded-full font-semibold">FREE</span></button>
+      <button onclick="switchSection(7)" id="tab-7" class="tab-btn locked"><i class="fas fa-lock mr-1"></i>Intermediate Stage</button>
     </div>
     <div class="mt-3 text-sm text-gray-500" id="section-subtitle">Investment Fundamentals — Free practice section</div>
   </div>
@@ -195,7 +197,7 @@
 
       <!-- PAYMENT REQUIRED (logged in but not paid) -->
       <div id="payment-required-content" style="display:none;">
-        <p class="text-gray-500 mb-6 max-w-md mx-auto">A small access fee is required to unlock this subject. Purchase any subject independently or get all 4 paid subjects at once.</p>
+        <p class="text-gray-500 mb-6 max-w-md mx-auto">A small access fee is required to unlock this subject. Purchase any subject independently or get all 5 paid subjects at once.</p>
         <div class="flex flex-col sm:flex-row gap-4 justify-center mb-6">
           <div class="flex-1 max-w-xs border-2 border-blue-200 rounded-2xl p-5 text-left hover:border-blue-400 transition-all cursor-pointer" onclick="openPayModal('single')">
             <div class="text-xs font-semibold text-blue-500 mb-1">SINGLE SUBJECT</div>
@@ -205,9 +207,9 @@
           </div>
           <div class="flex-1 max-w-xs border-2 border-green-300 rounded-2xl p-5 text-left relative hover:border-green-500 transition-all cursor-pointer bg-green-50" onclick="openPayModal('bundle')">
             <div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-green-500 text-white text-xs font-bold px-3 py-0.5 rounded-full">BEST VALUE</div>
-            <div class="text-xs font-semibold text-green-600 mb-1">ALL 4 PAID SUBJECTS</div>
+            <div class="text-xs font-semibold text-green-600 mb-1">ALL 5 PAID SUBJECTS</div>
             <div class="text-3xl font-extrabold text-gray-800 mb-1">GHS 200</div>
-            <div class="text-sm text-gray-500">Save GHS 40 vs buying individually</div>
+            <div class="text-sm text-gray-500">Save GHS 100 vs buying individually</div>
             <button class="mt-3 w-full py-2 bg-green-600 text-white rounded-lg font-semibold text-sm hover:bg-green-700 transition-all">Select</button>
           </div>
         </div>
@@ -774,9 +776,11 @@ const SECTION_META = {
   2:{title:'Financial Infrastructure',desc:'Professional Level — 50 Multiple Choice Questions',sub:'Financial Infrastructure (Professional Level)'},
   3:{title:'Investment Analysis',desc:'Professional Level — 50 Multiple Choice Questions',sub:'Investment Analysis (Professional Level)'},
   4:{title:'Legal & Regulatory Framework',desc:'Professional Level — 50 Multiple Choice Questions',sub:'Legal and Regulatory Framework'},
-  5:{title:'Risk Management',desc:'Professional Level — 50 Multiple Choice Questions',sub:'Risk Management (Professional Level)'}
+  5:{title:'Risk Management',desc:'Professional Level — 50 Multiple Choice Questions',sub:'Risk Management (Professional Level)'},
+  6:{title:'Foundation Stage',desc:'GISI Foundation — 50 Questions from 250-question pool (Free)',sub:'GISI Foundation Stage — Free practice section'},
+  7:{title:'Intermediate Stage',desc:'GISI Intermediate — 50 Questions from 250-question pool',sub:'GISI Intermediate Stage'}
 };
-const SUBJECT_NAMES = {1:'Corporate Finance',2:'Financial Infrastructure',3:'Investment Analysis',4:'Legal & Regulatory Framework',5:'Risk Management'};
+const SUBJECT_NAMES = {1:'Corporate Finance',2:'Financial Infrastructure',3:'Investment Analysis',4:'Legal & Regulatory Framework',5:'Risk Management',6:'Foundation Stage',7:'Intermediate Stage'};
 const isLoggedIn = {{ 'true' if current_user.is_authenticated else 'false' }};
 const userEmail  = '{{ current_user.email if current_user.is_authenticated else "" }}';
 const userName   = '{{ current_user.full_name if current_user.is_authenticated else "" }}';
@@ -787,8 +791,21 @@ let userAnswers = {};
 let submitted = {};
 let paidSections = {{ paid_sections | tojson }};
 let sessionQuestions = [];
+let sessionQuestionIndices = [];  // pool indices used, for non-repeating tracking
 let timerInterval = null;
 let timerSeconds = 3600;
+
+// ─── NON-REPEATING HELPERS (localStorage) ─────────────────────────────────
+function _seenKey(s){ return 'gisi_seen_s'+s+'_'+(userEmail||'anon'); }
+function getSeenIndices(s){
+  try{ return new Set(JSON.parse(localStorage.getItem(_seenKey(s))||'[]')); }catch{ return new Set(); }
+}
+function addSeenIndices(s, idxs){
+  const seen=getSeenIndices(s);
+  idxs.forEach(i=>seen.add(i));
+  localStorage.setItem(_seenKey(s), JSON.stringify([...seen]));
+}
+function clearSeenIndices(s){ localStorage.removeItem(_seenKey(s)); }
 
 function shuffleArray(arr){
   const a=[...arr];
@@ -800,8 +817,23 @@ function shuffleArray(arr){
 }
 
 function initSessionQuestions(){
-  const pool=shuffleArray(QUESTIONS[currentSection]);
-  sessionQuestions=pool.slice(0,50);
+  sessionQuestionIndices = [];
+  const pool = QUESTIONS[currentSection];
+  if(!pool || pool.length === 0){ sessionQuestions=[]; return; }
+  if(currentSection >= 6){
+    // Non-repeating: exclude already-seen pool indices
+    const seen = getSeenIndices(currentSection);
+    let unshown = pool.map((_,i)=>i).filter(i=>!seen.has(i));
+    if(unshown.length < 50){
+      clearSeenIndices(currentSection); // all seen — reset pool
+      unshown = pool.map((_,i)=>i);
+    }
+    const shuffled = shuffleArray(unshown);
+    sessionQuestionIndices = shuffled.slice(0, 50);
+    sessionQuestions = sessionQuestionIndices.map(i => pool[i]);
+  } else {
+    sessionQuestions = shuffleArray(pool).slice(0, 50);
+  }
 }
 
 function startTimer(){
@@ -848,12 +880,26 @@ function updateTimerDisplay(){
   else if(timerSeconds<=600) bar.classList.add('timer-warning');
 }
 
-function hasSectionAccess(s){ return s === 1 || paidSections.includes(s); }
+function hasSectionAccess(s){ return s === 1 || s === 6 || paidSections.includes(s); }
 
-function switchSection(s){
+async function switchSection(s){
   if(!hasSectionAccess(s)){
     showLocked(s);
     return;
+  }
+  // On-demand load for dynamic sections 6 and 7
+  if(s >= 6 && !QUESTIONS[s]){
+    showExam();
+    document.getElementById('question-area').innerHTML = '<div style="text-align:center;padding:50px 20px;color:#64748b;"><i class="fas fa-spinner fa-spin fa-2x" style="display:block;margin-bottom:12px;"></i>Loading questions…</div>';
+    document.getElementById('options-area') && (document.getElementById('options-area').innerHTML = '');
+    try {
+      const res = await fetch('/api/gisi-questions/'+s);
+      if(!res.ok) throw new Error('HTTP '+res.status);
+      QUESTIONS[s] = await res.json();
+    } catch(e){
+      document.getElementById('question-area').innerHTML = '<p style="color:#dc2626;text-align:center;padding:40px;">Failed to load questions. Please refresh the page.</p>';
+      return;
+    }
   }
   currentSection = s;
   currentQ = 0;
@@ -871,14 +917,16 @@ function switchSection(s){
 }
 
 function updateTabs(){
-  for(let i=1;i<=5;i++){
+  for(let i=1;i<=7;i++){
     const tab = document.getElementById('tab-'+i);
+    if(!tab) continue;
     tab.className = 'tab-btn';
     if(i === currentSection) tab.classList.add('active');
     else if(!hasSectionAccess(i)) tab.classList.add('locked');
     const icon = tab.querySelector('i');
     if(icon){
-      icon.className = hasSectionAccess(i) ? (i===1?'fas fa-unlock-alt mr-1 text-green-500':'fas fa-unlock-alt mr-1 text-blue-500') : 'fas fa-lock mr-1';
+      const freeSection = (i===1||i===6);
+      icon.className = hasSectionAccess(i) ? (freeSection?'fas fa-unlock-alt mr-1 text-green-500':'fas fa-unlock-alt mr-1 text-blue-500') : 'fas fa-lock mr-1';
     }
   }
 }
@@ -1019,12 +1067,16 @@ function renderResults(s){
     </div>`;
     review.appendChild(div);
   });
+  // Save seen questions for dynamic sections (non-repeating pool)
+  if(s >= 6 && sessionQuestionIndices.length > 0){
+    addSeenIndices(s, sessionQuestionIndices);
+  }
   const nextBtn = document.getElementById('btn-continue');
-  if(s < 5){
+  if(s < 7){
     const nextS = s + 1;
     nextBtn.classList.remove('hidden');
     nextBtn.onclick = ()=> switchSection(nextS);
-    nextBtn.innerHTML = `<i class="fas fa-arrow-right mr-2"></i>Continue to Section ${nextS}`;
+    nextBtn.innerHTML = `<i class="fas fa-arrow-right mr-2"></i>Continue to ${SUBJECT_NAMES[nextS]||'Next Section'}`;
   } else {
     nextBtn.classList.add('hidden');
   }
@@ -1173,7 +1225,7 @@ async function _redeemRequest(code, errDiv, btn, btnId, btnLabel){
 
 function showRedeemSuccess(name, sections){
   const banner = document.createElement('div');
-  const unlocked = sections.filter(s => s !== 1);
+  const unlocked = sections.filter(s => s !== 1 && s !== 6);
   const sLabel = unlocked.length > 1
     ? unlocked.map(s => SUBJECT_NAMES[s] || s).join(', ')
     : (unlocked.length === 1 ? SUBJECT_NAMES[unlocked[0]] : 'your subject');
@@ -1198,11 +1250,24 @@ function closeCodeModal(){
 }
 
 // ─── INIT ──────────────────────────────────────────────────────────────────
+async function preloadDynamicSections(){
+  for(const s of [6, 7]){
+    if(!QUESTIONS[s]){
+      try {
+        const r = await fetch('/api/gisi-questions/'+s);
+        if(r.ok) QUESTIONS[s] = await r.json();
+      } catch(e){ /* silent fail — will load on demand */ }
+    }
+  }
+}
+
 document.addEventListener('DOMContentLoaded', function(){
   initSessionQuestions();
   updateTabs();
   updateSectionMeta();
   renderQuestion();
+  // Preload Foundation & Intermediate questions in background
+  preloadDynamicSections();
 });
 </script>
 
@@ -1231,7 +1296,7 @@ document.addEventListener('DOMContentLoaded', function(){
 
       <p style="margin:0 0 14px;">
         <strong style="color:#cbd5e1;">2. Access Fees.</strong>
-        Section 1 is provided free of charge. Sections 2–5 require a one-time access fee (GHS 60 per section or GHS 200 for a bundle covering Sections 2–5). Access fees are <strong style="color:#cbd5e1;">non-refundable</strong> once an access code has been issued and the relevant section(s) unlocked.
+        Sections 1 and 6 (Corporate Finance and Foundation Stage) are provided free of charge. Sections 2–5 and 7 (Intermediate Stage) require a one-time access fee (GHS 60 per section or GHS 200 for a bundle covering all 5 paid sections). Access fees are <strong style="color:#cbd5e1;">non-refundable</strong> once an access code has been issued and the relevant section(s) unlocked.
       </p>
 
       <p style="margin:0 0 14px;">
@@ -1313,7 +1378,7 @@ document.addEventListener('DOMContentLoaded', function(){
 
       <p style="margin:0 0 14px;">
         <strong style="color:#cbd5e1;">Access Fees.</strong>
-        Payments made to access Sections 2–5 are access fees that support financial education content development on InvestIQ. All fees are non-refundable once an access code has been issued. These fees are charged solely by InvestIQ and are not associated with any certification body or regulatory authority.
+        Payments made to access Sections 2–5 and Section 7 (Intermediate Stage) are access fees that support financial education content development on InvestIQ. All fees are non-refundable once an access code has been issued. These fees are charged solely by InvestIQ and are not associated with any certification body or regulatory authority.
       </p>
 
       <p style="margin:0;">

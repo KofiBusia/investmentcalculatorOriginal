@@ -5379,7 +5379,7 @@ def gisi_exams():
         payments = GISIPayment.query.filter_by(email=current_user.email, status='Approved').all()
         for pay in payments:
             if pay.plan == 'bundle':
-                paid_sections = list(set(paid_sections + [2, 3, 4, 5]))
+                paid_sections = list(set(paid_sections + [2, 3, 4, 5, 7]))
             elif pay.section not in paid_sections:
                 paid_sections.append(pay.section)
     return render_template('hr_gisi_exams.html', paid_sections=paid_sections)
@@ -5461,7 +5461,7 @@ def gisi_exams_pay():
         email_error = str(e)
         logger.error(f'GISI admin email failed: {e}')
 
-    sections_unlocking = list(range(2, 6)) if plan == 'bundle' else [section]
+    sections_unlocking = [2, 3, 4, 5, 7] if plan == 'bundle' else [section]
     return jsonify({
         'success': True,
         'pending': True,
@@ -5575,11 +5575,37 @@ def gisi_exams_redeem():
     paid = []
     for p in payments:
         if p.plan == 'bundle':
-            paid = list(set(paid + [2, 3, 4, 5]))
+            paid = list(set(paid + [2, 3, 4, 5, 7]))
         elif p.section not in paid:
             paid.append(p.section)
 
     return jsonify({'success': True, 'paid_sections': paid, 'name': pay.full_name})
+
+
+@app.route('/api/gisi-questions/<int:section_id>')
+def api_gisi_questions(section_id):
+    """Return question pool for dynamic GISI sections (6=Foundation, 7=Intermediate)."""
+    if section_id not in (6, 7):
+        return jsonify({'error': 'Invalid section'}), 404
+    try:
+        from gisi_questions import FOUNDATION_QUESTIONS, INTERMEDIATE_QUESTIONS
+    except ImportError:
+        return jsonify({'error': 'Questions not available yet — run /gisi-prep/seed first'}), 500
+    pool = FOUNDATION_QUESTIONS if section_id == 6 else INTERMEDIATE_QUESTIONS
+    ans_map = {'a': 0, 'b': 1, 'c': 2, 'd': 3}
+    result = [
+        {
+            'id': i,
+            'q': q['question'],
+            'opts': [q['a'], q['b'], q['c'], q['d']],
+            'ans': ans_map.get(str(q.get('answer', 'a')).lower(), 0),
+            'expl': q.get('explanation', ''),
+        }
+        for i, q in enumerate(pool)
+    ]
+    resp = jsonify(result)
+    resp.headers['Cache-Control'] = 'public, max-age=3600'
+    return resp
 
 
 # ============================================================
