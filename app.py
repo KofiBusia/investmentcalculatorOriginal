@@ -5419,7 +5419,7 @@ def gisi_exams_pay():
     base = request.host_url.rstrip('/')
     approve_url = f"{base}/gisi-exams/approve/{admin_token}"
     reject_url  = f"{base}/gisi-exams/reject/{admin_token}"
-    section_label = f"Section {section}" if plan == 'single' else "Sections 2–5 (Bundle)"
+    section_label = f"Section {section}" if plan == 'single' else "All 6 Paid Subjects (Bundle)"
 
     # Email admin with approve/reject buttons
     try:
@@ -5484,7 +5484,7 @@ def gisi_exams_approve(admin_token):
     pay.approved_at = datetime.utcnow()
     db.session.commit()
 
-    section_label = f"Section {pay.section}" if pay.plan == 'single' else "Sections 2–5 (Bundle)"
+    section_label = f"Section {pay.section}" if pay.plan == 'single' else "All 6 Paid Subjects (Bundle)"
     base = request.host_url.rstrip('/')
     exam_url = f"{base}/gisi-exams"
 

@@ -1106,7 +1106,7 @@ function retrySection(){
 // ─── PAYMENT MODAL ─────────────────────────────────────────────────────────
 function openPayModal(plan){
   document.getElementById('pay-plan').value = plan;
-  document.getElementById('pay-section').value = currentSection;
+  // pay-section is already set by showLocked(s) — do NOT overwrite with currentSection
   document.getElementById('pay-amount-text').textContent = plan==='bundle'?'GHS 200':'GHS 60';
   // Pre-fill logged-in user details (read-only so the code is always tied to their account)
   const nameEl  = document.getElementById('pay-name');
