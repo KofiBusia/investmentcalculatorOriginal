@@ -889,16 +889,25 @@ async function switchSection(s){
   }
   // On-demand load for dynamic sections 6 and 7
   if(s >= 6 && !QUESTIONS[s]){
+    // Show loading state WITHOUT destroying the question DOM structure
+    const loadingEl = document.createElement('div');
+    loadingEl.id = 'q-loading-overlay';
+    loadingEl.style.cssText = 'position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.85);border-radius:16px;z-index:10;flex-direction:column;gap:12px;';
+    loadingEl.innerHTML = '<i class="fas fa-spinner fa-spin fa-2x" style="color:#1d4ed8;"></i><span style="color:#64748b;font-weight:600;font-size:14px;">Loading questions…</span>';
+    const panel = document.getElementById('exam-panel');
+    panel.style.position = 'relative';
+    panel.appendChild(loadingEl);
     showExam();
-    document.getElementById('question-area').innerHTML = '<div style="text-align:center;padding:50px 20px;color:#64748b;"><i class="fas fa-spinner fa-spin fa-2x" style="display:block;margin-bottom:12px;"></i>Loading questions…</div>';
-    document.getElementById('options-area') && (document.getElementById('options-area').innerHTML = '');
     try {
       const res = await fetch('/api/gisi-questions/'+s);
       if(!res.ok) throw new Error('HTTP '+res.status);
       QUESTIONS[s] = await res.json();
     } catch(e){
-      document.getElementById('question-area').innerHTML = '<p style="color:#dc2626;text-align:center;padding:40px;">Failed to load questions. Please refresh the page.</p>';
+      loadingEl.innerHTML = '<p style="color:#dc2626;font-weight:600;">Failed to load questions. Please refresh the page.</p>';
       return;
+    } finally {
+      const el = document.getElementById('q-loading-overlay');
+      if(el) el.remove();
     }
   }
   currentSection = s;
