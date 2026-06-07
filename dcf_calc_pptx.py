@@ -73,7 +73,7 @@ def build():
     prs=Presentation()
     prs.slide_width=Inches(13.33); prs.slide_height=Inches(7.5)
     blank=prs.slide_layouts[6]
-    TOT=13
+    TOT=16
 
     # ── S1 COVER ──────────────────────────────────────────────────────────────
     s=prs.slides.add_slide(blank)
@@ -182,10 +182,108 @@ def build():
     T(s,"FCFF = cash to ALL capital providers → discount at WACC → Enterprise Value − Net Debt = Equity Value     |     FCFE = cash to EQUITY only → discount at Ke → directly = Equity Value     |     FCFE = FCFF − Interest×(1−t) + Net Borrowings",
       3.8,6.91,9.1,0.32,sz=9,color=WHITE)
 
+    # ── S3b: WHERE TO FIND — SIMPLE FCF COMPONENTS ───────────────────────────
+    s=prs.slides.add_slide(blank)
+    sbg(s); hdr(s,"Step 1a — Where to Find Simple FCF in the Statements",
+               "FCF = Operating Cash Flow − Capex  |  Both items sit in the Cash Flow Statement"); ftr(s,4,TOT)
+    R(s,0.35,1.32,12.63,0.42,BL,bd=BLUE)
+    T(s,"FCF  =  Operating Cash Flow  −  Capital Expenditure (Capex)",0.5,1.38,12.2,0.3,sz=13,bold=True,color=BT,align=PP_ALIGN.CENTER)
+    # Left column: CFS extract
+    R(s,0.35,1.88,8.1,5.28,LG,bd=MG); R(s,0.35,1.88,8.1,0.35,BLUE)
+    T(s,"CASH FLOW STATEMENT — Cocoa Foods Ghana Ltd (extract)",0.5,1.91,7.9,0.26,sz=10.5,bold=True,color=WHITE)
+    cfs_rows=[
+        ("OPERATING ACTIVITIES","",(BLUE,BL)),
+        ("Net Profit after Tax","43.5",(STEEL,LG)),
+        ("Add back: Depreciation & Amortisation","24.0",(STEEL,OFF)),
+        ("Less: Increase in Working Capital","(22.0)",(STEEL,LG)),
+        ("NET CASH FROM OPERATIONS  ★","45.5",(BT,BL)),
+        ("INVESTING ACTIVITIES","",(BLUE,BL)),
+        ("Purchase of Property, Plant & Equipment (Capex)  ★","(38.0)",(RT,RL)),
+        ("NET CASH FROM INVESTING","(38.0)",(STEEL,LG)),
+        ("NET CHANGE IN CASH","7.5",(GT,GL)),
+    ]
+    for j,(lb,am,(tc,rf)) in enumerate(cfs_rows):
+        ry=2.3+j*0.48
+        R(s,0.42,ry,7.95,0.43,rf,bd=MG)
+        bold=lb.startswith("NET") or "★" in lb
+        T(s,lb,0.55,ry+0.07,6.2,0.28,sz=9.5,bold=bold,color=tc)
+        if am: T(s,am,7.05,ry+0.07,1.2,0.28,sz=9.5,bold=bold,color=tc,align=PP_ALIGN.RIGHT)
+    # Right column: callout boxes
+    R(s,8.6,1.88,4.73,2.38,BL,bd=BLUE); R(s,8.6,1.88,4.73,0.35,BLUE)
+    T(s,"Component 1 — Operating Cash Flow",8.75,1.91,4.5,0.26,sz=10.5,bold=True,color=WHITE)
+    T(s,"Where: Cash Flow Statement → Operating Activities section\nLine: 'Net Cash from Operating Activities'\nCocoa Foods: GHc 45.5m\n\nThis is the cash earned from running the business day-to-day AFTER adjusting for non-cash items (like D&A) and working capital movements.",
+      8.72,2.32,4.5,1.75,sz=9.5,color=DARK)
+    R(s,8.6,4.38,4.73,2.38,RL,bd=RED); R(s,8.6,4.38,4.73,0.35,RED)
+    T(s,"Component 2 — Capital Expenditure (Capex)",8.75,4.41,4.5,0.26,sz=10.5,bold=True,color=WHITE)
+    T(s,"Where: Cash Flow Statement → Investing Activities section\nLine: 'Purchase of PP&E' or 'Acquisition of fixed assets'\nCocoa Foods: GHc (38.0m) — shown as negative (cash out)\n\nCapex = money spent to maintain or expand the asset base.",
+      8.72,4.82,4.5,1.75,sz=9.5,color=DARK)
+    R(s,0.35,7.06,12.63,0.12,BLUE)
+    T(s,"Simple FCF = 45.5 − 38.0 = GHc 7.5m   ✓   Both numbers are already in the Cash Flow Statement — no Income Statement needed.",
+      0.5,6.9,12.2,0.22,sz=9.5,bold=True,color=BT,align=PP_ALIGN.CENTER)
+
+    # ── S3c: WHERE TO FIND — FCFF COMPONENTS ─────────────────────────────────
+    s=prs.slides.add_slide(blank)
+    sbg(s); hdr(s,"Step 1b — Where to Find FCFF Components in the Statements",
+               "FCFF = EBIT×(1−t) + D&A − Capex − ΔNWC  |  Pulls from Income Statement, Balance Sheet & CFS"); ftr(s,5,TOT)
+    R(s,0.35,1.32,12.63,0.42,AL,bd=AMB)
+    T(s,"FCFF  =  EBIT × (1 − Tax Rate)  +  D&A  −  Capex  −  ΔNWC",0.5,1.38,12.2,0.3,sz=13,bold=True,color=AT,align=PP_ALIGN.CENTER)
+    comps_fcff=[
+        (AMB,AL,AT,"EBIT","Income Statement",
+         "Line: 'Operating Profit' or 'EBIT'\nUsually = Gross Profit − Operating Expenses − D&A\nCocoa Foods EBIT = GHc 74.0m"),
+        (AMB,AL,AT,"Tax Rate (t)","Income Statement / Notes",
+         "Line: 'Income Tax Expense' or statutory note\nTax Rate = Tax Charge ÷ Profit Before Tax\nCocoa Foods: 25% Ghana corporate tax"),
+        (GRN,GL,GT,"D&A","Income Statement or CFS Operating",
+         "IS: often embedded in COGS or listed separately\nCFS: always shown as an add-back in Operating Activities\nCocoa Foods D&A = GHc 24.0m"),
+        (RED,RL,RT,"Capex","CFS — Investing Activities",
+         "Line: 'Purchase of Property, Plant & Equipment'\nShown as negative (cash outflow)\nCocoa Foods Capex = GHc (38.0m)"),
+        (BLUE,BL,BT,"ΔNWC (Change in Working Capital)","Balance Sheet or CFS Operating",
+         "CFS: shown as 'Increase/(Decrease) in Working Capital'\nOR calculate: (Current Assets − Cash) − Current Liabilities\nCocoa Foods ΔNWC = GHc 22.0m increase"),
+    ]
+    CW2=2.46; gap=0.1
+    for i,(b,f,tc,comp,source,detail) in enumerate(comps_fcff):
+        cx=0.35+i*(CW2+gap)
+        R(s,cx,1.88,CW2,5.28,f,bd=b); R(s,cx,1.88,CW2,0.35,b)
+        T(s,comp,cx+0.1,1.91,CW2-0.2,0.26,sz=11,bold=True,color=WHITE)
+        R(s,cx+0.08,2.3,CW2-0.16,0.32,b)
+        T(s,source,cx+0.14,2.34,CW2-0.28,0.22,sz=8.5,bold=True,color=WHITE)
+        T(s,detail,cx+0.1,2.7,CW2-0.2,4.1,sz=9,color=DARK)
+    R(s,0.35,7.06,12.63,0.12,AMB)
+    T(s,"FCFF = 74×0.75 + 24 − 38 − 22 = 55.5 + 24 − 38 − 22 = GHc 19.5m   ✓   All 5 components traceable to the financial statements.",
+      0.5,6.9,12.2,0.22,sz=9.5,bold=True,color=AT,align=PP_ALIGN.CENTER)
+
+    # ── S3d: WHERE TO FIND — FCFE COMPONENTS ─────────────────────────────────
+    s=prs.slides.add_slide(blank)
+    sbg(s); hdr(s,"Step 1c — Where to Find FCFE Components in the Statements",
+               "FCFE = Net Profit + D&A − Capex − ΔNWC + Net Borrowings  |  Starts from the bottom of the IS"); ftr(s,6,TOT)
+    R(s,0.35,1.32,12.63,0.42,GL,bd=GRN)
+    T(s,"FCFE  =  Net Profit  +  D&A  −  Capex  −  ΔNWC  +  Net Borrowings",0.5,1.38,12.2,0.3,sz=13,bold=True,color=GT,align=PP_ALIGN.CENTER)
+    comps_fcfe=[
+        (GRN,GL,GT,"Net Profit","Income Statement — bottom line",
+         "Line: 'Profit After Tax' or 'Net Income'\nThis is AFTER interest and tax — already reflects debt cost\nCocoa Foods: GHc 43.5m"),
+        (GRN,GL,GT,"D&A","IS or CFS Operating Activities",
+         "Same as FCFF — add back the non-cash charge\nCFS shows it as a positive add-back\nCocoa Foods: GHc +24.0m"),
+        (RED,RL,RT,"Capex","CFS — Investing Activities",
+         "Same as FCFF — cash spent on fixed assets\nLine: 'Purchase of PP&E'\nCocoa Foods: GHc (38.0m)"),
+        (RED,RL,RT,"ΔNWC","Balance Sheet or CFS Operating",
+         "Same as FCFF — working capital movement\nIncrease = cash used = negative for FCF\nCocoa Foods: GHc (22.0m)"),
+        (BLUE,BL,BT,"Net Borrowings","CFS — Financing Activities",
+         "New loans raised MINUS loan repayments\nLine: 'Proceeds from borrowings' less 'Repayment of loans'\nCocoa Foods: +20 new − 10 repaid = GHc +10.0m"),
+    ]
+    for i,(b,f,tc,comp,source,detail) in enumerate(comps_fcfe):
+        cx=0.35+i*(CW2+gap)
+        R(s,cx,1.88,CW2,5.28,f,bd=b); R(s,cx,1.88,CW2,0.35,b)
+        T(s,comp,cx+0.1,1.91,CW2-0.2,0.26,sz=11,bold=True,color=WHITE)
+        R(s,cx+0.08,2.3,CW2-0.16,0.32,b)
+        T(s,source,cx+0.14,2.34,CW2-0.28,0.22,sz=8.5,bold=True,color=WHITE)
+        T(s,detail,cx+0.1,2.7,CW2-0.2,4.1,sz=9,color=DARK)
+    R(s,0.35,7.06,12.63,0.12,GRN)
+    T(s,"FCFE = 43.5 + 24 − 38 − 22 + 10 = GHc 17.5m   ✓   Also: FCFF(19.5) − Interest×(1−t)(12) + Net Borrowings(10) = 17.5m — both routes agree.",
+      0.5,6.9,12.2,0.22,sz=9.5,bold=True,color=GT,align=PP_ALIGN.CENTER)
+
     # ── S4 STEP 2: COST OF EQUITY (CAPM) ─────────────────────────────────────
     s=prs.slides.add_slide(blank)
     sbg(s); hdr(s,"Step 2 — Cost of Equity (Ke) using CAPM",
-               "What annual return do equity investors demand for taking the risk of owning this stock?"); ftr(s,4,TOT)
+               "What annual return do equity investors demand for taking the risk of owning this stock?"); ftr(s,7,TOT)
     # CAPM formula
     fbox(s,0.35,1.35,12.63,0.72,"Ke  =  Rf  +  β  ×  (Rm − Rf)    where  (Rm − Rf)  =  Equity Risk Premium (ERP)",
          fill=BL,border=BLUE,fc=BT)
@@ -210,7 +308,7 @@ def build():
     # ── S5 STEP 3: COST OF DEBT ───────────────────────────────────────────────
     s=prs.slides.add_slide(blank)
     sbg(s); hdr(s,"Step 3 — Cost of Debt (Kd)",
-               "The after-tax cost of borrowing — debt is cheaper than equity because interest is tax-deductible"); ftr(s,5,TOT)
+               "The after-tax cost of borrowing — debt is cheaper than equity because interest is tax-deductible"); ftr(s,8,TOT)
     fbox(s,0.35,1.35,12.63,0.72,"Kd (after-tax)  =  Pre-tax Interest Rate  ×  (1  −  Corporate Tax Rate)",
          fill=RL,border=RED,fc=RT)
     # Left: explanation
@@ -250,7 +348,7 @@ def build():
     # ── S6 STEP 4: WACC ───────────────────────────────────────────────────────
     s=prs.slides.add_slide(blank)
     sbg(s); hdr(s,"Step 4 — WACC (Weighted Average Cost of Capital)",
-               "Blending equity and debt costs by their proportions in the capital structure"); ftr(s,6,TOT)
+               "Blending equity and debt costs by their proportions in the capital structure"); ftr(s,9,TOT)
     fbox(s,0.35,1.35,12.63,0.72,
          "WACC  =  (We × Ke)  +  (Wd × Kd)    where  We + Wd = 100%",
          fill=PL,border=PUR,fc=PUR)
@@ -299,7 +397,7 @@ def build():
     # ── S7 STEP 5: PROJECT FCF ────────────────────────────────────────────────
     s=prs.slides.add_slide(blank)
     sbg(s); hdr(s,"Step 5 — Project Free Cash Flow for 10 Years",
-               "Apply growth rates to forecast how FCF will grow. Base FCF = GHc 20m"); ftr(s,7,TOT)
+               "Apply growth rates to forecast how FCF will grow. Base FCF = GHc 20m"); ftr(s,10,TOT)
     T(s,"Growth assumptions — from industry research and management guidance:",
       0.4,1.35,7.0,0.32,sz=10.5,color=DARK)
     T(s,"Yr 1–5: 12%  (strong growth phase)     Yr 6–10: 6%  (maturity phase)",
@@ -341,7 +439,7 @@ def build():
     # ── S8 STEP 6: TERMINAL VALUE ─────────────────────────────────────────────
     s=prs.slides.add_slide(blank)
     sbg(s); hdr(s,"Step 6 — Terminal Value (TV)",
-               "After Year 10 the company keeps operating forever. We estimate that perpetual value."); ftr(s,8,TOT)
+               "After Year 10 the company keeps operating forever. We estimate that perpetual value."); ftr(s,11,TOT)
     T(s,"The Terminal Value captures ALL cash flows beyond Year 10. It usually represents 60–80% of total DCF value — so be conservative.",
       0.4,1.35,12.5,0.38,sz=11,italic=True,color=DARK)
     fbox(s,0.35,1.82,12.63,0.72,
@@ -386,7 +484,7 @@ def build():
     # ── S9 STEP 7: DISCOUNT & SUM ─────────────────────────────────────────────
     s=prs.slides.add_slide(blank)
     sbg(s); hdr(s,"Step 7 — Discount All Cash Flows & Build the DCF Bridge",
-               "Sum PV of FCFs + PV of Terminal Value = Enterprise Value → Equity Value → Per Share"); ftr(s,9,TOT)
+               "Sum PV of FCFs + PV of Terminal Value = Enterprise Value → Equity Value → Per Share"); ftr(s,12,TOT)
     T(s,"We now have all the pieces. Let us add them up and walk from Enterprise Value to Intrinsic Value per Share.",
       0.4,1.35,12.5,0.38,sz=11,color=DARK)
     # Bridge table
@@ -424,7 +522,7 @@ def build():
     # ── S10 STEP 8: INTRINSIC VALUE (using Option A numbers) ──────────────────
     s=prs.slides.add_slide(blank)
     sbg(s); hdr(s,"Step 8 — Intrinsic Value per Share (Full Worked Example)",
-               "Using operating FCF of GHc 45m — the most defensible base for Cocoa Foods Ghana"); ftr(s,10,TOT)
+               "Using operating FCF of GHc 45m — the most defensible base for Cocoa Foods Ghana"); ftr(s,13,TOT)
     T(s,"Using Operating Cash Flow (GHc 45.5m ≈ 45m) as FCF base — the real cash the business generates before Capex discretion.",
       0.4,1.35,12.5,0.38,sz=11,italic=True,color=DARK)
     # Full bridge
@@ -453,7 +551,7 @@ def build():
     # ── S11 SENSITIVITY ANALYSIS ──────────────────────────────────────────────
     s=prs.slides.add_slide(blank)
     sbg(s); hdr(s,"Sensitivity Analysis — WACC vs Terminal Growth Rate",
-               "Small changes in assumptions create big changes in intrinsic value — always show a range"); ftr(s,11,TOT)
+               "Small changes in assumptions create big changes in intrinsic value — always show a range"); ftr(s,14,TOT)
     T(s,"Base case: WACC 24%, TGR 4%, FCF GHc 45m → Intrinsic Value GHc 1.60. The table shows value at different assumptions.",
       0.4,1.35,12.5,0.35,sz=11,color=DARK)
     # Table — WACC (rows) vs TGR (cols)
@@ -494,7 +592,7 @@ def build():
     # ── S12 ALL FORMULAS SUMMARY ──────────────────────────────────────────────
     s=prs.slides.add_slide(blank)
     sbg(s); hdr(s,"All Formulas — Quick Reference Card",
-               "Every formula used in this DCF model on one slide"); ftr(s,12,TOT)
+               "Every formula used in this DCF model on one slide"); ftr(s,15,TOT)
     formulas=[
         (BLUE,BL,BT,"Free Cash Flow (FCFF)",
          "FCFF  =  EBIT × (1−t)  +  D&A  −  Capex  −  ΔNWC",
@@ -532,7 +630,7 @@ def build():
     # ── S13 TAKEAWAYS ─────────────────────────────────────────────────────────
     s=prs.slides.add_slide(blank)
     sbg(s); hdr(s,"Key Takeaways — DCF Intrinsic Value Calculation",
-               "Presented by Kofi  |  InvestIQ  |  investright.onrender.com"); ftr(s,13,TOT)
+               "Presented by Kofi  |  InvestIQ  |  investright.onrender.com"); ftr(s,16,TOT)
     tks=[
         (BLUE,BL,BT,"1","DCF value = Sum of all future free cash flows, discounted back to today using WACC."),
         (AMB,AL,AT,"2","FCF is the real cash — get it from the Cash Flow Statement or calculate EBIT(1-t)+D&A−Capex−ΔNWC."),
@@ -553,7 +651,7 @@ def build():
 
     # ── SAVE ──────────────────────────────────────────────────────────────────
     desktop=os.path.join(os.path.expanduser("~"),"Desktop")
-    path=os.path.join(desktop,"DCF_Calculation_Kofi_v2.pptx")
+    path=os.path.join(desktop,"DCF_Calculation_Kofi_v2.pptx") if not os.path.exists(os.path.join(desktop,"DCF_Calculation_Kofi_v2.pptx")) else os.path.join(desktop,"DCF_Calculation_Kofi_v3.pptx")
     prs.save(path); print(f"Saved: {path}")
 
 if __name__=="__main__":
