@@ -73,7 +73,7 @@ def build():
     prs=Presentation()
     prs.slide_width=Inches(13.33); prs.slide_height=Inches(7.5)
     blank=prs.slide_layouts[6]
-    TOT=16
+    TOT=18
 
     # ── S1 COVER ──────────────────────────────────────────────────────────────
     s=prs.slides.add_slide(blank)
@@ -305,10 +305,107 @@ def build():
       0.55,6.56,10.5,0.5,sz=13,bold=True,color=GT)
     T(s,"→  30%",11.35,6.56,1.55,0.5,sz=18,bold=True,color=GT,align=PP_ALIGN.RIGHT)
 
+    # ── S4b: HOW TO CALCULATE BETA — REGRESSION METHOD ───────────────────────
+    s=prs.slides.add_slide(blank)
+    sbg(s); hdr(s,"How to Calculate Beta — Step by Step",
+               "Beta measures how sensitive a stock's returns are to movements in the overall market"); ftr(s,8,TOT)
+    # Formula bar
+    R(s,0.35,1.32,12.63,0.48,PL,bd=PUR)
+    T(s,"β  =  Cov(Rstock , Rmarket)  ÷  Var(Rmarket)     |     Equivalently:  β  =  (σstock ÷ σmarket)  ×  ρ(stock, market)",
+      0.5,1.38,12.2,0.32,sz=12,bold=True,color=PUR,align=PP_ALIGN.CENTER)
+    # Left column: step-by-step process
+    R(s,0.35,1.92,7.5,5.24,PL,bd=PUR); R(s,0.35,1.92,7.5,0.35,PUR)
+    T(s,"Step-by-Step: Calculating Beta from Scratch",0.5,1.95,7.3,0.26,sz=11,bold=True,color=WHITE)
+    steps_beta=[
+        ("Step 1 — Collect Price Data",
+         "Gather monthly closing prices for the stock AND the market index (e.g. GSE Composite Index) for the past 3–5 years. More data = more reliable beta."),
+        ("Step 2 — Calculate Monthly Returns",
+         "Return = (Price this month − Price last month) ÷ Price last month\nDo this for BOTH the stock and the market. You get two columns of percentage returns."),
+        ("Step 3 — Plot a Scatter Chart",
+         "X-axis = market return each month\nY-axis = stock return each month\nEach dot is one month of data. You will see a rough upward line if the stock tracks the market."),
+        ("Step 4 — Run a Regression (SLOPE formula in Excel)",
+         "In Excel: =SLOPE(stock_returns , market_returns)\nThe slope of the best-fit line through the scatter plot IS Beta.\nAlternatively: =COVAR(stock,market) / VAR(market)"),
+        ("Step 5 — Adjust for Mean Reversion (Optional)",
+         "Bloomberg adjusts raw beta toward 1.0:\nAdjusted Beta = (0.67 × Raw Beta) + (0.33 × 1.0)\nCocoa Foods raw β = 0.85 → Adjusted β = (0.67×0.85)+(0.33×1.0) = 0.90"),
+    ]
+    for j,(title,body) in enumerate(steps_beta):
+        ry=2.35+j*0.94
+        R(s,0.42,ry,7.35,0.88,LG if j%2==0 else OFF,bd=MG)
+        R(s,0.42,ry,0.38,0.88,PUR)
+        T(s,str(j+1),0.42,ry+0.24,0.38,0.38,sz=11,bold=True,color=WHITE,align=PP_ALIGN.CENTER)
+        T(s,title,0.88,ry+0.06,6.75,0.26,sz=10,bold=True,color=PUR)
+        T(s,body,0.88,ry+0.36,6.75,0.46,sz=8.8,color=DARK)
+    # Right column: interpretation + example
+    R(s,8.0,1.92,5.2,2.72,BL,bd=BLUE); R(s,8.0,1.92,5.2,0.35,BLUE)
+    T(s,"Interpreting Beta Values",8.15,1.95,5.0,0.26,sz=11,bold=True,color=WHITE)
+    beta_interp=[
+        ("β = 0","No market correlation — e.g. cash, T-bills",GT,GL),
+        ("β < 1","Less volatile than market — defensive stocks (utilities, consumer staples)",TT,TL),
+        ("β = 1","Moves exactly with the market",AT,AL),
+        ("β > 1","More volatile — growth stocks, cyclicals",RT,RL),
+        ("β < 0","Moves OPPOSITE to market — rare (gold miners)",STEEL,LG),
+    ]
+    for j,(bv,desc,tc,rf) in enumerate(beta_interp):
+        ry=2.34+j*0.52
+        R(s,8.06,ry,5.08,0.47,rf,bd=MG)
+        T(s,bv,8.12,ry+0.08,0.8,0.3,sz=10.5,bold=True,color=tc)
+        T(s,desc,8.96,ry+0.08,4.05,0.3,sz=9,color=DARK)
+    R(s,8.0,4.78,5.2,2.38,GL,bd=GRN); R(s,8.0,4.78,5.2,0.35,GRN)
+    T(s,"Cocoa Foods Ghana — Beta Calculation",8.15,4.81,5.0,0.26,sz=11,bold=True,color=WHITE)
+    T(s,"Data: 36 months GSE Composite vs Cocoa Foods share price\n\nExcel SLOPE result:  Raw β = 0.85\n\nInterpretation: Stock is 15% LESS volatile than the market — typical for a defensive consumer goods company with stable revenues.\n\nIn CAPM: Ke = 25% + 0.85 × 6% = 30.1%\n\nIf β were 1.5 instead: Ke = 25% + 1.5×6% = 34% → higher required return → lower intrinsic value",
+      8.12,5.2,4.95,1.82,sz=9,color=DARK)
+    R(s,0.35,7.06,12.63,0.12,PUR)
+    T(s,"Beta is the single most judgement-sensitive input in CAPM. Always cross-check: industry beta, peer average, and Bloomberg adjusted beta.",
+      0.5,6.9,12.2,0.22,sz=9.5,bold=True,color=PUR,align=PP_ALIGN.CENTER)
+
+    # ── S4c: LEVERED vs UNLEVERED BETA (HAMADA EQUATION) ─────────────────────
+    s=prs.slides.add_slide(blank)
+    sbg(s); hdr(s,"Beta: Levered vs Unlevered — The Hamada Equation",
+               "A company's beta changes with its level of debt. Here is how to adjust for capital structure."); ftr(s,9,TOT)
+    # Top formula strip
+    R(s,0.35,1.32,6.15,0.86,PL,bd=PUR); R(s,0.35,1.32,6.15,0.32,PUR)
+    T(s,"Unlever Beta (remove debt effect)",0.5,1.34,5.95,0.24,sz=9.5,bold=True,color=WHITE)
+    T(s,"βU  =  βL  ÷  [ 1  +  (1 − t) × (D ÷ E) ]",0.5,1.64,5.95,0.46,sz=13,bold=True,color=PUR,align=PP_ALIGN.CENTER)
+    R(s,6.65,1.32,6.33,0.86,GL,bd=GRN); R(s,6.65,1.32,6.33,0.32,GRN)
+    T(s,"Relever Beta (apply new capital structure)",6.8,1.34,6.1,0.24,sz=9.5,bold=True,color=WHITE)
+    T(s,"βL  =  βU  ×  [ 1  +  (1 − t) × (D ÷ E) ]",6.8,1.64,6.1,0.46,sz=13,bold=True,color=GT,align=PP_ALIGN.CENTER)
+    # Left: concept explanation
+    R(s,0.35,2.3,6.15,4.04,PL,bd=PUR); R(s,0.35,2.3,6.15,0.35,PUR)
+    T(s,"Why Does Debt Change Beta?",0.5,2.33,5.95,0.26,sz=11,bold=True,color=WHITE)
+    T(s,"A company's OBSERVED beta (βL) reflects both:\n  1. Business risk — how volatile the underlying operations are\n  2. Financial risk — the extra volatility added by having debt\n\nDebt amplifies both gains AND losses for equity holders because interest must be paid before equity gets anything. The more debt, the more volatile (higher beta) the equity.\n\nTo compare companies fairly (especially when they have different debt levels), analysts UNLEVER beta to get the pure business risk (βU), then RELEVER with the target company's own capital structure.\n\nThis is critical when using a PEER/INDUSTRY beta rather than the company's own.",
+      0.5,2.74,5.95,3.48,sz=10,color=DARK)
+    # Right: worked example
+    R(s,6.65,2.3,6.33,4.04,BL,bd=BLUE); R(s,6.65,2.3,6.33,0.35,BLUE)
+    T(s,"Worked Example — Cocoa Foods Ghana",6.8,2.33,6.1,0.26,sz=11,bold=True,color=WHITE)
+    ex_rows=[
+        ("Observed (Levered) Beta  βL","0.85","From regression vs GSE market",False,LG,STEEL),
+        ("Debt  D","GHc 193m","From Balance Sheet (LT + ST debt)",False,OFF,STEEL),
+        ("Equity  E","GHc 239m","Book equity from Balance Sheet",False,LG,STEEL),
+        ("D ÷ E ratio","0.808","193 ÷ 239 = 0.808",False,OFF,STEEL),
+        ("Tax Rate  t","25%","Ghana corporate tax",False,LG,STEEL),
+        ("(1 − t)  factor","0.75","1 − 0.25 = 0.75",False,OFF,STEEL),
+        ("(1 − t) × D/E","0.606","0.75 × 0.808 = 0.606",False,LG,STEEL),
+        ("1 + (1−t)×D/E","1.606","1 + 0.606 = 1.606",False,OFF,STEEL),
+        ("UNLEVERED BETA  βU","0.529","0.85 ÷ 1.606 = 0.529",True,TL,TT),
+    ]
+    for j,(lb,val,note,hl,rf,tc) in enumerate(ex_rows):
+        ry=2.72+j*0.38
+        R(s,6.72,ry,6.18,0.34,rf,bd=MG)
+        T(s,lb,6.82,ry+0.06,3.6,0.22,sz=9,bold=hl,color=tc if hl else DARK)
+        T(s,val,9.8,ry+0.06,1.0,0.22,sz=9,bold=hl,color=tc if hl else BT,align=PP_ALIGN.RIGHT)
+        T(s,note,10.88,ry+0.06,1.9,0.22,sz=7.5,italic=True,color=STEEL)
+    # Bottom: when to use each
+    R(s,0.35,6.44,12.63,0.78,GL,bd=GRN)
+    T(s,"When to Use Each:",0.5,6.48,2.2,0.28,sz=10,bold=True,color=GT)
+    T(s,"Use βL (Levered):",2.8,6.48,2.0,0.22,sz=9.5,bold=True,color=NAVY)
+    T(s,"When you are valuing the SAME company with its CURRENT capital structure — plug βL directly into CAPM.",2.8,6.7,4.4,0.44,sz=9,color=DARK)
+    T(s,"Use βU → Relever:",7.4,6.48,2.0,0.22,sz=9.5,bold=True,color=NAVY)
+    T(s,"When using a PEER or INDUSTRY beta — unlever peer beta, then relever using your company's D/E ratio to get the correct βL for your firm.",7.4,6.7,5.4,0.44,sz=9,color=DARK)
+
     # ── S5 STEP 3: COST OF DEBT ───────────────────────────────────────────────
     s=prs.slides.add_slide(blank)
     sbg(s); hdr(s,"Step 3 — Cost of Debt (Kd)",
-               "The after-tax cost of borrowing — debt is cheaper than equity because interest is tax-deductible"); ftr(s,8,TOT)
+               "The after-tax cost of borrowing — debt is cheaper than equity because interest is tax-deductible"); ftr(s,10,TOT)
     fbox(s,0.35,1.35,12.63,0.72,"Kd (after-tax)  =  Pre-tax Interest Rate  ×  (1  −  Corporate Tax Rate)",
          fill=RL,border=RED,fc=RT)
     # Left: explanation
@@ -348,7 +445,7 @@ def build():
     # ── S6 STEP 4: WACC ───────────────────────────────────────────────────────
     s=prs.slides.add_slide(blank)
     sbg(s); hdr(s,"Step 4 — WACC (Weighted Average Cost of Capital)",
-               "Blending equity and debt costs by their proportions in the capital structure"); ftr(s,9,TOT)
+               "Blending equity and debt costs by their proportions in the capital structure"); ftr(s,11,TOT)
     fbox(s,0.35,1.35,12.63,0.72,
          "WACC  =  (We × Ke)  +  (Wd × Kd)    where  We + Wd = 100%",
          fill=PL,border=PUR,fc=PUR)
@@ -397,7 +494,7 @@ def build():
     # ── S7 STEP 5: PROJECT FCF ────────────────────────────────────────────────
     s=prs.slides.add_slide(blank)
     sbg(s); hdr(s,"Step 5 — Project Free Cash Flow for 10 Years",
-               "Apply growth rates to forecast how FCF will grow. Base FCF = GHc 20m"); ftr(s,10,TOT)
+               "Apply growth rates to forecast how FCF will grow. Base FCF = GHc 20m"); ftr(s,12,TOT)
     T(s,"Growth assumptions — from industry research and management guidance:",
       0.4,1.35,7.0,0.32,sz=10.5,color=DARK)
     T(s,"Yr 1–5: 12%  (strong growth phase)     Yr 6–10: 6%  (maturity phase)",
@@ -439,7 +536,7 @@ def build():
     # ── S8 STEP 6: TERMINAL VALUE ─────────────────────────────────────────────
     s=prs.slides.add_slide(blank)
     sbg(s); hdr(s,"Step 6 — Terminal Value (TV)",
-               "After Year 10 the company keeps operating forever. We estimate that perpetual value."); ftr(s,11,TOT)
+               "After Year 10 the company keeps operating forever. We estimate that perpetual value."); ftr(s,13,TOT)
     T(s,"The Terminal Value captures ALL cash flows beyond Year 10. It usually represents 60–80% of total DCF value — so be conservative.",
       0.4,1.35,12.5,0.38,sz=11,italic=True,color=DARK)
     fbox(s,0.35,1.82,12.63,0.72,
@@ -484,7 +581,7 @@ def build():
     # ── S9 STEP 7: DISCOUNT & SUM ─────────────────────────────────────────────
     s=prs.slides.add_slide(blank)
     sbg(s); hdr(s,"Step 7 — Discount All Cash Flows & Build the DCF Bridge",
-               "Sum PV of FCFs + PV of Terminal Value = Enterprise Value → Equity Value → Per Share"); ftr(s,12,TOT)
+               "Sum PV of FCFs + PV of Terminal Value = Enterprise Value → Equity Value → Per Share"); ftr(s,14,TOT)
     T(s,"We now have all the pieces. Let us add them up and walk from Enterprise Value to Intrinsic Value per Share.",
       0.4,1.35,12.5,0.38,sz=11,color=DARK)
     # Bridge table
@@ -522,7 +619,7 @@ def build():
     # ── S10 STEP 8: INTRINSIC VALUE (using Option A numbers) ──────────────────
     s=prs.slides.add_slide(blank)
     sbg(s); hdr(s,"Step 8 — Intrinsic Value per Share (Full Worked Example)",
-               "Using operating FCF of GHc 45m — the most defensible base for Cocoa Foods Ghana"); ftr(s,13,TOT)
+               "Using operating FCF of GHc 45m — the most defensible base for Cocoa Foods Ghana"); ftr(s,15,TOT)
     T(s,"Using Operating Cash Flow (GHc 45.5m ≈ 45m) as FCF base — the real cash the business generates before Capex discretion.",
       0.4,1.35,12.5,0.38,sz=11,italic=True,color=DARK)
     # Full bridge
@@ -551,7 +648,7 @@ def build():
     # ── S11 SENSITIVITY ANALYSIS ──────────────────────────────────────────────
     s=prs.slides.add_slide(blank)
     sbg(s); hdr(s,"Sensitivity Analysis — WACC vs Terminal Growth Rate",
-               "Small changes in assumptions create big changes in intrinsic value — always show a range"); ftr(s,14,TOT)
+               "Small changes in assumptions create big changes in intrinsic value — always show a range"); ftr(s,16,TOT)
     T(s,"Base case: WACC 24%, TGR 4%, FCF GHc 45m → Intrinsic Value GHc 1.60. The table shows value at different assumptions.",
       0.4,1.35,12.5,0.35,sz=11,color=DARK)
     # Table — WACC (rows) vs TGR (cols)
@@ -592,7 +689,7 @@ def build():
     # ── S12 ALL FORMULAS SUMMARY ──────────────────────────────────────────────
     s=prs.slides.add_slide(blank)
     sbg(s); hdr(s,"All Formulas — Quick Reference Card",
-               "Every formula used in this DCF model on one slide"); ftr(s,15,TOT)
+               "Every formula used in this DCF model on one slide"); ftr(s,17,TOT)
     formulas=[
         (BLUE,BL,BT,"Free Cash Flow (FCFF)",
          "FCFF  =  EBIT × (1−t)  +  D&A  −  Capex  −  ΔNWC",
@@ -630,7 +727,7 @@ def build():
     # ── S13 TAKEAWAYS ─────────────────────────────────────────────────────────
     s=prs.slides.add_slide(blank)
     sbg(s); hdr(s,"Key Takeaways — DCF Intrinsic Value Calculation",
-               "Presented by Kofi  |  InvestIQ  |  investright.onrender.com"); ftr(s,16,TOT)
+               "Presented by Kofi  |  InvestIQ  |  investright.onrender.com"); ftr(s,18,TOT)
     tks=[
         (BLUE,BL,BT,"1","DCF value = Sum of all future free cash flows, discounted back to today using WACC."),
         (AMB,AL,AT,"2","FCF is the real cash — get it from the Cash Flow Statement or calculate EBIT(1-t)+D&A−Capex−ΔNWC."),
@@ -651,7 +748,7 @@ def build():
 
     # ── SAVE ──────────────────────────────────────────────────────────────────
     desktop=os.path.join(os.path.expanduser("~"),"Desktop")
-    path=os.path.join(desktop,"DCF_Calculation_Kofi_v2.pptx") if not os.path.exists(os.path.join(desktop,"DCF_Calculation_Kofi_v2.pptx")) else os.path.join(desktop,"DCF_Calculation_Kofi_v3.pptx")
+    path=os.path.join(desktop,"DCF_Calculation_Kofi_v4.pptx")
     prs.save(path); print(f"Saved: {path}")
 
 if __name__=="__main__":
