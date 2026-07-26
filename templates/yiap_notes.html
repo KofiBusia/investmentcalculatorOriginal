@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Study Notes — YIAP Practise Questions — InvestIQ</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body{font-family:'Inter',sans-serif;background:#f0f4f8;min-height:100vh;}
+    .hero-bg{background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 60%,#065f46 100%);}
+    .card{background:#fff;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,.08);}
+    .note-fig{background:#ecfdf5;border:1px solid #a7f3d0;border-radius:10px;padding:.9rem 1.1rem;margin:.75rem 0;}
+    .note-warn{background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:.9rem 1.1rem;margin:.75rem 0;}
+    .note-tip{background:#eff6ff;border:1px solid #bfdbfe;border-radius:10px;padding:.9rem 1.1rem;margin:.75rem 0;}
+    .toc-link{display:block;padding:.5rem .75rem;border-radius:8px;color:#334155;font-size:.9rem;font-weight:600;text-decoration:none;transition:background .15s;}
+    .toc-link:hover{background:#f1f5f9;}
+    h2.section-title{font-size:1.4rem;font-weight:800;color:#0f172a;margin-bottom:.25rem;}
+    h3.sub-title{font-size:1.05rem;font-weight:700;color:#1e3a5f;margin-top:1.5rem;margin-bottom:.5rem;}
+    .prose-note p{margin-bottom:.75rem;line-height:1.65;color:#334155;font-size:.95rem;}
+    .prose-note ul{margin:.5rem 0 1rem 1.25rem;list-style:disc;color:#334155;font-size:.95rem;line-height:1.6;}
+    .prose-note li{margin-bottom:.35rem;}
+    table.notes-table{width:100%;border-collapse:collapse;font-size:.88rem;margin:.75rem 0 1.25rem;}
+    table.notes-table th{background:#f1f5f9;text-align:left;padding:.5rem .75rem;font-weight:700;color:#475569;}
+    table.notes-table td{padding:.5rem .75rem;border-top:1px solid #e2e8f0;color:#334155;}
+    ::selection{background:#a7f3d0;}
+    /* Discourage casual right-click "save as" of this page — content itself is still fully readable/selectable */
+  </style>
+</head>
+<body class="text-gray-800" oncontextmenu="return true;">
+
+<header class="hero-bg text-white py-10 px-4">
+  <div class="max-w-6xl mx-auto">
+    <nav class="flex justify-between items-center mb-6 flex-wrap gap-3">
+      <a href="/" class="flex items-center gap-2 text-white text-xl font-bold"><i class="fas fa-chart-line text-blue-300"></i> Invest<span class="text-blue-300">IQ</span></a>
+      <div class="flex gap-5 text-sm flex-wrap">
+        <a href="/yiap-practice" class="text-blue-300 hover:text-white"><i class="fas fa-arrow-left mr-1"></i>Back to YIAP</a>
+      </div>
+    </nav>
+    <div class="inline-flex items-center gap-2 bg-emerald-900/40 text-emerald-200 px-4 py-1.5 rounded-full text-sm font-medium mb-3">
+      <i class="fas fa-book-open"></i> Read-only study notes
+    </div>
+    <h1 class="text-3xl md:text-4xl font-extrabold mb-2">Study Notes — MTN Ghana FY2025</h1>
+    <p class="text-blue-100 max-w-2xl">Everything from the YIN Ghana Financial Statements Masterclass and the Cash Flow Statement Training Edition, condensed into one page. Read this before you start a trial — every number in the questions comes straight from here.</p>
+  </div>
+</header>
+
+<main class="max-w-6xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-4 gap-8">
+
+  <!-- Table of contents -->
+  <aside class="lg:col-span-1">
+    <div class="card p-4 sticky top-4">
+      <p class="text-xs font-bold text-gray-400 uppercase tracking-wide mb-2 px-2">On this page</p>
+      <a href="#big-idea" class="toc-link">The Big Idea</a>
+      <a href="#income-statement" class="toc-link">1. Income Statement</a>
+      <a href="#cash-flow" class="toc-link">2. Cash Flow Statement</a>
+      <a href="#balance-sheet" class="toc-link">3. Balance Sheet</a>
+      <a href="#interconnections" class="toc-link">4. How They Connect</a>
+      <a href="#ratios" class="toc-link">Ratio Cheat Sheet</a>
+      <a href="#glossary" class="toc-link">Glossary</a>
+      <div class="mt-4 pt-4 border-t border-gray-100">
+        <a href="/yiap-practice" class="block text-center py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-semibold">
+          <i class="fas fa-play mr-1"></i>Go to Trial Questions
+        </a>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Notes content -->
+  <div class="lg:col-span-3 space-y-8">
+
+    <section id="big-idea" class="card p-6 md:p-8 prose-note">
+      <h2 class="section-title"><i class="fas fa-lightbulb text-yellow-500 mr-2"></i>The Big Idea: Three Questions, Three Statements</h2>
+      <p>Before any numbers — understand why three separate documents exist at all. Every company answers three different questions, and each question needs its own statement:</p>
+      <ul>
+        <li><strong>"Did I make a profit?"</strong> → the <strong>Income Statement</strong>. Example: you sold GHS 500 of bread. Flour, rent and wages cost GHS 350. You made GHS 150 profit.</li>
+        <li><strong>"Do I have the money?"</strong> → the <strong>Cash Flow Statement</strong>. But GHS 200 of that bread went to a customer on credit — only GHS 300 came in, and you spent GHS 350. Cash actually FELL by GHS 50.</li>
+        <li><strong>"What do I own and owe?"</strong> → the <strong>Balance Sheet</strong>. You own an oven, GHS 200 owed to you, and less cash than last month. You owe the flour supplier GHS 80.</li>
+      </ul>
+      <div class="note-tip"><strong>The lesson:</strong> the shop made a GHS 150 profit and lost GHS 50 of cash in the same month. Both statements are correct — they are answering different questions. This is the whole reason three statements exist, and the reason companies with beautiful profits sometimes collapse without warning.</div>
+      <p>Read cash flow first (to check you can believe the numbers), then income statement (to understand the business), then balance sheet (to see the running total of both). That order — not the order they're printed in — is how analysts actually read accounts.</p>
+    </section>
+
+    <!-- ===================== INCOME STATEMENT ===================== -->
+    <section id="income-statement" class="card p-6 md:p-8 prose-note">
+      <h2 class="section-title"><i class="fas fa-file-invoice-dollar text-indigo-600 mr-2"></i>1. The Income Statement</h2>
+      <p>Also called the Statement of Comprehensive Income, Profit &amp; Loss, or P&amp;L. It covers a <strong>period</strong> — 1 January to 31 December 2025 — and answers: did MTN make a profit, and where did every cedi of revenue go?</p>
+      <div class="note-fig"><strong>MTN FY2025 in one line:</strong> Revenue GHS 24.43BN → Profit after tax GHS 7.84BN.</div>
+      <p>Read it as a funnel: one number (revenue) enters at the top, costs are subtracted in layers, and what survives at the bottom is profit.</p>
+
+      <h3 class="sub-title">Revenue — the top line</h3>
+      <p>Revenue is the value of goods and services MTN <strong>delivered</strong> to customers during 2025, not what was paid. Accounting recognises revenue when the service is provided, not when money arrives. A customer who used GHS 50 of data in December but pays in January still counts as December revenue. Prepaid airtime bought in December but not yet used is <strong>not</strong> revenue — it sits as a "contract liability" until the customer actually uses it.</p>
+      <table class="notes-table">
+        <tr><th>Revenue line</th><th>FY2025 (GHS'000)</th></tr>
+        <tr><td>Network services (voice, data, SMS)</td><td>17,004,316</td></tr>
+        <tr><td>Digital &amp; Fintech (MoMo, ayoba)</td><td>6,699,403 (27.4% of revenue)</td></tr>
+        <tr><td>Interconnect &amp; roaming</td><td>460,154</td></tr>
+        <tr><td>Other (broadband, leased lines)</td><td>199,938</td></tr>
+        <tr><td>Devices &amp; accessories</td><td>66,497</td></tr>
+        <tr><td><strong>Total revenue</strong></td><td><strong>24,430,308 (+36.1% YoY)</strong></td></tr>
+      </table>
+      <p>Growth of 36.1% is exceptional, but Ghana's inflation must be stripped out before calling it "real" growth. Digital &amp; Fintech is quietly becoming a bigger share of the business — MTN is becoming a financial services company that happens to own a network.</p>
+
+      <h3 class="sub-title">Other income</h3>
+      <p>GHS 13.18 million in FY2025 — money earned outside the main business (prize money from MTN Group's "Ambition 2025" challenge, plus gaming-platform testing support). The Company-only figure (GHS 113.47M) is far higher than the Group figure because Scancom PLC charges its subsidiary MobileMoney Limited for admin support, which cancels out on consolidation.</p>
+
+      <h3 class="sub-title">Direct costs</h3>
+      <p>The cost of physically delivering a call — these scale with usage: direct network operating costs GHS 2,290,857k (transmission, network, leased lines, spectrum &amp; regulatory fees), devices cost GHS 78,606k, interconnect &amp; roaming cost GHS 570,792k. Interconnect costs fell 17.8% even as revenue grew 36.1% — Ghanaians increasingly use WhatsApp/data instead of cross-network calls, so MTN pays less but also earns less interconnect revenue. Direct costs fell from 16.4% of revenue (FY2024) to 12.0% (FY2025).</p>
+
+      <h3 class="sub-title">Operating expenses</h3>
+      <p>Employee expenses (GHS 1,061,001k, only 4.3% of revenue — telecoms aren't labour-intensive), selling/distribution/marketing (GHS 3,411,149k — the <strong>biggest cost in the company</strong>, more than 3x the wage bill, because every MoMo agent takes a commission on every transaction), and other operating expenses (GHS 2,340,752k — Group management fees, professional fees, insurance, admin).</p>
+
+      <h3 class="sub-title">EBITDA</h3>
+      <p>Earnings Before Interest, Tax, Depreciation and Amortisation = <strong>GHS 14,690,333k</strong>, a 60.1% margin (up from 57.1% in 2024). EBITDA lets you compare two telecoms' operating performance without debt levels or tax positions getting in the way. But EBITDA is <strong>not cash and not profit</strong> — it ignores that MTN must spend billions a year replacing and expanding towers. Management's own guidance ("mid-to-upper fifties") suggests 60.1% may not repeat.</p>
+
+      <h3 class="sub-title">Depreciation, amortisation &amp; EBIT</h3>
+      <p>The tower example: MTN buys a tower for GHS 100M that will serve customers for 10 years. Charging the whole GHS 100M in year one would collapse that year's profit and make the next nine years look artificially wonderful. So accounting spreads the cost — GHS 10M a year for 10 years. That's <strong>depreciation</strong>. <strong>Amortisation</strong> is the same idea for things you can't touch — spectrum licences and software.</p>
+      <div class="note-warn"><strong>Memorise this:</strong> depreciation is a cost, but it is not a payment. MTN's bank balance did not fall by GHS 2.32BN because of depreciation — the cash left years ago when the tower was bought.</div>
+      <p>EBIT (Operating Profit) = EBITDA − D&amp;A = <strong>GHS 11,960,724k</strong>, a 49.0% margin. The 11.1 percentage-point gap between the EBITDA margin (60.1%) and EBIT margin (49.0%) IS the cost of the network wearing out. Analysts still quote EBITDA because depreciation involves judgement (useful life, method) that can differ between identical companies — EBITDA strips that judgement out.</p>
+
+      <h3 class="sub-title">Finance income, finance costs &amp; tax</h3>
+      <p>Finance income GHS 450,066k (interest earned on MTN's cash); finance costs GHS 1,098,785k (mostly IFRS 16 lease "interest" plus FX losses on dollar-priced equipment — MTN has zero bank borrowings). Net finance cost: GHS 648,719k. Profit before tax: <strong>GHS 11,312,005k</strong>.</p>
+      <p>Ghana taxes MTN twice on the same profit: the Growth &amp; Sustainability Levy (5% of PBT = GHS 565,600k) and income tax (25% + adjustments = GHS 2,906,475k). Total taxes and levies: GHS 3,472,075k — an effective rate of 30.7% of PBT.</p>
+
+      <h3 class="sub-title">Profit after tax &amp; EPS</h3>
+      <p><strong>Profit after tax (PAT) = GHS 7,839,930k</strong> — up 55.9% on FY2024, a 32.1% net margin. PAT can only go two places: dividends (~GHS 4.53BN paid) or retained earnings (~GHS 3.31BN kept). EPS = GHS 7,839,930k ÷ 13.24BN shares = <strong>GHS 0.592</strong>. Against a July 2026 share price of GHS 6.44, that's a P/E of about 10.9x. But you haven't yet seen whether that profit is backed by real cash — that's the whole point of the Cash Flow Statement.</p>
+    </section>
+
+    <!-- ===================== CASH FLOW STATEMENT ===================== -->
+    <section id="cash-flow" class="card p-6 md:p-8 prose-note">
+      <h2 class="section-title"><i class="fas fa-money-bill-trend-up text-emerald-600 mr-2"></i>2. The Cash Flow Statement</h2>
+      <p><em>"Profit is an opinion. Cash is a fact."</em> The income statement can be shaped by accounting estimates (how many years to depreciate a tower, how much to provide for bad debts). Cash is different — either the money is in the account on 31 December, or it isn't. There's no judgement available.</p>
+      <div class="note-fig"><strong>MTN FY2025 in one line:</strong> Profit GHS 7.84BN → Operating cash GHS 7.6BN → Bank balance up GHS 1.01BN.</div>
+      <p>This does <strong>not</strong> mean the income statement is dishonest — a business that only measured cash would look terrible in any year it invested, and wonderful in any year it stopped investing. Read cash flow first to check you can <strong>believe</strong> the income statement; then read the income statement to understand the business. MTN, like almost every listed company, builds this statement using the <strong>indirect method</strong>: start with profit, then reverse out everything that affected profit but not cash, and adjust for everything that affected cash but not profit.</p>
+
+      <h3 class="sub-title">Section 1: Operating Activities</h3>
+      <p>Step 1 — reverse the non-cash items: start with profit before tax (GHS 11,312,005k), add back depreciation (+2,322,138), amortisation (+407,471) and net finance costs (+648,719). The subtotal lands <strong>exactly on EBITDA (14,690,333)</strong> — not a coincidence, since EBITDA is defined as earnings before precisely those items.</p>
+      <p>Step 2 — working capital: receivables rising means revenue was booked but cash wasn't collected (deduct); payables rising means a cost hit profit but cash stayed in the bank (add back); contract liabilities rising means cash came in before the service was delivered (add back — MTN sold GHS 18.26BN of prepaid airtime in 2025, an interest-free loan from customers that means growth <strong>funds</strong> MTN rather than starving it of cash, unlike most businesses).</p>
+      <p>Step 3 — tax actually paid: GHS 3,394,101k paid in cash vs GHS 2,906,475k charged on the income statement — a GHS 487,626k gap from timing, deferred tax, and prior-year GRA assessments (2014–2022 audits still open, "no reliable estimate" of exposure — the single largest unquantified risk in the accounts).</p>
+      <div class="note-fig"><strong>Result: Net cash from operating activities = GHS 7.6BN, +59.4% YoY.</strong> Cash conversion = OCF ÷ EBITDA = 7.6 ÷ 14.69 = <strong>52%</strong> — strong for a heavily-taxed telecom.</div>
+
+      <h3 class="sub-title">Section 2: Investing Activities</h3>
+      <table class="notes-table">
+        <tr><th>Item</th><th>FY2025</th><th>Detail</th></tr>
+        <tr><td>Ex-lease capex</td><td>GHS 4.6BN</td><td>+46.7% YoY — the real network build</td></tr>
+        <tr><td>Spectrum licences</td><td>GHS 0.78BN</td><td>Rights bought from the NCA</td></tr>
+        <tr><td>Right-of-use assets (IFRS 16)</td><td>GHS 1.0BN</td><td>Leased tower sites</td></tr>
+        <tr><td><strong>Total IFRS 16 capex</strong></td><td><strong>GHS 6.4BN</strong></td><td>+39.2% YoY</td></tr>
+      </table>
+      <p>Capex mix shifted toward Radio &amp; Infrastructure (28% in 2025, up from 13% in 2024) — MTN pushing 4G coverage deeper into peri-urban and rural Ghana. Capex intensity (ex-lease capex ÷ revenue) fell from 21.1% (2023) to 18.8% (2025). 2026 capex guidance: GHS 4.8BN.</p>
+
+      <h3 class="sub-title">Section 3: Financing Activities</h3>
+      <p>For a mature company this is almost entirely <strong>outbound</strong>: dividends paid GHS 4,528,475k (net of 8% withholding tax — the training deck states the FY2025 declared dividend at GHS 6.4BN, +57.4% YoY); lease principal repayments; and borrowings, which went from GHS 70,443k (2024) to <strong>zero</strong> (2025) — MTN is now completely debt-free. MTN funded its entire capex programme <em>and</em> a large dividend from internally generated cash — no bank needed.</p>
+
+      <h3 class="sub-title">The reconciliation &amp; Free Cash Flow</h3>
+      <table class="notes-table">
+        <tr><td>Cash at 1 Jan 2025</td><td>GHS 3,284,768k</td></tr>
+        <tr><td>+ Operating activities</td><td>+7,600,000k</td></tr>
+        <tr><td>− Investing activities</td><td>(6,414,306k)</td></tr>
+        <tr><td>− Financing activities (net)</td><td>outflow</td></tr>
+        <tr><td><strong>Net increase in cash</strong></td><td><strong>+1,013,709k</strong></td></tr>
+        <tr><td><strong>Cash at 31 Dec 2025</strong></td><td><strong>4,298,477k</strong></td></tr>
+      </table>
+      <p>A business that can invest heavily, pay dividends generously, clear all its debt, AND still accumulate cash is generating more money than it needs. Free Cash Flow (ex-lease) = Operating cash (7.6BN) − ex-lease capex (4.6BN) = <strong>GHS 3.0BN</strong> — a 12.3% FCF margin. On the fuller IFRS 16 basis (also deducting spectrum and lease capex), FCF is closer to GHS 1.2BN. FCF is what pays the dividend — a company with profit but no FCF cannot pay you.</p>
+
+      <h3 class="sub-title">Profit vs cash: the honest comparison</h3>
+      <table class="notes-table">
+        <tr><th>Metric</th><th>Income Statement</th><th>Cash Flow Statement</th></tr>
+        <tr><td>Headline number</td><td>PAT: GHS 7.84BN</td><td>OCF: GHS 7.6BN</td></tr>
+        <tr><td>Depreciation &amp; amortisation</td><td>Deducted (GHS 2.73BN)</td><td>Added back — not cash</td></tr>
+        <tr><td>Taxes</td><td>Charge: GHS 3.47BN</td><td>Actually paid: GHS 3.39BN</td></tr>
+        <tr><td>Capex</td><td>Invisible (only via D&amp;A)</td><td>Fully visible: GHS 6.4BN out</td></tr>
+        <tr><td>Dividends</td><td>Invisible</td><td>Fully visible outflow</td></tr>
+      </table>
+      <p>Verdict: PAT GHS 7.84BN vs OCF GHS 7.6BN = <strong>97% cash backing</strong>. MTN's profit is almost fully backed by cash. When these two numbers diverge widely for a company, start asking hard questions.</p>
+
+      <h3 class="sub-title">Cash flow ratios to compute every time</h3>
+      <table class="notes-table">
+        <tr><th>Ratio</th><th>Formula</th><th>MTN FY2025</th></tr>
+        <tr><td>Cash Conversion</td><td>OCF ÷ EBITDA</td><td>7.6 ÷ 14.7 = 52%</td></tr>
+        <tr><td>Capex Intensity</td><td>Ex-lease capex ÷ Revenue</td><td>4.6 ÷ 24.4 = 18.8%</td></tr>
+        <tr><td>FCF Margin</td><td>FCF ÷ Revenue</td><td>3.0 ÷ 24.4 = 12.3%</td></tr>
+        <tr><td>Cash Dividend Cover</td><td>OCF ÷ Dividends</td><td>7.6 ÷ 6.4 = 1.2x (÷4.53BN net = 1.68x)</td></tr>
+      </table>
+      <div class="note-warn"><strong>Five things to remember:</strong> (1) profit is an opinion, cash is a fact — read both together; (2) operating cash of GHS 7.6BN (+59.4%) funds everything MTN does; (3) capex of GHS 6.4BN is invisible on the income statement but dominates investing activities; (4) FCF (GHS 3.0BN ex-lease) is what pays the dividend; (5) MTN ended 2025 with GHS 4.3BN cash and zero borrowings — a self-funding business.</div>
+    </section>
+
+    <!-- ===================== BALANCE SHEET ===================== -->
+    <section id="balance-sheet" class="card p-6 md:p-8 prose-note">
+      <h2 class="section-title"><i class="fas fa-scale-balanced text-amber-600 mr-2"></i>3. The Balance Sheet</h2>
+      <p>Also called the Statement of Financial Position. Unlike the other two statements, it covers a <strong>moment</strong>, not a period — 31 December 2025. It answers: what does MTN own, what does it owe, and what is left for shareholders?</p>
+      <div class="note-fig"><strong>The equation that cannot be broken:</strong> Assets = Liabilities + Equity → GHS 62,391,057k = GHS 48,219,171k + GHS 14,171,886k. This isn't a rule someone invented — every cedi of value MTN controls was funded by a lender (liability) or an owner/retained profit (equity). If a balance sheet doesn't balance, someone made an error.</div>
+
+      <h3 class="sub-title">The MoMo float — read this before any ratio</h3>
+      <p>GHS 38,392,517k of MTN's GHS 62,391,057k balance sheet is cash sitting in customers' MoMo wallets — held by MTN, not owned by it. There's a matching liability (obligations to e-money holders) of the exact same amount, so the net effect is zero: MTN is a <strong>custodian</strong>, not an owner, of this money.</p>
+      <div class="note-warn"><strong>Wrong (beginner) read:</strong> "MTN has GHS 62.4BN of assets — bigger than most Ghanaian banks." <strong>Right (analyst) read:</strong> "Strip the float — MTN's real balance sheet is about GHS 24.0BN of assets against GHS 9.83BN of liabilities." IFRS requires showing both sides because MTN legally controls the asset even though it must hand it back. This float is also why MobileMoney Limited (MMFL) was separated into its own licensed entity.</div>
+
+      <h3 class="sub-title">Non-current assets</h3>
+      <table class="notes-table">
+        <tr><th>Item</th><th>2025</th><th>2024</th></tr>
+        <tr><td>Property, plant &amp; equipment</td><td>10,704,580</td><td>8,128,597</td></tr>
+        <tr><td>Right-of-use assets (leased towers)</td><td>2,978,529</td><td>2,570,431</td></tr>
+        <tr><td>Intangible assets (spectrum, software)</td><td>2,422,781</td><td>1,734,116</td></tr>
+        <tr><td>Other non-current assets</td><td>306,596</td><td>309,096</td></tr>
+        <tr><td><strong>Total non-current assets</strong></td><td><strong>16,412,486</strong></td><td>—</td></tr>
+      </table>
+      <p>This is where the GHS 6.41BN of capex from the cash flow statement landed — cash left the bank and became steel, fibre and licences. PPE rose GHS 2.58BN (additions of 6.41BN less depreciation of 2.73BN, plus lease/FX effects).</p>
+
+      <h3 class="sub-title">Current assets</h3>
+      <p>Total current assets: GHS 45,978,571k — but only <strong>GHS 7,586,054k is genuinely MTN's own money</strong> (cash GHS 4,298,477k + other current assets GHS 3,287,577k, which includes a GHS 1,170,834k GRA tax credit). The rest is the MoMo float. Watch the trade receivables impairment provision — it more than doubled from GHS 120,640k to GHS 253,871k, still small (~1% of revenue) but the direction matters.</p>
+
+      <h3 class="sub-title">Liabilities</h3>
+      <p>Total liabilities as reported: GHS 48,219,171k. Strip out obligations to e-money holders (GHS 38,392,517k) and <strong>real liabilities are GHS 9,826,654k</strong> — mostly lease liabilities, trade payables, tax and provisions, not financing debt. Borrowings: <strong>zero</strong> (down from GHS 70,443k in 2024). MTN's loan covenants (net debt/EBITDA below 2.5x, etc.) are now academic — the company is in a net <strong>cash</strong> position of GHS 4,298,477k. That's financial resilience: it could lose money for years and not need to ask anyone for anything.</p>
+
+      <h3 class="sub-title">Equity</h3>
+      <table class="notes-table">
+        <tr><th>Component</th><th>2025</th><th>2024</th></tr>
+        <tr><td>Stated capital</td><td>2,222,888</td><td>2,222,888</td></tr>
+        <tr><td>Other reserves</td><td>629,903</td><td>351,302</td></tr>
+        <tr><td>Integrity capital reserve (new in 2025)</td><td>14,653</td><td>—</td></tr>
+        <tr><td>Retained income</td><td>11,304,442</td><td>7,992,987</td></tr>
+        <tr><td><strong>Total equity</strong></td><td><strong>14,171,886</strong></td><td>10,567,532</td></tr>
+      </table>
+      <p>Shareholders paid in only GHS 2.22BN at IPO — the company has since accumulated GHS 11.30BN of retained profits on top of that. <strong>80% of MTN's equity was earned and kept, not contributed.</strong> Book value per share = GHS 14,171,886k ÷ 13.24BN shares ≈ <strong>GHS 1.07</strong>; against a market price of GHS 6.44, that's a price-to-book of about <strong>6.0x</strong> — the gap is the value of the brand, licence and 26 million subscribers.</p>
+    </section>
+
+    <!-- ===================== INTERCONNECTIONS ===================== -->
+    <section id="interconnections" class="card p-6 md:p-8 prose-note">
+      <h2 class="section-title"><i class="fas fa-link text-purple-600 mr-2"></i>4. How All Three Connect — Six Hard Links</h2>
+      <p>The three statements are not separate documents — they're three views of one set of events. Six links tie them together, and each is arithmetic that <strong>must</strong> hold.</p>
+      <ol class="list-decimal ml-5 space-y-3 text-sm">
+        <li><strong>Profit → Retained income (IS → BS):</strong> Opening retained income (7,992,987) + PAT (7,839,930) − Dividends (4,528,475) = Closing retained income (11,304,442). The master link.</li>
+        <li><strong>Depreciation's three roles (IS → CF → BS):</strong> the same GHS 2,322,138 cuts profit on the income statement, is added back to cash on the cash flow statement, and reduces PPE's carrying value on the balance sheet.</li>
+        <li><strong>Capex → Assets → D&amp;A (CF → BS → IS):</strong> GHS 6,414,306 of cash becomes towers (balance sheet), which become tomorrow's depreciation (income statement). The circle closes and restarts every year.</li>
+        <li><strong>Closing cash is an identity (CF = BS):</strong> GHS 4,298,477 must appear in both the cash flow statement's closing balance and the balance sheet's cash line — no tolerance, no exceptions. If they ever differ, someone made an error or is committing fraud.</li>
+        <li><strong>Tax charge vs tax paid (IS ≠ CF → BS):</strong> GHS 2,906,475 charged, GHS 3,394,101 paid; the GHS 487,626 difference parks on the balance sheet as a current tax asset.</li>
+        <li><strong>Working capital's home (IS ≠ CF → BS):</strong> every gap between revenue and cash sits somewhere on the balance sheet — receivables, contract liabilities, or payables. Nothing is ever lost; it just moves address.</li>
+      </ol>
+      <div class="note-tip"><strong>Your method — how to read any company in ten minutes:</strong> (1) cash flow statement first — is operating cash positive and growing? (2) compare operating cash to profit; (3) compare capex to depreciation (MTN: 2.35x — still building); (4) balance sheet: debt and cash; (5) income statement last — margins and growth as confirmation, not the story; (6) read the notes (contingent liabilities, related parties); (7) pull five years of history, since one year is a snapshot of a machine mid-cycle.</div>
+    </section>
+
+    <!-- ===================== RATIOS ===================== -->
+    <section id="ratios" class="card p-6 md:p-8 prose-note">
+      <h2 class="section-title"><i class="fas fa-calculator text-blue-600 mr-2"></i>Ratio Cheat Sheet — Ratios That Need Two Statements</h2>
+      <table class="notes-table">
+        <tr><th>Ratio</th><th>Formula</th><th>Statements</th><th>MTN FY2025</th></tr>
+        <tr><td>Cash conversion</td><td>OCF ÷ EBITDA</td><td>CF ÷ IS</td><td>52%</td></tr>
+        <tr><td>Capex-to-D&amp;A</td><td>Capex ÷ D&amp;A</td><td>CF ÷ IS</td><td>2.35x</td></tr>
+        <tr><td>Accruals ratio</td><td>(PAT − OCF) ÷ PAT</td><td>IS ÷ CF</td><td>3% (the best fraud screen)</td></tr>
+        <tr><td>Return on equity</td><td>PAT ÷ Equity</td><td>IS ÷ BS</td><td>55.3%</td></tr>
+        <tr><td>Cash dividend cover</td><td>OCF ÷ Dividends</td><td>CF ÷ CF</td><td>1.68x</td></tr>
+        <tr><td>Price-to-book</td><td>Price ÷ Book value/share</td><td>Market ÷ BS</td><td>6.0x</td></tr>
+      </table>
+      <p>MTN's verdict across all six: strong cash conversion, still investing above depreciation, a low accruals ratio (the profit is real money), exceptional ROE, a well-covered dividend, and a price-to-book premium that reflects brand and subscriber value rather than a calculation.</p>
+    </section>
+
+    <!-- ===================== GLOSSARY ===================== -->
+    <section id="glossary" class="card p-6 md:p-8 prose-note">
+      <h2 class="section-title"><i class="fas fa-spell-check text-gray-600 mr-2"></i>Glossary</h2>
+      <table class="notes-table">
+        <tr><td><strong>Revenue</strong></td><td>Value of services delivered to customers — not necessarily paid for yet.</td></tr>
+        <tr><td><strong>EBITDA</strong></td><td>Earnings Before Interest, Tax, Depreciation, Amortisation. Operating engine, not cash, not profit.</td></tr>
+        <tr><td><strong>Depreciation</strong></td><td>Spreading the cost of a physical asset over its useful life. A cost, not a payment.</td></tr>
+        <tr><td><strong>Amortisation</strong></td><td>The same idea, applied to intangibles: licences, software.</td></tr>
+        <tr><td><strong>EBIT / Operating profit</strong></td><td>EBITDA less D&amp;A. The honest measure of operating performance.</td></tr>
+        <tr><td><strong>PBT / PAT</strong></td><td>Profit before tax / profit after tax (the bottom line, belongs to shareholders).</td></tr>
+        <tr><td><strong>EPS</strong></td><td>PAT ÷ number of shares. MTN: GHS 0.592.</td></tr>
+        <tr><td><strong>OCF</strong></td><td>Operating cash flow — money the business actually generated.</td></tr>
+        <tr><td><strong>Capex</strong></td><td>Capital expenditure — cash spent buying long-lived assets.</td></tr>
+        <tr><td><strong>FCF</strong></td><td>Free cash flow — OCF less capex. What is genuinely available to owners.</td></tr>
+        <tr><td><strong>Working capital</strong></td><td>The gap between when business happens and when money moves.</td></tr>
+        <tr><td><strong>Receivables</strong></td><td>Money customers owe MTN for services already delivered.</td></tr>
+        <tr><td><strong>Contract liability</strong></td><td>Money customers paid MTN for services NOT yet delivered (unused airtime).</td></tr>
+        <tr><td><strong>Accrual</strong></td><td>Recognising a transaction when it happens, not when cash moves — the basis of the income statement.</td></tr>
+        <tr><td><strong>IFRS 16</strong></td><td>The rule that puts leased assets on the balance sheet as if bought with borrowed money.</td></tr>
+        <tr><td><strong>Retained income</strong></td><td>Accumulated profits never paid out as dividends — the link between P&amp;L and balance sheet.</td></tr>
+        <tr><td><strong>Book value per share</strong></td><td>Total equity ÷ shares. MTN: GHS 1.07 against a GHS 6.44 market price.</td></tr>
+      </table>
+      <p class="text-xs text-gray-400 mt-4">Source: Scancom PLC (MTN Ghana) 2025 Annual Report (audited). All figures GHS'000 unless stated. Adapted from the YIN Ghana Financial Statements Masterclass and the Cash Flow Statement Training Edition, Merban Capital Limited, 14 July 2026.</p>
+    </section>
+
+    <div class="text-center pb-6">
+      <a href="/yiap-practice" class="inline-block px-8 py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-lg transition-colors">
+        <i class="fas fa-play mr-2"></i>Ready — Go to Trial Questions
+      </a>
+    </div>
+
+  </div>
+</main>
+
+<footer class="bg-gray-900 text-white py-6 mt-4">
+  <div class="max-w-6xl mx-auto px-4 text-center">
+    <p class="text-gray-400 text-sm">&copy; 2026 InvestIQ &middot; YIN Ghana. For study purposes only.</p>
+  </div>
+</footer>
+</body>
+</html>

@@ -6152,6 +6152,11 @@ def yiap_hub():
     return render_template('yiap_hub.html', courses=courses, best_scores=best_scores)
 
 
+@app.route('/yiap-practice/notes')
+def yiap_notes():
+    return render_template('yiap_notes.html')
+
+
 @app.route('/yiap-practice/course/<slug>')
 @login_required
 def yiap_course_detail(slug):

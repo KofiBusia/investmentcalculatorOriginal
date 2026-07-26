@@ -43,6 +43,45 @@
 
 <main class="max-w-5xl mx-auto px-4 py-10">
 
+  <a href="/yiap-practice/notes" class="card p-5 mb-8 border-l-4 border-emerald-500 flex items-center justify-between flex-wrap gap-3 hover:shadow-md transition-shadow" style="text-decoration:none;">
+    <div class="flex items-center gap-4">
+      <div class="w-11 h-11 rounded-xl bg-emerald-100 flex items-center justify-center flex-shrink-0">
+        <i class="fas fa-book-open text-emerald-600"></i>
+      </div>
+      <div>
+        <p class="font-bold text-gray-800">Read the Study Notes First</p>
+        <p class="text-sm text-gray-500">A full write-up of the masterclass — read it before you start any trial.</p>
+      </div>
+    </div>
+    <span class="text-emerald-600 font-semibold text-sm whitespace-nowrap">Open Notes <i class="fas fa-arrow-right ml-1"></i></span>
+  </a>
+
+  <a href="/yin-programs" class="card p-5 mb-8 border-l-4 border-green-500 flex items-center justify-between flex-wrap gap-3 hover:shadow-md transition-shadow" style="text-decoration:none;">
+    <div class="flex items-center gap-4">
+      <div class="w-11 h-11 rounded-xl bg-green-100 flex items-center justify-center flex-shrink-0">
+        <i class="fas fa-id-card text-green-600"></i>
+      </div>
+      <div>
+        <p class="font-bold text-gray-800">Not a YIN Member Yet?</p>
+        <p class="text-sm text-gray-500">Go to YIN Programmes and click <strong>Apply Now</strong> under <strong>General Membership</strong> to register.</p>
+      </div>
+    </div>
+    <span class="text-green-600 font-semibold text-sm whitespace-nowrap">Join YIN <i class="fas fa-arrow-right ml-1"></i></span>
+  </a>
+
+  <a href="/stock-pitch" class="card p-5 mb-8 border-l-4 border-yellow-500 flex items-center justify-between flex-wrap gap-3 hover:shadow-md transition-shadow" style="text-decoration:none;">
+    <div class="flex items-center gap-4">
+      <div class="w-11 h-11 rounded-xl bg-yellow-100 flex items-center justify-center flex-shrink-0">
+        <i class="fas fa-trophy text-yellow-600"></i>
+      </div>
+      <div>
+        <p class="font-bold text-gray-800">Stock Pitch Competition</p>
+        <p class="text-sm text-gray-500">Read everything about the competition — rules, format and how to enter.</p>
+      </div>
+    </div>
+    <span class="text-yellow-600 font-semibold text-sm whitespace-nowrap">Learn More <i class="fas fa-arrow-right ml-1"></i></span>
+  </a>
+
   {% with messages = get_flashed_messages(with_categories=true) %}
   {% if messages %}
   {% for cat, msg in messages %}
