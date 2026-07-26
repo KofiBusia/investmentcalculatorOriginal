@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YIAP Practise Results — Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>body{font-family:'Inter',sans-serif;background:#f1f5f9;}</style>
+</head>
+<body>
+<header class="bg-gray-900 text-white py-4 px-6 flex justify-between items-center">
+  <h1 class="font-bold text-lg"><i class="fas fa-graduation-cap mr-2 text-emerald-400"></i>YIAP Practise Questions — Completed Attempts</h1>
+  <div class="flex gap-4 text-sm">
+    <a href="/admin" class="text-gray-400 hover:text-white">Dashboard</a>
+    <a href="/admin/logout" class="text-red-400 hover:text-red-300">Logout</a>
+  </div>
+</header>
+<main class="max-w-6xl mx-auto px-4 py-8">
+
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+    <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+      <p class="text-sm text-gray-500 mb-1">Completed Attempts</p>
+      <p class="text-3xl font-bold text-indigo-600">{{ total_attempts }}</p>
+    </div>
+    <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+      <p class="text-sm text-gray-500 mb-1">Qualified for Certificate</p>
+      <p class="text-3xl font-bold text-emerald-600">{{ total_passed }}</p>
+    </div>
+    <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+      <p class="text-sm text-gray-500 mb-1">Pass Mark</p>
+      <p class="text-3xl font-bold text-gray-700">{{ pass_pct }}%</p>
+    </div>
+  </div>
+
+  <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
+    <div>
+      <h2 class="text-xl font-bold text-gray-800">Student Results</h2>
+      <p class="text-sm text-gray-500 mt-1">Every student is emailed automatically to joshuamens67@gmail.com and joshbuffet@yahoo.com when they finish a trial.</p>
+    </div>
+    <a href="/admin/yiap-results-csv" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-semibold">
+      <i class="fas fa-file-csv mr-2"></i>Download CSV
+    </a>
+  </div>
+
+  {% if attempts %}
+  <div class="bg-white rounded-xl shadow overflow-auto">
+    <table class="w-full text-sm">
+      <thead class="bg-gray-50 text-gray-600 uppercase text-xs">
+        <tr>
+          <th class="px-4 py-3 text-left">Full Name</th>
+          <th class="px-4 py-3 text-left">Email</th>
+          <th class="px-4 py-3 text-left">Phone</th>
+          <th class="px-4 py-3 text-left">Section</th>
+          <th class="px-4 py-3 text-left">Score</th>
+          <th class="px-4 py-3 text-left">Result</th>
+          <th class="px-4 py-3 text-left">Certificate</th>
+          <th class="px-4 py-3 text-left">Completed</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-100">
+        {% for a in attempts %}
+        {% set passed = a.score_pct >= pass_pct %}
+        <tr class="hover:bg-gray-50">
+          <td class="px-4 py-3 font-semibold text-gray-800">{{ a.user.full_name if a.user else '—' }}</td>
+          <td class="px-4 py-3 text-gray-600">{{ a.user.email if a.user else '—' }}</td>
+          <td class="px-4 py-3 text-gray-600">{{ a.user.phone if a.user else '—' }}</td>
+          <td class="px-4 py-3 text-gray-600">{{ a.course.name if a.course else '—' }}</td>
+          <td class="px-4 py-3 font-bold text-gray-800">{{ a.score }}/{{ a.total_questions }} <span class="text-gray-400 font-normal">({{ a.score_pct }}%)</span></td>
+          <td class="px-4 py-3">
+            <span class="px-2 py-0.5 rounded text-xs font-bold {% if passed %}bg-green-100 text-green-700{% else %}bg-red-100 text-red-700{% endif %}">
+              {{ 'PASSED' if passed else 'DID NOT PASS' }}
+            </span>
+          </td>
+          <td class="px-4 py-3">
+            {% if passed %}<span class="text-emerald-600 text-xs font-semibold"><i class="fas fa-certificate mr-1"></i>Eligible</span>
+            {% else %}<span class="text-gray-400 text-xs">Not eligible</span>{% endif %}
+          </td>
+          <td class="px-4 py-3 text-gray-400 text-xs">{{ a.completed_at.strftime('%d %b %y %H:%M') if a.completed_at else '—' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="bg-white rounded-xl shadow p-12 text-center">
+    <i class="fas fa-inbox text-4xl text-gray-200 mb-3"></i>
+    <p class="text-gray-400">No completed YIAP practise attempts yet.</p>
+  </div>
+  {% endif %}
+</main>
+</body>
+</html>

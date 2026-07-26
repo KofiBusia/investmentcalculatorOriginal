@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Question {{ q_num }} — {{ course.name }} — InvestIQ</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body{font-family:'Inter',sans-serif;background:#f0f4f8;min-height:100vh;}
+    .option-btn{display:block;width:100%;text-align:left;padding:.85rem 1.1rem;border:2px solid #e2e8f0;border-radius:.75rem;font-size:.95rem;background:#fff;cursor:pointer;transition:all .15s;}
+    .option-btn:hover{border-color:#10b981;background:#ecfdf5;}
+    .option-btn.selected{border-color:#10b981;background:#ecfdf5;}
+    .progress-bar{height:8px;background:#e2e8f0;border-radius:99px;overflow:hidden;}
+    .progress-fill{height:100%;background:linear-gradient(90deg,#10b981,#047857);border-radius:99px;transition:width .4s;}
+    .feedback-card{border-radius:12px;padding:1rem 1.25rem;margin-top:1rem;}
+    .feedback-correct{background:#f0fdf4;border:1.5px solid #86efac;}
+    .feedback-wrong{background:#fef2f2;border:1.5px solid #fca5a5;}
+  </style>
+</head>
+<body class="text-gray-800">
+
+<header class="bg-gray-900 text-white py-4 px-4">
+  <div class="max-w-3xl mx-auto flex justify-between items-center">
+    <a href="/yiap-practice/course/{{ course.slug }}" class="text-blue-300 hover:text-white text-sm"><i class="fas fa-times mr-1"></i>Exit Quiz</a>
+    <div class="text-center">
+      <p class="font-bold text-sm">{{ course.name }}</p>
+      <p class="text-gray-400 text-xs">Question {{ q_num }} of {{ total }}</p>
+    </div>
+    <div class="text-right text-sm font-semibold text-emerald-300">
+      {{ attempt.score }} correct
+    </div>
+  </div>
+</header>
+
+<div class="bg-gray-800 px-4 pb-3">
+  <div class="max-w-3xl mx-auto">
+    <div class="progress-bar">
+      <div class="progress-fill" style="width:{{ attempt.progress_pct }}%"></div>
+    </div>
+    <p class="text-gray-400 text-xs mt-1">{{ attempt.progress_pct }}% complete</p>
+  </div>
+</div>
+
+<main class="max-w-3xl mx-auto px-4 py-8">
+
+  {% if feedback %}
+  <div class="feedback-card {% if feedback.is_correct %}feedback-correct{% else %}feedback-wrong{% endif %} mb-6">
+    <div class="flex items-start gap-3">
+      <div class="text-2xl">{% if feedback.is_correct %}&#9989;{% else %}&#10060;{% endif %}</div>
+      <div>
+        <p class="font-bold {% if feedback.is_correct %}text-green-800{% else %}text-red-800{% endif %} mb-1">
+          {% if feedback.is_correct %}Correct!{% else %}Incorrect — correct answer: <strong>{{ feedback.correct|upper }}</strong>{% endif %}
+        </p>
+        <p class="text-sm text-gray-700"><span class="font-semibold">Previous Q:</span> {{ feedback.prev_question.question_text[:100] }}{% if feedback.prev_question.question_text|length > 100 %}…{% endif %}</p>
+        {% if feedback.explanation %}
+        <p class="text-sm text-gray-600 mt-1.5"><i class="fas fa-lightbulb text-yellow-500 mr-1"></i>{{ feedback.explanation }}</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+    <div class="flex items-center gap-2 mb-4 flex-wrap">
+      <span class="text-xs bg-emerald-100 text-emerald-700 font-semibold px-2.5 py-1 rounded-full">{{ question.chapter }}</span>
+      <span class="text-xs bg-gray-100 text-gray-500 px-2 py-1 rounded-full">{{ question.difficulty }}</span>
+    </div>
+    <h2 class="text-lg font-semibold text-gray-800 mb-6 leading-relaxed">{{ q_num }}. {{ question.question_text }}</h2>
+
+    <form method="POST" action="/yiap-practice/quiz/{{ attempt.id }}/answer" id="quiz-form">
+      <input type="hidden" name="answer" id="answer-input" value="" />
+      <div class="space-y-3" id="options">
+        {% for letter, text in [('a', question.option_a), ('b', question.option_b), ('c', question.option_c), ('d', question.option_d)] %}
+        <button type="button" class="option-btn" data-letter="{{ letter }}" onclick="selectOption('{{ letter }}')">
+          <span class="inline-flex items-center justify-center w-7 h-7 bg-gray-100 text-gray-600 rounded-full text-sm font-bold mr-3">{{ letter|upper }}</span>
+          {{ text }}
+        </button>
+        {% endfor %}
+      </div>
+      <button type="submit" id="submit-btn" class="mt-6 w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-lg transition-colors opacity-50 cursor-not-allowed" disabled>
+        <i class="fas fa-arrow-right mr-2"></i>Submit Answer
+      </button>
+    </form>
+  </div>
+
+  <div class="text-center mt-6 text-sm text-gray-400">
+    Score: <strong class="text-gray-700">{{ attempt.score }}</strong>/{{ attempt.current_index }} correct
+    {% if attempt.current_index > 0 %}
+    ({{ ((attempt.score / attempt.current_index)*100)|round|int }}%)
+    {% endif %}
+  </div>
+</main>
+
+<script>
+function selectOption(letter) {
+  document.querySelectorAll('.option-btn').forEach(b => b.classList.remove('selected'));
+  const btn = document.querySelector(`[data-letter="${letter}"]`);
+  if (btn) btn.classList.add('selected');
+  document.getElementById('answer-input').value = letter;
+  const submit = document.getElementById('submit-btn');
+  submit.disabled = false;
+  submit.classList.remove('opacity-50', 'cursor-not-allowed');
+}
+document.getElementById('quiz-form').addEventListener('submit', function() {
+  document.getElementById('submit-btn').disabled = true;
+  document.getElementById('submit-btn').textContent = 'Submitting…';
+});
+</script>
+</body>
+</html>

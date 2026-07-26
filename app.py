@@ -437,6 +437,128 @@ def _check_gisi_access(user_id, email, course_id):
     return single is not None
 
 
+# --- YIAP PRACTISE QUESTIONS MODELS (YIN Ghana / MTN Financial Statements Masterclass) ---
+class YIAPCourse(db.Model):
+    __tablename__ = 'yiap_courses'
+    id          = db.Column(db.Integer, primary_key=True)
+    name        = db.Column(db.String(200), nullable=False)
+    slug        = db.Column(db.String(100), unique=True, nullable=False)
+    short_name  = db.Column(db.String(80), default='')
+    description = db.Column(db.Text, default='')
+    icon        = db.Column(db.String(50), default='fas fa-book')
+    color       = db.Column(db.String(30), default='blue')
+    is_active   = db.Column(db.Boolean, default=True)
+    sort_order  = db.Column(db.Integer, default=0)
+    created_at  = db.Column(db.DateTime, default=datetime.utcnow)
+    questions   = db.relationship('YIAPQuestion', backref='course', lazy='dynamic')
+
+
+class YIAPQuestion(db.Model):
+    __tablename__ = 'yiap_questions'
+    id            = db.Column(db.Integer, primary_key=True)
+    course_id     = db.Column(db.Integer, db.ForeignKey('yiap_courses.id'), nullable=False)
+    chapter       = db.Column(db.String(200), default='')
+    chapter_num   = db.Column(db.Integer, default=1)
+    question_text = db.Column(db.Text, nullable=False)
+    option_a      = db.Column(db.Text, nullable=False)
+    option_b      = db.Column(db.Text, nullable=False)
+    option_c      = db.Column(db.Text, nullable=False)
+    option_d      = db.Column(db.Text, nullable=False)
+    correct_answer = db.Column(db.String(1), nullable=False)  # a, b, c, or d
+    explanation   = db.Column(db.Text, default='')
+    difficulty    = db.Column(db.String(20), default='Medium')
+    created_at    = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+class YIAPQuizAttempt(db.Model):
+    __tablename__    = 'yiap_quiz_attempts'
+    id               = db.Column(db.Integer, primary_key=True)
+    user_id          = db.Column(db.Integer, db.ForeignKey('site_users.id'), nullable=False)
+    course_id        = db.Column(db.Integer, db.ForeignKey('yiap_courses.id'), nullable=False)
+    questions_order  = db.Column(db.Text, default='[]')   # JSON list of question IDs
+    answers_given    = db.Column(db.Text, default='{}')   # JSON {question_id: chosen_answer}
+    current_index    = db.Column(db.Integer, default=0)
+    score            = db.Column(db.Integer, default=0)
+    total_questions  = db.Column(db.Integer, default=50)
+    is_complete      = db.Column(db.Boolean, default=False)
+    result_emailed   = db.Column(db.Boolean, default=False)
+    created_at       = db.Column(db.DateTime, default=datetime.utcnow)
+    completed_at     = db.Column(db.DateTime, nullable=True)
+    course           = db.relationship('YIAPCourse', backref='quiz_attempts', lazy=True)
+    user             = db.relationship('SiteUser', backref='yiap_attempts', lazy=True)
+
+    @property
+    def questions_list(self):
+        try:
+            return json.loads(self.questions_order)
+        except Exception:
+            return []
+
+    @property
+    def answers_dict(self):
+        try:
+            return json.loads(self.answers_given)
+        except Exception:
+            return {}
+
+    @property
+    def progress_pct(self):
+        if self.total_questions == 0:
+            return 0
+        return int((self.current_index / self.total_questions) * 100)
+
+    @property
+    def score_pct(self):
+        if self.total_questions == 0:
+            return 0
+        return round((self.score / self.total_questions) * 100, 1)
+
+
+YIAP_PASS_PCT = 60  # minimum score percentage to qualify for a certificate
+
+
+def _send_yiap_result_email(attempt):
+    """Notify Joshua Mensah when a student completes a YIAP practise quiz."""
+    student = attempt.user
+    course  = attempt.course
+    pct     = attempt.score_pct
+    passed  = pct >= YIAP_PASS_PCT
+    cert_line = ('This student has QUALIFIED FOR A CERTIFICATE of completion.'
+                 if passed else
+                 f'This student did NOT reach the {YIAP_PASS_PCT}% pass mark required for a certificate.')
+    try:
+        msg = Message(
+            f'YIAP Practice Questions Completed — {student.full_name} — {course.name} — {attempt.score}/{attempt.total_questions}',
+            sender=app.config.get('MAIL_USERNAME', 'kyeikofi@gmail.com'),
+            recipients=['joshuamens67@gmail.com', 'joshbuffet@yahoo.com']
+        )
+        msg.html = f'''
+<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#f8fafc;border-radius:12px;overflow:hidden;">
+  <div style="background:linear-gradient(135deg,#0f172a,#1e3a5f);padding:28px 32px;text-align:center;">
+    <h1 style="color:#fff;margin:0;font-size:22px;">YIAP Practise Questions — Trial Completed</h1>
+    <p style="color:#93c5fd;margin:8px 0 0;font-size:14px;">YIN Ghana | InvestIQ</p>
+  </div>
+  <div style="padding:28px 32px;background:#fff;">
+    <p style="color:#475569;font-size:15px;margin-top:0;">A student has just finished the YIAP practise trial questions.</p>
+    <table style="width:100%;border-collapse:collapse;font-size:15px;">
+      <tr><td style="padding:8px 0;color:#64748b;font-weight:600;width:160px;">Full Name</td><td style="color:#1e293b;font-weight:700;">{student.full_name}</td></tr>
+      <tr style="background:#f8fafc;"><td style="padding:8px 6px;color:#64748b;font-weight:600;">Email</td><td style="padding:8px 6px;">{student.email}</td></tr>
+      <tr><td style="padding:8px 0;color:#64748b;font-weight:600;">Phone</td><td>{student.phone or "—"}</td></tr>
+      <tr style="background:#f8fafc;"><td style="padding:8px 6px;color:#64748b;font-weight:600;">Section</td><td style="padding:8px 6px;">{course.name}</td></tr>
+      <tr><td style="padding:8px 0;color:#64748b;font-weight:600;">Score</td><td style="font-weight:700;">{attempt.score} / {attempt.total_questions} ({pct}%)</td></tr>
+      <tr style="background:#f8fafc;"><td style="padding:8px 6px;color:#64748b;font-weight:600;">Result</td><td style="padding:8px 6px;font-weight:700;color:{"#16a34a" if passed else "#dc2626"};">{"PASSED" if passed else "DID NOT PASS"}</td></tr>
+      <tr><td style="padding:8px 0;color:#64748b;font-weight:600;">Completed At</td><td>{attempt.completed_at.strftime('%d %b %Y, %H:%M') if attempt.completed_at else ''}</td></tr>
+    </table>
+    <div style="margin-top:20px;padding:16px 18px;border-radius:10px;background:{"#f0fdf4" if passed else "#fef2f2"};border:1px solid {"#bbf7d0" if passed else "#fecaca"};">
+      <p style="margin:0;font-weight:700;color:{"#16a34a" if passed else "#dc2626"};">{cert_line}</p>
+    </div>
+  </div>
+</div>'''
+        mail.send(msg)
+    except Exception as e:
+        logger.error(f'YIAP result email failed: {e}')
+
+
 # --- CONTACT MESSAGE MODEL ---
 class ContactMessage(db.Model):
     __tablename__ = 'contact_messages'
@@ -6004,6 +6126,258 @@ def gisi_prep_seed():
     db.session.commit()
     return jsonify({'status': 'ok', 'courses': GISICourse.query.count(),
                     'questions': GISIQuestion.query.count()})
+
+
+# ============================================================
+# YIAP PRACTISE QUESTIONS -- YIN Ghana / MTN Financial Statements Masterclass
+# ============================================================
+
+@app.route('/yiap-practice')
+def yiap_hub():
+    courses = YIAPCourse.query.filter_by(is_active=True).order_by(YIAPCourse.sort_order).all()
+    best_scores = {}
+    if current_user.is_authenticated:
+        for c in courses:
+            best = (YIAPQuizAttempt.query
+                    .filter_by(user_id=current_user.id, course_id=c.id, is_complete=True)
+                    .order_by(YIAPQuizAttempt.score.desc()).first())
+            if best:
+                best_scores[c.id] = best.score_pct
+    return render_template('yiap_hub.html', courses=courses, best_scores=best_scores)
+
+
+@app.route('/yiap-practice/course/<slug>')
+@login_required
+def yiap_course_detail(slug):
+    course = YIAPCourse.query.filter_by(slug=slug, is_active=True).first_or_404()
+    total_q = course.questions.count()
+    attempts = YIAPQuizAttempt.query.filter_by(
+        user_id=current_user.id, course_id=course.id
+    ).order_by(YIAPQuizAttempt.created_at.desc()).limit(5).all()
+    return render_template('yiap_course_detail.html', course=course, attempts=attempts, total_q=total_q)
+
+
+@app.route('/yiap-practice/quiz/start/<int:course_id>', methods=['POST'])
+@login_required
+def yiap_quiz_start(course_id):
+    import random as _rand
+    course = YIAPCourse.query.get_or_404(course_id)
+    all_ids = [str(q.id) for q in course.questions.all()]
+    QUIZ_SIZE = 50
+    selected = _rand.sample(all_ids, min(QUIZ_SIZE, len(all_ids)))
+    _rand.shuffle(selected)
+
+    attempt = YIAPQuizAttempt(
+        user_id=current_user.id,
+        course_id=course_id,
+        questions_order=json.dumps(selected),
+        answers_given='{}',
+        current_index=0,
+        score=0,
+        total_questions=len(selected),
+        is_complete=False
+    )
+    db.session.add(attempt)
+    db.session.commit()
+    return redirect(url_for('yiap_quiz_question', attempt_id=attempt.id))
+
+
+@app.route('/yiap-practice/quiz/<int:attempt_id>')
+@login_required
+def yiap_quiz_question(attempt_id):
+    attempt = YIAPQuizAttempt.query.get_or_404(attempt_id)
+    if attempt.user_id != current_user.id:
+        abort(403)
+    if attempt.is_complete:
+        return redirect(url_for('yiap_quiz_results', attempt_id=attempt_id))
+
+    q_list = attempt.questions_list
+    idx = attempt.current_index
+    if idx >= len(q_list):
+        was_complete = attempt.is_complete
+        attempt.is_complete = True
+        attempt.completed_at = datetime.utcnow()
+        db.session.commit()
+        if not was_complete and not attempt.result_emailed:
+            attempt.result_emailed = True
+            db.session.commit()
+            _send_yiap_result_email(attempt)
+        return redirect(url_for('yiap_quiz_results', attempt_id=attempt_id))
+
+    q_id = int(q_list[idx])
+    question = YIAPQuestion.query.get_or_404(q_id)
+    course = attempt.course
+    return render_template('yiap_quiz.html',
+                           attempt=attempt, question=question,
+                           q_num=idx + 1, total=attempt.total_questions,
+                           course=course, feedback=None, last_correct=None)
+
+
+@app.route('/yiap-practice/quiz/<int:attempt_id>/answer', methods=['POST'])
+@login_required
+def yiap_quiz_answer(attempt_id):
+    attempt = YIAPQuizAttempt.query.get_or_404(attempt_id)
+    if attempt.user_id != current_user.id:
+        abort(403)
+    if attempt.is_complete:
+        return redirect(url_for('yiap_quiz_results', attempt_id=attempt_id))
+
+    q_list = attempt.questions_list
+    idx = attempt.current_index
+    q_id = int(q_list[idx])
+    question = YIAPQuestion.query.get_or_404(q_id)
+    chosen = request.form.get('answer', '').strip().lower()
+    answers = attempt.answers_dict
+    answers[str(q_id)] = chosen
+    attempt.answers_given = json.dumps(answers)
+    is_correct = (chosen == question.correct_answer)
+    if is_correct:
+        attempt.score += 1
+    attempt.current_index = idx + 1
+    if attempt.current_index >= attempt.total_questions:
+        attempt.is_complete = True
+        attempt.completed_at = datetime.utcnow()
+        attempt.result_emailed = True
+        db.session.commit()
+        _send_yiap_result_email(attempt)
+        return redirect(url_for('yiap_quiz_results', attempt_id=attempt_id))
+    db.session.commit()
+
+    next_q_id = int(q_list[attempt.current_index])
+    next_q = YIAPQuestion.query.get(next_q_id)
+    course = attempt.course
+    return render_template('yiap_quiz.html',
+                           attempt=attempt, question=next_q,
+                           q_num=attempt.current_index + 1, total=attempt.total_questions,
+                           course=course,
+                           feedback={'chosen': chosen, 'correct': question.correct_answer,
+                                     'is_correct': is_correct, 'explanation': question.explanation,
+                                     'prev_question': question},
+                           last_correct=is_correct)
+
+
+@app.route('/yiap-practice/quiz/<int:attempt_id>/results')
+@login_required
+def yiap_quiz_results(attempt_id):
+    attempt = YIAPQuizAttempt.query.get_or_404(attempt_id)
+    if attempt.user_id != current_user.id:
+        abort(403)
+    answers = attempt.answers_dict
+    q_list = attempt.questions_list
+    questions_detail = []
+    for qid_str in q_list:
+        q = YIAPQuestion.query.get(int(qid_str))
+        if q:
+            chosen = answers.get(qid_str, '')
+            questions_detail.append({
+                'question': q,
+                'chosen': chosen,
+                'correct': q.correct_answer,
+                'is_correct': chosen == q.correct_answer,
+            })
+    course = attempt.course
+    passed = attempt.score_pct >= YIAP_PASS_PCT
+    pass_mark = int(round(attempt.total_questions * (YIAP_PASS_PCT / 100)))
+    return render_template('yiap_results.html', attempt=attempt, course=course,
+                           questions_detail=questions_detail, passed=passed,
+                           pass_pct=YIAP_PASS_PCT, pass_mark=pass_mark)
+
+
+@app.route('/yiap-practice/seed')
+def yiap_prep_seed():
+    """One-time seed: populate YIAPCourse records and questions from yiap_questions.py."""
+    if YIAPCourse.query.count() > 0:
+        return jsonify({'status': 'already seeded', 'courses': YIAPCourse.query.count(),
+                        'questions': YIAPQuestion.query.count()})
+    try:
+        from yiap_questions import INCOME_STATEMENT_QUESTIONS, CASH_FLOW_QUESTIONS, BALANCE_SHEET_QUESTIONS
+    except ImportError:
+        return jsonify({'error': 'yiap_questions.py not found'}), 500
+
+    courses_data = [
+        {'name': 'Income Statement', 'slug': 'income-statement', 'short_name': 'Income Statement',
+         'description': "Revenue, costs, EBITDA, EBIT, tax and profit after tax -- traced through MTN Ghana's FY2025 audited accounts.",
+         'icon': 'fas fa-file-invoice-dollar', 'color': 'indigo', 'sort_order': 1,
+         'questions': INCOME_STATEMENT_QUESTIONS},
+        {'name': 'Cash Flow Statement', 'slug': 'cash-flow-statement', 'short_name': 'Cash Flow',
+         'description': "Operating, investing and financing activities -- how MTN Ghana's profit turned into real cash in FY2025.",
+         'icon': 'fas fa-money-bill-trend-up', 'color': 'emerald', 'sort_order': 2,
+         'questions': CASH_FLOW_QUESTIONS},
+        {'name': 'Balance Sheet', 'slug': 'balance-sheet', 'short_name': 'Balance Sheet',
+         'description': "Assets, liabilities and equity -- including the GHS 38.39BN MoMo float trap in MTN Ghana's FY2025 accounts.",
+         'icon': 'fas fa-scale-balanced', 'color': 'amber', 'sort_order': 3,
+         'questions': BALANCE_SHEET_QUESTIONS},
+    ]
+
+    for cd in courses_data:
+        qs = cd.pop('questions')
+        course = YIAPCourse(**cd)
+        db.session.add(course)
+        db.session.flush()
+        for q in qs:
+            yq = YIAPQuestion(
+                course_id=course.id,
+                chapter=q.get('chapter', ''),
+                chapter_num=q.get('chapter_num', 1),
+                question_text=q['question'],
+                option_a=q['a'],
+                option_b=q['b'],
+                option_c=q['c'],
+                option_d=q['d'],
+                correct_answer=q['answer'],
+                explanation=q.get('explanation', ''),
+                difficulty=q.get('difficulty', 'Medium'),
+            )
+            db.session.add(yq)
+    db.session.commit()
+    return jsonify({'status': 'ok', 'courses': YIAPCourse.query.count(),
+                    'questions': YIAPQuestion.query.count()})
+
+
+@app.route('/admin/yiap-results')
+@admin_required
+def admin_yiap_results():
+    attempts = (YIAPQuizAttempt.query.filter_by(is_complete=True)
+                .order_by(YIAPQuizAttempt.completed_at.desc()).all())
+    total_attempts = len(attempts)
+    total_passed = sum(1 for a in attempts if a.score_pct >= YIAP_PASS_PCT)
+    return render_template('admin_yiap_results.html', attempts=attempts,
+                           pass_pct=YIAP_PASS_PCT, total_attempts=total_attempts,
+                           total_passed=total_passed)
+
+
+@app.route('/admin/yiap-results-csv')
+@admin_required
+def admin_yiap_results_csv():
+    import csv, io
+    attempts = (YIAPQuizAttempt.query.filter_by(is_complete=True)
+                .order_by(YIAPQuizAttempt.completed_at.desc()).all())
+    buf = io.StringIO()
+    writer = csv.writer(buf)
+    writer.writerow(['Full Name', 'Email', 'Phone', 'Section', 'Score', 'Total Questions',
+                      'Percentage', 'Result', 'Certificate Eligible', 'Completed At'])
+    for a in attempts:
+        passed = a.score_pct >= YIAP_PASS_PCT
+        writer.writerow([
+            a.user.full_name if a.user else '',
+            a.user.email if a.user else '',
+            a.user.phone if a.user else '',
+            a.course.name if a.course else '',
+            a.score,
+            a.total_questions,
+            a.score_pct,
+            'Passed' if passed else 'Did Not Pass',
+            'Yes' if passed else 'No',
+            a.completed_at.strftime('%Y-%m-%d %H:%M') if a.completed_at else '',
+        ])
+    return (
+        buf.getvalue(),
+        200,
+        {
+            'Content-Type': 'text/csv; charset=utf-8',
+            'Content-Disposition': 'attachment; filename="yiap_practice_results.csv"',
+        }
+    )
 
 
 @app.route('/jobs/<int:job_id>/apply', methods=['GET', 'POST'])

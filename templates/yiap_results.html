@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Results — {{ course.name }} — InvestIQ</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body{font-family:'Inter',sans-serif;background:#f0f4f8;}
+    .card{background:#fff;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,.08);}
+    .q-row{padding:.75rem 1rem;border-radius:8px;margin-bottom:.5rem;border-left:4px solid;}
+    .q-correct{border-color:#16a34a;background:#f0fdf4;}
+    .q-wrong{border-color:#ef4444;background:#fef2f2;}
+  </style>
+</head>
+<body class="text-gray-800">
+
+<header class="bg-gray-900 text-white py-5 px-4">
+  <div class="max-w-3xl mx-auto flex justify-between items-center">
+    <a href="/yiap-practice/course/{{ course.slug }}" class="text-blue-300 hover:text-white text-sm"><i class="fas fa-arrow-left mr-1"></i>Back to Section</a>
+    <span class="font-bold">{{ course.name }}</span>
+    <a href="/yiap-practice" class="text-blue-300 hover:text-white text-sm">All Sections</a>
+  </div>
+</header>
+
+<main class="max-w-3xl mx-auto px-4 py-8 space-y-6">
+
+  <div class="card p-8 text-center">
+    {% if passed %}
+    <div class="text-6xl mb-3">&#127881;</div>
+    <h1 class="text-3xl font-extrabold text-green-700 mb-1">Excellent! You Passed!</h1>
+    <p class="text-emerald-700 font-semibold text-sm mb-1"><i class="fas fa-certificate mr-1"></i>You are qualified for a certificate of completion.</p>
+    {% else %}
+    <div class="text-6xl mb-3">&#128218;</div>
+    <h1 class="text-3xl font-extrabold text-red-700 mb-1">Keep Practising</h1>
+    <p class="text-gray-500 text-sm mb-1">You need {{ pass_pct }}% to qualify for a certificate — retake the section anytime.</p>
+    {% endif %}
+    <p class="text-gray-500 mb-6">{{ course.name }} — Session completed {{ attempt.completed_at.strftime('%d %b %Y, %H:%M') if attempt.completed_at else '' }}</p>
+
+    <div class="flex justify-center gap-8 mb-6">
+      <div>
+        <p class="text-5xl font-black {% if passed %}text-green-600{% else %}text-red-600{% endif %}">{{ attempt.score_pct }}%</p>
+        <p class="text-sm text-gray-400 mt-1">Score</p>
+      </div>
+      <div class="border-l border-gray-200"></div>
+      <div>
+        <p class="text-4xl font-extrabold text-gray-800">{{ attempt.score }}<span class="text-2xl text-gray-400">/{{ attempt.total_questions }}</span></p>
+        <p class="text-sm text-gray-400 mt-1">Correct</p>
+      </div>
+      <div class="border-l border-gray-200"></div>
+      <div>
+        <p class="text-4xl font-extrabold text-gray-500">{{ pass_mark }}</p>
+        <p class="text-sm text-gray-400 mt-1">Pass Mark ({{ pass_pct }}%)</p>
+      </div>
+    </div>
+
+    <div class="w-full bg-gray-100 rounded-full h-4 mb-4 max-w-sm mx-auto">
+      <div class="h-4 rounded-full {% if passed %}bg-green-500{% else %}bg-red-500{% endif %}" style="width:{{ attempt.score_pct }}%"></div>
+    </div>
+
+    <div class="flex justify-center gap-4 mt-4 flex-wrap">
+      <form method="POST" action="/yiap-practice/quiz/start/{{ course.id }}">
+        <button type="submit" class="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold">
+          <i class="fas fa-redo mr-2"></i>Try Another Session
+        </button>
+      </form>
+      <a href="/yiap-practice/course/{{ course.slug }}" class="px-6 py-3 bg-white border-2 border-gray-200 text-gray-700 hover:border-emerald-400 rounded-xl font-bold">
+        <i class="fas fa-book mr-2"></i>Section Page
+      </a>
+    </div>
+  </div>
+
+  <div class="card p-6">
+    <h2 class="text-lg font-bold text-gray-800 mb-5"><i class="fas fa-list-check mr-2 text-gray-400"></i>Question Review</h2>
+    {% for item in questions_detail %}
+    <div class="q-row {% if item.is_correct %}q-correct{% else %}q-wrong{% endif %}">
+      <div class="flex items-start gap-3">
+        <div class="mt-0.5 text-lg">{% if item.is_correct %}&#9989;{% else %}&#10060;{% endif %}</div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-medium text-gray-800 mb-1">{{ loop.index }}. {{ item.question.question_text[:120] }}{% if item.question.question_text|length > 120 %}…{% endif %}</p>
+          <div class="flex flex-wrap gap-3 text-xs">
+            <span class="text-gray-500">Your answer: <strong class="{% if item.is_correct %}text-green-700{% else %}text-red-700{% endif %}">{{ item.chosen|upper if item.chosen else '—' }}</strong></span>
+            {% if not item.is_correct %}
+            <span class="text-gray-500">Correct: <strong class="text-green-700">{{ item.correct|upper }}</strong></span>
+            {% endif %}
+          </div>
+          {% if item.question.explanation and not item.is_correct %}
+          <p class="text-xs text-gray-500 mt-1 italic">{{ item.question.explanation[:150] }}{% if item.question.explanation|length > 150 %}…{% endif %}</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+</main>
+<footer class="bg-gray-900 text-white py-6 mt-4"><div class="max-w-3xl mx-auto px-4 text-center"><p class="text-gray-400 text-sm">&copy; 2026 InvestIQ &middot; YIN Ghana.</p></div></footer>
+</body>
+</html>

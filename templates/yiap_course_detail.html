@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ course.name }} — YIAP Practise Questions — InvestIQ</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body{font-family:'Inter',sans-serif;background:#f0f4f8;}
+    .hero-bg{background:linear-gradient(135deg,#0f172a,#1e3a5f);}
+    .card{background:#fff;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,.08);}
+    .attempt-row{border-left:4px solid;padding:.75rem 1rem;border-radius:0 8px 8px 0;margin-bottom:.5rem;}
+    .pass{border-color:#16a34a;background:#f0fdf4;}
+    .fail{border-color:#ef4444;background:#fef2f2;}
+    .incomplete{border-color:#f59e0b;background:#fffbeb;}
+  </style>
+</head>
+<body class="text-gray-800">
+<header class="hero-bg text-white py-8 px-4">
+  <div class="max-w-4xl mx-auto">
+    <nav class="flex justify-between items-center mb-6 flex-wrap gap-3">
+      <a href="/" class="flex items-center gap-2 text-white text-xl font-bold"><i class="fas fa-chart-line text-blue-300"></i> Invest<span class="text-blue-300">IQ</span></a>
+      <div class="flex gap-4 text-sm">
+        <a href="/yiap-practice" class="text-blue-300 hover:text-white">All Sections</a>
+        <a href="/logout" class="text-blue-300 hover:text-white">Logout</a>
+      </div>
+    </nav>
+    <div class="flex items-center gap-4">
+      <div class="w-14 h-14 rounded-xl bg-white/10 flex items-center justify-center text-2xl">
+        <i class="{{ course.icon }}"></i>
+      </div>
+      <div>
+        <p class="text-blue-300 text-sm font-medium">YIAP Practise Questions</p>
+        <h1 class="text-3xl font-extrabold">{{ course.name }}</h1>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="max-w-4xl mx-auto px-4 py-8 grid grid-cols-1 md:grid-cols-3 gap-8">
+
+  <div class="md:col-span-2 space-y-6">
+    <div class="card p-6">
+      <h2 class="text-xl font-bold text-gray-800 mb-3"><i class="fas fa-info-circle mr-2 text-blue-500"></i>About This Section</h2>
+      <p class="text-gray-600 text-sm mb-4">{{ course.description }}</p>
+      <div class="grid grid-cols-2 gap-4 text-center mb-6">
+        <div class="bg-blue-50 rounded-xl p-3">
+          <p class="text-2xl font-extrabold text-blue-700">{{ total_q }}</p>
+          <p class="text-xs text-gray-500 mt-1">Total Questions</p>
+        </div>
+        <div class="bg-green-50 rounded-xl p-3">
+          <p class="text-2xl font-extrabold text-green-700">50</p>
+          <p class="text-xs text-gray-500 mt-1">Per Session</p>
+        </div>
+      </div>
+      <form method="POST" action="/yiap-practice/quiz/start/{{ course.id }}">
+        <button type="submit" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-lg transition-colors">
+          <i class="fas fa-play mr-2"></i>Start New Session
+        </button>
+      </form>
+      <p class="text-xs text-gray-400 mt-3 text-center"><i class="fas fa-shuffle mr-1"></i>All {{ total_q }} questions are shuffled into every session — you can retake this section as many times as you like.</p>
+    </div>
+
+    {% if attempts %}
+    <div class="card p-6">
+      <h2 class="text-lg font-bold text-gray-800 mb-4"><i class="fas fa-history mr-2 text-gray-400"></i>Recent Sessions</h2>
+      {% for att in attempts %}
+      {% set pass_mark = (att.total_questions * 0.6)|round|int %}
+      <div class="attempt-row {% if att.is_complete %}{% if att.score >= pass_mark %}pass{% else %}fail{% endif %}{% else %}incomplete{% endif %}">
+        <div class="flex justify-between items-center">
+          <div>
+            <p class="font-semibold text-gray-800 text-sm">
+              {% if att.is_complete %}
+                {{ att.score }}/{{ att.total_questions }}
+                <span class="{% if att.score >= pass_mark %}text-green-700{% else %}text-red-700{% endif %} font-bold">({{ att.score_pct }}%)</span>
+                — {% if att.score >= pass_mark %}PASS{% else %}FAIL{% endif %}
+              {% else %}
+                In progress — Q{{ att.current_index }}/{{ att.total_questions }}
+              {% endif %}
+            </p>
+            <p class="text-xs text-gray-400 mt-0.5">{{ att.created_at.strftime('%d %b %Y, %H:%M') }}</p>
+          </div>
+          <a href="/yiap-practice/quiz/{{ att.id }}{% if att.is_complete %}/results{% endif %}"
+             class="text-xs font-semibold px-3 py-1.5 rounded-lg {% if att.is_complete %}bg-gray-100 text-gray-700 hover:bg-gray-200{% else %}bg-amber-100 text-amber-700 hover:bg-amber-200{% endif %}">
+            {% if att.is_complete %}View Results{% else %}Continue{% endif %}
+          </a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+
+  <div class="space-y-5">
+    <div class="card p-5">
+      <h3 class="font-bold text-gray-700 mb-3"><i class="fas fa-lightbulb mr-2 text-yellow-500"></i>Tips</h3>
+      <ul class="space-y-2 text-sm text-gray-600">
+        <li><i class="fas fa-check mr-2 text-green-500"></i>60% is the pass mark for a certificate</li>
+        <li><i class="fas fa-check mr-2 text-green-500"></i>Read explanations even when correct</li>
+        <li><i class="fas fa-check mr-2 text-green-500"></i>Re-watch the slide if a term feels unfamiliar</li>
+        <li><i class="fas fa-check mr-2 text-green-500"></i>Retake the section as many times as you like</li>
+      </ul>
+    </div>
+    <div class="card p-5">
+      <h3 class="font-bold text-gray-700 mb-2"><i class="fas fa-certificate mr-2 text-emerald-500"></i>Certificate</h3>
+      <p class="text-sm text-gray-600">Complete a session and score 60% or above to be marked as qualified for a certificate of completion.</p>
+    </div>
+    <a href="/yiap-practice" class="block card p-4 text-center text-sm text-gray-600 hover:text-blue-600">
+      <i class="fas fa-arrow-left mr-1"></i> Back to all sections
+    </a>
+  </div>
+
+</main>
+<footer class="bg-gray-900 text-white py-6 mt-4"><div class="max-w-4xl mx-auto px-4 text-center"><p class="text-gray-400 text-sm">&copy; 2026 InvestIQ &middot; YIN Ghana.</p></div></footer>
+</body>
+</html>

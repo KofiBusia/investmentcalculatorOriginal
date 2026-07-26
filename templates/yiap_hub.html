@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>YIAP Practise Questions — InvestIQ</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body{font-family:'Inter',sans-serif;background:#f0f4f8;min-height:100vh;}
+    .hero-bg{background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 60%,#065f46 100%);}
+    .card{background:#fff;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,.08);transition:transform .2s,box-shadow .2s;}
+    .card:hover{transform:translateY(-3px);box-shadow:0 8px 30px rgba(0,0,0,.12);}
+    .badge-free{background:#dcfce7;color:#15803d;font-size:.7rem;font-weight:700;padding:.2rem .6rem;border-radius:.25rem;}
+    .badge-score{background:#dbeafe;color:#1d4ed8;font-size:.7rem;font-weight:700;padding:.2rem .6rem;border-radius:.25rem;}
+  </style>
+</head>
+<body class="text-gray-800">
+
+<header class="hero-bg text-white py-12 px-4">
+  <div class="max-w-5xl mx-auto">
+    <nav class="flex justify-between items-center mb-8 flex-wrap gap-3">
+      <a href="/" class="flex items-center gap-2 text-white text-xl font-bold"><i class="fas fa-chart-line text-blue-300"></i> Invest<span class="text-blue-300">IQ</span></a>
+      <div class="flex gap-5 text-sm flex-wrap">
+        <a href="/" class="text-blue-300 hover:text-white">Home</a>
+        <a href="/#calculators" class="text-blue-300 hover:text-white">Calculators</a>
+        {% if current_user.is_authenticated %}
+        <a href="/logout" class="text-blue-300 hover:text-white">Logout</a>
+        {% else %}
+        <a href="/login" class="text-blue-300 hover:text-white">Login</a>
+        {% endif %}
+      </div>
+    </nav>
+    <div class="text-center">
+      <div class="inline-flex items-center gap-2 bg-emerald-900/40 text-emerald-200 px-4 py-1.5 rounded-full text-sm font-medium mb-4">
+        <i class="fas fa-graduation-cap"></i> YIN Ghana &middot; Financial Statements Masterclass
+      </div>
+      <h1 class="text-4xl md:text-5xl font-extrabold mb-4">YIAP<br><span class="text-blue-300">Practise Questions</span></h1>
+      <p class="text-blue-100 text-lg max-w-2xl mx-auto">Test what you learned from the MTN Ghana FY2025 Financial Statements Masterclass. 50 multiple-choice questions per section, drawn straight from the session — free for every YIN Ghana student.</p>
+    </div>
+  </div>
+</header>
+
+<main class="max-w-5xl mx-auto px-4 py-10">
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+  {% for cat, msg in messages %}
+  <div class="mb-4 p-4 rounded-lg {% if cat=='danger' %}bg-red-50 text-red-700 border border-red-200{% else %}bg-green-50 text-green-700 border border-green-200{% endif %}">{{ msg }}</div>
+  {% endfor %}
+  {% endif %}
+  {% endwith %}
+
+  <h2 class="text-2xl font-bold text-gray-800 mb-6">Choose a Section</h2>
+  {% if courses %}
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+    {% for course in courses %}
+    <div class="card p-6 flex flex-col">
+      <div class="flex items-start justify-between mb-4">
+        <div class="w-12 h-12 rounded-xl flex items-center justify-center text-white text-xl
+          {% if course.color == 'indigo' %}bg-indigo-600{% elif course.color == 'emerald' %}bg-emerald-600{% elif course.color == 'amber' %}bg-amber-500{% else %}bg-gray-600{% endif %}">
+          <i class="{{ course.icon }}"></i>
+        </div>
+        <span class="badge-free">FREE</span>
+      </div>
+      <h3 class="font-bold text-gray-800 text-lg mb-1">{{ course.name }}</h3>
+      <p class="text-sm text-gray-600 mb-4 flex-1">{{ course.description }}</p>
+      <div class="flex items-center gap-3 text-sm text-gray-500 mb-4 flex-wrap">
+        <span><i class="fas fa-question-circle mr-1 text-blue-400"></i>50 Questions</span>
+        {% if best_scores.get(course.id) is not none %}
+        <span class="badge-score">Best: {{ best_scores.get(course.id) }}%</span>
+        {% endif %}
+      </div>
+      {% if current_user.is_authenticated %}
+      <a href="/yiap-practice/course/{{ course.slug }}" class="block w-full text-center py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-semibold transition-colors">
+        <i class="fas fa-play mr-2"></i>Start Practising
+      </a>
+      {% else %}
+      <a href="/login?next=/yiap-practice/course/{{ course.slug }}" class="block w-full text-center py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-semibold transition-colors">
+        <i class="fas fa-sign-in-alt mr-2"></i>Login to Start
+      </a>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="card p-10 text-center mb-10">
+    <i class="fas fa-book text-5xl text-gray-200 mb-4"></i>
+    <p class="text-gray-500">Questions are being loaded. Please check back shortly.</p>
+  </div>
+  {% endif %}
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-10">
+    <div class="card p-5 text-center">
+      <i class="fas fa-file-invoice-dollar text-3xl text-indigo-500 mb-3"></i>
+      <h4 class="font-bold text-gray-800 mb-1">Grounded in the Deck</h4>
+      <p class="text-sm text-gray-500">Every question is sourced directly from the MTN Ghana FY2025 masterclass slides and figures.</p>
+    </div>
+    <div class="card p-5 text-center">
+      <i class="fas fa-lightbulb text-3xl text-yellow-500 mb-3"></i>
+      <h4 class="font-bold text-gray-800 mb-1">Instant Feedback</h4>
+      <p class="text-sm text-gray-500">See the correct answer and a short explanation immediately after each question.</p>
+    </div>
+    <div class="card p-5 text-center">
+      <i class="fas fa-certificate text-3xl text-emerald-500 mb-3"></i>
+      <h4 class="font-bold text-gray-800 mb-1">Certificate Eligibility</h4>
+      <p class="text-sm text-gray-500">Score 60% or higher on a section to qualify for a certificate of completion.</p>
+    </div>
+  </div>
+
+</main>
+
+<footer class="bg-gray-900 text-white py-6 mt-4">
+  <div class="max-w-5xl mx-auto px-4 text-center">
+    <p class="text-gray-400 text-sm">&copy; 2026 InvestIQ &middot; YIN Ghana. Sourced from the Financial Statements Masterclass, Merban Capital Limited.</p>
+  </div>
+</footer>
+</body>
+</html>
