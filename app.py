@@ -535,7 +535,7 @@ def _send_yiap_result_email(attempt):
         msg = Message(
             f'YIAP Practice Questions Completed — {attempt.display_name} — {course.name} — {attempt.score}/{attempt.total_questions}',
             sender=app.config.get('MAIL_USERNAME', 'kyeikofi@gmail.com'),
-            recipients=['joshuamens67@gmail.com', 'joshbuffet@yahoo.com']
+            recipients=['joshuamens67@gmail.com']
         )
         msg.html = f'''
 <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#f8fafc;border-radius:12px;overflow:hidden;">
