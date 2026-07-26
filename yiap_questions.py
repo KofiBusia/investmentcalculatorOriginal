@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # YIAP Practise Questions -- question bank sourced from
 # "Reading Financial Statements: MTN Ghana FY2025" (YIN Ghana Financial Statements
-# Masterclass, Merban Capital Limited, 14 July 2026).
+# Masterclass, 14 July 2026).
 # All figures are Scancom PLC (MTN Ghana) FY2025 audited Group results, GHS'000 unless stated.
 
 INCOME_STATEMENT_QUESTIONS = [
