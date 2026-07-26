@@ -62,7 +62,7 @@
         {% for a in attempts %}
         {% set passed = a.score_pct >= pass_pct %}
         <tr class="hover:bg-gray-50">
-          <td class="px-4 py-3 font-semibold text-gray-800">{{ a.user.full_name if a.user else '—' }}</td>
+          <td class="px-4 py-3 font-semibold text-gray-800">{{ a.display_name or '—' }}</td>
           <td class="px-4 py-3 text-gray-600">{{ a.user.email if a.user else '—' }}</td>
           <td class="px-4 py-3 text-gray-600">{{ a.user.phone if a.user else '—' }}</td>
           <td class="px-4 py-3 text-gray-600">{{ a.course.name if a.course else '—' }}</td>

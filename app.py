@@ -475,6 +475,7 @@ class YIAPQuizAttempt(db.Model):
     id               = db.Column(db.Integer, primary_key=True)
     user_id          = db.Column(db.Integer, db.ForeignKey('site_users.id'), nullable=False)
     course_id        = db.Column(db.Integer, db.ForeignKey('yiap_courses.id'), nullable=False)
+    student_name     = db.Column(db.String(200), default='')  # name entered at quiz start; used on CSV/email
     questions_order  = db.Column(db.Text, default='[]')   # JSON list of question IDs
     answers_given    = db.Column(db.Text, default='{}')   # JSON {question_id: chosen_answer}
     current_index    = db.Column(db.Integer, default=0)
@@ -513,6 +514,10 @@ class YIAPQuizAttempt(db.Model):
             return 0
         return round((self.score / self.total_questions) * 100, 1)
 
+    @property
+    def display_name(self):
+        return self.student_name or (self.user.full_name if self.user else '')
+
 
 YIAP_PASS_PCT = 60  # minimum score percentage to qualify for a certificate
 
@@ -528,7 +533,7 @@ def _send_yiap_result_email(attempt):
                  f'This student did NOT reach the {YIAP_PASS_PCT}% pass mark required for a certificate.')
     try:
         msg = Message(
-            f'YIAP Practice Questions Completed — {student.full_name} — {course.name} — {attempt.score}/{attempt.total_questions}',
+            f'YIAP Practice Questions Completed — {attempt.display_name} — {course.name} — {attempt.score}/{attempt.total_questions}',
             sender=app.config.get('MAIL_USERNAME', 'kyeikofi@gmail.com'),
             recipients=['joshuamens67@gmail.com', 'joshbuffet@yahoo.com']
         )
@@ -541,7 +546,7 @@ def _send_yiap_result_email(attempt):
   <div style="padding:28px 32px;background:#fff;">
     <p style="color:#475569;font-size:15px;margin-top:0;">A student has just finished the YIAP practise trial questions.</p>
     <table style="width:100%;border-collapse:collapse;font-size:15px;">
-      <tr><td style="padding:8px 0;color:#64748b;font-weight:600;width:160px;">Full Name</td><td style="color:#1e293b;font-weight:700;">{student.full_name}</td></tr>
+      <tr><td style="padding:8px 0;color:#64748b;font-weight:600;width:160px;">Full Name</td><td style="color:#1e293b;font-weight:700;">{attempt.display_name}</td></tr>
       <tr style="background:#f8fafc;"><td style="padding:8px 6px;color:#64748b;font-weight:600;">Email</td><td style="padding:8px 6px;">{student.email}</td></tr>
       <tr><td style="padding:8px 0;color:#64748b;font-weight:600;">Phone</td><td>{student.phone or "—"}</td></tr>
       <tr style="background:#f8fafc;"><td style="padding:8px 6px;color:#64748b;font-weight:600;">Section</td><td style="padding:8px 6px;">{course.name}</td></tr>
@@ -825,6 +830,7 @@ with app.app_context():
             # GISI user access unique constraints may already exist — ignore errors
             "ALTER TABLE gisi_user_access ADD COLUMN IF NOT EXISTS access_code VARCHAR(20)",
             "ALTER TABLE gisi_user_access ADD COLUMN IF NOT EXISTS admin_token VARCHAR(64)",
+            "ALTER TABLE yiap_quiz_attempts ADD COLUMN IF NOT EXISTS student_name VARCHAR(200)",
         ]
         for _sql in _migrate_sql:
             try:
@@ -6162,6 +6168,12 @@ def yiap_course_detail(slug):
 def yiap_quiz_start(course_id):
     import random as _rand
     course = YIAPCourse.query.get_or_404(course_id)
+
+    student_name = request.form.get('student_name', '').strip()
+    if not student_name:
+        flash('Please enter the student\'s full name before starting the quiz.', 'danger')
+        return redirect(url_for('yiap_course_detail', slug=course.slug))
+
     all_ids = [str(q.id) for q in course.questions.all()]
     QUIZ_SIZE = 50
     selected = _rand.sample(all_ids, min(QUIZ_SIZE, len(all_ids)))
@@ -6170,6 +6182,7 @@ def yiap_quiz_start(course_id):
     attempt = YIAPQuizAttempt(
         user_id=current_user.id,
         course_id=course_id,
+        student_name=student_name,
         questions_order=json.dumps(selected),
         answers_given='{}',
         current_index=0,
@@ -6359,7 +6372,7 @@ def admin_yiap_results_csv():
     for a in attempts:
         passed = a.score_pct >= YIAP_PASS_PCT
         writer.writerow([
-            a.user.full_name if a.user else '',
+            a.display_name,
             a.user.email if a.user else '',
             a.user.phone if a.user else '',
             a.course.name if a.course else '',

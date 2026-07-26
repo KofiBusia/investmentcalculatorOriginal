@@ -61,6 +61,7 @@
 
     <div class="flex justify-center gap-4 mt-4 flex-wrap">
       <form method="POST" action="/yiap-practice/quiz/start/{{ course.id }}">
+        <input type="hidden" name="student_name" value="{{ attempt.display_name }}" />
         <button type="submit" class="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold">
           <i class="fas fa-redo mr-2"></i>Try Another Session
         </button>
