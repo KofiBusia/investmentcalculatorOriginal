@@ -535,7 +535,7 @@ def _send_yiap_result_email(attempt):
         msg = Message(
             f'YIAP Practice Questions Completed — {attempt.display_name} — {course.name} — {attempt.score}/{attempt.total_questions}',
             sender=app.config.get('MAIL_USERNAME', 'kyeikofi@gmail.com'),
-            recipients=['joshuamens67@gmail.com']
+            recipients=['kyeikofi@gmail.com']
         )
         msg.html = f'''
 <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#f8fafc;border-radius:12px;overflow:hidden;">
@@ -6355,21 +6355,65 @@ def yiap_prep_seed():
 @app.route('/admin/yiap-results')
 @admin_required
 def admin_yiap_results():
-    attempts = (YIAPQuizAttempt.query.filter_by(is_complete=True)
-                .order_by(YIAPQuizAttempt.completed_at.desc()).all())
+    all_complete = (YIAPQuizAttempt.query.filter_by(is_complete=True)
+                    .order_by(YIAPQuizAttempt.completed_at.desc()).all())
+    # Deduplicate: per (user_id, course_id) keep the attempt with the highest
+    # score; if tied, keep the most recent (already sorted desc).
+    seen = {}
+    for a in all_complete:
+        key = (a.user_id, a.course_id)
+        if key not in seen or a.score_pct > seen[key].score_pct:
+            seen[key] = a
+    attempts = sorted(seen.values(),
+                      key=lambda a: a.completed_at or datetime.min,
+                      reverse=True)
+    raw_count = len(all_complete)
     total_attempts = len(attempts)
     total_passed = sum(1 for a in attempts if a.score_pct >= YIAP_PASS_PCT)
+    duplicate_count = raw_count - total_attempts
     return render_template('admin_yiap_results.html', attempts=attempts,
                            pass_pct=YIAP_PASS_PCT, total_attempts=total_attempts,
-                           total_passed=total_passed)
+                           total_passed=total_passed, duplicate_count=duplicate_count)
+
+
+@app.route('/admin/yiap-deduplicate', methods=['POST'])
+@admin_required
+def admin_yiap_deduplicate():
+    """Delete weaker duplicate attempts, keeping best (highest score) per user+course."""
+    all_complete = YIAPQuizAttempt.query.filter_by(is_complete=True).all()
+    best = {}
+    for a in all_complete:
+        key = (a.user_id, a.course_id)
+        if key not in best or a.score_pct > best[key].score_pct or \
+           (a.score_pct == best[key].score_pct and
+                a.completed_at and best[key].completed_at and
+                a.completed_at > best[key].completed_at):
+            best[key] = a
+    keep_ids = {a.id for a in best.values()}
+    to_delete = [a for a in all_complete if a.id not in keep_ids]
+    count = len(to_delete)
+    for a in to_delete:
+        db.session.delete(a)
+    db.session.commit()
+    flash(f'Removed {count} duplicate attempt{"s" if count != 1 else ""}. '
+          f'Each student now appears once (best score kept).', 'success')
+    return redirect(url_for('admin_yiap_results'))
 
 
 @app.route('/admin/yiap-results-csv')
 @admin_required
 def admin_yiap_results_csv():
     import csv, io
-    attempts = (YIAPQuizAttempt.query.filter_by(is_complete=True)
-                .order_by(YIAPQuizAttempt.completed_at.desc()).all())
+    all_complete = (YIAPQuizAttempt.query.filter_by(is_complete=True)
+                    .order_by(YIAPQuizAttempt.completed_at.desc()).all())
+    seen = {}
+    for a in all_complete:
+        key = (a.user_id, a.course_id)
+        if key not in seen or a.score_pct > seen[key].score_pct:
+            seen[key] = a
+    attempts = sorted(seen.values(),
+                      key=lambda a: a.completed_at or datetime.min,
+                      reverse=True)
     buf = io.StringIO()
     writer = csv.writer(buf)
     writer.writerow(['Full Name', 'Email', 'Phone', 'Section', 'Score', 'Total Questions',
