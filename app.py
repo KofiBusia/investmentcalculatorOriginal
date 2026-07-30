@@ -6216,10 +6216,8 @@ def yiap_quiz_question(attempt_id):
         attempt.is_complete = True
         attempt.completed_at = datetime.utcnow()
         db.session.commit()
-        if not was_complete and not attempt.result_emailed:
-            attempt.result_emailed = True
-            db.session.commit()
-            _send_yiap_result_email(attempt)
+        if not was_complete:
+            pass  # email notifications disabled
         return redirect(url_for('yiap_quiz_results', attempt_id=attempt_id))
 
     q_id = int(q_list[idx])
@@ -6255,9 +6253,6 @@ def yiap_quiz_answer(attempt_id):
     if attempt.current_index >= attempt.total_questions:
         attempt.is_complete = True
         attempt.completed_at = datetime.utcnow()
-        attempt.result_emailed = True
-        db.session.commit()
-        _send_yiap_result_email(attempt)
         return redirect(url_for('yiap_quiz_results', attempt_id=attempt_id))
     db.session.commit()
 
