@@ -6395,6 +6395,17 @@ def admin_yiap_deduplicate():
     return redirect(url_for('admin_yiap_results'))
 
 
+@app.route('/admin/yiap-delete/<int:attempt_id>', methods=['POST'])
+@admin_required
+def admin_yiap_delete(attempt_id):
+    attempt = YIAPQuizAttempt.query.get_or_404(attempt_id)
+    name = attempt.display_name or 'Unknown'
+    db.session.delete(attempt)
+    db.session.commit()
+    flash(f'Record for {name} deleted.', 'success')
+    return redirect(url_for('admin_yiap_results'))
+
+
 @app.route('/admin/yiap-results-csv')
 @admin_required
 def admin_yiap_results_csv():
