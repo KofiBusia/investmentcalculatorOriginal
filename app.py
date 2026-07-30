@@ -6353,14 +6353,15 @@ def admin_yiap_results():
     all_complete = (YIAPQuizAttempt.query.filter_by(is_complete=True)
                     .order_by(YIAPQuizAttempt.completed_at.desc()).all())
     # Deduplicate: per (user_id, course_id) keep the attempt with the highest
-    # score; if tied, keep the most recent (already sorted desc).
+    # score; if tied, keep the most recent (already sorted desc by query).
     seen = {}
     for a in all_complete:
         key = (a.user_id, a.course_id)
         if key not in seen or a.score_pct > seen[key].score_pct:
             seen[key] = a
+    _epoch = datetime(1970, 1, 1)
     attempts = sorted(seen.values(),
-                      key=lambda a: a.completed_at or datetime.min,
+                      key=lambda a: a.completed_at if a.completed_at else _epoch,
                       reverse=True)
     raw_count = len(all_complete)
     total_attempts = len(attempts)
