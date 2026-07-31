@@ -57,14 +57,22 @@
     {% endfor %}
   {% endwith %}
 
-  <div class="flex items-center justify-between mb-6 flex-wrap gap-3">
+  <div class="flex items-center justify-between mb-4 flex-wrap gap-3">
     <div>
       <h2 class="text-xl font-bold text-gray-800">Student Results <span class="text-sm font-normal text-gray-400 ml-2">(best attempt per student per section)</span></h2>
-      <p class="text-sm text-gray-500 mt-1">Results are emailed to kyeikofi@gmail.com when each student finishes. Showing unique students only.</p>
+      <p class="text-sm text-gray-500 mt-1">Showing unique students only.</p>
     </div>
     <a href="/admin/yiap-results-csv" class="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-semibold">
       <i class="fas fa-file-csv mr-2"></i>Download CSV
     </a>
+  </div>
+
+  <div class="mb-4 relative">
+    <input type="text" id="searchInput" placeholder="Search by name or email…"
+           class="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 bg-white shadow-sm"
+           oninput="filterTable()">
+    <i class="fas fa-magnifying-glass absolute left-3.5 top-3 text-gray-400 text-sm"></i>
+    <span id="searchCount" class="absolute right-3.5 top-2.5 text-xs text-gray-400"></span>
   </div>
 
   {% if attempts %}
@@ -86,7 +94,7 @@
       <tbody class="divide-y divide-gray-100">
         {% for a in attempts %}
         {% set passed = a.score_pct >= pass_pct %}
-        <tr class="hover:bg-gray-50">
+        <tr class="hover:bg-gray-50 result-row" data-search="{{ (a.display_name or '') | lower }} {{ (a.user.email if a.user else '') | lower }}">
           <td class="px-4 py-3 font-semibold text-gray-800">{{ a.display_name or '—' }}</td>
           <td class="px-4 py-3 text-gray-600">{{ a.user.email if a.user else '—' }}</td>
           <td class="px-4 py-3 text-gray-600">{{ a.user.phone if a.user else '—' }}</td>
@@ -121,5 +129,19 @@
   </div>
   {% endif %}
 </main>
+<script>
+function filterTable() {
+  const q = document.getElementById('searchInput').value.toLowerCase().trim();
+  const rows = document.querySelectorAll('.result-row');
+  let visible = 0;
+  rows.forEach(row => {
+    const match = !q || row.dataset.search.includes(q);
+    row.style.display = match ? '' : 'none';
+    if (match) visible++;
+  });
+  const cnt = document.getElementById('searchCount');
+  cnt.textContent = q ? `${visible} of ${rows.length} shown` : '';
+}
+</script>
 </body>
 </html>

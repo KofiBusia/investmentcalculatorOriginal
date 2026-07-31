@@ -6253,6 +6253,7 @@ def yiap_quiz_answer(attempt_id):
     if attempt.current_index >= attempt.total_questions:
         attempt.is_complete = True
         attempt.completed_at = datetime.utcnow()
+        db.session.commit()
         return redirect(url_for('yiap_quiz_results', attempt_id=attempt_id))
     db.session.commit()
 
