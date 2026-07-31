@@ -6353,8 +6353,7 @@ def yiap_prep_seed():
 def admin_yiap_results():
     all_complete = (YIAPQuizAttempt.query.filter_by(is_complete=True)
                     .order_by(YIAPQuizAttempt.completed_at.desc()).all())
-    # Deduplicate: per (user_id, course_id) keep the attempt with the highest
-    # score; if tied, keep the most recent (already sorted desc by query).
+    # Deduplicate: per (user_id, course_id) keep best (highest score)
     seen = {}
     for a in all_complete:
         key = (a.user_id, a.course_id)
@@ -6364,13 +6363,58 @@ def admin_yiap_results():
     attempts = sorted(seen.values(),
                       key=lambda a: a.completed_at if a.completed_at else _epoch,
                       reverse=True)
-    raw_count = len(all_complete)
+    raw_count     = len(all_complete)
     total_attempts = len(attempts)
-    total_passed = sum(1 for a in attempts if a.score_pct >= YIAP_PASS_PCT)
+    total_passed  = sum(1 for a in attempts if a.score_pct >= YIAP_PASS_PCT)
     duplicate_count = raw_count - total_attempts
-    return render_template('admin_yiap_results.html', attempts=attempts,
-                           pass_pct=YIAP_PASS_PCT, total_attempts=total_attempts,
-                           total_passed=total_passed, duplicate_count=duplicate_count)
+
+    # ── Participation stats ──────────────────────────────────────────────────
+    courses = YIAPCourse.query.filter_by(is_active=True).order_by(YIAPCourse.sort_order).all()
+
+    # Map user_id → {course_id: attempt}
+    from collections import defaultdict
+    student_map = defaultdict(dict)   # {user_id: {course_id: attempt}}
+    for a in attempts:
+        student_map[a.user_id][a.course_id] = a
+
+    unique_students = len(student_map)
+
+    # Per-course counts
+    course_stats = []
+    for c in courses:
+        taken = [uid for uid, cmap in student_map.items() if c.id in cmap]
+        passed = [uid for uid in taken if student_map[uid][c.id].score_pct >= YIAP_PASS_PCT]
+        course_stats.append({'course': c, 'taken': len(taken), 'passed': len(passed)})
+
+    # How many unique students completed N courses
+    completion_dist = defaultdict(int)
+    for uid, cmap in student_map.items():
+        completion_dist[len(cmap)] += 1
+
+    # Participation matrix: one row per student, columns = courses
+    # Build list of (user, display_name, email, {course_id: attempt_or_None})
+    matrix = []
+    for uid, cmap in sorted(student_map.items(),
+                             key=lambda x: (x[1][list(x[1].keys())[0]].display_name or '').lower()):
+        any_attempt = next(iter(cmap.values()))
+        matrix.append({
+            'name':  any_attempt.display_name or '—',
+            'email': any_attempt.user.email if any_attempt.user else '—',
+            'courses': {c.id: cmap.get(c.id) for c in courses},
+            'total': len(cmap),
+        })
+
+    return render_template('admin_yiap_results.html',
+                           attempts=attempts,
+                           pass_pct=YIAP_PASS_PCT,
+                           total_attempts=total_attempts,
+                           total_passed=total_passed,
+                           duplicate_count=duplicate_count,
+                           unique_students=unique_students,
+                           courses=courses,
+                           course_stats=course_stats,
+                           completion_dist=dict(completion_dist),
+                           matrix=matrix)
 
 
 @app.route('/admin/yiap-deduplicate', methods=['POST'])
