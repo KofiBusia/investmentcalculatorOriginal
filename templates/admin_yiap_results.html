@@ -77,9 +77,17 @@
 
   {# participation matrix #}
   <div class="bg-white rounded-xl shadow-sm border border-gray-100 mb-6">
-    <div class="flex items-center justify-between px-5 py-3 border-b border-gray-100">
-      <p class="font-semibold text-gray-700 text-sm">Participation Matrix — who has taken which test</p>
-      <span class="text-xs text-gray-400">{{ unique_students }} unique student{{ 's' if unique_students != 1 else '' }}</span>
+    <div class="flex items-center justify-between px-5 py-3 border-b border-gray-100 flex-wrap gap-3">
+      <div>
+        <p class="font-semibold text-gray-700 text-sm">Participation Matrix — who has taken which test</p>
+        <p class="text-xs text-gray-400 mt-0.5">{{ unique_students }} unique student{{ 's' if unique_students != 1 else '' }}</p>
+      </div>
+      <form method="POST" action="/admin/yiap-remind-all"
+            onsubmit="return confirm('Send reminder emails to all students who have NOT completed all {{ courses|length }} tests?')">
+        <button type="submit" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold">
+          <i class="fas fa-envelope mr-1"></i>Send Reminder to All Incomplete
+        </button>
+      </form>
     </div>
     <div class="overflow-x-auto">
       <table class="w-full text-sm">
@@ -91,11 +99,13 @@
             <th class="px-4 py-2 text-center">{{ c.short_name or c.name }}</th>
             {% endfor %}
             <th class="px-4 py-2 text-center">Completed</th>
+            <th class="px-4 py-2 text-center">Remind</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-50">
           {% for row in matrix %}
-          <tr class="hover:bg-gray-50 matrix-row" data-search="{{ row.name | lower }} {{ row.email | lower }}">
+          {% set all_done = row.total == courses|length %}
+          <tr class="hover:bg-gray-50 matrix-row {% if all_done %}bg-emerald-50/30{% endif %}" data-search="{{ row.name | lower }} {{ row.email | lower }}">
             <td class="px-4 py-2 font-semibold text-gray-800">{{ row.name }}</td>
             <td class="px-4 py-2 text-gray-500 text-xs">{{ row.email }}</td>
             {% for c in courses %}
@@ -117,9 +127,21 @@
             </td>
             {% endfor %}
             <td class="px-4 py-2 text-center">
-              <span class="font-bold {% if row.total == courses|length %}text-emerald-600{% else %}text-gray-500{% endif %}">
+              <span class="font-bold {% if all_done %}text-emerald-600{% else %}text-amber-600{% endif %}">
                 {{ row.total }}/{{ courses|length }}
               </span>
+            </td>
+            <td class="px-4 py-2 text-center">
+              {% if not all_done %}
+              <form method="POST" action="/admin/yiap-remind/{{ row.user_id }}"
+                    onsubmit="return confirm('Send reminder email to {{ row.name }}?')">
+                <button type="submit" class="text-indigo-500 hover:text-indigo-700 text-xs font-semibold whitespace-nowrap">
+                  <i class="fas fa-envelope mr-1"></i>Remind
+                </button>
+              </form>
+              {% else %}
+              <span class="text-emerald-400 text-xs"><i class="fas fa-circle-check"></i></span>
+              {% endif %}
             </td>
           </tr>
           {% endfor %}

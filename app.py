@@ -6398,10 +6398,11 @@ def admin_yiap_results():
                              key=lambda x: (x[1][list(x[1].keys())[0]].display_name or '').lower()):
         any_attempt = next(iter(cmap.values()))
         matrix.append({
-            'name':  any_attempt.display_name or '—',
-            'email': any_attempt.user.email if any_attempt.user else '—',
+            'user_id': uid,
+            'name':    any_attempt.display_name or '—',
+            'email':   any_attempt.user.email if any_attempt.user else '—',
             'courses': {c.id: cmap.get(c.id) for c in courses},
-            'total': len(cmap),
+            'total':   len(cmap),
         })
 
     return render_template('admin_yiap_results.html',
@@ -6449,6 +6450,142 @@ def admin_yiap_delete(attempt_id):
     db.session.delete(attempt)
     db.session.commit()
     flash(f'Record for {name} deleted.', 'success')
+    return redirect(url_for('admin_yiap_results'))
+
+
+def _send_yiap_reminder_email(user, display_name, missing_courses, completed_courses):
+    """Send an encouragement email to a student who hasn't completed all YIAP tests."""
+    missing_list = ''.join(
+        f'<li style="margin-bottom:6px;color:#1e293b;">'
+        f'<strong>{c.name}</strong></li>'
+        for c in missing_courses
+    )
+    done_list = ''.join(
+        f'<li style="margin-bottom:4px;color:#16a34a;">'
+        f'<i>&#10003;</i> {c.name}</li>'
+        for c in completed_courses
+    ) if completed_courses else ''
+    completed_block = (
+        f'<p style="margin:12px 0 4px;color:#64748b;font-size:13px;font-weight:600;">Already completed:</p>'
+        f'<ul style="margin:0;padding-left:18px;font-size:14px;">{done_list}</ul>'
+    ) if done_list else ''
+    try:
+        msg = Message(
+            f'Complete Your YIAP Practice Tests — {len(missing_courses)} section{"s" if len(missing_courses) != 1 else ""} remaining',
+            sender=app.config.get('MAIL_USERNAME', 'kyeikofi@gmail.com'),
+            recipients=[user.email]
+        )
+        msg.html = f'''
+<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;background:#f8fafc;border-radius:12px;overflow:hidden;">
+  <div style="background:linear-gradient(135deg,#0f172a,#1e3a5f);padding:28px 32px;text-align:center;">
+    <h1 style="color:#fff;margin:0;font-size:22px;">You're Almost There!</h1>
+    <p style="color:#93c5fd;margin:8px 0 0;font-size:14px;">YIAP Practice Questions — InvestIQ</p>
+  </div>
+  <div style="padding:28px 32px;background:#fff;">
+    <p style="color:#1e293b;font-size:16px;margin-top:0;">Dear <strong>{display_name}</strong>,</p>
+    <p style="color:#475569;font-size:15px;line-height:1.6;">
+      Thank you for participating in the YIAP Practice Questions. You have made a great start —
+      but there {"are" if len(missing_courses) > 1 else "is"} still
+      <strong>{len(missing_courses)} section{"s" if len(missing_courses) != 1 else ""}</strong> you haven't completed yet.
+    </p>
+    <div style="background:#fef9c3;border:1px solid #fde047;border-radius:10px;padding:18px 20px;margin:20px 0;">
+      <p style="margin:0 0 8px;font-weight:700;color:#854d0e;font-size:15px;">
+        &#9888; Remaining section{"s" if len(missing_courses) != 1 else ""}:
+      </p>
+      <ul style="margin:0;padding-left:18px;font-size:14px;">{missing_list}</ul>
+    </div>
+    {completed_block}
+    <p style="color:#475569;font-size:15px;line-height:1.6;margin-top:20px;">
+      Completing all three sections gives you the best preparation and qualifies you for
+      a <strong>certificate of completion</strong> for each section you pass.
+    </p>
+    <div style="text-align:center;margin:28px 0;">
+      <a href="https://investright.onrender.com/yiap-practice"
+         style="background:#0f172a;color:#fff;padding:14px 32px;border-radius:8px;
+                text-decoration:none;font-weight:700;font-size:15px;display:inline-block;">
+        Continue Practice Tests &rarr;
+      </a>
+    </div>
+    <p style="color:#94a3b8;font-size:13px;text-align:center;margin:0;">
+      InvestIQ &nbsp;|&nbsp; YIN Ghana &nbsp;|&nbsp; investright.onrender.com
+    </p>
+  </div>
+</div>'''
+        mail.send(msg)
+        return True
+    except Exception as e:
+        logger.error(f'YIAP reminder email failed for {user.email}: {e}')
+        return False
+
+
+@app.route('/admin/yiap-remind/<int:user_id>', methods=['POST'])
+@admin_required
+def admin_yiap_remind(user_id):
+    """Send a reminder to one student who hasn't completed all YIAP tests."""
+    from collections import defaultdict
+    courses = YIAPCourse.query.filter_by(is_active=True).order_by(YIAPCourse.sort_order).all()
+    all_complete = YIAPQuizAttempt.query.filter_by(is_complete=True, user_id=user_id).all()
+    # Best per course
+    seen = {}
+    for a in all_complete:
+        if a.course_id not in seen or a.score_pct > seen[a.course_id].score_pct:
+            seen[a.course_id] = a
+    completed_courses = [c for c in courses if c.id in seen]
+    missing_courses   = [c for c in courses if c.id not in seen]
+    if not missing_courses:
+        flash('This student has already completed all sections.', 'info')
+        return redirect(url_for('admin_yiap_results'))
+    user = YIAPQuizAttempt.query.filter_by(user_id=user_id).first()
+    if not user or not user.user:
+        flash('Could not find student account.', 'danger')
+        return redirect(url_for('admin_yiap_results'))
+    display_name = user.display_name or user.user.email
+    ok = _send_yiap_reminder_email(user.user, display_name, missing_courses, completed_courses)
+    if ok:
+        flash(f'Reminder sent to {user.user.email} ({len(missing_courses)} section(s) remaining).', 'success')
+    else:
+        flash(f'Failed to send reminder to {user.user.email}. Check mail config.', 'danger')
+    return redirect(url_for('admin_yiap_results'))
+
+
+@app.route('/admin/yiap-remind-all', methods=['POST'])
+@admin_required
+def admin_yiap_remind_all():
+    """Send reminders to ALL students who haven't completed all YIAP tests."""
+    from collections import defaultdict
+    courses = YIAPCourse.query.filter_by(is_active=True).order_by(YIAPCourse.sort_order).all()
+    all_complete = YIAPQuizAttempt.query.filter_by(is_complete=True).all()
+    # Best per (user_id, course_id)
+    seen = {}
+    for a in all_complete:
+        key = (a.user_id, a.course_id)
+        if key not in seen or a.score_pct > seen[key].score_pct:
+            seen[key] = a
+    # Group by user
+    student_map = defaultdict(dict)
+    for (uid, cid), a in seen.items():
+        student_map[uid][cid] = a
+    sent = 0; failed = 0; skipped = 0
+    for uid, cmap in student_map.items():
+        missing = [c for c in courses if c.id not in cmap]
+        if not missing:
+            skipped += 1
+            continue
+        any_a = next(iter(cmap.values()))
+        if not any_a.user or not any_a.user.email:
+            failed += 1
+            continue
+        completed = [c for c in courses if c.id in cmap]
+        ok = _send_yiap_reminder_email(
+            any_a.user, any_a.display_name or any_a.user.email,
+            missing, completed
+        )
+        if ok: sent += 1
+        else:  failed += 1
+    parts = [f'{sent} reminder{"s" if sent != 1 else ""} sent']
+    if skipped: parts.append(f'{skipped} already complete (skipped)')
+    if failed:  parts.append(f'{failed} failed')
+    flash('. '.join(parts) + '.', 'success' if not failed else 'warning')
     return redirect(url_for('admin_yiap_results'))
 
 
