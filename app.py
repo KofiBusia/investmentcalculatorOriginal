@@ -6631,6 +6631,55 @@ def admin_yiap_results_csv():
     )
 
 
+@app.route('/admin/yiap-matrix-csv')
+@admin_required
+def admin_yiap_matrix_csv():
+    import csv, io
+    from collections import defaultdict
+    courses = YIAPCourse.query.filter_by(is_active=True).order_by(YIAPCourse.sort_order).all()
+    all_complete = YIAPQuizAttempt.query.filter_by(is_complete=True).all()
+    seen = {}
+    for a in all_complete:
+        key = (a.user_id, a.course_id)
+        if key not in seen or a.score_pct > seen[key].score_pct:
+            seen[key] = a
+    student_map = defaultdict(dict)
+    for (uid, cid), a in seen.items():
+        student_map[uid][cid] = a
+    buf = io.StringIO()
+    writer = csv.writer(buf)
+    # Header: Name, Email, Phone, one col per course, Completed, All Done
+    header = ['Full Name', 'Email', 'Phone']
+    for c in courses:
+        header += [f'{c.name} — Score (%)', f'{c.name} — Result']
+    header += ['Tests Completed', f'Completed All {len(courses)}?']
+    writer.writerow(header)
+    for uid, cmap in sorted(student_map.items(),
+                             key=lambda x: (x[1][list(x[1].keys())[0]].display_name or '').lower()):
+        any_a = next(iter(cmap.values()))
+        row = [
+            any_a.display_name or '',
+            any_a.user.email if any_a.user else '',
+            any_a.user.phone if any_a.user else '',
+        ]
+        for c in courses:
+            a = cmap.get(c.id)
+            if a:
+                row += [f'{a.score_pct}%', 'Passed' if a.score_pct >= YIAP_PASS_PCT else 'Did Not Pass']
+            else:
+                row += ['Not Taken', 'Not Taken']
+        row += [f'{len(cmap)}/{len(courses)}', 'Yes' if len(cmap) == len(courses) else 'No']
+        writer.writerow(row)
+    return (
+        buf.getvalue(),
+        200,
+        {
+            'Content-Type': 'text/csv; charset=utf-8',
+            'Content-Disposition': 'attachment; filename="yiap_participation_matrix.csv"',
+        }
+    )
+
+
 @app.route('/jobs/<int:job_id>/apply', methods=['GET', 'POST'])
 def job_apply(job_id):
     job = JobListing.query.get_or_404(job_id)
