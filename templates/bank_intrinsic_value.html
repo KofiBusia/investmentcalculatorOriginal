@@ -33,10 +33,20 @@
         .fade-in{animation:fadeIn .5s ease-out;}
         .home-button{display:inline-flex;align-items:center;padding:10px 20px;background:#4f46e5;color:#fff;border-radius:8px;font-weight:500;transition:all .3s;margin-bottom:20px;}
         .home-button:hover{background:#3730a3;}
+        .info-icon{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:50%;background:#6366f1;color:#fff;font-size:9px;cursor:pointer;vertical-align:middle;margin-left:5px;flex-shrink:0;font-style:normal;user-select:none;line-height:1;}
+        .info-icon:hover{background:#4338ca;transform:scale(1.1);}
+        .fin-table{width:100%;border-collapse:collapse;font-size:.8rem;}
+        .fin-table th{padding:7px 10px;text-align:center;font-weight:600;color:#fff;}
+        .fin-table td{border:1px solid #ede9fe;padding:4px 6px;}
+        .fin-table tr:nth-child(even) td{background:#faf5ff;}
+        .fin-table td:first-child{color:#6b7280;font-size:.75rem;white-space:nowrap;padding-left:8px;border-left:none;}
+        .fin-roe-cell{background:#f5f3ff!important;color:#5b21b6;font-weight:700;}
+        .fin-bv-cell{background:#fffbeb!important;color:#92400e;font-weight:600;}
     </style>
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1910810542133525" crossorigin="anonymous"></script>
 </head>
 <body class="text-gray-800">
+<div id="global-tip" style="position:fixed;z-index:9999;display:none;background:#fff;border:1.5px solid #c7d2fe;border-radius:10px;padding:13px 16px;box-shadow:0 8px 32px rgba(79,70,229,.18);width:270px;font-size:.8rem;line-height:1.65;color:#374151;pointer-events:none;"></div>
 
 <header class="gradient-bg text-white py-8 px-4 md:px-8">
     <div class="max-w-6xl mx-auto">
@@ -109,17 +119,17 @@
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Risk-Free Rate (%) *</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Risk-Free Rate (%) * <span class="info-icon" onclick="event.stopPropagation();showTip(this,'risk_free')">ⓘ</span></label>
                         <input type="number" step="0.01" id="risk_free_rate" placeholder="e.g. 18.0" class="input-field w-full h-11 px-3 rounded-lg" oninput="updateCoE()">
                         <p class="text-xs text-gray-400 mt-1">Govt bond yield (5–10 yr)</p>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Market Return (%) *</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Market Return (%) * <span class="info-icon" onclick="event.stopPropagation();showTip(this,'market_return')">ⓘ</span></label>
                         <input type="number" step="0.01" id="market_return" placeholder="e.g. 22.0" class="input-field w-full h-11 px-3 rounded-lg" oninput="updateCoE()">
                         <p class="text-xs text-gray-400 mt-1">Expected annual mkt return</p>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Beta *</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Beta * <span class="info-icon" onclick="event.stopPropagation();showTip(this,'beta')">ⓘ</span></label>
                         <input type="number" step="0.01" id="beta" placeholder="e.g. 0.85" class="input-field w-full h-11 px-3 rounded-lg" oninput="updateCoE()">
                         <p class="text-xs text-gray-400 mt-1">Volatility vs market</p>
                     </div>
@@ -139,7 +149,7 @@
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Current Book Value per Share (BV₀) *</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Current Book Value per Share (BV₀) * <span class="info-icon" onclick="event.stopPropagation();showTip(this,'book_value')">ⓘ</span></label>
                         <input type="number" step="0.01" id="book_value" placeholder="e.g. 4.20" class="input-field w-full h-11 px-3 rounded-lg">
                         <p class="text-xs text-gray-400 mt-1">Total Equity ÷ Shares Outstanding (from Balance Sheet)</p>
                     </div>
@@ -154,7 +164,7 @@
                 </div>
                 <div id="payout-section" class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Dividend Payout Ratio (%) *</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Dividend Payout Ratio (%) * <span class="info-icon" onclick="event.stopPropagation();showTip(this,'payout_ratio')">ⓘ</span></label>
                         <input type="number" step="0.01" id="payout_ratio" placeholder="e.g. 40.0" class="input-field w-full h-11 px-3 rounded-lg" value="40">
                         <p class="text-xs text-gray-400 mt-1">% of EPS paid as dividend</p>
                     </div>
@@ -188,6 +198,9 @@
                         </button>
                         <button type="button" class="roe-mode-btn" id="mode-growth" onclick="setROEMode('growth')">
                             <i class="fas fa-chart-line mr-1"></i>Growth Rate
+                        </button>
+                        <button type="button" class="roe-mode-btn" id="mode-financials" onclick="setROEMode('financials')" style="background:#f5f3ff;border-color:#7c3aed;color:#5b21b6;">
+                            <i class="fas fa-file-invoice-dollar mr-1"></i>From Financial Statements
                         </button>
                     </div>
                 </div>
@@ -231,6 +244,97 @@
                     </div>
                 </div>
 
+                <!-- Mode D: From Financial Statements -->
+                <div id="financials-section" style="display:none;" class="mb-4">
+                    <div class="warning-box" style="background:#f5f3ff;border-left:4px solid #7c3aed;padding:12px 16px;border-radius:8px;margin-bottom:16px;">
+                        <i class="fas fa-info-circle text-purple-600 mr-2"></i>
+                        <strong>How it works:</strong> Enter Net Income and Shareholders' Equity from published financial statements. ROE is auto-calculated as <strong>ROE = Net Income ÷ Equity</strong>. Use consistent units throughout (all in thousands, or all in millions).
+                    </div>
+
+                    <!-- Historical: NI + Equity → ROE -->
+                    <div class="bg-violet-50 border border-violet-200 rounded-xl p-4 mb-4">
+                        <p class="text-sm font-semibold text-violet-800 mb-1">
+                            <i class="fas fa-history mr-1"></i>Step A — Enter Historical Financial Data
+                            <span class="text-xs font-normal text-violet-600 ml-2">(last 1–5 years from Annual Reports)</span>
+                        </p>
+                        <p class="text-xs text-gray-500 mb-3">Calculated historical ROEs will be used to auto-populate the forecast using the method you select below.</p>
+                        <div class="overflow-x-auto">
+                            <table class="fin-table">
+                                <thead>
+                                    <tr>
+                                        <th class="text-left" style="background:#5b21b6;min-width:80px;">Year</th>
+                                        <th style="background:#5b21b6;">Net Income <span class="info-icon" onclick="event.stopPropagation();showTip(this,'fn_ni')">ⓘ</span></th>
+                                        <th style="background:#5b21b6;">Shareholders' Equity <span class="info-icon" onclick="event.stopPropagation();showTip(this,'fn_eq')">ⓘ</span></th>
+                                        <th style="background:#5b21b6;min-width:80px;">ROE % (auto)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Y−5 (oldest)</td>
+                                        <td><input type="number" id="fn_ni_1" placeholder="e.g. 450000" class="input-field w-full h-9 px-2 rounded text-xs" oninput="calcHistROEs()"></td>
+                                        <td><input type="number" id="fn_eq_1" placeholder="e.g. 3200000" class="input-field w-full h-9 px-2 rounded text-xs" oninput="calcHistROEs()"></td>
+                                        <td><input type="text" id="fn_roe_1" readonly class="input-field w-full h-9 px-2 rounded text-xs fin-roe-cell"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Y−4</td>
+                                        <td><input type="number" id="fn_ni_2" placeholder="e.g. 510000" class="input-field w-full h-9 px-2 rounded text-xs" oninput="calcHistROEs()"></td>
+                                        <td><input type="number" id="fn_eq_2" placeholder="e.g. 3650000" class="input-field w-full h-9 px-2 rounded text-xs" oninput="calcHistROEs()"></td>
+                                        <td><input type="text" id="fn_roe_2" readonly class="input-field w-full h-9 px-2 rounded text-xs fin-roe-cell"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Y−3</td>
+                                        <td><input type="number" id="fn_ni_3" placeholder="e.g. 580000" class="input-field w-full h-9 px-2 rounded text-xs" oninput="calcHistROEs()"></td>
+                                        <td><input type="number" id="fn_eq_3" placeholder="e.g. 4100000" class="input-field w-full h-9 px-2 rounded text-xs" oninput="calcHistROEs()"></td>
+                                        <td><input type="text" id="fn_roe_3" readonly class="input-field w-full h-9 px-2 rounded text-xs fin-roe-cell"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Y−2</td>
+                                        <td><input type="number" id="fn_ni_4" placeholder="e.g. 650000" class="input-field w-full h-9 px-2 rounded text-xs" oninput="calcHistROEs()"></td>
+                                        <td><input type="number" id="fn_eq_4" placeholder="e.g. 4700000" class="input-field w-full h-9 px-2 rounded text-xs" oninput="calcHistROEs()"></td>
+                                        <td><input type="text" id="fn_roe_4" readonly class="input-field w-full h-9 px-2 rounded text-xs fin-roe-cell"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Y−1 (latest)</td>
+                                        <td><input type="number" id="fn_ni_5" placeholder="e.g. 720000" class="input-field w-full h-9 px-2 rounded text-xs" oninput="calcHistROEs()"></td>
+                                        <td><input type="number" id="fn_eq_5" placeholder="e.g. 5300000" class="input-field w-full h-9 px-2 rounded text-xs" oninput="calcHistROEs()"></td>
+                                        <td><input type="text" id="fn_roe_5" readonly class="input-field w-full h-9 px-2 rounded text-xs fin-roe-cell"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="flex items-center gap-3 mt-3 flex-wrap">
+                            <label class="text-xs font-medium text-gray-700">Forecast ROE method:</label>
+                            <select id="fn_hist_method" class="input-field px-2 py-1.5 rounded text-xs" onchange="autoFillFromFinancials()">
+                                <option value="average">Simple Average of historical ROEs</option>
+                                <option value="last">Use latest year's ROE only</option>
+                                <option value="cagr">CAGR trend (extrapolate)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Forecast: EPS-based ROE override -->
+                    <div class="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                        <p class="text-sm font-semibold text-amber-800 mb-1">
+                            <i class="fas fa-chart-line mr-1"></i>Step B — Enter Projected EPS (optional override)
+                            <span class="text-xs font-normal text-amber-600 ml-2">(overrides Step A's forecast if filled)</span>
+                        </p>
+                        <p class="text-xs text-gray-500 mb-3">Enter analyst or projected Earnings Per Share for each year. ROE = EPS ÷ Opening Book Value per Share (rolling — auto-calculated). Leave blank to use Step A's method.</p>
+                        <div class="overflow-x-auto">
+                            <table class="fin-table">
+                                <thead>
+                                    <tr>
+                                        <th class="text-left" style="background:#92400e;min-width:60px;">Year</th>
+                                        <th style="background:#92400e;">Projected EPS <span class="info-icon" onclick="event.stopPropagation();showTip(this,'fn_eps')">ⓘ</span></th>
+                                        <th style="background:#92400e;min-width:90px;">Opening BV/sh (auto)</th>
+                                        <th style="background:#92400e;min-width:80px;">ROE % (auto)</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="fn-forecast-tbody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Forecast ROE fields (all modes) -->
                 <div>
                     <p class="text-sm font-medium text-gray-700 mb-2">Forecasted ROE by Year <span id="roe-source-label" class="text-xs text-indigo-500 font-normal">(enter manually)</span></p>
@@ -256,12 +360,12 @@
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Terminal Growth Rate (%) *</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Terminal Growth Rate (%) * <span class="info-icon" onclick="event.stopPropagation();showTip(this,'terminal_growth')">ⓘ</span></label>
                         <input type="number" step="0.01" id="terminal_growth" placeholder="e.g. 4.0" class="input-field w-full h-11 px-3 rounded-lg">
                         <p class="text-xs text-gray-400 mt-1">Must be below Cost of Equity &amp; ≤ GDP growth</p>
                     </div>
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">Long-Term Sustainable ROE (%) *</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Long-Term Sustainable ROE (%) * <span class="info-icon" onclick="event.stopPropagation();showTip(this,'lt_roe')">ⓘ</span></label>
                         <input type="number" step="0.01" id="long_term_roe" placeholder="e.g. 18.0" class="input-field w-full h-11 px-3 rounded-lg">
                         <p class="text-xs text-gray-400 mt-1">ROE the bank sustains in perpetuity</p>
                     </div>
@@ -358,6 +462,38 @@
 </div>
 
 <script>
+// ── Tooltip content dictionary ────────────────────────────────
+const TIPS = {
+    risk_free: '<strong>Risk-Free Rate (Rf)</strong><br><br>The return on a zero-risk government security.<br><br><strong>Where to find:</strong> Use the Ghana 91-day Treasury Bill rate or the 5–10 year government bond yield. Available on the <em>Bank of Ghana website (bog.gov.gh)</em> — click "Treasury Bills & Bonds".<br><br><span style="color:#6366f1">Typical Ghana range: 20–32%</span>',
+    market_return: '<strong>Market Return (Rm)</strong><br><br>Expected annual return of the whole stock market.<br><br><strong>Where to find:</strong> Calculate from the GSE All-Share Index historical 5–10 year annualised return. Available on the <em>Ghana Stock Exchange website (gse.com.gh)</em>.<br><br><span style="color:#6366f1">Typical GSE range: 18–30%</span>',
+    beta: '<strong>Beta (β)</strong><br><br>Measures how volatile the stock is vs. the overall market. Beta = 1.0 moves in line; Beta > 1 is more volatile.<br><br><strong>Where to find:</strong> Bloomberg, Reuters, or calculate from monthly stock vs index returns over 3–5 years.<br><br><span style="color:#6366f1">Typical Beta for Ghanaian banks: 0.5–1.2</span>',
+    book_value: '<strong>Book Value per Share (BV₀)</strong><br><br>= Total Shareholders\' Equity ÷ Shares Outstanding<br><br><strong>Where to find:</strong> Balance Sheet (Statement of Financial Position). Look for "Total Equity" or "Total Shareholders\' Equity". Divide by the number of ordinary shares in issue.<br><br><span style="color:#6366f1">Also shown on the GSE Company Fact Sheet.</span>',
+    payout_ratio: '<strong>Dividend Payout Ratio</strong><br><br>= Dividends Per Share ÷ EPS × 100<br><br><strong>Where to find:</strong> Annual Report (Directors\' Report or Notes to the Accounts). Or calculate: Total Dividend Declared ÷ Net Income × 100.<br><br><span style="color:#6366f1">Example: If EPS = ₵0.80 and DPS = ₵0.32 → Payout = 40%</span>',
+    terminal_growth: '<strong>Terminal Growth Rate (g)</strong><br><br>The assumed perpetual growth rate of residual income beyond the forecast period.<br><br><strong>Rules:</strong><br>① Must be LESS than the Cost of Equity<br>② Should not exceed long-run GDP growth<br><br><span style="color:#6366f1">Sensible default for Ghana: 5–7%</span>',
+    lt_roe: '<strong>Long-Term Sustainable ROE</strong><br><br>The return on equity the company can realistically maintain forever after the forecast period ends.<br><br><strong>Rule:</strong> Must EXCEED Cost of Equity — if LT ROE = CoE, no excess return is generated.<br><br><span style="color:#6366f1">For well-run Ghanaian banks: 20–28%</span>',
+    fn_ni: '<strong>Net Income</strong><br><br><strong>Found on:</strong> Income Statement (also called P&L or "Statement of Profit or Loss and Other Comprehensive Income").<br><br>Look for the final line: <em>"Profit for the Year", "Net Profit After Tax"</em>, or <em>"Net Income"</em>.<br><br><span style="color:#6366f1">Use the same unit (GHS thousands or GHS millions) for all years.</span>',
+    fn_eq: '<strong>Shareholders\' Equity</strong><br><br><strong>Found on:</strong> Balance Sheet (Statement of Financial Position), under the Equity section.<br><br>Look for: <em>"Total Equity"</em> or <em>"Total Shareholders\' Equity"</em>.<br><br>= Paid-up Capital + Retained Earnings + Other Reserves.<br><br><span style="color:#6366f1">Tip: Use the <strong>opening</strong> (beginning-of-year) equity = prior year\'s closing balance.</span>',
+    fn_eps: '<strong>Projected EPS (Earnings Per Share)</strong><br><br>= Projected Net Income ÷ Shares Outstanding<br><br><strong>Where to find:</strong> Analyst research reports, or compute from your own Net Income forecast divided by shares in issue.<br><br>ROE is then auto-calculated as:<br><em>ROE = EPS ÷ Opening Book Value per Share</em><br><br><span style="color:#6366f1">The Opening BV rolls forward each year using retained earnings.</span>'
+};
+
+function showTip(icon, key) {
+    const tip = document.getElementById('global-tip');
+    if (!tip) return;
+    tip.innerHTML = TIPS[key] || key;
+    const rect = icon.getBoundingClientRect();
+    const scrollY = window.scrollY || window.pageYOffset;
+    const scrollX = window.scrollX || window.pageXOffset;
+    // Position below the icon, clamped within viewport width
+    tip.style.top  = (rect.bottom + scrollY + 8) + 'px';
+    tip.style.left = Math.max(8, Math.min(rect.left + scrollX, window.innerWidth - 285)) + 'px';
+    tip.style.display = 'block';
+}
+
+document.addEventListener('click', function() {
+    const tip = document.getElementById('global-tip');
+    if (tip) tip.style.display = 'none';
+});
+
 // ── state ────────────────────────────────────────────────────
 let roeMode = 'manual';
 
@@ -396,6 +532,7 @@ function onYearsChange() {
     }
     if (roeMode === 'historical') autoFillFromHistory();
     if (roeMode === 'growth') autoFillFromGrowth();
+    if (roeMode === 'financials') buildForecastTable();
 }
 
 function onDivPolicy() {
@@ -418,13 +555,20 @@ function updateEffPayout() {
 // ── ROE modes ────────────────────────────────────────────────
 function setROEMode(mode) {
     roeMode = mode;
-    ['manual','historical','growth'].forEach(m => {
-        el('mode-' + m).classList.toggle('active', m === mode);
+    ['manual','historical','growth','financials'].forEach(m => {
+        const btn = el('mode-' + m);
+        if (btn) btn.classList.toggle('active', m === mode);
     });
     el('historical-section').style.display = mode === 'historical' ? '' : 'none';
     el('growth-section').style.display     = mode === 'growth'     ? '' : 'none';
-    const labels = {manual:'(enter manually)', historical:'(auto-filled from history)', growth:'(auto-filled from growth rate)'};
-    el('roe-source-label').textContent = labels[mode];
+    el('financials-section').style.display = mode === 'financials' ? '' : 'none';
+    const labels = {
+        manual:'(enter manually)',
+        historical:'(auto-filled from historical ROEs)',
+        growth:'(auto-filled from growth rate)',
+        financials:'(auto-filled from financial statement data)'
+    };
+    el('roe-source-label').textContent = labels[mode] || '';
     const ro = mode !== 'manual';
     for (let i = 1; i <= 5; i++) {
         const inp = el('roe_' + i);
@@ -432,6 +576,7 @@ function setROEMode(mode) {
     }
     if (mode === 'historical') autoFillFromHistory();
     if (mode === 'growth') autoFillFromGrowth();
+    if (mode === 'financials') { buildForecastTable(); calcHistROEs(); }
 }
 
 function autoFillFromHistory() {
@@ -463,6 +608,100 @@ function autoFillFromGrowth() {
         const inp = el('roe_' + i);
         if (inp) inp.value = (base * Math.pow(1+g, i)).toFixed(2);
     }
+}
+
+// ── Financial Statements mode functions ──────────────────────
+function calcHistROEs() {
+    // Calculate ROE from NI + Equity for each historical year
+    for (let i = 1; i <= 5; i++) {
+        const ni  = parseFloat(el('fn_ni_' + i)?.value) || 0;
+        const eq  = parseFloat(el('fn_eq_' + i)?.value) || 0;
+        const displayEl = el('fn_roe_' + i);
+        const hiddenEl  = el('hist_roe_' + i);
+        if (ni && eq) {
+            const roe = (ni / eq * 100).toFixed(2);
+            if (displayEl) displayEl.value = roe + '%';
+            if (hiddenEl)  hiddenEl.value  = roe;  // feeds into autoFillFromHistory
+        } else {
+            if (displayEl) displayEl.value = '';
+            if (hiddenEl)  hiddenEl.value  = '';
+        }
+    }
+    if (roeMode === 'financials') autoFillFromFinancials();
+}
+
+function buildForecastTable() {
+    // (Re)build the EPS-based forecast table matching num_years
+    const n    = parseInt(el('num_years').value);
+    const tbody = el('fn-forecast-tbody');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    for (let i = 1; i <= n; i++) {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td>Year ${i}</td>
+            <td><input type="number" step="0.001" id="fn_eps_${i}" placeholder="e.g. 0.75" class="input-field w-full h-9 px-2 rounded text-xs" oninput="calcForecastROEs()"></td>
+            <td><input type="text" id="fn_obv_${i}" readonly class="input-field w-full h-9 px-2 rounded text-xs fin-bv-cell"></td>
+            <td><input type="text" id="fn_fc_roe_${i}" readonly class="input-field w-full h-9 px-2 rounded text-xs fin-roe-cell"></td>
+        `;
+        tbody.appendChild(row);
+    }
+    calcForecastROEs();
+}
+
+function calcForecastROEs() {
+    // Compute rolling BV and derive ROE = EPS / Opening BV for each forecast year
+    const bv0  = parseFloat(el('book_value')?.value) || 0;
+    const pol  = el('dividend_policy').value;
+    const pr   = pol === 'none' ? 0 : (parseFloat(el('payout_ratio')?.value) || 0);
+    const irr  = pol === 'irregular' ? (parseFloat(el('irregularity_factor')?.value) || 1) : 1;
+    const payoutEff = pr * irr / 100;
+    const n    = parseInt(el('num_years').value);
+
+    let currentBV = bv0;
+    let anyEPS = false;
+    for (let i = 1; i <= n; i++) {
+        if (el('fn_obv_' + i)) el('fn_obv_' + i).value = currentBV > 0 ? currentBV.toFixed(4) : '';
+        const eps = parseFloat(el('fn_eps_' + i)?.value) || 0;
+        if (eps && currentBV > 0) {
+            anyEPS = true;
+            const roe = (eps / currentBV * 100).toFixed(2);
+            if (el('fn_fc_roe_' + i)) el('fn_fc_roe_' + i).value = roe + '%';
+            // Push into the main roe_ fields to drive the model
+            const roeEl = el('roe_' + i);
+            if (roeEl) roeEl.value = roe;
+        } else {
+            if (el('fn_fc_roe_' + i)) el('fn_fc_roe_' + i).value = '';
+        }
+        const retained = eps * (1 - payoutEff);
+        currentBV += retained;
+    }
+    // If no EPS entered, fall back to historical auto-fill
+    if (!anyEPS) autoFillFromFinancials();
+}
+
+function autoFillFromFinancials() {
+    // Use computed historical ROEs (stored in hist_roe_ hidden fields) → fill roe_ fields
+    const hist = [];
+    for (let i = 1; i <= 5; i++) {
+        const val = parseFloat(el('hist_roe_' + i)?.value);
+        if (val) hist.push(val);
+    }
+    if (!hist.length) return;
+    const method = el('fn_hist_method')?.value || 'average';
+    const n = parseInt(el('num_years').value);
+    let roes = [];
+    if (method === 'average') {
+        const avg = hist.reduce((a,b) => a+b, 0) / hist.length;
+        roes = Array(n).fill(avg);
+    } else if (method === 'last') {
+        roes = Array(n).fill(hist[hist.length - 1]);
+    } else if (method === 'cagr') {
+        const base = hist[hist.length - 1];
+        const cagr = hist.length > 1 ? Math.pow(base / hist[0], 1 / (hist.length - 1)) - 1 : 0;
+        roes = Array.from({length: n}, (_, i) => base * Math.pow(1 + cagr, i + 1));
+    }
+    roes.forEach((r, i) => { const inp = el('roe_' + (i+1)); if (inp) inp.value = r.toFixed(2); });
 }
 
 // ── Core RIM calculation ─────────────────────────────────────
@@ -629,6 +868,14 @@ function resetAll() {
     el('coe_display').value = '';
     el('tv-check-content').innerHTML = 'Enter terminal inputs to see validation checks.';
     el('tv-check-content').className = 'text-xs text-gray-400';
+    // Clear financials-mode fields
+    for (let i = 1; i <= 5; i++) {
+        ['fn_ni_','fn_eq_','fn_roe_'].forEach(pfx => {
+            const e = el(pfx + i); if (e) e.value = '';
+        });
+    }
+    const fBody = el('fn-forecast-tbody');
+    if (fBody) fBody.innerHTML = '';
     setROEMode('manual');
     onDivPolicy();
     onYearsChange();

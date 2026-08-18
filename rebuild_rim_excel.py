@@ -115,10 +115,10 @@ hdr_row(roe_eng, 1, "  ROE FORECAST ENGINE", bg=NAVY, size=14, cols=7)
 # Mode selector
 label(roe_eng, 3, 1, "ROE Forecast Mode", bold=True, size=11, color=NAVY)
 mode_cell = inp(roe_eng, 3, 2, value="Manual", bg=LYELLOW)
-dv = DataValidation(type="list", formula1='"Manual,Auto-Average,Auto-CAGR,Growth Rate"', allow_blank=False)
+dv = DataValidation(type="list", formula1='"Manual,Auto-Average,Auto-CAGR,Growth Rate,From-EPS"', allow_blank=False)
 roe_eng.add_data_validation(dv)
 dv.add(mode_cell)
-label(roe_eng, 3, 3, "↑ Select forecast method", italic=True, size=9, color="9CA3AF")
+label(roe_eng, 3, 3, "↑ Manual | Auto-Average | Auto-CAGR | Growth Rate | From-EPS", italic=True, size=9, color="9CA3AF")
 roe_eng.merge_cells("C3:G3")
 
 # ── Section A: Historical ROE ─────────────────────────────────
@@ -160,22 +160,126 @@ for i in range(5):
 hdr_row(roe_eng, 21, "  ACTIVE FORECAST — used by the model (auto-selected based on Mode)", bg=NAVY, size=11, cols=7)
 label(roe_eng, 22, 1, "Selected ROE Forecast (%)", bold=True, color=NAVY)
 
-# Formula: picks correct ROE based on mode
+# Formula: picks correct ROE based on mode (now includes From-EPS pulling from Section E row 37)
 for i in range(5):
     col = i + 2
     col_let = get_column_letter(col)
     yr = i + 1
-    # Manual: B19..F19; Average: B9; CAGR: F7*(1+B11)^t; Growth: B14*(1+B15)^t
     f = (f'=IF($B$3="Manual",{col_let}19,'
          f'IF($B$3="Auto-Average",$B$9,'
          f'IF($B$3="Auto-CAGR",IFERROR($F$7*POWER(1+$B$11,{yr}),0),'
-         f'IF($B$3="Growth Rate",IFERROR($B$14*POWER(1+$B$15,{yr}),0),0))))')
+         f'IF($B$3="Growth Rate",IFERROR($B$14*POWER(1+$B$15,{yr}),0),'
+         f'IF($B$3="From-EPS",IFERROR({col_let}37,0),0)))))')
     c = formula(roe_eng, 22, col, f, fmt="0.00%", bold=True, color=WHITE)
     c.fill = fill(NAVY)
     c.font = Font(bold=True, size=11, color=WHITE, name="Calibri")
 
-label(roe_eng, 23, 1, "↑ These values feed directly into the Inputs sheet ROE rows.", italic=True, size=9, color="9CA3AF")
+label(roe_eng, 23, 1, "↑ Feeds Inputs sheet ROE rows. 'From-EPS' mode uses Section E row 37 (EPS ÷ Rolling BV).", italic=True, size=9, color="9CA3AF")
 roe_eng.merge_cells("A23:G23")
+
+# ══════════════════════════════════════════════════════════════
+# ROE_Engine — SECTION E: ROE FROM FINANCIAL STATEMENTS
+# ══════════════════════════════════════════════════════════════
+hdr_row(roe_eng, 25, "  SECTION E — CALCULATE ROE FROM FINANCIAL STATEMENTS", bg="5B21B6", size=12, cols=7)
+
+# Sub-section E1: Historical NI + Equity → historical ROE
+label(roe_eng, 26, 1, "E1 — Historical Financial Data (up to 5 years from Annual Reports)", bold=True, size=11, color="5B21B6")
+label(roe_eng, 26, 3, "Use CONSISTENT units: all in GHS thousands OR all in GHS millions.", italic=True, size=9, color="9CA3AF")
+roe_eng.merge_cells("C26:G26")
+
+years_hist_e = ["Y-5 (oldest)", "Y-4", "Y-3", "Y-2", "Y-1 (latest)"]
+for i, lbl in enumerate(years_hist_e):
+    label(roe_eng, 27, i+2, lbl, bold=True, size=9, color="5B21B6", bg="F5F3FF", h="center")
+
+# NI row
+label(roe_eng, 28, 1, "Net Income  [Income Statement — 'Profit for the Year' / 'Net Profit After Tax']", bold=False, size=10, wrap=True)
+for i in range(5):
+    inp(roe_eng, 28, i+2, value=None, fmt="#,##0", bg=LYELLOW)
+roe_eng.row_dimensions[28].height = 32
+
+# Equity row
+label(roe_eng, 29, 1, "Shareholders' Equity  [Balance Sheet — 'Total Equity' — use beginning-of-year balance]", bold=False, size=10, wrap=True)
+for i in range(5):
+    inp(roe_eng, 29, i+2, value=None, fmt="#,##0", bg=LYELLOW)
+roe_eng.row_dimensions[29].height = 32
+
+# Computed historical ROE = NI / Equity
+label(roe_eng, 30, 1, "Computed Historical ROE = NI ÷ Equity  (auto)", bold=True, size=10, color="5B21B6")
+for i in range(5):
+    col_let = get_column_letter(i+2)
+    c = roe_eng.cell(row=30, column=i+2, value=f'=IFERROR({col_let}28/{col_let}29,"")')
+    style(c, bold=True, size=11, color="5B21B6", bg="EDE9FE", h="right")
+    c.number_format = "0.00%"
+
+label(roe_eng, 31, 1, "NEXT STEP: Change Mode (B3) to 'Auto-Average' or 'Auto-CAGR', then copy row 30 values into Section A row 7 to use these historical ROEs.", italic=True, size=9, color="9CA3AF", wrap=True)
+roe_eng.merge_cells("A31:G31")
+roe_eng.row_dimensions[31].height = 30
+
+# Sub-section E2: EPS-based Forecast ROE (for "From-EPS" mode)
+label(roe_eng, 33, 1, "E2 — Forecast ROE from Projected EPS  (set Mode = 'From-EPS' to activate)", bold=True, size=11, color="92400E")
+label(roe_eng, 33, 3, "ROE = EPS ÷ Opening BV per Share. BV rolls forward each year via retained earnings.", italic=True, size=9, color="9CA3AF")
+roe_eng.merge_cells("C33:G33")
+
+for i, lbl in enumerate(["Year 1", "Year 2", "Year 3", "Year 4", "Year 5"]):
+    label(roe_eng, 34, i+2, lbl, bold=True, size=9, color="92400E", bg="FFFBEB", h="center")
+
+# Projected EPS row
+label(roe_eng, 35, 1, "Projected EPS  [Analyst forecast OR: Net Income ÷ Shares Outstanding]", bold=False, size=10)
+for i in range(5):
+    inp(roe_eng, 35, i+2, value=None, fmt="0.0000", bg=LYELLOW)
+
+# Opening BV per share (rolling forward)
+label(roe_eng, 36, 1, "Opening BV per share (rolling — auto-calculated from BV0 + retained earnings)", bold=True, size=10, color="92400E")
+# Year 1 opening BV from Inputs sheet
+c_bv1 = roe_eng.cell(row=36, column=2, value="=IFERROR(Inputs!B15,0)")
+style(c_bv1, bold=True, size=10, color="92400E", bg="FEF9C3", h="right")
+c_bv1.number_format = "0.0000"
+for i in range(1, 5):  # Year 2..5
+    prev_col = get_column_letter(i+1)
+    roll_f = f"=IFERROR({prev_col}36+{prev_col}35*(1-Inputs!$B$19),0)"
+    c = roe_eng.cell(row=36, column=i+2, value=roll_f)
+    style(c, bold=True, size=10, color="92400E", bg="FEF9C3", h="right")
+    c.number_format = "0.0000"
+
+# Computed Forecast ROE = EPS / Opening BV → referenced by Active Forecast "From-EPS"
+label(roe_eng, 37, 1, "Computed Forecast ROE = EPS ÷ Opening BV  [Active when Mode = 'From-EPS']", bold=True, size=10, color="5B21B6")
+for i in range(5):
+    col_let = get_column_letter(i+2)
+    c = roe_eng.cell(row=37, column=i+2, value=f'=IFERROR({col_let}35/{col_let}36,"")')
+    style(c, bold=True, size=11, color="5B21B6", bg="EDE9FE", h="right")
+    c.number_format = "0.00%"
+    c.font = Font(bold=True, size=11, color="5B21B6", name="Calibri")
+
+label(roe_eng, 38, 1, "Set Mode dropdown (B3) to 'From-EPS' → row 37 values auto-flow into the Active Forecast row 22 above.", italic=True, size=9, color="9CA3AF", wrap=True)
+roe_eng.merge_cells("A38:G38")
+roe_eng.row_dimensions[38].height = 28
+
+# ══════════════════════════════════════════════════════════════
+# ROE_Engine — SECTION F: WHERE TO FIND EACH INPUT
+# ══════════════════════════════════════════════════════════════
+hdr_row(roe_eng, 40, "  SECTION F — FIELD GUIDE: WHERE TO FIND EACH INPUT IN FINANCIAL STATEMENTS", bg=TEAL, size=11, cols=7)
+
+guidance = [
+    ("INPUT",                   "WHERE TO FIND IT",                                                              "TYPICAL VALUE (Ghana)",    TEAL,    WHITE,   WHITE),
+    ("Net Income",              "Income Statement — last line: 'Profit for the Year' or 'Net Profit After Tax'", "GHS millions",             "F0FDF4", NAVY,   "16A34A"),
+    ("Shareholders' Equity",    "Balance Sheet — 'Total Equity' (use prior year closing balance as opening BV)",  "GHS millions",             "F0FDF4", NAVY,   "16A34A"),
+    ("BV per Share",            "Balance Sheet Total Equity ÷ Shares Outstanding   OR   GSE Fact Sheet",          "e.g. GHS 4.20/share",      "EFF6FF", NAVY,   "4F46E5"),
+    ("EPS",                     "Income Statement (per-share note)   OR   Net Income ÷ Shares in Issue",          "e.g. GHS 0.75/share",      "EFF6FF", NAVY,   "4F46E5"),
+    ("Payout Ratio",            "Annual Report: Directors' Report / Dividend Announcement.  DPS ÷ EPS × 100",     "30–60% typical",           "FFFBEB", NAVY,   GOLD),
+    ("Beta (β)",                "Bloomberg / Reuters / Calculated: Cov(stock,index) ÷ Var(index) over 3–5 yrs",  "0.5–1.2 for GH banks",    "FFFBEB", NAVY,   GOLD),
+    ("Risk-Free Rate",          "Bank of Ghana (bog.gov.gh) → T-bill rates / Bond yields page",                   "~25–30% (2024–25)",        "FEF9C3", NAVY,   "92400E"),
+    ("Market Return (Rm)",      "GSE website (gse.com.gh): GSE All-Share Index annualised 5–10 yr return",        "~20–28% (GSE historical)", "FEF9C3", NAVY,   "92400E"),
+]
+for i, (inp_name, where, example, bg_, text_, hint_) in enumerate(guidance):
+    row = 41 + i
+    c1 = roe_eng.cell(row=row, column=1, value=inp_name)
+    style(c1, bold=(i==0), size=10 if i>0 else 11, color=text_ if i==0 else hint_, bg=bg_, wrap=(i>0))
+    c2 = roe_eng.cell(row=row, column=2, value=where)
+    style(c2, bold=False, size=9 if i>0 else 11, color=text_ if i==0 else "374151", bg=bg_, wrap=True)
+    roe_eng.merge_cells(f"B{row}:F{row}")
+    c3 = roe_eng.cell(row=row, column=7, value=example)
+    style(c3, bold=False, size=9 if i>0 else 11, color=text_ if i==0 else "6B7280", bg=bg_, italic=(i>0), h="center")
+    roe_eng.row_dimensions[row].height = 22 if i==0 else 20
 
 # ══════════════════════════════════════════════════════════════
 # SHEET 3 — INPUTS
