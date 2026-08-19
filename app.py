@@ -6363,9 +6363,8 @@ def admin_yiap_results():
     attempts = sorted(seen.values(),
                       key=lambda a: a.completed_at if a.completed_at else _epoch,
                       reverse=True)
-    raw_count     = len(all_complete)
+    raw_count      = len(all_complete)
     total_attempts = len(attempts)
-    total_passed  = sum(1 for a in attempts if a.score_pct >= YIAP_PASS_PCT)
     duplicate_count = raw_count - total_attempts
 
     # ── Participation stats ──────────────────────────────────────────────────
@@ -6378,6 +6377,14 @@ def admin_yiap_results():
         student_map[a.user_id][a.course_id] = a
 
     unique_students = len(student_map)
+
+    # Qualified = students who completed ALL active courses AND passed every one of them
+    num_courses = len(courses)
+    qualified_students = sum(
+        1 for uid, cmap in student_map.items()
+        if len(cmap) == num_courses
+        and all(a.score_pct >= YIAP_PASS_PCT for a in cmap.values())
+    )
 
     # Per-course counts
     course_stats = []
@@ -6409,7 +6416,7 @@ def admin_yiap_results():
                            attempts=attempts,
                            pass_pct=YIAP_PASS_PCT,
                            total_attempts=total_attempts,
-                           total_passed=total_passed,
+                           qualified_students=qualified_students,
                            duplicate_count=duplicate_count,
                            unique_students=unique_students,
                            courses=courses,

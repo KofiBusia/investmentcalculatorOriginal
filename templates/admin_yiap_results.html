@@ -23,18 +23,22 @@
     <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
       <p class="text-xs text-gray-500 mb-1">Unique Students</p>
       <p class="text-3xl font-bold text-indigo-600">{{ unique_students }}</p>
+      <p class="text-xs text-gray-400 mt-1">took at least 1 test</p>
     </div>
     <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
-      <p class="text-xs text-gray-500 mb-1">Total Entries</p>
+      <p class="text-xs text-gray-500 mb-1">Total Test Submissions</p>
       <p class="text-3xl font-bold text-gray-700">{{ total_attempts }}</p>
+      <p class="text-xs text-gray-400 mt-1">unique student–test pairs</p>
     </div>
     <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
       <p class="text-xs text-gray-500 mb-1">Qualified for Certificate</p>
-      <p class="text-3xl font-bold text-emerald-600">{{ total_passed }}</p>
+      <p class="text-3xl font-bold text-emerald-600">{{ qualified_students }}</p>
+      <p class="text-xs text-gray-400 mt-1">completed &amp; passed all {{ courses|length }} tests</p>
     </div>
     <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
       <p class="text-xs text-gray-500 mb-1">Pass Mark</p>
       <p class="text-3xl font-bold text-gray-700">{{ pass_pct }}%</p>
+      <p class="text-xs text-gray-400 mt-1">per individual test</p>
     </div>
   </div>
 
