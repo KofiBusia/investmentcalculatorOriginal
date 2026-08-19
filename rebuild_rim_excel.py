@@ -7,6 +7,7 @@ from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.datavalidation import DataValidation
 from openpyxl.formatting.rule import ColorScaleRule, CellIsRule, FormulaRule
 from openpyxl.styles.differential import DifferentialStyle
+from openpyxl.comments import Comment
 
 OUT = r"C:\Users\kkyei\Desktop\RESIDUAL INCOME VALUATION MODEL.xlsx"
 
@@ -618,6 +619,123 @@ for step, title, detail in steps:
 
 # Reorder sheets
 wb._sheets = [cover, instr, wb["ROE_Engine"], inp_ws, fc, val, sens]
+
+# ══════════════════════════════════════════════════════════════
+# CELL TIPS — Comments on all input and output cells
+# ══════════════════════════════════════════════════════════════
+def tip(ws, cell_ref, text):
+    c = ws[cell_ref]
+    cm = Comment(text, "InvestIQ")
+    cm.width = 330
+    cm.height = max(70, text.count('\n') * 17 + 50)
+    c.comment = cm
+
+def tip_range(ws, start_col, end_col, row, text):
+    for col in range(start_col, end_col + 1):
+        tip(ws, f"{get_column_letter(col)}{row}", text)
+
+# ── Cover sheet ──────────────────────────────────────────────
+tip(cover, "B10", "INTRINSIC VALUE PER SHARE\nLinked from the Valuation sheet.\nFormula: BV₀ + PV(Residual Income) + PV(Terminal Value)\n\nThis is the model’s estimate of what the stock is worth based on its ability to earn returns above the cost of equity.")
+tip(cover, "B11", "Current market price per share entered in Inputs sheet (cell B28).\nLeave as 0 if you have not entered a price yet.")
+tip(cover, "B12", "Margin of Safety = (Intrinsic Value − Market Price) ÷ Intrinsic Value\n\nPositive % → stock appears undervalued (price below IV).\nNegative % → stock appears overvalued (price above IV).\n\nA higher MoS gives more buffer against forecast errors.")
+tip(cover, "B13", "Valuation signal based on comparing Intrinsic Value to Market Price:\n• UNDERVALUED → IV > Market Price (potential buy)\n• OVERVALUED  → IV < Market Price (potential avoid/sell)\n• FAIRLY VALUED → IV ≈ Market Price")
+
+# ── Inputs sheet — Setup ──────────────────────────────────────
+tip(inp_ws, "B4", "Select the currency for all per-share values (BV₀, EPS, Market Price).\nGHS = Ghana Cedis  |  USD = US Dollars\n\nEnsure all inputs are consistently in the same currency.")
+tip(inp_ws, "B5", "Number of years to forecast explicitly before switching to the Terminal Value.\nAllowed values: 3, 4, or 5.\n\nLonger horizons capture more near-term detail but require more assumptions.\nTypical practice: 5 years for banks with stable earnings.")
+
+# ── Inputs sheet — CAPM ──────────────────────────────────────
+tip(inp_ws, "B8", "RISK-FREE RATE (Rf) — the return on a default-free investment.\n\nWhere to find: Bank of Ghana (bog.gov.gh) → Treasury Bills & Bonds page.\nUse the yield on the 5- or 10-year government bond.\n\nTypical Ghana value: 25–30% (2024–25).\nEnter as decimal: 0.28")
+tip(inp_ws, "B9", "EXPECTED MARKET RETURN (Rm) — the long-run annual return of the stock market.\n\nWhere to find: GSE website (gse.com.gh) → compute the annualised GSE All-Share Index return over 5–10 years.\n\nTypical Ghana value: 20–28% annualised.\nEnter as decimal: 0.22")
+tip(inp_ws, "B10", "BETA (β) — measures the stock’s volatility relative to the market.\nβ = 1.0 → moves exactly with the market.\nβ > 1.0 → more volatile (higher required return).\nβ < 1.0 → less volatile (lower required return).\n\nWhere to find: Bloomberg Terminal, Reuters Eikon, or calculate as Cov(stock, index) ÷ Var(index) over 3–5 years of weekly returns.\n\nTypical Ghana bank range: 0.5–1.2")
+tip(inp_ws, "B11", "MARKET RISK PREMIUM (MRP) — auto-calculated.\nFormula: MRP = Market Return − Risk-Free Rate\n= Inputs!B9 − Inputs!B8\n\nRepresents the extra return investors demand for holding equities over risk-free bonds.")
+tip(inp_ws, "B12", "COST OF EQUITY (r) — auto-calculated via CAPM.\nFormula: r = Rf + β × (Rm − Rf)\n\nThis is the hurdle rate used throughout the model:\n• To compute the annual Equity Charge\n• As the discount rate for PV of Residual Income\n• In the Terminal Value denominator (r − g)")
+
+# ── Inputs sheet — RIM Inputs ───────────────────────────────
+tip(inp_ws, "B15", "BOOK VALUE PER SHARE (BV₀) — net asset value per share at the valuation date.\n\nWhere to find: Balance Sheet → ‘Total Equity’ ÷ Number of Shares Outstanding.\nAlso available on the GSE Fact Sheet for listed companies.\n\nThis is the Year 0 starting point; all BV roll-forward begins here.\nEnter in the same currency as your EPS/Market Price.")
+tip(inp_ws, "B16", "DIVIDEND POLICY — select from the dropdown:\n• No Dividends → all earnings retained; BV grows at full ROE rate\n• Regular Dividends → dividends paid every year at the stated payout ratio\n• Irregular Dividends → dividends paid in some years only; use the Irregularity Factor below to capture frequency\n\nCheck the last 5 years of annual reports to determine the correct policy.")
+tip(inp_ws, "B17", "DIVIDEND PAYOUT RATIO — the fraction of earnings paid out as dividends.\n\nWhere to find: Annual Report → Directors’ Report or Dividend Announcement.\nFormula: Payout Ratio = DPS ÷ EPS\n\nTypical Ghana bank range: 30–60%.\nEnter as decimal: 0.40 (for 40%)")
+tip(inp_ws, "B18", "IRREGULARITY FACTOR — only applies when Policy = ‘Irregular Dividends’.\n\nRepresents the fraction of years dividends are actually paid:\n• 1.0 = paid every year\n• 0.75 = paid 3 out of 4 years\n• 0.50 = paid every other year\n\nCheck 5+ years of dividend history in annual reports to estimate this.")
+tip(inp_ws, "B19", "EFFECTIVE PAYOUT — auto-calculated; the payout rate used in the BV roll-forward.\n\nFormula:\n• No Dividends → 0%\n• Regular → Stated Payout Ratio\n• Irregular → Stated Payout × Irregularity Factor\n\nRetained Earnings each year = EPS × (1 − Effective Payout)")
+
+# ── Inputs sheet — Terminal Value ──────────────────────────
+tip(inp_ws, "B22", "TERMINAL GROWTH RATE (g) — the perpetual growth rate of residual income beyond the forecast horizon.\n\nMust be strictly BELOW the Cost of Equity (otherwise the TV formula explodes).\nConservative rule: g ≤ long-run nominal GDP growth (~5–8% for Ghana).\n\nTypical values: 3–6%.\nEnter as decimal: 0.05")
+tip(inp_ws, "B23", "LONG-TERM SUSTAINABLE ROE — the ROE the company earns in perpetuity (used in Terminal Value).\n\nMust EXCEED the Cost of Equity to generate a positive Terminal Value.\nIf LT ROE ≤ r, the bank destroys value in perpetuity.\n\nBase this on management guidance, peer benchmarks, or the average of your forecast-period ROEs.\nEnter as decimal: 0.18")
+tip(inp_ws, "B24", "HEALTH CHECK: Does Long-Term ROE > Cost of Equity?\n✅ YES → model will generate a positive Terminal Value (value-creating bank).\n❌ NO  → Terminal Value is zero or negative; re-examine LT ROE or CAPM inputs.")
+tip(inp_ws, "B25", "HEALTH CHECK: Is Terminal Growth Rate < Cost of Equity?\n✅ YES → Terminal Value formula is valid (Gordon Growth Model holds).\n❌ NO  → Formula breaks; reduce g or increase Cost of Equity inputs.")
+
+# ── Inputs sheet — Market Comparison ───────────────────────
+tip(inp_ws, "B28", "CURRENT MARKET PRICE PER SHARE (optional).\n\nWhere to find: GSE website (gse.com.gh) or your broker’s trading platform.\n\nUsed only to compute Margin of Safety and the valuation signal.\nLeave as 0 if you are doing a standalone intrinsic value analysis.")
+
+# ── Inputs sheet — ROE Forecast ─────────────────────────────
+for col_i in range(5):
+    col_ref = f"{get_column_letter(col_i + 2)}32"
+    tip(inp_ws, col_ref, f"ACTIVE FORECASTED ROE — Year {col_i + 1}\nAuto-linked from ROE_Engine Active Forecast row.\n\nDo NOT type here directly. Instead:\n1. Go to the ROE_Engine sheet\n2. Select a Mode in cell B3\n3. Fill in the required inputs for that mode\n\nThe correct ROE will flow here automatically.")
+
+# ── ROE_Engine sheet — Mode ──────────────────────────────────
+tip(roe_eng, "B3", "ROE FORECAST MODE — select from the dropdown:\n• Manual        → type each year’s ROE in Section C (row 19)\n• Auto-Average  → uses simple average of historical ROEs from Section A\n• Auto-CAGR     → projects ROEs using CAGR of historical ROEs\n• Growth Rate   → compounds a base ROE at a set growth rate (Section B)\n• From-EPS      → derives ROE = Projected EPS ÷ Rolling Opening BV (Section E2)\n\nThe selected mode feeds the Active Forecast row (row 22) which flows into the Inputs sheet.")
+
+# ── ROE_Engine — Section A ────────────────────────────────────
+tip_range(roe_eng, 2, 6, 7, "HISTORICAL ROE — enter the annual Return on Equity for up to 5 past years.\n\nWhere to find:\n• Annual Report → Net Income ÷ Shareholders’ Equity\n• OR compute below in Section E (rows 28–30) from NI and Equity\n\nEnter as decimal (e.g. 18% → 0.18).\nY-5 = oldest; Y-1 = most recent year.")
+tip(roe_eng, "B9", "SIMPLE AVERAGE of all historical ROEs entered in row 7.\nFormula: = AVERAGE(B7:F7)\n\nUsed as the constant forecast ROE for all years when Mode = ‘Auto-Average’.\nBest suited when ROE has been relatively stable historically.")
+tip(roe_eng, "B10", "LATEST ROE — the most recent year’s ROE (Y-1 from row 7).\nFormula: = F7\n\nUsed as the baseline in Auto-CAGR trend projections.")
+tip(roe_eng, "B11", "CAGR of ROE from Y-5 to Y-1 (compound annual growth rate).\nFormula: = (Latest / Oldest)^(1/4) − 1\n\nUsed when Mode = ‘Auto-CAGR’ to trend-project future ROEs.\nPositive CAGR → improving ROE trend; Negative → declining trend.")
+
+# ── ROE_Engine — Section B ────────────────────────────────────
+tip(roe_eng, "B14", "BASE ROE — the starting ROE for Growth Rate mode.\n\nTypically the most recent known ROE.\nFormula applied: Forecast ROE_t = Base ROE × (1 + Growth Rate)^t\n\nEnter as decimal: 0.18")
+tip(roe_eng, "B15", "ANNUAL ROE GROWTH RATE — the rate at which ROE improves (or declines) each year.\n\nPositive → management expects improving margins/returns.\nNegative → mean-reversion or sector headwinds expected.\n\nEnter as decimal: 0.02 (for 2% annual improvement)")
+
+# ── ROE_Engine — Section C ────────────────────────────────────
+tip_range(roe_eng, 2, 6, 19, "MANUAL ROE FORECAST — enter your own ROE estimate for each year.\n\nOnly used when Mode (B3) = ‘Manual’.\n\nTypical Ghana bank range: 12–25%.\nEnter as decimal: 0.18\n\nBest when you have specific analyst forecasts or company guidance.")
+
+# ── ROE_Engine — Section D (Active Forecast) ─────────────────
+tip_range(roe_eng, 2, 6, 22, "ACTIVE FORECAST ROE — auto-selected based on Mode (B3). DO NOT EDIT.\n\nFormula chain:\n• Manual    → from Section C row 19\n• Auto-Avg  → from B9 (historical average)\n• Auto-CAGR → Latest ROE × (1 + CAGR)^t\n• Growth    → Base ROE × (1 + Growth Rate)^t\n• From-EPS  → from Section E2 row 37 (EPS ÷ Opening BV)\n\nThese values flow into the Inputs sheet ROE row (row 32).")
+
+# ── ROE_Engine — Section E1 ───────────────────────────────────
+tip_range(roe_eng, 2, 6, 28, "NET INCOME — total profit after tax for the year.\n\nWhere to find: Income Statement → last line: ‘Profit for the Year’ or ‘Net Profit After Tax’.\n\nEnter in CONSISTENT units across all years (all GHS thousands OR all GHS millions).\nY-5 = oldest year; Y-1 = most recent year.")
+tip_range(roe_eng, 2, 6, 29, "SHAREHOLDERS’ EQUITY — total equity on the balance sheet.\n\nWhere to find: Balance Sheet → ‘Total Equity’ or ‘Total Shareholders’ Funds’.\nUse the OPENING balance (prior year’s closing equity) for accuracy.\n\nEnter in the SAME units as Net Income above.\nY-5 = oldest year; Y-1 = most recent year.")
+tip_range(roe_eng, 2, 6, 30, "COMPUTED HISTORICAL ROE — auto-calculated.\nFormula: = Net Income ÷ Shareholders’ Equity\n\nTo use these values in the model:\n1. Copy them into Section A (row 7)\n2. Set Mode to ‘Auto-Average’ or ‘Auto-CAGR’\n\nDo not edit these cells — they are formula-driven.")
+
+# ── ROE_Engine — Section E2 ───────────────────────────────────
+tip_range(roe_eng, 2, 6, 35, "PROJECTED EPS — Earnings Per Share forecast for each future year.\n\nWhere to find:\n• Analyst research reports / broker forecasts\n• Management EPS guidance\n• Or estimate: Forecast Net Income ÷ Shares Outstanding\n\nEnter on a per-share basis in the same currency as BV₀ (Inputs!B15).\nOnly used when Mode = ‘From-EPS’.")
+tip_range(roe_eng, 2, 6, 36, "OPENING BV PER SHARE — auto-calculated via roll-forward. DO NOT EDIT.\n\nFormula:\nYear 1 = BV₀ from Inputs!B15\nYear t = BV_{t-1} + EPS_{t-1} × (1 − Effective Payout)\n\nThis is the denominator in the ROE = EPS ÷ Opening BV calculation.\nEffective Payout is drawn from Inputs!B19.")
+tip_range(roe_eng, 2, 6, 37, "COMPUTED FORECAST ROE — auto-calculated. DO NOT EDIT.\nFormula: = Projected EPS ÷ Opening BV per Share\n\nWhen Mode = ‘From-EPS’, these values flow automatically into the Active Forecast (row 22) above, which feeds the Inputs sheet and drives the full model.\n\nPositive ROE requires positive EPS and positive Opening BV.")
+
+# ── Forecast sheet — row tips ──────────────────────────────────
+for col_i in range(5):
+    col_ref_base = get_column_letter(col_i + 2)
+    tip(fc, f"{col_ref_base}4",  f"Shows whether Year {col_i+1} is within the chosen forecast horizon.\nFormula: = IF({col_i+1} ≤ Inputs!B5, ‘Yes’, ‘—’)\n‘—’ means this year is beyond the horizon and all its values are blank.")
+    tip(fc, f"{col_ref_base}5",  f"FORECASTED ROE for Year {col_i+1} — pulled from Inputs sheet (linked to ROE_Engine).\nFormula: = IF(active, Inputs!{col_ref_base}32, ‘’)\n\nTo change this ROE, go to ROE_Engine and adjust the Mode or inputs there.")
+    tip(fc, f"{col_ref_base}6",  f"OPENING BOOK VALUE PER SHARE — start of Year {col_i+1}.\n{'Formula: = BV₀ from Inputs!B15 (Year 0 starting point).' if col_i==0 else f'Formula: = Closing BV of Year {col_i} (previous row 10).'}\n\nThis is the equity base on which ROE is applied.")
+    tip(fc, f"{col_ref_base}7",  f"NET INCOME PER SHARE (model equivalent of EPS) for Year {col_i+1}.\nFormula: = Forecasted ROE × Opening BV\n\nRepresents the earnings generated on the opening equity base.")
+    tip(fc, f"{col_ref_base}8",  f"DIVIDEND PER SHARE for Year {col_i+1}.\nFormula: = Net Income per Share × Effective Payout (Inputs!B19)\n\nAffected by Dividend Policy and Irregularity Factor set in the Inputs sheet.")
+    tip(fc, f"{col_ref_base}9",  f"RETAINED EARNINGS PER SHARE for Year {col_i+1}.\nFormula: = Net Income per Share − Dividend per Share\n\nThis amount is added to the Book Value, driving BV growth.")
+    tip(fc, f"{col_ref_base}10", f"CLOSING BOOK VALUE PER SHARE — end of Year {col_i+1}.\nFormula: = Opening BV + Retained Earnings\n\nBecomes the Opening BV for Year {col_i+2} (feeds next year’s row 6).")
+    tip(fc, f"{col_ref_base}11", f"EQUITY CHARGE for Year {col_i+1} — the minimum return required on the opening equity.\nFormula: = Cost of Equity (r) × Opening BV\n\nThis is the ‘hurdle’: if Net Income doesn’t exceed this, Residual Income is negative.")
+    tip(fc, f"{col_ref_base}12", f"RESIDUAL INCOME for Year {col_i+1} — the ‘super-profit’ above the equity hurdle.\nFormula: = Net Income per Share − Equity Charge\n\nPositive RI → value creation (ROE > r).\nNegative RI → value destruction (ROE < r).")
+    tip(fc, f"{col_ref_base}13", f"DISCOUNT FACTOR for Year {col_i+1} — present value of £1 received in Year {col_i+1}.\nFormula: = 1 ÷ (1 + r)^{col_i+1}\n\nA higher Cost of Equity produces a smaller discount factor and lower present values.")
+    tip(fc, f"{col_ref_base}14", f"PRESENT VALUE OF RESIDUAL INCOME for Year {col_i+1}.\nFormula: = Residual Income × Discount Factor\n\nThese are summed across all active years for the PV(RI) component of Intrinsic Value.")
+
+# ── Valuation sheet ───────────────────────────────────────────
+tip(val, "B4",  "Cost of Equity (r) — linked from Inputs!B12.\nCAPM formula: r = Rf + β × (Rm − Rf)\nUsed as both the discount rate and the equity charge rate throughout the model.")
+tip(val, "B5",  "Forecast horizon — number of explicit forecast years (3, 4, or 5).\nLinked from Inputs!B5.\nDetermines how many columns of the Forecast sheet are active.")
+tip(val, "B8",  "BV₀ — Current Book Value per Share (starting point of the valuation).\nLinked from Inputs!B15.\n\nThis is the ‘floor’ value — the minimum IV before any residual income or terminal value is added.\nHigher-quality banks with strong RI add significantly above this floor.")
+tip(val, "B9",  "PV OF RESIDUAL INCOME — sum of discounted residual incomes across the explicit forecast period.\nFormula: = SUM(Forecast!B14:F14)\n\nCaptures the value created during the years the model explicitly forecasts.\nIf all ROEs ≤ r, this sum will be zero or negative.")
+tip(val, "B10", "TERMINAL BOOK VALUE PER SHARE — BV at the END of the final forecast year.\nLinked from Forecast row 10 (last active year).\n\nUsed as the equity base for computing Terminal Residual Income.\nHigher retained earnings (lower payout) → higher Terminal BV → higher Terminal Value.")
+tip(val, "B11", "TERMINAL RESIDUAL INCOME — excess earnings in the first year beyond the forecast horizon.\nFormula: = (Long-Term ROE − r) × Terminal BV\n\nMust be positive (Long-Term ROE > r) for the Terminal Value to contribute positively to IV.")
+tip(val, "B12", "TERMINAL VALUE — present value of all residual income beyond the forecast horizon, assumed to grow at rate g perpetually.\nFormula: = Terminal RI × (1 + g) ÷ (r − g)\n\nThis is usually the largest single component of IV for a growing bank.\nSee Sensitivity sheet for how IV changes with g and LT ROE.")
+tip(val, "B13", "PV OF TERMINAL VALUE — Terminal Value discounted back to today.\nFormula: = Terminal Value ÷ (1 + r)^n  where n = forecast years\n\nLonger forecast horizons discount TV more heavily, reducing its current contribution to IV.")
+tip(val, "B14", "INTRINSIC VALUE PER SHARE\nFormula: = BV₀ + PV(Residual Income) + PV(Terminal Value)\n\nThis is the model’s estimate of the stock’s fair value. Compare to Market Price (B17) to assess whether the stock is under- or over-valued.\n\nSensitivity to inputs: see the Sensitivity sheet for how IV changes across key assumption ranges.")
+tip(val, "B17", "Current market price per share — entered in Inputs!B28.\nUsed only for Market Comparison. Does not affect the Intrinsic Value calculation.")
+tip(val, "B18", "UPSIDE (DOWNSIDE) = Intrinsic Value − Market Price.\nPositive → stock trades below IV (potential upside).\nNegative → stock trades above IV (potential downside).")
+tip(val, "B19", "MARGIN OF SAFETY = (IV − Market Price) ÷ IV\n\nHigher MoS → greater discount to intrinsic value → more buffer against forecast errors.\nA common threshold: >20–25% MoS before considering an investment.")
+tip(val, "B20", "PRICE-TO-BOOK RATIO = Market Price ÷ Book Value per Share.\n\nIndicates how much the market pays for each unit of book equity.\n>1.0 → market expects the bank to earn above its cost of equity.\n<1.0 → market implies ROE below cost of equity.")
+tip(val, "B21", "INTRINSIC VALUE-TO-BOOK RATIO = IV ÷ BV₀.\n\nShows how much of the IV is above book value (driven by excess returns).\nCompare to P/BV: if IV/BV > P/BV, model implies the stock is undervalued.")
+tip(val, "B22", "VALUATION SIGNAL — simple directional indicator.\n• UNDERVALUED → IV > Market Price (model says potential buy)\n• OVERVALUED  → IV < Market Price (model says potential sell/avoid)\n\nAlways use with judgment — the signal is only as good as the input assumptions.")
+
+# Sensitivity sheet header tips
+tip(sens, "B3",  "TABLE A: Intrinsic Value across combinations of Terminal Growth Rate and Long-Term ROE.\n\nRows vary the terminal growth rate (g) around your base assumption.\nColumns vary the Long-Term ROE around your base assumption.\n\nThe highlighted cell (centre) is your base-case IV.")
+tip(sens, "B12", "TABLE B: Intrinsic Value across combinations of Beta and Terminal Growth Rate.\n\nRows vary Beta (β) around your base input, which changes the Cost of Equity.\nColumns vary the terminal growth rate (g) around your base assumption.\n\n‘N/A’ appears where g ≥ r (model undefined) or LT ROE ≤ r (no value creation).")
 
 wb.save(OUT)
 print(f"Saved: {OUT}")
