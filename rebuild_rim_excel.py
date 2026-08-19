@@ -87,8 +87,8 @@ data = [
     (7,  "ROE Forecast Modes","Manual | Auto from History | Growth Rate"),
     (8,  "Dividend Policy",  "No Dividends / Regular / Irregular (with irregularity factor)"),
     (10, "Intrinsic Value",  "=IF(Valuation!B14=0,\"Awaiting inputs\",Valuation!B14)"),
-    (11, "Market Price",     "=IF(Inputs!B29=0,\"Not entered\",Inputs!B29)"),
-    (12, "Margin of Safety", "=IFERROR(IF(Valuation!B14=0,\"—\",(Valuation!B14-Inputs!B29)/Valuation!B14),\"—\")"),
+    (11, "Market Price",     "=IF(Inputs!B28=0,\"Not entered\",Inputs!B28)"),
+    (12, "Margin of Safety", "=IFERROR(IF(Valuation!B14=0,\"—\",(Valuation!B14-Inputs!B28)/Valuation!B14),\"—\")"),
     (13, "Signal",           "=IFERROR(IF(Valuation!B14=0,\"—\",IF(Valuation!B14>Inputs!B29,\"UNDERVALUED\",IF(Valuation!B14<Inputs!B29,\"OVERVALUED\",\"FAIRLY VALUED\"))),\"—\")"),
 ]
 for row, lbl, val in data:
