@@ -38,6 +38,10 @@ logger = logging.getLogger(__name__)
 # --- FLASK APPLICATION INITIALIZATION ---
 app = Flask(__name__)
 
+# Trust Render's reverse-proxy headers so url_for(_external=True) generates https:// URLs
+from werkzeug.middleware.proxy_fix import ProxyFix
+app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
+
 # --- CONFIGURATION SETTINGS ---
 UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), 'static', 'books')
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
