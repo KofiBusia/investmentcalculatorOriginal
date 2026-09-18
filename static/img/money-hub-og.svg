@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1" gradientUnits="objectBoundingBox">
+      <stop offset="0%" stop-color="#0f172a"/>
+      <stop offset="55%" stop-color="#1a3a5c"/>
+      <stop offset="100%" stop-color="#14532d"/>
+    </linearGradient>
+    <linearGradient id="glow" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#4ade80" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#4ade80" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+
+  <!-- Decorative blobs -->
+  <circle cx="1100" cy="80" r="260" fill="#16a34a" opacity="0.07"/>
+  <circle cx="100" cy="560" r="220" fill="#2563eb" opacity="0.07"/>
+  <circle cx="600" cy="0" r="160" fill="#0ea5e9" opacity="0.06"/>
+
+  <!-- Left accent bar -->
+  <rect x="0" y="0" width="6" height="630" fill="#4ade80" opacity="0.7"/>
+
+  <!-- Brand pill -->
+  <rect x="68" y="58" width="140" height="38" rx="19" fill="#ffffff" fill-opacity="0.08"/>
+  <text x="138" y="82" font-family="Arial,Helvetica,sans-serif" font-size="18" font-weight="700" fill="#93c5fd" text-anchor="middle" dominant-baseline="middle">InvestIQ</text>
+
+  <!-- Category label -->
+  <text x="68" y="132" font-family="Arial,Helvetica,sans-serif" font-size="20" font-weight="600" fill="#6ee7b7" letter-spacing="1">FINANCIAL LITERACY  ·  YIN GHANA</text>
+
+  <!-- Main headline -->
+  <text x="68" y="235" font-family="Arial,Helvetica,sans-serif" font-size="90" font-weight="900" fill="#ffffff" letter-spacing="-1">Mastering</text>
+  <text x="68" y="335" font-family="Arial,Helvetica,sans-serif" font-size="90" font-weight="900" fill="#4ade80" letter-spacing="-1">Your Money</text>
+
+  <!-- Divider line -->
+  <rect x="68" y="360" width="80" height="5" rx="3" fill="#4ade80" opacity="0.8"/>
+
+  <!-- Subtitle -->
+  <text x="68" y="415" font-family="Arial,Helvetica,sans-serif" font-size="26" fill="#cbd5e1">Study notes + 50 multiple-choice questions across 8 topics.</text>
+  <text x="68" y="450" font-family="Arial,Helvetica,sans-serif" font-size="26" fill="#94a3b8">No login required. Completely free.</text>
+
+  <!-- Topic pills row -->
+  <rect x="68" y="486" width="136" height="42" rx="21" fill="#16a34a" opacity="0.25"/>
+  <text x="136" y="512" font-family="Arial,Helvetica,sans-serif" font-size="17" fill="#86efac" text-anchor="middle" dominant-baseline="middle">8 Topics</text>
+
+  <rect x="220" y="486" width="172" height="42" rx="21" fill="#2563eb" opacity="0.25"/>
+  <text x="306" y="512" font-family="Arial,Helvetica,sans-serif" font-size="17" fill="#93c5fd" text-anchor="middle" dominant-baseline="middle">50 Questions</text>
+
+  <rect x="408" y="486" width="190" height="42" rx="21" fill="#16a34a" opacity="0.55"/>
+  <text x="503" y="512" font-family="Arial,Helvetica,sans-serif" font-size="17" font-weight="700" fill="#ffffff" text-anchor="middle" dominant-baseline="middle">✓ Completely Free</text>
+
+  <!-- Domain / URL -->
+  <text x="68" y="590" font-family="Arial,Helvetica,sans-serif" font-size="21" fill="#475569">investright.onrender.com/mastering-money</text>
+
+  <!-- Right side: decorative card -->
+  <rect x="860" y="140" width="290" height="360" rx="20" fill="#ffffff" fill-opacity="0.04" stroke="#4ade80" stroke-width="1.5" stroke-opacity="0.25"/>
+
+  <!-- Book icon shapes -->
+  <rect x="915" y="190" width="180" height="220" rx="10" fill="#1e3a5c" stroke="#4ade80" stroke-width="1.5" stroke-opacity="0.4"/>
+  <rect x="915" y="190" width="12" height="220" rx="4" fill="#4ade80" opacity="0.5"/>
+  <rect x="935" y="215" width="130" height="8" rx="4" fill="#ffffff" opacity="0.25"/>
+  <rect x="935" y="235" width="110" height="6" rx="3" fill="#ffffff" opacity="0.15"/>
+  <rect x="935" y="250" width="120" height="6" rx="3" fill="#ffffff" opacity="0.15"/>
+  <rect x="935" y="265" width="90" height="6" rx="3" fill="#ffffff" opacity="0.15"/>
+  <rect x="935" y="290" width="130" height="6" rx="3" fill="#4ade80" opacity="0.3"/>
+  <rect x="935" y="306" width="100" height="6" rx="3" fill="#ffffff" opacity="0.15"/>
+  <rect x="935" y="321" width="115" height="6" rx="3" fill="#ffffff" opacity="0.15"/>
+  <rect x="935" y="336" width="80" height="6" rx="3" fill="#ffffff" opacity="0.15"/>
+  <rect x="935" y="361" width="130" height="6" rx="3" fill="#4ade80" opacity="0.3"/>
+  <rect x="935" y="377" width="105" height="6" rx="3" fill="#ffffff" opacity="0.15"/>
+
+  <!-- Stars / score indicator -->
+  <text x="1005" y="450" font-family="Arial,Helvetica,sans-serif" font-size="28" text-anchor="middle" fill="#fbbf24">★★★★★</text>
+</svg>
