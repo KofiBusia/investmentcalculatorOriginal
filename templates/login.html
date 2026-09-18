@@ -1,74 +1,338 @@
-{% extends "base.html" %}
-{% block title %}Sign In — InvestIQ{% endblock %}
-{% block content %}
-<style>
-  .auth-wrap{min-height:80vh;display:flex;align-items:center;justify-content:center;padding:40px 16px;background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 100%);}
-  .auth-card{background:#fff;border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,.18);width:100%;max-width:420px;padding:40px 36px;}
-  .auth-logo{text-align:center;margin-bottom:28px;}
-  .auth-logo .brand{font-size:1.6rem;font-weight:800;color:#0f172a;letter-spacing:-.5px;}
-  .auth-logo .brand span{color:#2563eb;}
-  .auth-title{font-size:1.5rem;font-weight:700;color:#0f172a;margin-bottom:4px;}
-  .auth-sub{color:#64748b;font-size:.9rem;margin-bottom:24px;}
-  .form-group{margin-bottom:16px;}
-  .form-label{display:block;font-size:.82rem;font-weight:600;color:#475569;margin-bottom:5px;}
-  .form-input{width:100%;padding:11px 14px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:.93rem;outline:none;transition:border .2s,box-shadow .2s;}
-  .form-input:focus{border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.1);}
-  .btn-primary{width:100%;padding:13px;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;border:none;border-radius:10px;font-weight:700;font-size:1rem;cursor:pointer;transition:opacity .2s;}
-  .btn-primary:hover{opacity:.9;}
-  .divider{display:flex;align-items:center;gap:12px;margin:20px 0;color:#94a3b8;font-size:.82rem;}
-  .divider::before,.divider::after{content:'';flex:1;height:1px;background:#e2e8f0;}
-  .btn-google{width:100%;padding:12px;background:#fff;border:1.5px solid #e2e8f0;border-radius:10px;font-weight:600;font-size:.93rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;color:#374151;transition:border-color .2s,box-shadow .2s;text-decoration:none;}
-  .btn-google:hover{border-color:#2563eb;box-shadow:0 2px 8px rgba(37,99,235,.1);}
-  .auth-footer{text-align:center;margin-top:20px;font-size:.88rem;color:#64748b;}
-  .auth-footer a{color:#2563eb;font-weight:600;text-decoration:none;}
-  .error-box{background:#fef2f2;border:1px solid #fecaca;color:#dc2626;padding:10px 14px;border-radius:8px;font-size:.88rem;margin-bottom:16px;}
-  .remember-row{display:flex;justify-content:space-between;align-items:center;font-size:.85rem;color:#64748b;}
-  @media(max-width:500px){.auth-card{padding:28px 20px;}}
-</style>
-<div class="auth-wrap">
-  <div class="auth-card">
-    <div class="auth-logo">
-      <a href="/" class="brand">Invest<span>IQ</span></a>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <title>Sign In — InvestIQ</title>
+  <meta name="robots" content="noindex"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue:    #2563eb;
+      --blue-dk: #1d4ed8;
+      --slate:   #64748b;
+      --border:  #e2e8f0;
+      --bg:      #f8fafc;
+      --radius:  12px;
+    }
+
+    html, body { height: 100%; font-family: 'Inter', sans-serif; }
+
+    .page { display: flex; min-height: 100vh; }
+
+    /* ── Brand panel ─────────────────────────────── */
+    .brand-panel {
+      display: none;
+      width: 44%;
+      flex-shrink: 0;
+      background: linear-gradient(160deg, #0f172a 0%, #1e3a8a 55%, #0f172a 100%);
+      padding: 48px 52px;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+    }
+    @media (min-width: 960px) { .brand-panel { display: flex; } }
+
+    .brand-panel::before {
+      content: '';
+      position: absolute;
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(99,102,241,.35) 0%, transparent 70%);
+      top: -80px; right: -80px;
+      pointer-events: none;
+    }
+    .brand-panel::after {
+      content: '';
+      position: absolute;
+      width: 320px; height: 320px;
+      background: radial-gradient(circle, rgba(16,185,129,.2) 0%, transparent 70%);
+      bottom: 40px; left: -60px;
+      pointer-events: none;
+    }
+
+    .brand-logo {
+      font-size: 1.6rem; font-weight: 800;
+      color: #fff; letter-spacing: -.5px; text-decoration: none;
+    }
+    .brand-logo span { color: #818cf8; }
+
+    .brand-hero { position: relative; z-index: 1; }
+    .brand-hero h2 {
+      font-size: clamp(1.9rem, 2.6vw, 2.6rem);
+      font-weight: 800; color: #fff;
+      line-height: 1.18; margin-bottom: 18px;
+    }
+    .brand-hero h2 em { font-style: normal; color: #818cf8; }
+    .brand-hero p {
+      font-size: .95rem; color: #94a3b8;
+      line-height: 1.7; max-width: 340px;
+    }
+
+    .brand-perks { list-style: none; margin-top: 36px; display: flex; flex-direction: column; gap: 14px; }
+    .brand-perks li {
+      display: flex; align-items: flex-start; gap: 12px;
+      font-size: .88rem; color: #cbd5e1; line-height: 1.5;
+    }
+    .brand-perks li .icon {
+      width: 28px; height: 28px; border-radius: 8px;
+      background: rgba(255,255,255,.08);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; color: #818cf8; font-size: .8rem;
+    }
+
+    .brand-footer { font-size: .78rem; color: #475569; }
+
+    /* ── Form panel ─────────────────────────────── */
+    .form-panel {
+      flex: 1;
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 40px 20px;
+      padding-bottom: calc(40px + env(safe-area-inset-bottom));
+      min-height: 100vh;
+    }
+
+    .form-box {
+      width: 100%; max-width: 400px;
+      animation: fadeUp .35s ease both;
+    }
+
+    .mobile-logo {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 1.35rem; font-weight: 800;
+      color: #0f172a; text-decoration: none;
+      margin-bottom: 32px;
+    }
+    .mobile-logo span { color: #2563eb; }
+    .mobile-logo .icon-wrap {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg,#2563eb,#7c3aed);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: .9rem;
+    }
+    @media (min-width: 960px) { .mobile-logo { display: none; } }
+
+    .form-heading { font-size: 1.55rem; font-weight: 800; color: #0f172a; margin-bottom: 4px; }
+    .form-sub     { font-size: .9rem; color: var(--slate); margin-bottom: 28px; }
+
+    /* ── Google button ──────────────────────────── */
+    .btn-google {
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      width: 100%; padding: 13px 16px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      background: #fff;
+      font-size: .95rem; font-weight: 600; color: #374151;
+      text-decoration: none;
+      transition: border-color .2s, box-shadow .2s, background .2s;
+    }
+    .btn-google:hover {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(37,99,235,.08);
+      background: #f8faff;
+    }
+    .btn-google img { width: 20px; height: 20px; flex-shrink: 0; }
+
+    .divider {
+      display: flex; align-items: center; gap: 12px;
+      margin: 22px 0; font-size: .8rem; color: #94a3b8;
+    }
+    .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+    /* ── Alert boxes ────────────────────────────── */
+    .alert {
+      display: flex; align-items: flex-start; gap: 10px;
+      padding: 11px 14px; border-radius: 10px;
+      font-size: .875rem; margin-bottom: 18px;
+    }
+    .alert i { flex-shrink: 0; margin-top: 1px; }
+    .alert-error   { background: #fef2f2; border: 1px solid #fecaca; color: #dc2626; }
+    .alert-warning { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; }
+
+    /* ── Fields ─────────────────────────────────── */
+    .field { margin-bottom: 14px; }
+    .field label { display: block; font-size: .8rem; font-weight: 600; color: #475569; margin-bottom: 5px; }
+    .field-wrap { position: relative; }
+    .field input {
+      width: 100%; padding: 12px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 1rem; color: #0f172a;
+      background: #fff; outline: none;
+      transition: border .2s, box-shadow .2s;
+      -webkit-appearance: none;
+    }
+    .field input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(37,99,235,.1); }
+    .field input.has-toggle { padding-right: 44px; }
+
+    .toggle-pw {
+      position: absolute; right: 13px; top: 50%;
+      transform: translateY(-50%);
+      background: none; border: none;
+      color: #94a3b8; cursor: pointer; padding: 4px;
+      display: flex; align-items: center; font-size: .95rem;
+    }
+    .toggle-pw:hover { color: var(--slate); }
+
+    /* remember / forgot row */
+    .meta-row {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 18px; font-size: .84rem;
+    }
+    .meta-row label { display: flex; align-items: center; gap: 6px; cursor: pointer; color: var(--slate); }
+    .meta-row a { color: var(--blue); font-weight: 600; text-decoration: none; }
+    .meta-row a:hover { text-decoration: underline; }
+
+    .btn-submit {
+      width: 100%; padding: 14px;
+      background: linear-gradient(135deg, var(--blue), var(--blue-dk));
+      color: #fff; border: none; border-radius: var(--radius);
+      font-size: 1rem; font-weight: 700; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+      box-shadow: 0 4px 14px rgba(37,99,235,.3);
+      transition: opacity .2s, transform .15s, box-shadow .2s;
+    }
+    .btn-submit:hover { opacity: .93; box-shadow: 0 6px 20px rgba(37,99,235,.38); }
+    .btn-submit:active { transform: scale(.98); }
+
+    .form-footer-link {
+      text-align: center; margin-top: 22px;
+      font-size: .875rem; color: var(--slate);
+    }
+    .form-footer-link a { color: var(--blue); font-weight: 600; text-decoration: none; }
+    .form-footer-link a:hover { text-decoration: underline; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ── Brand panel ─────────────────────────────── -->
+  <div class="brand-panel">
+    <a href="/" class="brand-logo">Invest<span>IQ</span></a>
+
+    <div class="brand-hero">
+      <h2>Welcome back to<br/>your <em>financial</em><br/>command centre.</h2>
+      <p>Professional tools for every investment decision — DCF models, bond analysis, capital markets data, and financial literacy courses.</p>
+
+      <ul class="brand-perks">
+        <li>
+          <div class="icon"><i class="fas fa-calculator"></i></div>
+          <div><strong>20+ calculators</strong><br/>DCF, FCFE, FCFF, WACC, Beta, credit risk, bond risk.</div>
+        </li>
+        <li>
+          <div class="icon"><i class="fas fa-book-open"></i></div>
+          <div><strong>Mastering Your Money</strong><br/>50-question financial literacy quiz with study notes.</div>
+        </li>
+        <li>
+          <div class="icon"><i class="fas fa-landmark"></i></div>
+          <div><strong>Ghana Capital Markets</strong><br/>GSE data, NSS jobs, employer connections.</div>
+        </li>
+      </ul>
     </div>
-    <h1 class="auth-title">Welcome back</h1>
-    <p class="auth-sub">Sign in to your InvestIQ account.</p>
 
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% for category, message in messages %}
-      <div class="error-box" style="{% if category == 'warning' %}background:#fffbeb;border-color:#fcd34d;color:#92400e;{% endif %}"><i class="fas fa-exclamation-circle mr-1"></i> {{ message }}</div>
-      {% endfor %}
-    {% endwith %}
-    {% if error %}
-    <div class="error-box"><i class="fas fa-exclamation-circle mr-1"></i> {{ error }}</div>
-    {% endif %}
+    <div class="brand-footer">© 2026 InvestIQ · Crestline Technologies LTD</div>
+  </div>
 
-    <form method="POST" novalidate>
-      <div class="form-group">
-        <label class="form-label">Email Address</label>
-        <input type="email" name="email" required class="form-input" placeholder="you@gmail.com" autofocus/>
+  <!-- ── Form panel ──────────────────────────────── -->
+  <div class="form-panel">
+    <div class="form-box">
+
+      <a href="/" class="mobile-logo">
+        <div class="icon-wrap"><i class="fas fa-chart-line"></i></div>
+        Invest<span>IQ</span>
+      </a>
+
+      <h1 class="form-heading">Welcome back</h1>
+      <p class="form-sub">Sign in to your InvestIQ account.</p>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+        <div class="alert {% if category == 'warning' %}alert-warning{% else %}alert-error{% endif %}">
+          <i class="fas fa-exclamation-circle"></i>
+          <span>{{ message }}</span>
+        </div>
+        {% endfor %}
+      {% endwith %}
+      {% if error %}
+      <div class="alert alert-error">
+        <i class="fas fa-exclamation-circle"></i>
+        <span>{{ error }}</span>
       </div>
-      <div class="form-group">
-        <label class="form-label">Password</label>
-        <input type="password" name="password" required class="form-input" placeholder="Your password"/>
-      </div>
-      <div class="remember-row" style="margin-bottom:18px;">
-        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;">
-          <input type="checkbox" name="remember"/> Remember me
-        </label>
-        <a href="/forgot-password" style="color:#2563eb;font-size:.85rem;font-weight:600;text-decoration:none;">Forgot password?</a>
-      </div>
-      <button type="submit" class="btn-primary"><i class="fas fa-sign-in-alt mr-2"></i>Sign In</button>
-    </form>
+      {% endif %}
 
-    <div class="divider">or continue with</div>
-    <a href="/auth/google{% if request.args.get('next') %}?next={{ request.args.get('next')|urlencode }}{% endif %}" class="btn-google">
-      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20" height="20" alt="Google"/>
-      Continue with Google
-    </a>
+      <!-- Google (primary) -->
+      <a href="/auth/google{% if request.args.get('next') %}?next={{ request.args.get('next')|urlencode }}{% endif %}" class="btn-google">
+        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google"/>
+        Continue with Google
+      </a>
 
-    <div class="auth-footer">
-      Don't have an account? <a href="/signup">Sign up free</a>
+      <div class="divider">or sign in with email</div>
+
+      <form method="POST" novalidate>
+
+        <div class="field">
+          <label for="email">Email Address</label>
+          <input type="email" id="email" name="email" required
+                 autocomplete="email" placeholder="you@gmail.com" autofocus/>
+        </div>
+
+        <div class="field">
+          <label for="password">Password</label>
+          <div class="field-wrap">
+            <input type="password" id="password" name="password" required
+                   autocomplete="current-password" placeholder="Your password"
+                   class="has-toggle"/>
+            <button type="button" class="toggle-pw" onclick="togglePw('password', this)" aria-label="Show password">
+              <i class="fas fa-eye"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="meta-row">
+          <label>
+            <input type="checkbox" name="remember"/> Remember me
+          </label>
+          <a href="/forgot-password">Forgot password?</a>
+        </div>
+
+        <button type="submit" class="btn-submit">
+          <i class="fas fa-sign-in-alt"></i> Sign In
+        </button>
+      </form>
+
+      <div class="form-footer-link">
+        No account? <a href="/signup">Sign up free</a>
+      </div>
+
     </div>
   </div>
 </div>
-{% endblock %}
+
+<script>
+function togglePw(id, btn) {
+  const inp  = document.getElementById(id);
+  const icon = btn.querySelector('i');
+  if (inp.type === 'password') {
+    inp.type = 'text';
+    icon.className = 'fas fa-eye-slash';
+  } else {
+    inp.type = 'password';
+    icon.className = 'fas fa-eye';
+  }
+}
+</script>
+</body>
+</html>

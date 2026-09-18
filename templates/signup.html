@@ -1,79 +1,439 @@
-{% extends "base.html" %}
-{% block title %}Sign Up — InvestIQ{% endblock %}
-{% block content %}
-<style>
-  .auth-wrap{min-height:80vh;display:flex;align-items:center;justify-content:center;padding:40px 16px;background:linear-gradient(135deg,#0f172a 0%,#1e3a5f 100%);}
-  .auth-card{background:#fff;border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,.18);width:100%;max-width:460px;padding:40px 36px;}
-  .auth-logo{text-align:center;margin-bottom:28px;}
-  .auth-logo .brand{font-size:1.6rem;font-weight:800;color:#0f172a;letter-spacing:-.5px;}
-  .auth-logo .brand span{color:#2563eb;}
-  .auth-title{font-size:1.5rem;font-weight:700;color:#0f172a;margin-bottom:4px;}
-  .auth-sub{color:#64748b;font-size:.9rem;margin-bottom:24px;}
-  .form-group{margin-bottom:16px;}
-  .form-label{display:block;font-size:.82rem;font-weight:600;color:#475569;margin-bottom:5px;}
-  .form-input{width:100%;padding:11px 14px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:.93rem;outline:none;transition:border .2s,box-shadow .2s;}
-  .form-input:focus{border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.1);}
-  .btn-primary{width:100%;padding:13px;background:linear-gradient(135deg,#2563eb,#1d4ed8);color:#fff;border:none;border-radius:10px;font-weight:700;font-size:1rem;cursor:pointer;transition:opacity .2s;}
-  .btn-primary:hover{opacity:.9;}
-  .divider{display:flex;align-items:center;gap:12px;margin:20px 0;color:#94a3b8;font-size:.82rem;}
-  .divider::before,.divider::after{content:'';flex:1;height:1px;background:#e2e8f0;}
-  .btn-google{width:100%;padding:12px;background:#fff;border:1.5px solid #e2e8f0;border-radius:10px;font-weight:600;font-size:.93rem;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;color:#374151;transition:border-color .2s,box-shadow .2s;}
-  .btn-google:hover{border-color:#2563eb;box-shadow:0 2px 8px rgba(37,99,235,.1);}
-  .auth-footer{text-align:center;margin-top:20px;font-size:.88rem;color:#64748b;}
-  .auth-footer a{color:#2563eb;font-weight:600;text-decoration:none;}
-  .error-box{background:#fef2f2;border:1px solid #fecaca;color:#dc2626;padding:10px 14px;border-radius:8px;font-size:.88rem;margin-bottom:16px;}
-  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
-  @media(max-width:500px){.grid-2{grid-template-columns:1fr;}.auth-card{padding:28px 20px;}}
-</style>
-<div class="auth-wrap">
-  <div class="auth-card">
-    <div class="auth-logo">
-      <a href="/" class="brand">Invest<span>IQ</span></a>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+  <title>Sign Up — InvestIQ</title>
+  <meta name="robots" content="noindex"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue:    #2563eb;
+      --blue-dk: #1d4ed8;
+      --green:   #10b981;
+      --slate:   #64748b;
+      --border:  #e2e8f0;
+      --bg:      #f8fafc;
+      --radius:  12px;
+    }
+
+    html, body { height: 100%; font-family: 'Inter', sans-serif; }
+
+    /* ── Layout ─────────────────────────────────── */
+    .page { display: flex; min-height: 100vh; }
+
+    /* ── Brand panel (left, desktop only) ──────── */
+    .brand-panel {
+      display: none;
+      width: 44%;
+      flex-shrink: 0;
+      background: linear-gradient(160deg, #0f172a 0%, #1e3a8a 55%, #0f172a 100%);
+      padding: 48px 52px;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
+    }
+    @media (min-width: 960px) { .brand-panel { display: flex; } }
+
+    /* decorative blobs */
+    .brand-panel::before {
+      content: '';
+      position: absolute;
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(99,102,241,.35) 0%, transparent 70%);
+      top: -80px; right: -80px;
+      pointer-events: none;
+    }
+    .brand-panel::after {
+      content: '';
+      position: absolute;
+      width: 320px; height: 320px;
+      background: radial-gradient(circle, rgba(16,185,129,.2) 0%, transparent 70%);
+      bottom: 40px; left: -60px;
+      pointer-events: none;
+    }
+
+    .brand-logo {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: -.5px;
+      text-decoration: none;
+    }
+    .brand-logo span { color: #818cf8; }
+
+    .brand-hero { position: relative; z-index: 1; }
+    .brand-hero h2 {
+      font-size: clamp(1.9rem, 2.6vw, 2.6rem);
+      font-weight: 800;
+      color: #fff;
+      line-height: 1.18;
+      margin-bottom: 18px;
+    }
+    .brand-hero h2 em { font-style: normal; color: #818cf8; }
+    .brand-hero p {
+      font-size: .95rem;
+      color: #94a3b8;
+      line-height: 1.7;
+      max-width: 340px;
+    }
+
+    .brand-perks { list-style: none; margin-top: 36px; display: flex; flex-direction: column; gap: 14px; }
+    .brand-perks li {
+      display: flex; align-items: flex-start; gap: 12px;
+      font-size: .88rem; color: #cbd5e1; line-height: 1.5;
+    }
+    .brand-perks li .icon {
+      width: 28px; height: 28px; border-radius: 8px;
+      background: rgba(255,255,255,.08);
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0; color: #818cf8; font-size: .8rem;
+    }
+
+    .brand-footer { font-size: .78rem; color: #475569; }
+
+    /* ── Form panel (right) ─────────────────────── */
+    .form-panel {
+      flex: 1;
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 40px 20px;
+      padding-bottom: calc(40px + env(safe-area-inset-bottom));
+      min-height: 100vh;
+    }
+
+    .form-box {
+      width: 100%;
+      max-width: 420px;
+    }
+
+    /* mobile-only logo */
+    .mobile-logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: #0f172a;
+      text-decoration: none;
+      margin-bottom: 32px;
+    }
+    .mobile-logo span { color: #2563eb; }
+    .mobile-logo .icon-wrap {
+      width: 36px; height: 36px;
+      background: linear-gradient(135deg,#2563eb,#7c3aed);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: .9rem;
+    }
+    @media (min-width: 960px) { .mobile-logo { display: none; } }
+
+    .form-heading {
+      font-size: 1.55rem;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 4px;
+    }
+    .form-sub {
+      font-size: .9rem;
+      color: var(--slate);
+      margin-bottom: 28px;
+    }
+
+    /* ── Google button ───────────────────────────── */
+    .btn-google {
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      width: 100%; padding: 13px 16px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      background: #fff;
+      font-size: .95rem; font-weight: 600; color: #374151;
+      text-decoration: none;
+      transition: border-color .2s, box-shadow .2s, background .2s;
+      cursor: pointer;
+    }
+    .btn-google:hover {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(37,99,235,.08);
+      background: #f8faff;
+    }
+    .btn-google img { width: 20px; height: 20px; flex-shrink: 0; }
+
+    /* ── Divider ─────────────────────────────────── */
+    .divider {
+      display: flex; align-items: center; gap: 12px;
+      margin: 22px 0;
+      font-size: .8rem; color: #94a3b8;
+    }
+    .divider::before, .divider::after {
+      content: ''; flex: 1; height: 1px; background: var(--border);
+    }
+
+    /* ── Error box ───────────────────────────────── */
+    .error-box {
+      display: flex; align-items: flex-start; gap: 10px;
+      background: #fef2f2; border: 1px solid #fecaca;
+      color: #dc2626;
+      padding: 11px 14px; border-radius: 10px;
+      font-size: .875rem; margin-bottom: 20px;
+    }
+    .error-box i { flex-shrink: 0; margin-top: 1px; }
+
+    /* ── Form fields ─────────────────────────────── */
+    .field { margin-bottom: 14px; }
+    .field label {
+      display: block;
+      font-size: .8rem; font-weight: 600; color: #475569;
+      margin-bottom: 5px;
+    }
+    .field-wrap { position: relative; }
+    .field input {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      font-size: 1rem;
+      color: #0f172a;
+      background: #fff;
+      outline: none;
+      transition: border .2s, box-shadow .2s;
+      -webkit-appearance: none;
+    }
+    .field input:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(37,99,235,.1);
+    }
+    .field input.has-toggle { padding-right: 44px; }
+    .toggle-pw {
+      position: absolute; right: 13px; top: 50%;
+      transform: translateY(-50%);
+      background: none; border: none;
+      color: #94a3b8; cursor: pointer; padding: 4px;
+      display: flex; align-items: center;
+      font-size: .95rem;
+    }
+    .toggle-pw:hover { color: var(--slate); }
+
+    /* password strength bar */
+    .pw-strength { margin-top: 6px; display: none; }
+    .pw-strength-bar {
+      height: 4px; border-radius: 4px;
+      background: var(--border); overflow: hidden;
+    }
+    .pw-strength-fill {
+      height: 100%; width: 0%; border-radius: 4px;
+      transition: width .3s, background .3s;
+    }
+    .pw-strength-label {
+      font-size: .72rem; color: var(--slate); margin-top: 4px;
+    }
+
+    /* ── Submit button ───────────────────────────── */
+    .btn-submit {
+      width: 100%; padding: 14px;
+      background: linear-gradient(135deg, var(--blue), var(--blue-dk));
+      color: #fff; border: none; border-radius: var(--radius);
+      font-size: 1rem; font-weight: 700; cursor: pointer;
+      margin-top: 6px;
+      transition: opacity .2s, transform .15s, box-shadow .2s;
+      box-shadow: 0 4px 14px rgba(37,99,235,.3);
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .btn-submit:hover { opacity: .93; box-shadow: 0 6px 20px rgba(37,99,235,.38); }
+    .btn-submit:active { transform: scale(.98); }
+
+    /* ── Footer link ─────────────────────────────── */
+    .form-footer-link {
+      text-align: center; margin-top: 22px;
+      font-size: .875rem; color: var(--slate);
+    }
+    .form-footer-link a {
+      color: var(--blue); font-weight: 600; text-decoration: none;
+    }
+    .form-footer-link a:hover { text-decoration: underline; }
+
+    /* ── Terms note ──────────────────────────────── */
+    .terms-note {
+      text-align: center; margin-top: 16px;
+      font-size: .75rem; color: #94a3b8; line-height: 1.5;
+    }
+    .terms-note a { color: #64748b; text-decoration: underline; }
+
+    /* ── Animations ──────────────────────────────── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .form-box { animation: fadeUp .35s ease both; }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <!-- ── Brand panel ─────────────────────────────── -->
+  <div class="brand-panel">
+    <a href="/" class="brand-logo">Invest<span>IQ</span></a>
+
+    <div class="brand-hero">
+      <h2>Your edge in<br/><em>every</em> investment<br/>decision.</h2>
+      <p>Professional-grade financial tools built for Ghana and global markets. DCF, WACC, credit risk, bond analysis and more — completely free.</p>
+
+      <ul class="brand-perks">
+        <li>
+          <div class="icon"><i class="fas fa-calculator"></i></div>
+          <div><strong>20+ calculators</strong><br/>DCF, FCFE, FCFF, WACC, Beta, credit risk, bond risk and more.</div>
+        </li>
+        <li>
+          <div class="icon"><i class="fas fa-book-open"></i></div>
+          <div><strong>Financial literacy courses</strong><br/>Mastering Your Money — 50-question quiz with study notes.</div>
+        </li>
+        <li>
+          <div class="icon"><i class="fas fa-landmark"></i></div>
+          <div><strong>Ghana Capital Markets hub</strong><br/>GSE data, NSS jobs, employer connections.</div>
+        </li>
+      </ul>
     </div>
-    <h1 class="auth-title">Create your account</h1>
-    <p class="auth-sub">Join thousands of investors using InvestIQ.</p>
 
-    {% if error %}
-    <div class="error-box"><i class="fas fa-exclamation-circle mr-1"></i> {{ error }}</div>
-    {% endif %}
+    <div class="brand-footer">© 2026 InvestIQ · Crestline Technologies LTD</div>
+  </div>
 
-    <form method="POST" novalidate>
-      <div class="grid-2">
-        <div class="form-group">
-          <label class="form-label">Full Name *</label>
-          <input type="text" name="full_name" required class="form-input" placeholder="Kofi Mensah"/>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Phone</label>
-          <input type="tel" name="phone" class="form-input" placeholder="+233 24 000 0000"/>
-        </div>
+  <!-- ── Form panel ──────────────────────────────── -->
+  <div class="form-panel">
+    <div class="form-box">
+
+      <!-- Mobile logo -->
+      <a href="/" class="mobile-logo">
+        <div class="icon-wrap"><i class="fas fa-chart-line"></i></div>
+        Invest<span>IQ</span>
+      </a>
+
+      <h1 class="form-heading">Create your account</h1>
+      <p class="form-sub">Join thousands of investors — free forever.</p>
+
+      {% if error %}
+      <div class="error-box">
+        <i class="fas fa-exclamation-circle"></i>
+        <span>{{ error }}</span>
       </div>
-      <div class="form-group">
-        <label class="form-label">Email Address *</label>
-        <input type="email" name="email" required class="form-input" placeholder="you@gmail.com"/>
-      </div>
-      <div class="grid-2">
-        <div class="form-group">
-          <label class="form-label">Password *</label>
-          <input type="password" name="password" required class="form-input" placeholder="Min 8 characters"/>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Confirm Password *</label>
-          <input type="password" name="confirm_password" required class="form-input" placeholder="Repeat password"/>
-        </div>
-      </div>
-      <button type="submit" class="btn-primary"><i class="fas fa-user-plus mr-2"></i>Create Account</button>
-    </form>
+      {% endif %}
 
-    <div class="divider">or sign up with</div>
-    <a href="/auth/google{% if request.args.get('next') %}?next={{ request.args.get('next')|urlencode }}{% endif %}" class="btn-google" style="text-decoration:none;">
-      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" width="20" height="20" alt="Google"/>
-      Continue with Google
-    </a>
+      <!-- Google sign-up (primary) -->
+      <a href="/auth/google{% if request.args.get('next') %}?next={{ request.args.get('next')|urlencode }}{% endif %}" class="btn-google">
+        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google"/>
+        Continue with Google
+      </a>
 
-    <div class="auth-footer">
-      Already have an account? <a href="/login">Sign in</a>
+      <div class="divider">or sign up with email</div>
+
+      <!-- Email form -->
+      <form method="POST" novalidate id="signup-form">
+
+        <div class="field">
+          <label for="full_name">Full Name <span style="color:#dc2626">*</span></label>
+          <input type="text" id="full_name" name="full_name" required
+                 autocomplete="name" placeholder="Kofi Mensah"/>
+        </div>
+
+        <div class="field">
+          <label for="email">Email Address <span style="color:#dc2626">*</span></label>
+          <input type="email" id="email" name="email" required
+                 autocomplete="email" placeholder="you@gmail.com"/>
+        </div>
+
+        <div class="field">
+          <label for="password">Password <span style="color:#dc2626">*</span></label>
+          <div class="field-wrap">
+            <input type="password" id="password" name="password" required
+                   autocomplete="new-password" placeholder="Min 8 characters"
+                   class="has-toggle" oninput="checkStrength(this.value)"/>
+            <button type="button" class="toggle-pw" onclick="togglePw('password', this)" aria-label="Show password">
+              <i class="fas fa-eye"></i>
+            </button>
+          </div>
+          <div class="pw-strength" id="pw-strength">
+            <div class="pw-strength-bar"><div class="pw-strength-fill" id="pw-fill"></div></div>
+            <div class="pw-strength-label" id="pw-label"></div>
+          </div>
+        </div>
+
+        <div class="field">
+          <label for="confirm_password">Confirm Password <span style="color:#dc2626">*</span></label>
+          <div class="field-wrap">
+            <input type="password" id="confirm_password" name="confirm_password" required
+                   autocomplete="new-password" placeholder="Repeat password"
+                   class="has-toggle"/>
+            <button type="button" class="toggle-pw" onclick="togglePw('confirm_password', this)" aria-label="Show password">
+              <i class="fas fa-eye"></i>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn-submit">
+          <i class="fas fa-user-plus"></i> Create Free Account
+        </button>
+      </form>
+
+      <div class="form-footer-link">
+        Already have an account? <a href="/login">Sign in</a>
+      </div>
+
+      <p class="terms-note">
+        By signing up you agree to our
+        <a href="/terms" target="_blank">Terms of Service</a> and
+        <a href="/privacy-policy" target="_blank">Privacy Policy</a>.
+      </p>
+
     </div>
   </div>
 </div>
-{% endblock %}
+
+<script>
+function togglePw(id, btn) {
+  const inp = document.getElementById(id);
+  const icon = btn.querySelector('i');
+  if (inp.type === 'password') {
+    inp.type = 'text';
+    icon.className = 'fas fa-eye-slash';
+  } else {
+    inp.type = 'password';
+    icon.className = 'fas fa-eye';
+  }
+}
+
+function checkStrength(val) {
+  const wrap = document.getElementById('pw-strength');
+  const fill  = document.getElementById('pw-fill');
+  const label = document.getElementById('pw-label');
+  if (!val) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
+
+  let score = 0;
+  if (val.length >= 8)  score++;
+  if (val.length >= 12) score++;
+  if (/[A-Z]/.test(val)) score++;
+  if (/[0-9]/.test(val)) score++;
+  if (/[^A-Za-z0-9]/.test(val)) score++;
+
+  const levels = [
+    { pct: '20%', color: '#ef4444', text: 'Weak' },
+    { pct: '40%', color: '#f59e0b', text: 'Fair' },
+    { pct: '60%', color: '#eab308', text: 'Good' },
+    { pct: '80%', color: '#22c55e', text: 'Strong' },
+    { pct: '100%', color: '#10b981', text: 'Very strong' },
+  ];
+  const lvl = levels[Math.min(score - 1, 4)] || levels[0];
+  fill.style.width    = lvl.pct;
+  fill.style.background = lvl.color;
+  label.textContent  = lvl.text;
+  label.style.color  = lvl.color;
+}
+</script>
+</body>
+</html>
