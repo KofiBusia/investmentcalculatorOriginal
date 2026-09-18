@@ -1125,7 +1125,10 @@ def user_signup():
                 f'<h2>Welcome, {full_name}!</h2><p>Your InvestIQ account is now active. '
                 f'Explore our <a href="https://investiq.com">financial calculators</a> and professional tools.</p>'
             )
-            return redirect(url_for('index'))
+            next_url = request.args.get('next', '')
+            if not next_url or not next_url.startswith('/'):
+                next_url = url_for('index')
+            return redirect(next_url)
     return render_template('signup.html', error=error)
 
 

@@ -918,19 +918,28 @@ document.addEventListener('DOMContentLoaded', function() {
   try { raw = sessionStorage.getItem('money_quiz_pending'); } catch(e) {}
   if (!raw) return;
   try { sessionStorage.removeItem('money_quiz_pending'); } catch(e) {}
+
   const { answers, score, total } = JSON.parse(raw);
-  // Restore answers
   userAnswers = {};
   Object.entries(answers).forEach(([k, v]) => { userAnswers[parseInt(k)] = v; });
-  // Switch to quiz, start, then reveal
+
+  // Switch to quiz tab silently and render questions
   switchTab('quiz', null, 1);
   startQuiz();
-  // Apply selected states visually
+
+  // Apply selected states
   Object.entries(userAnswers).forEach(([idx, l]) => {
     const el = document.getElementById(`opt-${parseInt(idx)}-${l}`);
     if (el) el.classList.add('selected');
   });
-  setTimeout(() => { revealResults(score); }, 400);
+
+  // Reveal results, then hide loading overlay
+  setTimeout(() => {
+    revealResults(score);
+    const overlay = document.getElementById('results-loading');
+    overlay.style.opacity = '0';
+    setTimeout(() => { overlay.style.display = 'none'; }, 400);
+  }, 500);
 });
 
 /* ── Restart ── */
@@ -950,7 +959,44 @@ function restartQuiz() {
 if (window.innerWidth >= 768) {
   document.querySelectorAll('[data-section]').forEach(s => s.classList.add('open'));
 }
+
+/* ── Show results-loading overlay if pending answers exist on page load ── */
+(function() {
+  if (!IS_LOGGED_IN) return;
+  let raw;
+  try { raw = sessionStorage.getItem('money_quiz_pending'); } catch(e) {}
+  if (raw) {
+    // Show the loading overlay immediately — don't wait for DOMContentLoaded
+    document.getElementById('results-loading').style.display = 'flex';
+  }
+})();
 </script>
+
+<!-- ═══════ RESULTS LOADING OVERLAY ═══════ -->
+<style>
+#results-loading {
+  display: none;
+  position: fixed; inset: 0; z-index: 9998;
+  background: linear-gradient(135deg, #0f172a 0%, #1a3a5c 50%, #14532d 100%);
+  flex-direction: column; align-items: center; justify-content: center;
+  gap: 20px; transition: opacity .4s ease;
+}
+.rl-spinner {
+  width: 52px; height: 52px;
+  border: 4px solid rgba(255,255,255,.15);
+  border-top-color: #4ade80;
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.rl-text { color: #fff; font-size: 1.1rem; font-weight: 700; }
+.rl-sub  { color: #94a3b8; font-size: .85rem; }
+</style>
+<div id="results-loading">
+  <div class="rl-spinner"></div>
+  <div class="rl-text">Calculating your results…</div>
+  <div class="rl-sub">Welcome to InvestIQ 🎉</div>
+</div>
 
 <!-- ═══════ AUTH GATE MODAL ═══════ -->
 <style>
