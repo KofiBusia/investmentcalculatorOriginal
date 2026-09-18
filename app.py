@@ -6179,12 +6179,13 @@ def yiap_notes():
 
 
 @app.route('/mastering-money')
-@login_required
 def mastering_money():
-    best = (MoneyQuizAttempt.query
-            .filter_by(user_id=current_user.id)
-            .order_by(MoneyQuizAttempt.score.desc())
-            .first())
+    best = None
+    if current_user.is_authenticated:
+        best = (MoneyQuizAttempt.query
+                .filter_by(user_id=current_user.id)
+                .order_by(MoneyQuizAttempt.score.desc())
+                .first())
     return render_template('money_hub.html', best_attempt=best)
 
 
