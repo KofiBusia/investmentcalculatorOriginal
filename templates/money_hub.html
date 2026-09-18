@@ -293,8 +293,10 @@ body {
     <div class="flex items-center gap-3 text-sm">
       <a href="/jobs"          class="text-blue-300 hover:text-white transition-colors hidden sm:block">Jobs</a>
       <a href="/yiap-practice" class="text-green-300 hover:text-white transition-colors hidden sm:block">YIAP</a>
-      <a href="/jobs" class="bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors sm:hidden">
-        <i class="fas fa-arrow-left mr-1"></i>Back
+      <span class="text-white/50 text-xs hidden sm:block">|</span>
+      <span class="text-white/70 text-xs hidden sm:block">{{ current_user.full_name }}</span>
+      <a href="/logout" class="bg-white/10 hover:bg-white/20 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors">
+        <i class="fas fa-sign-out-alt mr-1"></i>Logout
       </a>
     </div>
   </div>
@@ -320,9 +322,11 @@ body {
       <span class="bg-white/10 px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-semibold">
         <i class="fas fa-question-circle mr-1.5 text-blue-300"></i>50 Questions
       </span>
-      <span class="bg-green-800/50 border border-green-400/40 px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-semibold text-green-200">
-        <i class="fas fa-unlock mr-1.5"></i>100% Free
+      {% if best_attempt %}
+      <span class="bg-yellow-800/50 border border-yellow-400/40 px-3.5 py-1.5 rounded-full text-xs sm:text-sm font-semibold text-yellow-200">
+        <i class="fas fa-star mr-1.5"></i>Your Best: {{ best_attempt.score_pct }}%
       </span>
+      {% endif %}
     </div>
   </div>
 </header>
@@ -797,9 +801,27 @@ function updateProgress() {
 }
 
 /* ── Submit ── */
-function submitQuiz() {
+async function submitQuiz() {
   const n = Object.keys(userAnswers).length;
-  if (n < QUESTIONS.length && !confirm(`${QUESTIONS.length - n} question${QUESTIONS.length-n===1?'':'s'} unanswered. Submit anyway?`)) return;
+  if (n < QUESTIONS.length) {
+    // Find first unanswered question and scroll to it
+    for (let i = 0; i < QUESTIONS.length; i++) {
+      if (userAnswers[i] === undefined) {
+        const card = document.getElementById('qcard-' + i);
+        if (card) {
+          card.scrollIntoView({behavior: 'smooth', block: 'center'});
+          // Briefly highlight the card
+          card.style.outline = '3px solid #f59e0b';
+          card.style.outlineOffset = '3px';
+          setTimeout(() => { card.style.outline = ''; card.style.outlineOffset = ''; }, 1800);
+        }
+        // Update float progress to draw attention
+        document.getElementById('float-progress').textContent = `${n}/50 — Q${i+1} unanswered`;
+        setTimeout(() => updateProgress(), 2000);
+        return;
+      }
+    }
+  }
   quizSubmitted = true;
   document.getElementById('submit-area').style.display    = 'none';
   document.getElementById('float-progress').style.display = 'none';
@@ -812,7 +834,7 @@ function submitQuiz() {
       const el = document.getElementById(`opt-${idx}-${l}`);
       el.classList.remove('selected');
       el.style.cursor = 'default';
-      if (l === q.ans)     el.classList.add(chosen === l ? 'correct' : 'reveal-correct');
+      if (l === q.ans)       el.classList.add(chosen === l ? 'correct' : 'reveal-correct');
       else if (l === chosen) el.classList.add('wrong');
     });
     document.getElementById(`exp-${idx}`).classList.add('show');
@@ -821,13 +843,18 @@ function submitQuiz() {
   const pct = Math.round((correct / QUESTIONS.length) * 100);
   const msg = pct >= 80 ? 'Outstanding! Keep it up.' : pct >= 60 ? 'Well done! A little more study will get you there.' : 'Keep studying — review the notes and try again.';
 
+  // Save to server (fire-and-forget; don't block the UI)
+  fetch('/mastering-money/submit', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({answers: userAnswers, score: correct, total: QUESTIONS.length})
+  }).catch(() => {});  // silent on network error — result already shown client-side
+
   // Circular ring animation
-  const circumference = 2 * Math.PI * 50; // r=50, ≈314
-  const offset = circumference * (1 - pct / 100);
+  const offset = 314 * (1 - pct / 100);
   document.getElementById('score-ring-fill').style.strokeDashoffset = offset;
   document.getElementById('score-pct-text').textContent = pct + '%';
 
-  // Headline colour
   document.getElementById('score-headline').textContent = pct >= 80 ? '🏆 Excellent Work!' : pct >= 60 ? '✅ Quiz Complete!' : '📚 Quiz Complete!';
   document.getElementById('score-detail').textContent   = `You got ${correct} out of ${QUESTIONS.length} correct.`;
   document.getElementById('score-msg').textContent      = msg;
@@ -836,8 +863,8 @@ function submitQuiz() {
   banner.style.display = 'block';
   banner.scrollIntoView({behavior: 'smooth', block: 'start'});
 
-  document.getElementById('progress-bar-fill').style.width  = '100%';
-  document.getElementById('progress-text').textContent      = `Quiz complete — ${correct}/${QUESTIONS.length} correct (${pct}%)`;
+  document.getElementById('progress-bar-fill').style.width = '100%';
+  document.getElementById('progress-text').textContent     = `Quiz complete — ${correct}/${QUESTIONS.length} correct (${pct}%)`;
 }
 
 /* ── Restart ── */

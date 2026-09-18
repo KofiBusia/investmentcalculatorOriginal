@@ -686,6 +686,23 @@ class EmployerInquiry(db.Model):
     candidate            = db.relationship('CandidateProfile', backref='inquiries', lazy=True)
 
 
+class MoneyQuizAttempt(db.Model):
+    __tablename__   = 'money_quiz_attempts'
+    id              = db.Column(db.Integer, primary_key=True)
+    user_id         = db.Column(db.Integer, db.ForeignKey('site_users.id'), nullable=False)
+    score           = db.Column(db.Integer, default=0)
+    total_questions = db.Column(db.Integer, default=50)
+    answers_given   = db.Column(db.Text, default='{}')   # JSON {question_index: chosen_letter}
+    completed_at    = db.Column(db.DateTime, default=datetime.utcnow)
+    user            = db.relationship('SiteUser', backref='money_quiz_attempts', lazy=True)
+
+    @property
+    def score_pct(self):
+        if not self.total_questions:
+            return 0
+        return round(self.score / self.total_questions * 100)
+
+
 class Referral(db.Model):
     __tablename__    = 'referrals'
     id               = db.Column(db.Integer, primary_key=True)
@@ -6162,8 +6179,61 @@ def yiap_notes():
 
 
 @app.route('/mastering-money')
+@login_required
 def mastering_money():
-    return render_template('money_hub.html')
+    best = (MoneyQuizAttempt.query
+            .filter_by(user_id=current_user.id)
+            .order_by(MoneyQuizAttempt.score.desc())
+            .first())
+    return render_template('money_hub.html', best_attempt=best)
+
+
+@app.route('/mastering-money/submit', methods=['POST'])
+@login_required
+def mastering_money_submit():
+    data    = request.get_json(silent=True) or {}
+    answers = data.get('answers', {})
+    score   = int(data.get('score', 0))
+    total   = int(data.get('total', 50))
+    attempt = MoneyQuizAttempt(
+        user_id         = current_user.id,
+        score           = score,
+        total_questions = total,
+        answers_given   = json.dumps(answers),
+    )
+    db.session.add(attempt)
+    db.session.commit()
+    return jsonify({'success': True, 'attempt_id': attempt.id,
+                    'score': score, 'total': total,
+                    'pct': attempt.score_pct})
+
+
+@app.route('/admin/money-quiz')
+@admin_required
+def admin_money_quiz():
+    attempts = (MoneyQuizAttempt.query
+                .order_by(MoneyQuizAttempt.completed_at.desc()).all())
+    return render_template('admin_money_quiz.html', attempts=attempts)
+
+
+@app.route('/admin/money-quiz/csv')
+@admin_required
+def admin_money_quiz_csv():
+    attempts = (MoneyQuizAttempt.query
+                .order_by(MoneyQuizAttempt.completed_at.desc()).all())
+    si = io.StringIO()
+    w  = csv.writer(si)
+    w.writerow(['ID', 'Name', 'Email', 'Score', 'Total', '%', 'Completed At'])
+    for a in attempts:
+        w.writerow([
+            a.id, a.user.full_name, a.user.email,
+            a.score, a.total_questions, a.score_pct,
+            a.completed_at.strftime('%Y-%m-%d %H:%M') if a.completed_at else '',
+        ])
+    output = make_response(si.getvalue())
+    output.headers['Content-Disposition'] = 'attachment; filename=money_quiz_results.csv'
+    output.headers['Content-Type'] = 'text/csv'
+    return output
 
 
 @app.route('/yiap-practice/course/<slug>')

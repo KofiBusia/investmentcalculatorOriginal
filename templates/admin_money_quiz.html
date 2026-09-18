@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Mastering Your Money — Quiz Results — Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>body{font-family:'Inter',sans-serif;background:#f1f5f9;}</style>
+</head>
+<body>
+
+<header class="bg-gray-900 text-white py-4 px-6 flex justify-between items-center sticky top-0 z-10">
+  <h1 class="font-bold text-lg flex items-center gap-2">
+    <i class="fas fa-book text-purple-400"></i> Mastering Your Money — Quiz Results
+  </h1>
+  <div class="flex gap-4 text-sm">
+    <a href="/admin/yiap-results" class="text-gray-400 hover:text-white">YIAP Results</a>
+    <a href="/admin" class="text-gray-400 hover:text-white">Dashboard</a>
+    <a href="/admin/logout" class="text-red-400 hover:text-red-300">Logout</a>
+  </div>
+</header>
+
+<main class="max-w-6xl mx-auto px-4 py-8">
+
+  <!-- Stats -->
+  {% set total_count = attempts|length %}
+  {% set avg_pct = ((attempts | map(attribute='score_pct') | sum) / total_count) | round(1) if total_count else 0 %}
+  {% set pass_count = attempts | selectattr('score_pct', 'ge', 60) | list | length %}
+
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+    <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+      <p class="text-xs text-gray-500 mb-1">Total Attempts</p>
+      <p class="text-3xl font-bold text-purple-600">{{ total_count }}</p>
+      <p class="text-xs text-gray-400 mt-1">quiz submissions</p>
+    </div>
+    <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+      <p class="text-xs text-gray-500 mb-1">Unique Students</p>
+      <p class="text-3xl font-bold text-indigo-600">{{ attempts | map(attribute='user_id') | unique | list | length }}</p>
+      <p class="text-xs text-gray-400 mt-1">registered users</p>
+    </div>
+    <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+      <p class="text-xs text-gray-500 mb-1">Average Score</p>
+      <p class="text-3xl font-bold text-gray-700">{{ avg_pct }}%</p>
+      <p class="text-xs text-gray-400 mt-1">across all attempts</p>
+    </div>
+    <div class="bg-white rounded-xl p-5 shadow-sm border border-gray-100">
+      <p class="text-xs text-gray-500 mb-1">Passed (≥60%)</p>
+      <p class="text-3xl font-bold text-emerald-600">{{ pass_count }}</p>
+      <p class="text-xs text-gray-400 mt-1">of {{ total_count }} attempts</p>
+    </div>
+  </div>
+
+  <!-- Toolbar -->
+  <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+    <div>
+      <input type="text" id="search" placeholder="Search name or email…"
+        oninput="filterRows()"
+        class="border border-gray-200 rounded-lg px-3 py-2 text-sm w-60 focus:outline-none focus:ring-2 focus:ring-purple-300"/>
+    </div>
+    <div class="flex gap-2">
+      <a href="/admin/money-quiz/csv"
+        class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors flex items-center gap-2">
+        <i class="fas fa-download"></i> Export CSV
+      </a>
+    </div>
+  </div>
+
+  <!-- Table -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm" id="results-table">
+        <thead class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wide">
+          <tr>
+            <th class="px-4 py-3 text-left">Student</th>
+            <th class="px-4 py-3 text-left">Email</th>
+            <th class="px-4 py-3 text-center">Score</th>
+            <th class="px-4 py-3 text-center">%</th>
+            <th class="px-4 py-3 text-center">Result</th>
+            <th class="px-4 py-3 text-left">Completed</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-50" id="results-body">
+          {% for a in attempts %}
+          <tr class="hover:bg-gray-50 transition-colors result-row"
+              data-name="{{ a.user.full_name | lower }}"
+              data-email="{{ a.user.email | lower }}">
+            <td class="px-4 py-3 font-semibold text-gray-800">{{ a.user.full_name }}</td>
+            <td class="px-4 py-3 text-gray-500">{{ a.user.email }}</td>
+            <td class="px-4 py-3 text-center font-bold text-gray-700">
+              {{ a.score }} / {{ a.total_questions }}
+            </td>
+            <td class="px-4 py-3 text-center">
+              <span class="inline-block px-2.5 py-0.5 rounded-full text-xs font-bold
+                {% if a.score_pct >= 80 %}bg-emerald-100 text-emerald-700
+                {% elif a.score_pct >= 60 %}bg-blue-100 text-blue-700
+                {% else %}bg-red-100 text-red-700{% endif %}">
+                {{ a.score_pct }}%
+              </span>
+            </td>
+            <td class="px-4 py-3 text-center">
+              {% if a.score_pct >= 60 %}
+                <span class="inline-flex items-center gap-1 text-emerald-600 font-semibold text-xs">
+                  <i class="fas fa-check-circle"></i> Pass
+                </span>
+              {% else %}
+                <span class="inline-flex items-center gap-1 text-red-500 font-semibold text-xs">
+                  <i class="fas fa-times-circle"></i> Fail
+                </span>
+              {% endif %}
+            </td>
+            <td class="px-4 py-3 text-gray-400 text-xs">
+              {{ a.completed_at.strftime('%d %b %Y, %H:%M') if a.completed_at else '—' }}
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="6" class="px-4 py-12 text-center text-gray-400">
+              <i class="fas fa-inbox text-3xl mb-2 block"></i>
+              No quiz attempts yet.
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <p class="text-xs text-gray-400 mt-3 text-right">{{ total_count }} record{{ 's' if total_count != 1 else '' }}</p>
+</main>
+
+<script>
+function filterRows() {
+  const q = document.getElementById('search').value.toLowerCase().trim();
+  document.querySelectorAll('.result-row').forEach(row => {
+    const match = !q || row.dataset.name.includes(q) || row.dataset.email.includes(q);
+    row.style.display = match ? '' : 'none';
+  });
+}
+</script>
+</body>
+</html>
