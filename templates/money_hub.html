@@ -893,19 +893,6 @@ function revealResults(correct) {
 
 /* ── Auth gate modal (for non-logged-in users) ── */
 function showAuthGate(correct, total) {
-  const pct  = Math.round((correct / total) * 100);
-  const tier = pct >= 80 ? { emoji:'🏆', label:'Excellent!', col:'#16a34a' }
-             : pct >= 60 ? { emoji:'✅', label:'Well Done!',  col:'#2563eb' }
-             :             { emoji:'📚', label:'Nice Try!',   col:'#f59e0b' };
-
-  document.getElementById('gate-emoji').textContent    = tier.emoji;
-  document.getElementById('gate-label').textContent    = tier.label;
-  document.getElementById('gate-score').textContent    = `${correct} / ${total}`;
-  document.getElementById('gate-pct').textContent      = `${pct}%`;
-  document.getElementById('gate-pct').style.color      = tier.col;
-  document.getElementById('gate-bar').style.width      = pct + '%';
-  document.getElementById('gate-bar').style.background = tier.col;
-
   const modal = document.getElementById('auth-gate');
   modal.style.display = 'flex';
   requestAnimationFrame(() => modal.classList.add('visible'));
@@ -1022,17 +1009,24 @@ if (window.innerWidth >= 768) {
 }
 #auth-gate.visible .gate-card { transform: translateY(0); }
 
-.gate-emoji { font-size: 3rem; line-height: 1; margin-bottom: 4px; display: block; }
-.gate-label { font-size: .85rem; font-weight: 700; color: #6b7280; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 12px; display: block; }
-.gate-score-row { display: flex; align-items: baseline; justify-content: center; gap: 8px; margin-bottom: 6px; }
-.gate-score { font-size: 2.4rem; font-weight: 900; color: #0f172a; }
-.gate-pct   { font-size: 1.5rem; font-weight: 800; }
-.gate-bar-track { height: 6px; background: #e5e7eb; border-radius: 99px; margin: 0 auto 20px; max-width: 200px; overflow: hidden; }
-.gate-bar       { height: 100%; border-radius: 99px; transition: width 1s ease; width: 0%; }
-
-.gate-headline { font-size: 1.25rem; font-weight: 800; color: #0f172a; margin-bottom: 8px; }
+.gate-icon-wrap {
+  width: 64px; height: 64px; border-radius: 20px;
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 16px;
+  font-size: 1.5rem; color: #fff;
+  box-shadow: 0 8px 24px rgba(37,99,235,.35);
+}
+.gate-eyebrow {
+  font-size: .78rem; font-weight: 700; color: #16a34a;
+  text-transform: uppercase; letter-spacing: .1em; margin-bottom: 10px;
+}
+.gate-headline {
+  font-size: 1.55rem; font-weight: 900; color: #0f172a;
+  line-height: 1.2; margin-bottom: 12px;
+}
 .gate-sub {
-  font-size: .9rem; color: #64748b; line-height: 1.6;
+  font-size: .9rem; color: #64748b; line-height: 1.65;
   margin-bottom: 24px; max-width: 340px; margin-left: auto; margin-right: auto;
 }
 
@@ -1078,20 +1072,19 @@ if (window.innerWidth >= 768) {
 
 <div id="auth-gate" role="dialog" aria-modal="true">
   <div class="gate-card">
-    <span id="gate-emoji" class="gate-emoji">🏆</span>
-    <span id="gate-label" class="gate-label">Quiz Complete</span>
 
-    <div class="gate-score-row">
-      <span id="gate-score" class="gate-score">0 / 50</span>
-      <span id="gate-pct"   class="gate-pct">0%</span>
+    <!-- icon -->
+    <div class="gate-icon-wrap">
+      <i class="fas fa-lock-open"></i>
     </div>
-    <div class="gate-bar-track"><div id="gate-bar" class="gate-bar"></div></div>
 
-    <p class="gate-headline">Create a free account to save your result</p>
+    <p class="gate-eyebrow">Quiz Complete — 50 / 50 answered</p>
+    <h2 class="gate-headline">Sign up free to see<br/>your results</h2>
     <p class="gate-sub">
-      Sign up in seconds to save your score, track your progress, and unlock the full answer breakdown.
+      Create your free InvestIQ account to unlock your score, see which answers were right or wrong, and track your progress over time.
     </p>
 
+    <!-- Google (primary) -->
     <a href="/auth/google?next=/mastering-money" class="gate-google">
       <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google"/>
       Continue with Google
@@ -1099,6 +1092,7 @@ if (window.innerWidth >= 768) {
 
     <div class="gate-divider">or</div>
 
+    <!-- Email options -->
     <div class="gate-btns">
       <a href="/signup?next=/mastering-money" class="gate-btn-signup">
         <i class="fas fa-user-plus" style="margin-right:.4rem;font-size:.85rem;"></i>Sign Up Free
@@ -1108,7 +1102,10 @@ if (window.innerWidth >= 768) {
       </a>
     </div>
 
-    <p class="gate-note">Your answers are saved — they'll be submitted automatically after you sign in.</p>
+    <p class="gate-note">
+      <i class="fas fa-shield-alt" style="color:#16a34a;margin-right:.3rem;"></i>
+      Free forever · Your answers are saved and submitted automatically after sign-in.
+    </p>
   </div>
 </div>
 
