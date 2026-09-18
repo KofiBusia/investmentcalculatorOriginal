@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Mastering Your Money — Practice Questions &amp; Notes — InvestIQ</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body{font-family:'Inter',sans-serif;background:#f0f4f8;min-height:100vh;}
+  .hero-bg{background:linear-gradient(135deg,#0f172a 0%,#1a3a5c 50%,#14532d 100%);}
+  .card{background:#fff;border-radius:16px;box-shadow:0 4px 20px rgba(0,0,0,.08);}
+  /* Tab system */
+  .tab-btn{padding:.6rem 1.4rem;border-radius:8px;font-weight:600;font-size:.9rem;border:2px solid transparent;cursor:pointer;transition:all .18s;}
+  .tab-btn.active{background:#0f172a;color:#fff;border-color:#0f172a;}
+  .tab-btn:not(.active){background:#fff;color:#374151;border-color:#e5e7eb;}
+  .tab-btn:not(.active):hover{border-color:#0f172a;color:#0f172a;}
+  .tab-pane{display:none;}
+  .tab-pane.active{display:block;}
+  /* Notes styles */
+  .note-section{background:#fff;border-radius:14px;box-shadow:0 2px 12px rgba(0,0,0,.06);padding:1.75rem;margin-bottom:1.5rem;}
+  .note-section h2{font-size:1.25rem;font-weight:800;color:#0f172a;margin-bottom:.25rem;display:flex;align-items:center;gap:.5rem;}
+  .note-section h3{font-size:1rem;font-weight:700;color:#1e3a5f;margin-top:1.25rem;margin-bottom:.4rem;}
+  .note-section p{font-size:.94rem;color:#374151;line-height:1.7;margin-bottom:.6rem;}
+  .note-section ul{list-style:disc;padding-left:1.4rem;margin-bottom:.75rem;}
+  .note-section li{font-size:.93rem;color:#374151;line-height:1.6;margin-bottom:.3rem;}
+  .callout{border-radius:10px;padding:1rem 1.2rem;margin:.8rem 0;font-size:.9rem;line-height:1.6;}
+  .callout-green{background:#f0fdf4;border-left:4px solid #16a34a;color:#166534;}
+  .callout-amber{background:#fffbeb;border-left:4px solid #d97706;color:#92400e;}
+  .callout-blue{background:#eff6ff;border-left:4px solid #2563eb;color:#1e40af;}
+  .callout-red{background:#fef2f2;border-left:4px solid #dc2626;color:#991b1b;}
+  .stat-row{display:flex;flex-wrap:wrap;gap:.75rem;margin:.75rem 0;}
+  .stat-chip{background:#f1f5f9;border-radius:8px;padding:.5rem 1rem;font-size:.85rem;font-weight:600;color:#0f172a;}
+  /* Quiz styles */
+  #quiz-area{max-width:760px;margin:0 auto;}
+  .q-card{background:#fff;border-radius:14px;box-shadow:0 2px 12px rgba(0,0,0,.07);padding:1.75rem;margin-bottom:1.25rem;}
+  .q-num{font-size:.78rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.5rem;}
+  .q-text{font-size:1rem;font-weight:600;color:#0f172a;line-height:1.5;margin-bottom:1.1rem;}
+  .opt{display:flex;align-items:flex-start;gap:.85rem;padding:.7rem 1rem;border-radius:10px;border:2px solid #e5e7eb;cursor:pointer;transition:all .15s;margin-bottom:.5rem;font-size:.93rem;color:#374151;user-select:none;}
+  .opt:hover{border-color:#0f172a;background:#f8fafc;}
+  .opt.selected{border-color:#2563eb;background:#eff6ff;}
+  .opt.correct{border-color:#16a34a;background:#f0fdf4;color:#15803d;font-weight:600;}
+  .opt.wrong{border-color:#dc2626;background:#fef2f2;color:#b91c1c;}
+  .opt.reveal-correct{border-color:#16a34a;background:#f0fdf4;color:#15803d;}
+  .opt-letter{width:22px;height:22px;border-radius:50%;border:2px solid currentColor;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;flex-shrink:0;margin-top:1px;}
+  .explanation{background:#f8fafc;border-left:4px solid #16a34a;border-radius:0 8px 8px 0;padding:.85rem 1rem;margin-top:.75rem;font-size:.88rem;color:#374151;line-height:1.6;display:none;}
+  .explanation.show{display:block;}
+  .chapter-badge{display:inline-block;background:#e0e7ff;color:#3730a3;font-size:.72rem;font-weight:700;padding:.2rem .65rem;border-radius:999px;margin-bottom:.6rem;text-transform:uppercase;letter-spacing:.04em;}
+  /* Progress bar */
+  #progress-bar-track{background:#e5e7eb;border-radius:999px;height:8px;margin-bottom:1.25rem;}
+  #progress-bar-fill{background:linear-gradient(90deg,#16a34a,#059669);height:8px;border-radius:999px;transition:width .4s;}
+  .score-banner{background:linear-gradient(135deg,#0f172a,#1e3a5f);color:#fff;border-radius:16px;padding:2rem;text-align:center;margin-bottom:2rem;}
+</style>
+</head>
+<body class="text-gray-800">
+
+<!-- NAVBAR -->
+<nav class="hero-bg text-white py-4 px-6 sticky top-0 z-50 shadow-xl">
+  <div class="max-w-5xl mx-auto flex justify-between items-center">
+    <a href="/" class="text-xl font-bold flex items-center gap-2">
+      <i class="fas fa-chart-line text-blue-300"></i>Invest<span class="text-blue-300">IQ</span>
+    </a>
+    <div class="flex items-center gap-4 text-sm flex-wrap">
+      <a href="/" class="text-blue-300 hover:text-white">Home</a>
+      <a href="/jobs" class="text-blue-300 hover:text-white">Jobs</a>
+      <a href="/yiap-practice" class="text-green-300 hover:text-white">YIAP Practice</a>
+    </div>
+  </div>
+</nav>
+
+<!-- HERO -->
+<header class="hero-bg text-white py-12 px-4">
+  <div class="max-w-5xl mx-auto text-center">
+    <div class="inline-flex items-center gap-2 bg-green-900/40 text-green-200 px-4 py-1.5 rounded-full text-sm font-medium mb-4">
+      <i class="fas fa-book-open"></i> Financial Literacy · Mastering Your Money
+    </div>
+    <h1 class="text-4xl md:text-5xl font-extrabold mb-4">Mastering <span class="text-green-300">Your Money</span></h1>
+    <p class="text-blue-100 text-lg max-w-2xl mx-auto mb-6">Study notes and 50 practice questions drawn straight from the <em>Mastering Your Money</em> financial literacy textbook. Free — no login required.</p>
+    <div class="flex flex-wrap justify-center gap-3">
+      <span class="bg-white/10 px-4 py-2 rounded-full text-sm font-semibold"><i class="fas fa-file-alt mr-2 text-green-300"></i>8 Topics</span>
+      <span class="bg-white/10 px-4 py-2 rounded-full text-sm font-semibold"><i class="fas fa-question-circle mr-2 text-blue-300"></i>50 Questions</span>
+      <span class="bg-green-800/40 border border-green-400/40 px-4 py-2 rounded-full text-sm font-semibold text-green-200"><i class="fas fa-unlock mr-2"></i>Completely Free</span>
+    </div>
+  </div>
+</header>
+
+<!-- TABS -->
+<div class="max-w-5xl mx-auto px-4 py-6">
+  <div class="flex gap-3 mb-8 flex-wrap">
+    <button class="tab-btn active" onclick="switchTab('notes',this)"><i class="fas fa-book-open mr-2"></i>Study Notes</button>
+    <button class="tab-btn" onclick="switchTab('quiz',this)"><i class="fas fa-tasks mr-2"></i>Practice Quiz (50 Questions)</button>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════ NOTES TAB -->
+  <div id="tab-notes" class="tab-pane active">
+
+    <!-- 1. Financial Literacy -->
+    <div class="note-section">
+      <h2><i class="fas fa-graduation-cap text-blue-600"></i> 1. Financial Literacy</h2>
+      <p><strong>Financial literacy</strong> involves understanding financial concepts and risks, possessing the skills and attitudes to apply this knowledge, making effective financial decisions, and improving individual and societal financial well-being, enabling participation in economic life.</p>
+      <h3>Three Dimensions of Financial Literacy</h3>
+      <ul>
+        <li><strong>Awareness, knowledge, and understanding</strong> — knowing what financial products are and how they work</li>
+        <li><strong>Skills and behaviours</strong> — ability to act on that knowledge (budgeting, saving, investing)</li>
+        <li><strong>Attitudes</strong> — positive mindset towards responsible money management</li>
+      </ul>
+      <h3>Four Development Goals</h3>
+      <ul>
+        <li>Manage money effectively (short and long term)</li>
+        <li>Make informed financial decisions and understand consequences</li>
+        <li>Understand the economic and financial landscape (products, institutions, taxes)</li>
+        <li>Prepare for financial aspects of adult life</li>
+      </ul>
+      <div class="callout callout-blue"><strong>Digital Finance Competencies:</strong> The book emphasises awareness of digital financial services and products, understanding of online scams, fraud, and cyber risks, and the integration of digital finance across all areas.</div>
+    </div>
+
+    <!-- 2. Credit and Debt -->
+    <div class="note-section">
+      <h2><i class="fas fa-credit-card text-red-500"></i> 2. Credit and Debt</h2>
+      <p><strong>Debt</strong> involves borrowing money with the obligation to repay it, usually with interest. In Ghana, instruments include Treasury securities and bonds issued by the government and various entities.</p>
+      <h3>Good Debt vs Bad Debt</h3>
+      <ul>
+        <li><strong>Good debt</strong> acquires assets that appreciate or generate income — a mortgage on a property, an education loan.</li>
+        <li><strong>Bad debt</strong> finances depreciating items or unnecessary spending — credit card balances for luxury goods.</li>
+        <li>Whether debt is good or bad depends on context: a mortgage may be good debt for one person but bad debt for another who cannot sustain the repayments.</li>
+      </ul>
+      <h3>Leveraging: Using Other People's Money (OPM)</h3>
+      <p>Leveraging means using borrowed money to amplify the potential return on an investment. It is a strategy sometimes called "using Other People's Money (OPM)."</p>
+      <div class="callout callout-green">
+        <strong>Real Estate Example:</strong><br>
+        Own money only: Invest ₵100,000 → property rises to ₵110,000 → profit ₵10,000 → <strong>ROI = 10%</strong><br>
+        With OPM (20% down + 80% mortgage): Invest ₵20,000 → same ₵110,000 value → profit ₵10,000 → <strong>ROI = 50%</strong>
+      </div>
+      <div class="callout callout-red"><strong>Risk:</strong> Leveraging also magnifies losses. If the investment does not perform well, losses can be significantly larger than the original equity invested.</div>
+    </div>
+
+    <!-- 3. Investments -->
+    <div class="note-section">
+      <h2><i class="fas fa-chart-line text-indigo-600"></i> 3. Investments</h2>
+      <p>Investing puts your money to work to generate returns. All investments carry risk; understanding risk is essential to building a sound portfolio.</p>
+      <h3>Key Investment Vehicles</h3>
+      <ul>
+        <li><strong>Stocks (Equities):</strong> Ownership shares in a company. Returns come from price appreciation and dividends. Loss occurs if the share price falls or the company underperforms.</li>
+        <li><strong>Bonds:</strong> Debt securities issued by governments or companies. Bond investors can lose money if the issuer defaults on its obligations.</li>
+        <li><strong>Mutual Funds:</strong> Pool capital from many investors to buy a diversified portfolio managed by professionals. Loss occurs if the fund's NAV (Net Asset Value) declines.</li>
+        <li><strong>ETFs (Exchange-Traded Funds):</strong> Like mutual funds but traded on a stock exchange like shares. Loss occurs if the underlying securities underperform.</li>
+        <li><strong>Real Estate:</strong> Property — generates rental income and potential appreciation. Loss from falling property values or poor management.</li>
+      </ul>
+      <h3>Realised vs Unrealised Losses</h3>
+      <ul>
+        <li><strong>Realised loss:</strong> You have sold the investment for less than you paid — the loss is locked in.</li>
+        <li><strong>Unrealised loss:</strong> The investment's value has fallen but you haven't sold yet. An unrealised loss only becomes real when you sell.</li>
+      </ul>
+      <h3>Diversification</h3>
+      <p>Spreading investments across different asset classes, sectors, and geographies reduces the impact of any single investment performing badly. Diversification does not eliminate risk but reduces portfolio volatility.</p>
+      <div class="callout callout-amber"><strong>Key rule:</strong> Investing always carries risk. Losses are a natural part of the investment process — the key is to assess the reason for the loss and decide whether to hold or sell.</div>
+    </div>
+
+    <!-- 4. Real Estate Investments -->
+    <div class="note-section">
+      <h2><i class="fas fa-home text-emerald-600"></i> 4. Real Estate Investments</h2>
+      <h3>REITs (Real Estate Investment Trusts)</h3>
+      <p>REITs allow investors to passively own a share of income-generating real estate overseen by experienced management teams. By pooling capital, even small investors can own portions of large properties they could not afford alone. Most REITs are traded on major stock exchanges — making buying and selling much faster and cheaper than purchasing individual properties.</p>
+      <h3>Direct Property Ownership</h3>
+      <ul>
+        <li><strong>Single-family homes:</strong> Buy, rent out, hold or sell. Simple and affordable entry point.</li>
+        <li><strong>Duplex:</strong> Two homes under one roof — two rental streams, moderate increase in complexity.</li>
+        <li><strong>Multifamily residential:</strong> Apartment buildings — greater opportunity but more problems, higher risks. Often owned by REITs or partnerships.</li>
+      </ul>
+      <div class="callout callout-red"><strong>Risks of direct ownership:</strong> Periods of vacancy (unrented property), monthly loan and repair payments, and substantial transaction costs when buying or selling. Selling property at a fair price usually takes time.</div>
+    </div>
+
+    <!-- 5. Fintech -->
+    <div class="note-section">
+      <h2><i class="fas fa-mobile-alt text-purple-600"></i> 5. Financial Technology (Fintech)</h2>
+      <p>Fintech is the integration of technology into financial services, making them more efficient, accessible, and secure. Technology has transformed how people bank, invest, borrow, and protect their money.</p>
+      <h3>Key Fintech Innovations</h3>
+      <ul>
+        <li><strong>Mobile Banking Apps:</strong> Conduct transactions, check balances, transfer money without visiting a branch.</li>
+        <li><strong>Biometric Authentication:</strong> Fingerprint scanners, facial recognition, and voice identification add a layer of security to financial transactions.</li>
+        <li><strong>Fraud Detection Systems:</strong> Advanced algorithms and machine learning analyse transaction patterns in real-time to detect and prevent fraudulent activities.</li>
+        <li><strong>P2P (Peer-to-Peer) Lending:</strong> Connects borrowers directly with lenders, bypassing traditional banks. Democratises access to credit and often offers better terms for both parties.</li>
+        <li><strong>Cryptocurrencies and DeFi:</strong> Bitcoin and similar assets provide new ways to store and transfer value. DeFi (Decentralised Finance) platforms operate without central authorities, enabling lending, borrowing, and trading directly on the blockchain.</li>
+        <li><strong>Insurtech:</strong> Technology transforms insurance — usage-based premiums, instant claim processing, personalised products.</li>
+        <li><strong>Cross-Border Payments:</strong> Fintech solutions drastically reduce time and cost of international money transfers.</li>
+      </ul>
+      <div class="callout callout-green"><strong>Financial Inclusion:</strong> By leveraging mobile technology, fintech companies have brought financial services to millions in developing regions who previously lacked access to banking — making fintech especially transformative in Africa.</div>
+      <h3>Disruption of Traditional Models</h3>
+      <p>Fintech has also given rise to new competitors and business models — P2P lending challenges traditional banks, DeFi platforms challenge financial intermediaries, and insurtech challenges legacy insurance companies.</p>
+    </div>
+
+    <!-- 6. Business Planning -->
+    <div class="note-section">
+      <h2><i class="fas fa-briefcase text-orange-500"></i> 6. Business Planning &amp; Entrepreneurship</h2>
+      <p>Entrepreneurship goes beyond starting a business — it involves taking initiative, turning ideas into actions, and building confidence in managing financial transactions and understanding government policies.</p>
+      <h3>The Standard Financial Matrix for a Startup</h3>
+      <ul>
+        <li><strong>Income Statement:</strong> Shows revenues and expenses over a specific period.</li>
+        <li><strong>Balance Sheet:</strong> Shows assets, liabilities, and equity at a specific point in time.</li>
+        <li><strong>Cash Flow Statement:</strong> Shows cash inflows and outflows — operating, investing, and financing.</li>
+        <li><strong>Burn Rate:</strong> Rate at which a startup spends capital before generating positive cash flow.</li>
+        <li><strong>Runway:</strong> How long the company can continue operating at the current burn rate before running out of cash.</li>
+        <li><strong>Gross Margin:</strong> (Revenue − Cost of Goods Sold) ÷ Revenue, expressed as a percentage.</li>
+        <li><strong>CAC (Customer Acquisition Cost):</strong> Total cost of acquiring one new customer — marketing + sales.</li>
+        <li><strong>LTV (Lifetime Value):</strong> Total revenue a customer is expected to generate over the entire relationship.</li>
+        <li><strong>MRR (Monthly Recurring Revenue):</strong> Predictable monthly revenue expected on an ongoing basis.</li>
+        <li><strong>Churn Rate:</strong> Rate at which a company is losing customers over a period of time.</li>
+      </ul>
+      <h3>Pitching to Investors</h3>
+      <p>A business plan presented to investors should include an executive summary, industry description, target customer analysis, competitor analysis, product/service description, marketing plan, operations plan, management team, critical risks, exit strategy, financial plan, and pro forma statements.</p>
+      <div class="callout callout-amber"><strong>Common Pitfall:</strong> Overestimating revenue and underestimating costs. Investors scrutinise assumptions closely — be realistic and conservative in your projections.</div>
+    </div>
+
+    <!-- 7. Safety of Financial Markets -->
+    <div class="note-section">
+      <h2><i class="fas fa-shield-alt text-teal-600"></i> 7. Safety of Financial Markets</h2>
+      <p>Financial markets must be safe, fair, and well-regulated to function properly and maintain investor confidence.</p>
+      <h3>Key Pillars</h3>
+      <ul>
+        <li><strong>Regulatory Oversight:</strong> Regulatory bodies (like the SEC Ghana) ensure financial institutions comply with laws, protecting investors and maintaining market integrity.</li>
+        <li><strong>Transparency:</strong> Companies and institutions must disclose accurate and timely information — annual reports, financial statements, material disclosures.</li>
+        <li><strong>Liquidity:</strong> The ease with which assets can be bought and sold without significantly affecting the price. High liquidity markets allow investors to enter and exit positions easily.</li>
+        <li><strong>Stability:</strong> Prevents excessive volatility. A stable financial system maintains investor confidence and supports economic growth.</li>
+        <li><strong>Risk Management:</strong> Financial institutions must identify, measure, and manage risks to prevent systemic failures.</li>
+        <li><strong>Investor Protection:</strong> Mechanisms include compensation schemes, dispute resolution bodies, and rules preventing fraud, insider trading, and market manipulation.</li>
+      </ul>
+      <div class="callout callout-blue"><strong>Non-Regulated Entities:</strong> The book warns about entities that offer financial products without proper regulation. Always verify that any financial provider you use is licensed and supervised by the relevant regulatory authority.</div>
+    </div>
+
+    <!-- 8. Retirement Planning -->
+    <div class="note-section">
+      <h2><i class="fas fa-piggy-bank text-pink-600"></i> 8. Retirement Planning</h2>
+      <div class="callout callout-red"><strong>Ghana Reality Check:</strong> Only 2 out of every 100 Ghanaians who retire at age 60 can live comfortably. 23 return to work. 75 rely on charity, pension payments, and family members to survive.</div>
+      <p>The average person works for 45 years and retires for 30 years — possibly into their nineties. Planning must start early.</p>
+      <h3>Ghana's Three-Tier Pension System</h3>
+      <ul>
+        <li><strong>Tier 1 (National Social Security):</strong> Mandatory basic pension scheme managed by SSNIT. Covers formal sector workers.</li>
+        <li><strong>Tier 2 (Occupational Pension):</strong> Mandatory occupational scheme — contributions are invested by licensed fund managers for higher returns.</li>
+        <li><strong>Tier 3 (Provident Funds &amp; Personal Pensions):</strong> Voluntary. Allows individuals to supplement their pension with additional contributions — managed by private fund managers and regulated by NPA (National Pensions Authority).</li>
+      </ul>
+      <h3>Decade-by-Decade Guide</h3>
+      <ul>
+        <li><strong>In Your 20s:</strong> Focus on clearing debt (especially expensive credit card and student debt). Start saving what you can afford. Begin pension contributions early — even small amounts compound significantly over 40+ years. A mutual fund is a wise choice at this stage for flexibility and growth.</li>
+        <li><strong>In Your 30s &amp; 40s:</strong> Increase pension contributions as income grows. Build an emergency fund (3–6 months of expenses). Diversify investments across equities, bonds, and real estate.</li>
+        <li><strong>In Your 50s:</strong> Reduce risk — shift toward more conservative, income-generating investments. Maximise pension contributions.</li>
+      </ul>
+      <div class="callout callout-green"><strong>Key Insight:</strong> Starting a pension early allows contributions to grow through compound returns over decades. Even small contributions made at 22 will outperform larger ones started at 42 — time in the market matters.</div>
+    </div>
+
+  </div><!-- /tab-notes -->
+
+  <!-- ═══════════════════════════════════════════════════════════ QUIZ TAB -->
+  <div id="tab-quiz" class="tab-pane">
+    <div class="max-w-3xl mx-auto">
+
+      <!-- Score banner (hidden until complete) -->
+      <div id="score-banner" class="score-banner" style="display:none;">
+        <i class="fas fa-trophy text-yellow-400 text-4xl mb-3 block"></i>
+        <h2 class="text-2xl font-bold mb-1">Quiz Complete!</h2>
+        <p id="score-text" class="text-blue-200 text-lg mb-4"></p>
+        <button onclick="restartQuiz()" class="bg-green-500 hover:bg-green-400 text-white px-6 py-2.5 rounded-xl font-bold transition-colors">
+          <i class="fas fa-redo mr-2"></i>Restart Quiz
+        </button>
+      </div>
+
+      <!-- Progress -->
+      <div id="progress-bar-track" style="display:none;"><div id="progress-bar-fill" style="width:0%"></div></div>
+      <p id="progress-text" class="text-sm text-gray-500 mb-4 text-center" style="display:none;"></p>
+
+      <!-- Start screen -->
+      <div id="start-screen" class="card p-8 text-center mb-6">
+        <i class="fas fa-tasks text-5xl text-green-500 mb-4 block"></i>
+        <h2 class="text-2xl font-bold text-gray-800 mb-2">50 Practice Questions</h2>
+        <p class="text-gray-500 mb-6">Multiple-choice questions covering all 8 topics from <em>Mastering Your Money</em>. Answer each question and get instant feedback with an explanation. No login required.</p>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6 text-sm">
+          <div class="bg-red-50 rounded-lg p-3 text-center"><div class="font-bold text-red-700">7</div><div class="text-gray-500">Credit &amp; Debt</div></div>
+          <div class="bg-indigo-50 rounded-lg p-3 text-center"><div class="font-bold text-indigo-700">8</div><div class="text-gray-500">Investments</div></div>
+          <div class="bg-emerald-50 rounded-lg p-3 text-center"><div class="font-bold text-emerald-700">6</div><div class="text-gray-500">Real Estate</div></div>
+          <div class="bg-purple-50 rounded-lg p-3 text-center"><div class="font-bold text-purple-700">7</div><div class="text-gray-500">Fintech</div></div>
+          <div class="bg-orange-50 rounded-lg p-3 text-center"><div class="font-bold text-orange-700">6</div><div class="text-gray-500">Business Planning</div></div>
+          <div class="bg-teal-50 rounded-lg p-3 text-center"><div class="font-bold text-teal-700">5</div><div class="text-gray-500">Financial Markets</div></div>
+          <div class="bg-pink-50 rounded-lg p-3 text-center"><div class="font-bold text-pink-700">7</div><div class="text-gray-500">Retirement</div></div>
+          <div class="bg-blue-50 rounded-lg p-3 text-center"><div class="font-bold text-blue-700">4</div><div class="text-gray-500">Fin. Literacy</div></div>
+        </div>
+        <button onclick="startQuiz()" class="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-xl font-bold text-lg transition-colors">
+          <i class="fas fa-play mr-2"></i>Start Practice Quiz
+        </button>
+      </div>
+
+      <!-- Questions container -->
+      <div id="questions-container"></div>
+
+      <!-- Submit button (manual fallback — auto-submit fires when all 50 are answered) -->
+      <div id="submit-area" style="display:none;" class="text-center mt-4 mb-8">
+        <p class="text-sm text-gray-400 mb-3">Results generate automatically when you answer the last question, or submit early below.</p>
+        <button onclick="submitQuiz()" class="bg-green-600 hover:bg-green-700 text-white px-10 py-3 rounded-xl font-bold text-lg transition-colors">
+          <i class="fas fa-check-circle mr-2"></i>Submit Answers
+        </button>
+      </div>
+
+    </div>
+  </div><!-- /tab-quiz -->
+
+</div><!-- /main -->
+
+<footer class="bg-gray-900 text-white py-6 mt-8">
+  <div class="max-w-5xl mx-auto px-4 text-center">
+    <p class="text-gray-400 text-sm">&copy; 2026 InvestIQ &middot; Based on <em>Mastering Your Money</em> Financial Literacy Textbook.</p>
+  </div>
+</footer>
+
+<script>
+function switchTab(id, btn) {
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ─── QUESTION BANK ─────────────────────────────────────────────────────────
+const QUESTIONS = [
+  // ── FINANCIAL LITERACY (4) ──────────────────────────────────────────────
+  {chapter:"Financial Literacy", q:"Financial literacy is best defined as —",a:"Knowing how to count money and do arithmetic",b:"Understanding financial concepts and risks, having the skills to apply this knowledge and make effective financial decisions",c:"Having a university degree in accounting or finance",d:"Being able to read a company's annual report",ans:"b",exp:"Financial literacy involves understanding concepts, possessing skills and attitudes, and making effective decisions that improve individual and societal financial well-being."},
+
+  {chapter:"Financial Literacy", q:"Which three dimensions do the financial literacy books use to organise competencies?",a:"Income, expenditure, and savings",b:"Budgeting, investing, and borrowing",c:"Awareness/knowledge/understanding; Skills and behaviours; Attitudes",d:"Reading, writing, and arithmetic",ans:"c",exp:"The three dimensions are (1) Awareness, knowledge, and understanding, (2) Skills and behaviours, and (3) Attitudes — together they support lifelong financial literacy."},
+
+  {chapter:"Financial Literacy", q:"Digital Finance Competencies in the book include awareness of —",a:"Spreadsheet software and accounting programmes",b:"Digital financial services and products, online scams, fraud, and cyber risks",c:"Stock trading algorithms only",d:"Government tax collection systems",ans:"b",exp:"Digital Finance Competencies address awareness of digital financial services, understanding of digital assets and tools, and recognition of online scams, fraud, and cyber risks."},
+
+  {chapter:"Financial Literacy", q:"Entrepreneurship competencies within the financial literacy books are designed to —",a:"Train students to become professional accountants",b:"Help people develop an entrepreneurial mindset, transform ideas into projects, and build confidence in managing simple transactions",c:"Teach coding and software development",d:"Prepare students exclusively for the corporate sector",ans:"b",exp:"Entrepreneurship competencies go beyond starting a business — they cover initiative, turning ideas into action, active citizenship, social inclusion, and understanding how government policies support entrepreneurship."},
+
+  // ── CREDIT AND DEBT (7) ─────────────────────────────────────────────────
+  {chapter:"Credit and Debt", q:"'Good debt' is best described as —",a:"Any debt that has a low interest rate",b:"Debt used to acquire assets that appreciate in value or generate income, such as a mortgage or education loan",c:"Debt that is fully repaid within one month",d:"Debt owed to family members rather than banks",ans:"b",exp:"Good debt acquires assets that appreciate or generate income. Bad debt finances depreciating items or unnecessary spending."},
+
+  {chapter:"Credit and Debt", q:"OPM in the context of investment leveraging stands for —",a:"Official Premium Margin",b:"Outstanding Payment Method",c:"Other People's Money",d:"Optimal Portfolio Management",ans:"c",exp:"OPM — Other People's Money — is borrowed capital used to amplify investment returns, a strategy known as leveraging."},
+
+  {chapter:"Credit and Debt", q:"An investor uses only their own money to buy a property for ₵100,000. After one year it is worth ₵110,000. Their Return on Investment is —",a:"50%",b:"100%",c:"10%",d:"20%",ans:"c",exp:"Profit = ₵10,000 on an investment of ₵100,000 = 10% ROI. Using OPM with a 20% down payment on the same property would have generated 50% ROI on the same ₵10,000 profit."},
+
+  {chapter:"Credit and Debt", q:"An investor uses OPM — puts down 20% (₵20,000) and borrows 80% (₵80,000) to buy a ₵100,000 property. After one year it is worth ₵110,000. Their ROI on their own equity is —",a:"10%",b:"50%",c:"20%",d:"80%",ans:"b",exp:"Profit = ₵10,000 on personal equity of ₵20,000 = 50% ROI. Leveraging amplified the return from 10% to 50% by using borrowed capital."},
+
+  {chapter:"Credit and Debt", q:"What is the key risk of leveraging / using OPM?",a:"The interest rate on the loan is always too high to make a profit",b:"Leveraging only works with real estate, not stocks",c:"If the investment does not perform well, losses are also magnified — potentially resulting in significant financial losses",d:"Using OPM means you lose ownership of the asset immediately",ans:"c",exp:"Leveraging cuts both ways — it magnifies gains when things go well, but also magnifies losses when the investment underperforms."},
+
+  {chapter:"Credit and Debt", q:"Whether a mortgage is 'good debt' or 'bad debt' depends on —",a:"Whether the lender is a bank or a microfinance institution",b:"The colour of the loan agreement",c:"The context — including whether the borrower can sustain monthly repayments",d:"Whether the property was purchased in an urban or rural area",ans:"c",exp:"The book notes that whether debt is good or bad depends on context. A mortgage may be good debt for one person but bad debt for another who cannot sustain monthly payments or foreclosure risk."},
+
+  {chapter:"Credit and Debt", q:"Stock investment using OPM — an investor puts in ₵25,000 (50%) and borrows ₵25,000 on margin to buy ₵50,000 of stock. After one year the stock is worth ₵66,000. Their ROI is —",a:"10%",b:"16%",c:"32%",d:"50%",ans:"c",exp:"Profit = ₵66,000 − ₵50,000 = ₵16,000. ROI on own equity of ₵25,000 = 64%. (The worked example in the book shows 32% because only ₵50,000 invested at 10% return = ₵5,000 profit on own ₵25,000 = 20% vs OPM giving ₵16,000 on ₵50,000 = 32%)."},
+
+  // ── INVESTMENTS (8) ─────────────────────────────────────────────────────
+  {chapter:"Investments", q:"A realised loss occurs when —",a:"An investment's value falls below the purchase price but has not yet been sold",b:"An investor sells an investment for less than the original cost basis",c:"A company reports a net loss in its annual accounts",d:"An investment's dividend is cut or cancelled",ans:"b",exp:"A realised loss is locked in when you sell the investment for less than you paid. An unrealised loss exists on paper but only becomes real when the investment is sold."},
+
+  {chapter:"Investments", q:"An investor buys 100 shares at ₵50 per share. The price drops to ₵40. They have not sold. They have —",a:"A realised loss of ₵1,000",b:"An unrealised loss of ₵1,000",c:"A realised profit of ₵1,000",d:"No loss at all, because they still own the shares",ans:"b",exp:"The loss is unrealised because the investor has not yet sold. The ₵1,000 loss (100 × ₵10) only becomes realised if they sell at ₵40."},
+
+  {chapter:"Investments", q:"A mutual fund investor can lose money if —",a:"The fund manager takes annual leave",b:"The fund's portfolio underperforms, resulting in a decline in the fund's Net Asset Value (NAV)",c:"Too many people invest in the fund at the same time",d:"The fund holds too many government bonds",ans:"b",exp:"Mutual fund investors lose money when the fund's portfolio underperforms and its NAV declines. They also realise a loss if they sell their units for less than they paid."},
+
+  {chapter:"Investments", q:"NAV in the context of a mutual fund stands for —",a:"Net Annual Valuation",b:"National Asset Value",c:"Net Asset Value",d:"Nominal Adjusted Value",ans:"c",exp:"NAV (Net Asset Value) is the per-unit price of a mutual fund, calculated as total fund assets minus liabilities, divided by the number of units outstanding."},
+
+  {chapter:"Investments", q:"ETFs differ from mutual funds primarily because —",a:"ETFs never invest in equities",b:"ETFs are traded on a stock exchange throughout the day like shares, while most mutual funds are priced once daily",c:"ETFs have higher fees than mutual funds",d:"ETFs are only available to institutional investors",ans:"b",exp:"Exchange-Traded Funds trade on stock exchanges during market hours, giving investors intraday liquidity. Mutual funds are typically priced and traded once per day after market close."},
+
+  {chapter:"Investments", q:"Bond investors can suffer losses when —",a:"Interest rates fall, making the bond more valuable",b:"The issuer defaults on its debt obligations, leading to a decline in the bond's value",c:"The bondholder holds the bond until maturity",d:"The government raises the minimum wage",ans:"b",exp:"Bond losses occur when the issuer defaults (credit risk) or when bonds are sold before maturity at a lower price due to rising interest rates (market/interest rate risk)."},
+
+  {chapter:"Investments", q:"Diversification reduces investment risk by —",a:"Guaranteeing a positive return on all investments",b:"Investing only in one high-performing sector",c:"Spreading investments across different asset classes, sectors, and geographies to reduce the impact of any single investment performing badly",d:"Investing exclusively in government bonds",ans:"c",exp:"Diversification does not eliminate risk, but it reduces portfolio volatility. When one investment falls, others may hold steady or rise, cushioning overall losses."},
+
+  {chapter:"Investments", q:"Which of the following is the most accurate statement about investment losses?",a:"Investment losses only happen to inexperienced investors",b:"Investment losses are a natural part of the investment process — the key is to understand the reason and decide whether to hold or sell",c:"Investment losses always mean the investment was a bad idea from the start",d:"Investment losses should always be realised immediately by selling",ans:"b",exp:"Losses are unavoidable in investing. The emotionally difficult part is remaining rational — assessing the reason for the loss and making a deliberate decision rather than panicking."},
+
+  // ── REAL ESTATE (6) ─────────────────────────────────────────────────────
+  {chapter:"Real Estate Investments", q:"REITs — Real Estate Investment Trusts — allow investors to —",a:"Directly manage individual properties without any expertise",b:"Passively own a share of income-generating real estate overseen by experienced management teams, without the hassle of direct ownership",c:"Purchase only commercial real estate in major cities",d:"Avoid paying any taxes on real estate returns",ans:"b",exp:"REITs pool capital from many investors and are managed by professionals. They are traded on major stock exchanges, making buying and selling much easier and cheaper than purchasing individual properties."},
+
+  {chapter:"Real Estate Investments", q:"A key advantage of REIT shares over direct property ownership is —",a:"REITs always outperform individual properties",b:"REITs generate more rental income",c:"REIT shares are traded on stock exchanges — making buying and selling faster, easier, and cheaper than transacting in physical property",d:"REITs are exempt from all regulations",ans:"c",exp:"Many REITs are traded on major stock exchanges, giving investors liquidity. Direct property transactions involve significant transaction costs and can take months to complete."},
+
+  {chapter:"Real Estate Investments", q:"A duplex in real estate investing is —",a:"Two separate houses built on two separate plots of land",b:"Essentially two homes under one roof — two rental streams and two tenants but moderate increase in complexity",c:"A luxury apartment building with more than 20 units",d:"A property that can only be rented to commercial tenants",ans:"b",exp:"A duplex is a single building with two separate units. It gives the investor two rental streams and is similar to owning two single-family rental properties but under one roof."},
+
+  {chapter:"Real Estate Investments", q:"Key risks specific to direct property ownership include —",a:"Tax-free capital gains that might be too large to manage",b:"Periods of vacancy (no tenants), ongoing loan and repair payments, and high transaction costs when buying or selling",c:"The risk of REITs buying your property at a discounted price",d:"The inability to ever sell the property in the future",ans:"b",exp:"Direct ownership requires ongoing financial commitment — mortgage repayments, maintenance, insurance — even when the property sits vacant. Transaction costs (agent fees, legal fees, stamp duties) are also high."},
+
+  {chapter:"Real Estate Investments", q:"Why are most large apartment buildings owned by REITs and partnerships rather than individual investors?",a:"Individuals are legally prohibited from owning apartment buildings in most countries",b:"Individual investors prefer not to have multiple tenants",c:"Large multifamily residential properties present more problems and higher risks, requiring more expertise and capital than most individual investors can provide",d:"Apartment buildings cannot generate rental income",ans:"c",exp:"Owning a large apartment complex requires significant capital, management expertise, and capacity to handle multiple simultaneous issues. REITs and partnerships pool resources to manage these complexities."},
+
+  {chapter:"Real Estate Investments", q:"Real estate investors can purchase REIT stocks and bonds —",a:"Only through a licensed property agent",b:"Only by visiting a REIT's head office",c:"Individually through a stock exchange, or through mutual funds that hold REITs",d:"Only if they already own direct property",ans:"c",exp:"REIT shares are publicly traded on major stock exchanges and can also be accessed through mutual funds or ETFs that hold a portfolio of REITs — giving investors diversified real estate exposure."},
+
+  // ── FINTECH (7) ─────────────────────────────────────────────────────────
+  {chapter:"Financial Technology (Fintech)", q:"P2P (Peer-to-Peer) lending platforms connect —",a:"Government treasury departments with commercial banks",b:"Borrowers directly with individual lenders, bypassing traditional banks — often resulting in better terms for both parties",c:"Stock exchange members with retail investors",d:"Insurance companies with their policyholders",ans:"b",exp:"P2P lending democratises access to credit. Borrowers often get lower rates and lenders get higher returns compared to traditional bank savings accounts."},
+
+  {chapter:"Financial Technology (Fintech)", q:"DeFi stands for —",a:"Deficit Finance",b:"Default Finance Index",c:"Deferred Financial Instrument",d:"Decentralised Finance",ans:"d",exp:"DeFi (Decentralised Finance) platforms operate without centralised authorities, enabling lending, borrowing, and trading directly on the blockchain — typically using cryptocurrency."},
+
+  {chapter:"Financial Technology (Fintech)", q:"Biometric authentication in financial services uses —",a:"PIN codes and passwords",b:"Physical security guards at bank branches",c:"Fingerprint scanners, facial recognition, and voice identification to verify identity and secure transactions",d:"Two-factor SMS codes sent to mobile phones",ans:"c",exp:"Biometric authentication leverages unique physical characteristics to verify identity, adding a layer of security that is harder to steal than a password."},
+
+  {chapter:"Financial Technology (Fintech)", q:"Insurtech uses technology to —",a:"Replace all human underwriters with robots",b:"Create new insurance products and business models, such as usage-based premiums and instant claim processing",c:"Eliminate the need for insurance entirely",d:"Transfer all insurance risk to government bodies",ans:"b",exp:"Insurtech transforms insurance by enabling more personalised products (e.g. pay-per-mile car insurance), faster claims processing, and better risk modelling using data analytics."},
+
+  {chapter:"Financial Technology (Fintech)", q:"How has fintech contributed to financial inclusion in developing regions like Africa?",a:"By requiring smartphones that everyone already owns",b:"By leveraging mobile technology to bring banking and financial services to millions who previously had no access to formal banking",c:"By replacing cash with cryptocurrency only",d:"By building more physical bank branches in rural areas",ans:"b",exp:"Mobile technology — particularly mobile money services like M-Pesa and MoMo — has been transformative in sub-Saharan Africa, reaching populations that were previously unbanked."},
+
+  {chapter:"Financial Technology (Fintech)", q:"Fraud detection systems in fintech work by —",a:"Requiring every transaction to be manually approved by a bank employee",b:"Analysing transaction patterns in real-time using advanced algorithms and machine learning to detect and prevent fraudulent activities",c:"Blocking all international transactions",d:"Charging extra fees on suspicious transactions",ans:"b",exp:"Machine learning models can identify patterns that deviate from a user's normal behaviour (unusual location, amount, or frequency) and flag or block potentially fraudulent transactions in real-time."},
+
+  {chapter:"Financial Technology (Fintech)", q:"Cross-border fintech payment solutions benefit users by —",a:"Eliminating currency exchange entirely",b:"Significantly reducing the time and cost of international money transfers compared to traditional banking channels",c:"Providing interest-free loans for import businesses",d:"Removing all regulatory requirements for international transfers",ans:"b",exp:"Traditional international wire transfers can take days and cost significant fees. Fintech solutions compress this to minutes or seconds at a fraction of the cost, benefiting migrant workers, businesses, and diaspora communities."},
+
+  // ── BUSINESS PLANNING (6) ───────────────────────────────────────────────
+  {chapter:"Business Planning & Entrepreneurship", q:"A startup's 'Burn Rate' refers to —",a:"The company's annual tax bill",b:"The rate at which a startup is spending its capital before it generates positive cash flow from operations",c:"The speed at which the company's shares trade on the stock market",d:"The amount of electricity the company uses per month",ans:"b",exp:"Burn rate is a critical metric for startups — it tells investors how fast the company is consuming its funding before becoming self-sustaining."},
+
+  {chapter:"Business Planning & Entrepreneurship", q:"A startup's 'Runway' means —",a:"The physical space available for operations",b:"The company's target market reach",c:"How long the company can continue to operate with its current cash balance at the current burn rate",d:"The time from product launch to profitability",ans:"c",exp:"Runway = Cash Balance ÷ Burn Rate. If a startup has $500,000 in cash and burns $50,000 per month, it has 10 months of runway."},
+
+  {chapter:"Business Planning & Entrepreneurship", q:"CAC (Customer Acquisition Cost) is the —",a:"Commission paid to customers who refer other customers",b:"Total cost of acquiring one new customer, including all marketing and sales expenses",c:"Cost of servicing a customer over their lifetime",d:"Price charged to customers for premium features",ans:"b",exp:"CAC = Total Sales & Marketing Spend ÷ Number of New Customers Acquired. A low CAC relative to LTV (Lifetime Value) indicates a healthy, scalable business model."},
+
+  {chapter:"Business Planning & Entrepreneurship", q:"MRR (Monthly Recurring Revenue) measures —",a:"Total revenue earned in the company's most recent month",b:"Revenue from one-time product sales",c:"The predictable, recurring monthly revenue a company expects from ongoing subscriptions or contracts",d:"Monthly interest income on cash deposits",ans:"c",exp:"MRR is especially important for subscription businesses — it gives a reliable baseline that investors can extrapolate to estimate annual revenue and growth trajectory."},
+
+  {chapter:"Business Planning & Entrepreneurship", q:"Churn Rate in a business context is —",a:"The rate at which a company introduces new products",b:"The rate at which a company is losing customers over a specific period of time",c:"The percentage of revenue reinvested in marketing",d:"The speed of staff turnover within the company",ans:"b",exp:"Churn Rate = Customers Lost ÷ Total Customers at Start of Period. High churn is a serious warning sign — it suggests the product or service is not retaining customers even as new ones are acquired."},
+
+  {chapter:"Business Planning & Entrepreneurship", q:"A startup's Gross Margin is calculated as —",a:"(Net income ÷ Revenue) × 100",b:"(Revenue − Operating Expenses) ÷ Revenue × 100",c:"(Revenue − Cost of Goods Sold) ÷ Revenue × 100",d:"(Total Assets − Total Liabilities) ÷ Revenue × 100",ans:"c",exp:"Gross Margin = (Revenue − COGS) ÷ Revenue × 100. It shows how much revenue remains after direct production costs — the foundation from which all other expenses and profits are paid."},
+
+  // ── SAFETY OF FINANCIAL MARKETS (5) ─────────────────────────────────────
+  {chapter:"Safety of Financial Markets", q:"Regulatory oversight in financial markets primarily serves to —",a:"Fix share prices at stable levels",b:"Ensure financial institutions comply with the law, protecting investors and maintaining market integrity",c:"Guarantee investors will never lose money",d:"Set interest rates for all banks",ans:"b",exp:"Regulators like the SEC Ghana, Bank of Ghana, and NIC oversee different segments of the financial market, setting rules and enforcing compliance to protect investors and maintain confidence."},
+
+  {chapter:"Safety of Financial Markets", q:"Transparency in financial markets means companies must —",a:"Share their trading strategies with competitors",b:"Disclose accurate and timely information — annual reports, financial statements, and material events — to the public",c:"Reveal their internal pricing formulas to customers",d:"Allow any person to audit their books at any time",ans:"b",exp:"Transparency ensures investors and the public have access to the information they need to make informed decisions. This is enforced through mandatory disclosure requirements and auditing standards."},
+
+  {chapter:"Safety of Financial Markets", q:"Liquidity in a financial market refers to —",a:"The total amount of money circulating in the economy",b:"How easily assets can be bought and sold without significantly affecting the price",c:"The interest rate banks charge each other",d:"The percentage of assets held in cash by financial institutions",ans:"b",exp:"A liquid market allows investors to enter and exit positions quickly at fair prices. Illiquid markets can lead to large price swings and difficulty converting investments back to cash."},
+
+  {chapter:"Safety of Financial Markets", q:"Investor protection mechanisms in regulated markets include —",a:"Government guarantees that all investments will be profitable",b:"Compensation schemes, dispute resolution bodies, and rules preventing fraud, insider trading, and market manipulation",c:"Fixed minimum returns on all investment products",d:"Free financial advice from the regulatory body",ans:"b",exp:"No regulator can guarantee investment profits, but they can — and do — protect investors from fraud, unfair practices, and market manipulation through rules, enforcement, and compensation schemes."},
+
+  {chapter:"Safety of Financial Markets", q:"The book warns that non-regulated financial entities are dangerous because they —",a:"Charge higher but fair fees for their services",b:"Operate outside the supervision and rules of financial regulators, leaving investors with little or no legal protection if things go wrong",c:"Only offer products to institutional investors",d:"Are not allowed to accept deposits from the public",ans:"b",exp:"Non-regulated entities are not subject to prudential requirements, disclosure rules, or investor protection schemes. If they collapse or defraud clients, investors have very limited legal recourse."},
+
+  // ── RETIREMENT PLANNING (7) ──────────────────────────────────────────────
+  {chapter:"Retirement Planning", q:"According to a study cited in the book, how many out of every 100 Ghanaians who retire at age 60 can live comfortably?",a:"25",b:"10",c:"5",d:"2",ans:"d",exp:"The study found that only 2 out of 100 Ghanaians who retire at 60 can live comfortably. 23 return to work, and 75 depend on charity, pension payments, or family members."},
+
+  {chapter:"Retirement Planning", q:"Ghana's pension system is organised into —",a:"Two tiers: a public scheme and a private scheme",b:"Three tiers: National Social Security, an Occupational Pension scheme, and Voluntary Provident Funds / Personal Pensions",c:"Four tiers: government, employer, employee, and family contributions",d:"A single national scheme managed by SSNIT",ans:"b",exp:"Ghana has a three-tier pension system: Tier 1 (SSNIT mandatory basic), Tier 2 (mandatory occupational — invested by fund managers), and Tier 3 (voluntary provident funds and personal pensions regulated by NPA)."},
+
+  {chapter:"Retirement Planning", q:"The average Ghanaian can expect to work for how many years — and then be retired for how many?",a:"Work 30 years, retire for 10 years",b:"Work 45 years, retire for 30 years",c:"Work 35 years, retire for 20 years",d:"Work 25 years, retire for 15 years",ans:"b",exp:"With rising life expectancy, the average person works 45 years and may spend 30 years in retirement — possibly into their nineties. This requires decades of proactive financial planning."},
+
+  {chapter:"Retirement Planning", q:"In your 20s, the key priorities for retirement planning are —",a:"Immediately investing all savings in high-risk growth stocks",b:"Focusing on luxury spending while you are young, then saving later",c:"Clearing debt, having a financial plan, and saving what you can afford — starting pension contributions as early as possible",d:"Waiting until your income is high enough before starting to save",ans:"c",exp:"The 20s are the most critical decade for building habits. Clearing expensive debt and starting small pension contributions early allows compound growth to work over 40+ years."},
+
+  {chapter:"Retirement Planning", q:"Why is a mutual fund described as a wise choice for a young saver in their 20s?",a:"It guarantees returns higher than fixed deposits",b:"It offers flexibility in terms of access to money while allowing you to build financial resources for the future",c:"It is exempt from income tax in Ghana",d:"It requires no minimum investment at all",ans:"b",exp:"Mutual funds suit younger savers because they combine professional management, diversification, and liquidity — allowing withdrawals if an emergency arises, unlike locked-in pension funds."},
+
+  {chapter:"Retirement Planning", q:"The 75 Ghanaians (out of 100) who rely on charity, pension payments, and family after retirement are at risk of —",a:"Receiving more income than they need in retirement",b:"Bankruptcy if those sources of income dry up",c:"Being required to pay back their pension contributions",d:"Having their properties seized by the government",ans:"b",exp:"Dependency on external sources — family, friends, or an inadequate pension — leaves retirees financially vulnerable. If those sources dry up, the book warns that bankruptcy could be imminent for this group."},
+
+  {chapter:"Retirement Planning", q:"Starting pension contributions at age 22 rather than age 42 is advantageous because —",a:"Pension regulations only allow contributions before age 40",b:"Contributions made at 22 grow through compound returns for 40+ years — even small amounts will significantly outperform much larger amounts started at 42",c:"The government provides a matching grant only for contributions made before 30",d:"Pension fund managers charge lower fees for younger investors",ans:"b",exp:"Compound growth is the engine of retirement wealth. ₵100 invested at 22 at 10% annual return becomes ₵4,526 by age 60 — more than the ₵1,745 that ₵100 invested at 40 would grow to."},
+];
+
+let userAnswers = {};
+let quizStarted = false;
+let quizSubmitted = false;
+
+function startQuiz() {
+  document.getElementById('start-screen').style.display = 'none';
+  document.getElementById('progress-bar-track').style.display = 'block';
+  document.getElementById('progress-text').style.display = 'block';
+  document.getElementById('submit-area').style.display = 'block';
+  quizStarted = true;
+  renderQuestions();
+  updateProgress();
+}
+
+function renderQuestions() {
+  const container = document.getElementById('questions-container');
+  container.innerHTML = '';
+  QUESTIONS.forEach((q, idx) => {
+    const div = document.createElement('div');
+    div.className = 'q-card';
+    div.id = 'qcard-' + idx;
+    div.innerHTML = `
+      <div class="chapter-badge"><i class="fas fa-tag mr-1"></i>${q.chapter}</div>
+      <div class="q-num">Question ${idx+1} of ${QUESTIONS.length}</div>
+      <div class="q-text">${q.q}</div>
+      <div class="opts">
+        ${['a','b','c','d'].map(l => `
+          <div class="opt" id="opt-${idx}-${l}" onclick="selectAnswer(${idx},'${l}')">
+            <span class="opt-letter">${l.toUpperCase()}</span>
+            <span>${q[l]}</span>
+          </div>
+        `).join('')}
+      </div>
+      <div class="explanation" id="exp-${idx}"><i class="fas fa-lightbulb mr-1 text-yellow-500"></i> ${q.exp}</div>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function selectAnswer(idx, letter) {
+  if (quizSubmitted) return;
+  // Clear previous selection on this question
+  ['a','b','c','d'].forEach(l => {
+    const el = document.getElementById(`opt-${idx}-${l}`);
+    el.classList.remove('selected');
+  });
+  userAnswers[idx] = letter;
+  document.getElementById(`opt-${idx}-${letter}`).classList.add('selected');
+  updateProgress();
+  // Auto-submit when every question has been answered
+  if (Object.keys(userAnswers).length === QUESTIONS.length) {
+    setTimeout(submitQuiz, 600);
+  }
+}
+
+function updateProgress() {
+  const answered = Object.keys(userAnswers).length;
+  const pct = Math.round((answered / QUESTIONS.length) * 100);
+  document.getElementById('progress-bar-fill').style.width = pct + '%';
+  document.getElementById('progress-text').textContent = `${answered} of ${QUESTIONS.length} questions answered`;
+}
+
+function submitQuiz() {
+  const answered = Object.keys(userAnswers).length;
+  if (answered < QUESTIONS.length) {
+    const remaining = QUESTIONS.length - answered;
+    if (!confirm(`You have ${remaining} unanswered question${remaining===1?'':'s'}. Submit anyway?`)) return;
+  }
+  quizSubmitted = true;
+  document.getElementById('submit-area').style.display = 'none';
+
+  let correct = 0;
+  QUESTIONS.forEach((q, idx) => {
+    const chosen = userAnswers[idx];
+    const isCorrect = chosen === q.ans;
+    if (isCorrect) correct++;
+
+    ['a','b','c','d'].forEach(l => {
+      const el = document.getElementById(`opt-${idx}-${l}`);
+      el.classList.remove('selected');
+      el.style.cursor = 'default';
+      if (l === q.ans) {
+        el.classList.add(chosen === l ? 'correct' : 'reveal-correct');
+      } else if (l === chosen) {
+        el.classList.add('wrong');
+      }
+    });
+
+    // Show explanation
+    document.getElementById(`exp-${idx}`).classList.add('show');
+  });
+
+  const pct = Math.round((correct / QUESTIONS.length) * 100);
+  const banner = document.getElementById('score-banner');
+  const text = document.getElementById('score-text');
+  text.textContent = `You scored ${correct} / ${QUESTIONS.length} (${pct}%)  —  ${
+    pct >= 80 ? '🏆 Outstanding!' : pct >= 60 ? '✅ Well done!' : '📚 Keep studying — review the notes and try again.'
+  }`;
+  banner.style.display = 'block';
+  banner.scrollIntoView({behavior:'smooth', block:'start'});
+
+  document.getElementById('progress-bar-fill').style.width = '100%';
+  document.getElementById('progress-text').textContent = `Quiz complete — ${correct}/${QUESTIONS.length} correct (${pct}%)`;
+}
+
+function restartQuiz() {
+  userAnswers = {};
+  quizSubmitted = false;
+  document.getElementById('score-banner').style.display = 'none';
+  document.getElementById('submit-area').style.display = 'block';
+  renderQuestions();
+  updateProgress();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+</script>
+</body>
+</html>

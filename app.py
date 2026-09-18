@@ -6161,6 +6161,11 @@ def yiap_notes():
     return render_template('yiap_notes.html')
 
 
+@app.route('/mastering-money')
+def mastering_money():
+    return render_template('money_hub.html')
+
+
 @app.route('/yiap-practice/course/<slug>')
 @login_required
 def yiap_course_detail(slug):
