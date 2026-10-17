@@ -148,11 +148,19 @@
 
         /* ── CALCULATORS ───────────────────────────────────── */
         .calculators{padding:88px 0 72px;}
-        .calculators-header{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:20px;margin-bottom:36px;}
-        .category-filters{display:flex;gap:7px;flex-wrap:wrap;}
-        .category-filter{padding:7px 16px;background:white;border:1.5px solid var(--border);border-radius:30px;font-size:.79rem;font-weight:600;color:var(--gray);cursor:pointer;transition:var(--transition);font-family:'Poppins',sans-serif;user-select:none;}
-        .category-filter:hover{border-color:var(--primary);color:var(--primary);background:rgba(37,99,235,.04);}
-        .category-filter.active{background:var(--primary);color:white;border-color:var(--primary);box-shadow:0 4px 14px rgba(37,99,235,.3);}
+        .calculators-header{margin-bottom:36px;}
+        .calc-header-top{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;margin-bottom:22px;}
+        .calc-total-badge{display:inline-flex;align-items:center;gap:7px;background:linear-gradient(135deg,#1e3a8a,#2563eb);color:#fff;font-size:.78rem;font-weight:800;padding:7px 16px;border-radius:20px;letter-spacing:.05em;box-shadow:0 4px 14px rgba(37,99,235,.28);}
+        /* Filters strip — horizontal scroll, no wrap */
+        .category-filters-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:4px;}
+        .category-filters-wrap::-webkit-scrollbar{display:none;}
+        .category-filters{display:flex;gap:8px;flex-wrap:nowrap;min-width:max-content;}
+        .category-filter{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;background:#fff;border:1.5px solid #e2e8f0;border-radius:12px;font-size:.83rem;font-weight:600;color:#475569;cursor:pointer;transition:all .22s;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,.05);user-select:none;font-family:'Poppins',sans-serif;}
+        .category-filter .cf-icon{width:28px;height:28px;border-radius:8px;background:#f1f5f9;display:flex;align-items:center;justify-content:center;font-size:.75rem;color:#64748b;transition:all .22s;flex-shrink:0;}
+        .category-filter:hover{border-color:#3b82f6;color:#2563eb;background:#eff6ff;transform:translateY(-2px);box-shadow:0 4px 14px rgba(37,99,235,.14);}
+        .category-filter:hover .cf-icon{background:#dbeafe;color:#2563eb;}
+        .category-filter.active{background:linear-gradient(135deg,#1d4ed8,#3b82f6);border-color:transparent;color:#fff;box-shadow:0 4px 18px rgba(37,99,235,.32);transform:translateY(-2px);}
+        .category-filter.active .cf-icon{background:rgba(255,255,255,.22);color:#fff;}
         .calculator-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(265px,1fr));gap:18px;}
         .calculator-card{background:white;border-radius:var(--radius-lg);overflow:hidden;border:1px solid var(--border);box-shadow:var(--shadow-sm);transition:var(--transition);display:flex;flex-direction:column;position:relative;}
         .calculator-card.hidden{display:none;}
@@ -263,7 +271,7 @@
             .hero-buttons{flex-direction:column;}
             .hero-stats{flex-direction:column;border-radius:16px;width:100%;}
             .stat-item{padding:13px 17px;flex-direction:row;justify-content:space-between;align-items:center;border-right:none;border-bottom:1px solid rgba(255,255,255,.07);}
-            .calculators-header{flex-direction:column;}
+            .calc-header-top{flex-direction:column;align-items:flex-start;}
             .cta-banner{margin:0;padding:32px 24px;}
             .cta-banner-wrap{padding:0 16px;}
             .testimonial-grid{grid-template-columns:1fr;}
@@ -272,8 +280,8 @@
         }
         @media(max-width:576px){
             .nav-links{flex-wrap:wrap;justify-content:center;gap:3px;}
-            .category-filters{gap:5px;}
-            .category-filter{padding:5px 11px;font-size:.75rem;}
+            .category-filter{padding:8px 12px;font-size:.78rem;gap:6px;}
+            .category-filter .cf-icon{width:24px;height:24px;font-size:.7rem;}
             .section-title{font-size:21px;}
             .features-strip-inner{gap:12px;}
             .feature-item{font-size:.82rem;}
@@ -485,23 +493,47 @@
     <section id="calculators" class="calculators">
         <div class="container">
             <div class="calculators-header">
+              <div class="calc-header-top">
                 <div>
-                    <div class="section-subtitle">INVESTMENT TOOLS</div>
-                    <h2 class="section-title">Financial Calculators</h2>
+                  <div class="section-subtitle">INVESTMENT TOOLS</div>
+                  <h2 class="section-title">Financial Calculators</h2>
                 </div>
-                
+                <span class="calc-total-badge"><i class="fas fa-layer-group"></i> 51+ Professional Tools</span>
+              </div>
+              <div class="category-filters-wrap">
                 <div class="category-filters">
-                    <div class="category-filter active" data-filter="all">All</div>
-                    <div class="category-filter" data-filter="Stocks">Stocks</div>
-                    <div class="category-filter" data-filter="Valuation">Valuation</div>
-                    <div class="category-filter" data-filter="Bonds">Bonds</div>
-                    <div class="category-filter" data-filter="Derivatives">Derivatives</div>
-                    <div class="category-filter" data-filter="Portfolio &amp; Risk">Portfolio &amp; Risk</div>
-                    <div class="category-filter" data-filter="Personal Finance">Personal Finance</div>
-                    <div class="category-filter" data-filter="Real Estate">Real Estate</div>
-                    <div class="category-filter" data-filter="ESG &amp; Impact">ESG &amp; Impact</div>
-                    <div class="category-filter" data-filter="Private Markets">Private Markets</div>
-                </div>                </div>
+                  <div class="category-filter active" data-filter="all">
+                    <div class="cf-icon"><i class="fas fa-th"></i></div>All
+                  </div>
+                  <div class="category-filter" data-filter="Stocks">
+                    <div class="cf-icon"><i class="fas fa-chart-line"></i></div>Stocks
+                  </div>
+                  <div class="category-filter" data-filter="Valuation">
+                    <div class="cf-icon"><i class="fas fa-calculator"></i></div>Valuation
+                  </div>
+                  <div class="category-filter" data-filter="Bonds">
+                    <div class="cf-icon"><i class="fas fa-landmark"></i></div>Bonds
+                  </div>
+                  <div class="category-filter" data-filter="Derivatives">
+                    <div class="cf-icon"><i class="fas fa-exchange-alt"></i></div>Derivatives
+                  </div>
+                  <div class="category-filter" data-filter="Portfolio &amp; Risk">
+                    <div class="cf-icon"><i class="fas fa-shield-alt"></i></div>Portfolio &amp; Risk
+                  </div>
+                  <div class="category-filter" data-filter="Personal Finance">
+                    <div class="cf-icon"><i class="fas fa-wallet"></i></div>Personal Finance
+                  </div>
+                  <div class="category-filter" data-filter="Real Estate">
+                    <div class="cf-icon"><i class="fas fa-home"></i></div>Real Estate
+                  </div>
+                  <div class="category-filter" data-filter="ESG &amp; Impact">
+                    <div class="cf-icon"><i class="fas fa-leaf"></i></div>ESG &amp; Impact
+                  </div>
+                  <div class="category-filter" data-filter="Private Markets">
+                    <div class="cf-icon"><i class="fas fa-briefcase"></i></div>Private Markets
+                  </div>
+                </div>
+              </div>
             </div>
             
             <!-- Free / Premium section labels -->
