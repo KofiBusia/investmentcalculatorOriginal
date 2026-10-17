@@ -2263,13 +2263,19 @@ def valuation():
     return render_template('valuation.html')
 
 
+# ── PDF Financial Statement Extraction ────────────────────────────────
+
+_NUM_PAT = re.compile(
+    r'\(?([\d]{1,3}(?:[,\s][\d]{3})*(?:\.\d+)?)\)?'
+)
+
 def _parse_num(s):
-    """Parse a number string like '12,345.6' or '(1,234)' → float or None."""
+    """Parse '12,345.6', '12 345', '(1,234)' → float; None on failure."""
     if not s:
         return None
-    s = s.strip().replace(',', '').replace(' ', '')
+    s = s.strip()
     negative = s.startswith('(') and s.endswith(')')
-    s = s.strip('()')
+    s = s.strip('()').replace(',', '').replace(' ', '')
     try:
         val = float(s)
         return -val if negative else val
@@ -2277,250 +2283,362 @@ def _parse_num(s):
         return None
 
 
-def _find(text, *patterns):
-    """Return first numeric match for any of the regex patterns (case-insensitive)."""
-    for pat in patterns:
-        m = re.search(pat, text, re.IGNORECASE | re.MULTILINE)
-        if m:
-            val = _parse_num(m.group(1))
-            if val is not None:
-                return val
+def _detect_scale(text):
+    """Return multiplier to convert raw PDF numbers → thousands (000s)."""
+    t = text[:3000]  # check header only
+    if re.search(r"in\s+millions|GHS['\s]*m\b|expressed\s+in\s+millions", t, re.I):
+        return 1000.0   # millions → ×1000 = thousands
+    if re.search(r"in\s+thousands|GHS['\s]*000|'000|expressed\s+in\s+thousands", t, re.I):
+        return 1.0      # already in thousands
+    # If numbers look big (> 1 billion raw) assume full units → ÷1000
+    nums = re.findall(r'[\d,]{10,}', text[:5000])
+    if len(nums) >= 3:
+        return 0.001    # full units → ÷1000 = thousands
+    return 1.0          # default: assume already in thousands
+
+
+def _find_val(text, *label_pats, require_positive=True):
+    """
+    Scan each line of text for a label match, then take the first numeric
+    token on that line (or the next non-empty line).  Returns float or None.
+    A 'numeric token' is anything matching _NUM_PAT and > 0 (if require_positive).
+    """
+    lines = text.split('\n')
+    for i, line in enumerate(lines):
+        for pat in label_pats:
+            if re.search(pat, line, re.IGNORECASE):
+                # Try numbers on the same line first (after the label)
+                rest = re.sub(pat, '', line, flags=re.IGNORECASE, count=1)
+                candidates = _NUM_PAT.findall(rest)
+                for c in candidates:
+                    v = _parse_num(c)
+                    if v is not None and (not require_positive or v > 0):
+                        return v
+                # Try the very next non-empty line
+                for j in range(i + 1, min(i + 3, len(lines))):
+                    next_line = lines[j].strip()
+                    if next_line:
+                        candidates = _NUM_PAT.findall(next_line)
+                        for c in candidates:
+                            v = _parse_num(c)
+                            if v is not None and (not require_positive or v > 0):
+                                return v
+                        break
     return None
 
 
-def extract_financial_figures(text):
-    """Extract key financial metrics from plain-text financial statements.
+# ── Per-statement-type extractors ─────────────────────────────────────
 
-    Returns a dict mapping valuation input field IDs to extracted values.
-    All monetary values are kept in the units found (assumed thousands unless
-    the PDF uses millions, in which case multiply ×1000 is done automatically
-    when we detect 'GHₛ m' or 'GHS million' headers).
-    """
-    # Detect scale: if 'in thousands' or 'GHS 000' found, values are already in 000s.
-    # If 'in millions' found, multiply by 1000 to convert to 000s.
-    in_millions = bool(re.search(r"in millions|GHS.{0,5}million|thousands omitted", text, re.IGNORECASE))
-    # Default: assume thousands (000)
-    scale = 1000.0 if in_millions else 1.0  # multiply raw values by this to get 000s
+def _extract_income_statement(text, scale):
+    def s(v):
+        return round(v * scale, 2) if v is not None else None
 
-    def num(raw):
-        if raw is None:
-            return None
-        return round(raw * scale, 2)
+    revenue   = s(_find_val(text,
+        r'\btotal\s+revenue\b', r'\bnet\s+revenue\b', r'\bnet\s+sales?\b',
+        r'\bturnover\b', r'^revenue\b'))
+    ebitda    = s(_find_val(text, r'\bebitda\b'))
+    ebit      = s(_find_val(text,
+        r'\bebit\b', r'\boperating\s+profit\b', r'\boperating\s+income\b',
+        r'\bprofit\s+from\s+operations?\b', r'\bprofit\s+before\s+(finance|interest|tax)\b'))
+    net_inc   = s(_find_val(text,
+        r'\bnet\s+(?:income|profit)\b',
+        r'\bprofit\s+(?:for|after)\s+(?:the\s+)?(?:year|period)\b',
+        r'\bprofit\s+attributable\s+to\s+(?:owners?|shareholders?|equity)\b',
+        r'\bprofit\s+for\s+the\s+(?:year|period)\b'))
+    da        = s(_find_val(text,
+        r'\bdepreciation\s+(?:and|&)\s+amortis?ation\b',
+        r'\bdepreciation\s+and\s+impairment\b',
+        r'\bamortisation\s+(?:and|of)\b'))
+    interest  = s(_find_val(text,
+        r'\bfinance\s+costs?\b', r'\binterest\s+expense\b',
+        r'\binterest\s+(?:and\s+)?finance\s+charges?\b'))
+    tax_exp   = s(_find_val(text,
+        r'\bincome\s+tax\s+expense\b', r'\btaxation\b',
+        r'\bcorporate\s+tax\b'))
+    tax_rate  = _find_val(text,
+        r'\beffective\s+tax\s+rate\b',
+        r'\btax\s+rate\b', require_positive=False)
+    # derive tax rate from expense / ebit if not stated
+    if tax_rate is None and ebit and tax_exp and ebit > 0:
+        tax_rate = round(tax_exp / ebit * 100, 1)
+    eps = _find_val(text,
+        r'\b(?:basic\s+)?earnings\s+per\s+share\b',
+        r'\beps\b', r'\bearnings\s+per\s+ordinary\s+share\b')
+    dps = _find_val(text,
+        r'\bdividend(?:s)?\s+per\s+share\b',
+        r'\bdps\b', r'\bdividend\s+declared\s+per\s+share\b')
 
-    # --- Revenue / Net Revenue / Turnover ---
-    revenue = _find(text,
-        r'(?:total\s+)?(?:revenue|net\s+revenue|net\s+sales?|turnover)[^\n]{0,40}?[\s:GHS$]+([\d,]+(?:\.\d+)?)',
-        r'^revenue\s+([\d,]+(?:\.\d+)?)',
-    )
+    summary = {}
+    if revenue  is not None: summary['Revenue (000)']         = revenue
+    if ebitda   is not None: summary['EBITDA (000)']          = ebitda
+    if ebit     is not None: summary['EBIT (000)']            = ebit
+    if net_inc  is not None: summary['Net Income (000)']      = net_inc
+    if da       is not None: summary['D&A (000)']             = da
+    if interest is not None: summary['Finance Costs (000)']   = interest
+    if tax_exp  is not None: summary['Tax Expense (000)']     = tax_exp
+    if tax_rate is not None: summary['Eff. Tax Rate (%)']     = tax_rate
+    if eps      is not None: summary['EPS']                   = eps
+    if dps      is not None: summary['DPS']                   = dps
 
-    # --- Net Income / Profit after tax ---
-    net_income = _find(text,
-        r'(?:net\s+income|net\s+profit|profit\s+(?:for|after)\s+(?:the\s+)?(?:year|period)|profit\s+attributable)[^\n]{0,40}?[\s:GHS$]+([\d,]+(?:\.\d+)?)',
-        r'profit\s+for\s+the\s+(?:year|period)[^\n]{0,20}([\d,]+(?:\.\d+)?)',
-    )
+    return {
+        'revenue': revenue, 'ebitda': ebitda, 'ebit': ebit,
+        'net_inc': net_inc, 'da': da, 'interest': interest,
+        'tax_rate': tax_rate, 'eps': eps, 'dps': dps,
+        'summary': summary,
+    }
 
-    # --- EBIT / Operating Profit ---
-    ebit = _find(text,
-        r'(?:ebit|operating\s+(?:profit|income|result))[^\n]{0,40}?[\s:GHS$]+([\d,]+(?:\.\d+)?)',
-    )
 
-    # --- EBITDA ---
-    ebitda = _find(text,
-        r'ebitda[^\n]{0,40}?[\s:GHS$]+([\d,]+(?:\.\d+)?)',
-    )
+def _extract_balance_sheet(text, scale):
+    def s(v):
+        return round(v * scale, 2) if v is not None else None
 
-    # --- Depreciation & Amortisation ---
-    da = _find(text,
-        r'depreciation\s+(?:and|&)\s+amortis?ation[^\n]{0,40}?[\s:GHS$]+([\d,]+(?:\.\d+)?)',
-        r'd\s*&?\s*a\b[^\n]{0,30}([\d,]+(?:\.\d+)?)',
-    )
+    cash      = s(_find_val(text,
+        r'\bcash\s+and\s+(?:cash\s+)?equivalents?\b',
+        r'\bcash\s+at\s+(?:bank|end\s+of\s+(?:year|period))\b',
+        r'\bcash\s+and\s+bank\s+balances?\b'))
+    st_debt   = s(_find_val(text,
+        r'\bshort[- ]term\s+borrowings?\b',
+        r'\bcurrent\s+portion\s+of\b.*\bborrowings?\b',
+        r'\bbank\s+overdraft\b'))
+    lt_debt   = s(_find_val(text,
+        r'\blong[- ]term\s+borrowings?\b',
+        r'\bnon[- ]current\s+borrowings?\b',
+        r'\bterm\s+loans?\s+\(non[- ]current\)\b'))
+    total_debt = s(_find_val(text,
+        r'\btotal\s+borrowings?\b',
+        r'\btotal\s+(?:financial\s+)?debt\b',
+        r'\btotal\s+interest[- ]bearing\s+liabilities?\b'))
+    if total_debt is None and (st_debt or lt_debt):
+        total_debt = round((st_debt or 0) + (lt_debt or 0), 2)
+    equity    = s(_find_val(text,
+        r'\btotal\s+(?:shareholders?|stockholders?)[\'s]*\s+equity\b',
+        r'\btotal\s+equity\b',
+        r'\bshareholders?[\'s]*\s+funds?\b',
+        r'\bequity\s+attributable\s+to\s+(?:owners?|equity\s+holders?)\b'))
+    shares    = _find_val(text,
+        r'\bshares?\s+(?:outstanding|in\s+issue)\b',
+        r'\bnumber\s+of\s+(?:issued|outstanding)\s+(?:ordinary\s+)?shares?\b',
+        r'\bissued\s+and\s+(?:fully\s+)?paid[- ]up\s+shares?\b')
+    bvps      = _find_val(text,
+        r'\bbook\s+value\s+per\s+share\b',
+        r'\bnet\s+asset\s+value\s+per\s+share\b',
+        r'\bnav\s+per\s+share\b')
+    total_assets = s(_find_val(text, r'\btotal\s+assets?\b'))
 
-    # --- Free Cash Flow / Operating Cash Flow ---
-    fcf = _find(text,
-        r'free\s+cash\s+flow[^\n]{0,40}?[\s:GHS$]+([\d,]+(?:\.\d+)?)',
-    )
-    ocf = _find(text,
-        r'(?:net\s+cash\s+(?:from|generated\s+(?:from|by))\s+operating\s+activities|cash\s+from\s+operations)[^\n]{0,40}?[\s:GHS$]+([\d,]+(?:\.\d+)?)',
-    )
+    net_debt = None
+    if total_debt is not None and cash is not None:
+        net_debt = round(total_debt - cash, 2)
 
-    # --- Capital Expenditure ---
-    capex = _find(text,
-        r'(?:capital\s+expenditure|capex|purchase\s+of\s+(?:property|fixed\s+assets|ppe|plant))[^\n]{0,40}?[\s:GHS$]+([\d,]+(?:\.\d+)?)',
-    )
+    summary = {}
+    if cash         is not None: summary['Cash & Equiv. (000)']   = cash
+    if st_debt      is not None: summary['ST Borrowings (000)']   = st_debt
+    if lt_debt      is not None: summary['LT Borrowings (000)']   = lt_debt
+    if total_debt   is not None: summary['Total Debt (000)']      = total_debt
+    if net_debt     is not None: summary['Net Debt (000)']        = net_debt
+    if equity       is not None: summary['Total Equity (000)']    = equity
+    if shares       is not None: summary['Shares Outstdg (000)']  = round(shares, 0)
+    if bvps         is not None: summary['BVPS']                  = bvps
+    if total_assets is not None: summary['Total Assets (000)']    = total_assets
 
-    # --- Total Debt ---
-    total_debt = _find(text,
-        r'total\s+(?:borrowings?|(?:financial\s+)?debt|interest[- ]bearing\s+liabilities?)[^\n]{0,40}?[\s:GHS$]+([\d,]+(?:\.\d+)?)',
-    )
-    long_term_debt = _find(text,
-        r'long[- ]term\s+(?:borrowings?|debt|loans?)[^\n]{0,40}?[\s:GHS$]+([\d,]+(?:\.\d+)?)',
-    )
+    return {
+        'cash': cash, 'total_debt': total_debt, 'equity': equity,
+        'shares': shares, 'bvps': bvps, 'net_debt': net_debt,
+        'total_assets': total_assets,
+        'summary': summary,
+    }
 
-    # --- Cash & Equivalents ---
-    cash = _find(text,
-        r'cash\s+(?:and\s+cash\s+equivalents?|at\s+(?:end|close))[^\n]{0,40}?[\s:GHS$]+([\d,]+(?:\.\d+)?)',
-    )
 
-    # --- Shareholders' Equity / Total Equity ---
-    equity = _find(text,
-        r'(?:total\s+)?(?:shareholders?|stockholders?)[' ']?\s*equity[^\n]{0,40}?[\s:GHS$]+([\d,]+(?:\.\d+)?)',
-        r'total\s+equity[^\n]{0,40}?[\s:GHS$]+([\d,]+(?:\.\d+)?)',
-    )
+def _extract_cash_flow(text, scale):
+    def s(v):
+        return round(v * scale, 2) if v is not None else None
 
-    # --- Shares Outstanding ---
-    shares = _find(text,
-        r'(?:shares\s+(?:outstanding|in\s+issue)|number\s+of\s+(?:issued|outstanding)\s+shares?)[^\n]{0,50}?([\d,]+(?:\.\d+)?)',
-    )
+    ocf = s(_find_val(text,
+        r'\bnet\s+cash\s+(?:from|generated\s+(?:from|by))\s+operating\s+activities?\b',
+        r'\bcash\s+(?:flows?\s+)?from\s+operations?\b',
+        r'\boperating\s+cash\s+(?:flow|inflow)\b'))
+    capex = s(_find_val(text,
+        r'\bpurchase\s+of\s+(?:property|fixed\s+assets?|ppe|plant\s+and\s+equipment)\b',
+        r'\bacquisition\s+of\s+(?:property|fixed\s+assets?|ppe)\b',
+        r'\bcapital\s+expenditure(?:s)?\b',
+        r'\bcapex\b'))
+    fcf_direct = s(_find_val(text, r'\bfree\s+cash\s+flow\b'))
+    fcf = fcf_direct
+    if fcf is None and ocf is not None and capex is not None:
+        fcf = round(ocf - capex, 2)
+    da_cfs = s(_find_val(text,
+        r'\bdepreciation\s+(?:and|&)\s+amortis?ation\b',
+        r'\bdepreciation\b'))
+    proceeds = s(_find_val(text,
+        r'\bproceeds\s+from\s+(?:disposal|sale)\s+of\s+(?:property|fixed\s+assets?|ppe)\b'))
+    financing_cf = s(_find_val(text,
+        r'\bnet\s+cash\s+(?:used\s+in|from)\s+financing\s+activities?\b',
+        require_positive=False))
+    investing_cf = s(_find_val(text,
+        r'\bnet\s+cash\s+used\s+in\s+investing\s+activities?\b',
+        r'\bnet\s+cash\s+(?:from|used\s+in)\s+investing\s+activities?\b',
+        require_positive=False))
 
-    # --- EPS ---
-    eps = _find(text,
-        r'(?:basic\s+)?(?:earnings|eps)\s+per\s+share[^\n]{0,40}?[\s:GHS$]+([\d,]+(?:\.\d+)?)',
-    )
+    summary = {}
+    if ocf          is not None: summary['Oper. Cash Flow (000)']  = ocf
+    if capex        is not None: summary['CapEx (000)']            = capex
+    if fcf          is not None: summary['Free Cash Flow (000)']   = fcf
+    if da_cfs       is not None: summary['D&A (indirect, 000)']    = da_cfs
+    if proceeds     is not None: summary['Asset Disposal (000)']   = proceeds
+    if investing_cf is not None: summary['Investing CF (000)']     = investing_cf
+    if financing_cf is not None: summary['Financing CF (000)']     = financing_cf
 
-    # --- Dividends Per Share ---
-    dps = _find(text,
-        r'dividend[s]?\s+per\s+share[^\n]{0,40}?[\s:GHS$]+([\d,]+(?:\.\d+)?)',
-    )
+    return {
+        'ocf': ocf, 'capex': capex, 'fcf': fcf, 'da_cfs': da_cfs,
+        'summary': summary,
+    }
 
-    # --- Book Value Per Share ---
-    bvps = _find(text,
-        r'(?:book\s+value|nav)\s+per\s+share[^\n]{0,40}?[\s:GHS$]+([\d,]+(?:\.\d+)?)',
-    )
 
-    # --- Interest Expense ---
-    interest = _find(text,
-        r'(?:finance\s+costs?|interest\s+expense|interest\s+payable)[^\n]{0,40}?[\s:GHS$]+([\d,]+(?:\.\d+)?)',
-    )
-
-    # --- Tax Rate ---
-    tax_rate = _find(text,
-        r'(?:effective\s+)?(?:income\s+)?tax\s+rate[^\n]{0,30}?([\d,]+(?:\.\d+)?)\s*%',
-    )
-
-    # Compute net debt (debt - cash)
-    debt_val = num(total_debt) or num(long_term_debt)
-    cash_val = num(cash)
-    net_debt = round(debt_val - cash_val, 2) if debt_val is not None and cash_val is not None else None
-
-    # Compute FCFF proxy: OCF - CapEx if FCF not found
-    fcff_val = num(fcf) or (round(num(ocf) - num(capex), 2) if num(ocf) is not None and num(capex) is not None else num(ocf))
-
-    # NOPAT proxy: EBIT × (1 − tax_rate/100) if both found
-    nopat = None
-    if ebit is not None and tax_rate is not None:
-        nopat = round(num(ebit) * (1 - tax_rate / 100), 2) if num(ebit) is not None else None
-
-    # Invested capital proxy: equity + debt - cash
-    eq_val = num(equity)
-    inv_cap = round(eq_val + (debt_val or 0) - (cash_val or 0), 2) if eq_val is not None else None
-
-    # Build field map: {input_id: value, ...}
-    # Only include fields where a value was extracted
+def _build_fields(inc, bs, cf):
+    """Merge results from the three statement extractors into calculator field IDs."""
     fields = {}
 
-    # Equity DCF fields
-    if fcff_val is not None:
-        fields['eq_fcff1'] = fcff_val
-    if net_debt is not None:
-        fields['eq_netdebt'] = net_debt
-        fields['eva_debt'] = net_debt
-    if shares is not None:
-        fields['eq_shares'] = round(shares, 0)
-        fields['eva_sh'] = round(shares, 0)
+    # pull shorthand
+    revenue   = inc.get('revenue')
+    ebit      = inc.get('ebit')
+    net_inc   = inc.get('net_inc')
+    tax_rate  = inc.get('tax_rate')
+    eps       = inc.get('eps')
+    dps       = inc.get('dps')
+    da        = inc.get('da')
 
-    # DDM fields
-    if dps is not None:
-        fields['ddm_d0'] = round(dps, 4)
-    if eps is not None:
-        fields['rim_roe_proxy'] = eps  # informational
+    cash      = bs.get('cash')
+    total_debt= bs.get('total_debt')
+    equity    = bs.get('equity')
+    shares    = bs.get('shares')
+    bvps      = bs.get('bvps')
+    net_debt  = bs.get('net_debt')
 
-    # RIM fields
-    if bvps is not None:
-        fields['rim_bv'] = round(bvps, 4)
-    if equity is not None and shares is not None and shares > 0:
-        bvps_calc = round(num(equity) / shares, 4) if eq_val is not None and shares > 0 else None
-        if bvps_calc and 'rim_bv' not in fields:
-            fields['rim_bv'] = bvps_calc
+    ocf       = cf.get('ocf')
+    capex     = cf.get('capex')
+    fcf       = cf.get('fcf')
+    da_cfs    = cf.get('da_cfs')
 
-    # Capital budgeting
-    if revenue is not None:
-        fields['cb_rev'] = num(revenue)
-    if capex is not None:
-        fields['cb_capex'] = num(capex)
-    if tax_rate is not None:
-        fields['cb_tax'] = tax_rate
+    da_best   = da if da is not None else da_cfs
 
-    # EVA fields
-    if nopat is not None:
-        fields['eva_nopat'] = nopat
-    if inv_cap is not None:
-        fields['eva_ic'] = inv_cap
+    # ── Computed metrics ──────────────────────────────────
+    # Net debt
+    if net_debt is None and total_debt is not None and cash is not None:
+        net_debt = round(total_debt - cash, 2)
 
-    # M&A fields (assumes target; acquirer must be set manually)
-    if net_income is not None:
-        fields['ma_tgtni'] = round(num(net_income) / 1000, 2)  # convert 000 → millions for M&A calc
-    if shares is not None:
-        fields['ma_tgts'] = round(shares / 1000, 2)  # convert 000 → millions for M&A calc
+    # FCFF: prefer CF statement; fallback to OCF-CapEx
+    fcff = fcf
+    if fcff is None and ocf is not None and capex is not None:
+        fcff = round(ocf - capex, 2)
+    if fcff is None:
+        fcff = ocf
 
-    # Summary metrics for display
-    summary = {}
-    if revenue is not None:       summary['Revenue (000)'] = num(revenue)
-    if ebitda is not None:         summary['EBITDA (000)'] = num(ebitda)
-    if ebit is not None:           summary['EBIT (000)'] = num(ebit)
-    if net_income is not None:     summary['Net Income (000)'] = num(net_income)
-    if ocf is not None:            summary['Oper. Cash Flow (000)'] = num(ocf)
-    if fcff_val is not None:       summary['Free Cash Flow (000)'] = fcff_val
-    if capex is not None:          summary['CapEx (000)'] = num(capex)
-    if da is not None:             summary['D&A (000)'] = num(da)
-    if debt_val is not None:       summary['Total Debt (000)'] = debt_val
-    if cash_val is not None:       summary['Cash (000)'] = cash_val
-    if net_debt is not None:       summary['Net Debt (000)'] = net_debt
-    if eq_val is not None:         summary['Total Equity (000)'] = eq_val
-    if shares is not None:         summary['Shares Outstdg (000)'] = round(shares, 0)
-    if eps is not None:            summary['EPS'] = eps
-    if dps is not None:            summary['DPS'] = dps
-    if bvps is not None:           summary['BVPS'] = bvps
-    if interest is not None:       summary['Interest Expense (000)'] = num(interest)
-    if tax_rate is not None:       summary['Effective Tax Rate (%)'] = tax_rate
+    # NOPAT = EBIT × (1 − t)
+    nopat = None
+    if ebit is not None and tax_rate is not None:
+        nopat = round(ebit * (1 - tax_rate / 100), 2)
 
-    return {'fields': fields, 'summary': summary}
+    # Invested capital = equity + total_debt − cash
+    inv_cap = None
+    if equity is not None:
+        inv_cap = round(equity + (total_debt or 0) - (cash or 0), 2)
+
+    # BVPS from balance sheet if not stated
+    if bvps is None and equity is not None and shares is not None and shares > 0:
+        bvps = round(equity / shares, 4)
+
+    # ── Field population ──────────────────────────────────
+    # Equity DCF (eq_*)
+    if fcff     is not None: fields['eq_fcff1']   = fcff
+    if net_debt is not None: fields['eq_netdebt'] = net_debt
+    if shares   is not None: fields['eq_shares']  = round(shares, 0)
+
+    # DDM (ddm_*)
+    if dps      is not None: fields['ddm_d0']     = round(dps, 4)
+
+    # RIM (rim_*)
+    if bvps     is not None: fields['rim_bv']     = round(bvps, 4)
+    if net_inc is not None and equity is not None and equity > 0:
+        fields['rim_roe'] = round(net_inc / equity * 100, 2)
+
+    # Capital budgeting (cb_*)
+    if revenue  is not None: fields['cb_rev']     = revenue
+    if capex    is not None: fields['cb_capex']   = capex
+    if tax_rate is not None: fields['cb_tax']     = tax_rate
+
+    # EVA (eva_*)
+    if nopat    is not None: fields['eva_nopat']  = nopat
+    if inv_cap  is not None: fields['eva_ic']     = inv_cap
+    if net_debt is not None: fields['eva_debt']   = net_debt
+    if shares   is not None: fields['eva_sh']     = round(shares, 0)
+
+    # M&A (ma_*) — treat extracted company as target; values in millions
+    if net_inc  is not None: fields['ma_tgtni']   = round(net_inc / 1000, 2)
+    if shares   is not None: fields['ma_tgts']    = round(shares / 1000, 2)
+
+    return fields
+
+
+def _pdf_to_text(raw_bytes):
+    """Extract plain text from PDF bytes using pdfplumber; raises on failure."""
+    import pdfplumber
+    parts = []
+    with pdfplumber.open(io.BytesIO(raw_bytes)) as pdf:
+        for page in pdf.pages[:35]:
+            t = page.extract_text()
+            if t:
+                parts.append(t)
+    return '\n'.join(parts), len(parts)
 
 
 @app.route('/valuation/extract-pdf', methods=['POST'])
 def valuation_extract_pdf():
     try:
-        import pdfplumber
+        import pdfplumber  # noqa – verify available
     except ImportError:
         return jsonify({'error': 'pdfplumber not installed on server'}), 500
 
+    stmt_type = request.form.get('statement_type', 'auto')  # income | balance | cashflow | auto
     if 'pdf' not in request.files:
         return jsonify({'error': 'No file provided'}), 400
-
     f = request.files['pdf']
     if not f.filename.lower().endswith('.pdf'):
         return jsonify({'error': 'Only PDF files are accepted'}), 400
 
-    if f.content_length and f.content_length > 20 * 1024 * 1024:
-        return jsonify({'error': 'File too large (max 20 MB)'}), 413
-
-    raw = f.read(20 * 1024 * 1024)  # read at most 20 MB
-    text_parts = []
+    raw = f.read(20 * 1024 * 1024)
     try:
-        with pdfplumber.open(io.BytesIO(raw)) as pdf:
-            for page in pdf.pages[:30]:
-                t = page.extract_text()
-                if t:
-                    text_parts.append(t)
+        full_text, pages = _pdf_to_text(raw)
     except Exception as e:
         return jsonify({'error': f'Could not read PDF: {e}'}), 422
 
-    full_text = '\n'.join(text_parts)
     if not full_text.strip():
-        return jsonify({'error': 'No text could be extracted from this PDF (it may be image-based — try a text PDF)'}), 422
+        return jsonify({'error': 'No text found — PDF may be image-based. Use a text PDF.'}), 422
 
-    result = extract_financial_figures(full_text)
-    result['pages_read'] = len(text_parts)
-    return jsonify(result)
+    scale = _detect_scale(full_text)
+
+    if stmt_type == 'income':
+        data = _extract_income_statement(full_text, scale)
+        summary = data['summary']
+        fields  = _build_fields(data, {}, {})
+    elif stmt_type == 'balance':
+        data = _extract_balance_sheet(full_text, scale)
+        summary = data['summary']
+        fields  = _build_fields({}, data, {})
+    elif stmt_type == 'cashflow':
+        data = _extract_cash_flow(full_text, scale)
+        summary = data['summary']
+        fields  = _build_fields({}, {}, data)
+    else:
+        # auto: run all three and merge
+        inc = _extract_income_statement(full_text, scale)
+        bs  = _extract_balance_sheet(full_text, scale)
+        cf  = _extract_cash_flow(full_text, scale)
+        summary = {**inc['summary'], **bs['summary'], **cf['summary']}
+        fields  = _build_fields(inc, bs, cf)
+
+    if not summary:
+        return jsonify({'error': 'No financial figures found. Ensure this is a text-based financial statement PDF.'}), 422
+
+    return jsonify({'summary': summary, 'fields': fields, 'pages_read': pages, 'scale': scale})
 
 
 # --- STATIC / REDIRECT ROUTES ---
