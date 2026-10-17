@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 
 {% block title %}CFA Valuation Suite{% endblock %}
 {% block page_title %}CFA Valuation Suite{% endblock %}
@@ -6,102 +6,206 @@
 
 {% block head %}
 <style>
+:root {
+  --vt-indigo: #4f46e5;
+  --vt-indigo-light: #6366f1;
+  --vt-indigo-glow: rgba(79,70,229,.18);
+  --vt-teal: #0d9488;
+  --vt-slate: #0f172a;
+  --vt-card-bg: #ffffff;
+  --vt-border: #e2e8f0;
+  --vt-radius: 18px;
+}
+
+/* ── Page wrapper ───────────────────────────────────────── */
+.vt-page { background: linear-gradient(160deg,#f0f4ff 0%,#f8fafc 100%); min-height: 100vh; padding-bottom: 60px; }
+
+/* ── Hero banner above tabs ─────────────────────────────── */
+.vt-hero {
+  background: linear-gradient(135deg,#0f172a 0%,#1e1b4b 50%,#1e3a5f 100%);
+  border-radius: var(--vt-radius); padding: 32px 36px;
+  margin-bottom: 28px; position: relative; overflow: hidden;
+}
+.vt-hero::before {
+  content: ''; position: absolute; top: -80px; right: -60px;
+  width: 400px; height: 400px; border-radius: 50%;
+  background: radial-gradient(circle,rgba(99,102,241,.25) 0%,transparent 65%);
+  pointer-events: none;
+}
+.vt-hero-tag {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(99,102,241,.2); border: 1px solid rgba(99,102,241,.4);
+  color: #a5b4fc; font-size: .72rem; font-weight: 700;
+  padding: 4px 12px; border-radius: 20px; letter-spacing: .06em;
+  margin-bottom: 12px;
+}
+.vt-hero h1 { font-size: 1.65rem; font-weight: 800; color: #fff; margin-bottom: 8px; line-height: 1.2; }
+.vt-hero p  { font-size: .88rem; color: #94a3b8; max-width: 560px; line-height: 1.6; }
+.vt-hero-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.vt-chip {
+  background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.12);
+  color: #cbd5e1; font-size: .73rem; font-weight: 600;
+  padding: 5px 12px; border-radius: 20px;
+}
+.vt-chip i { color: #818cf8; margin-right: 4px; }
+
 /* ── Tab navigation ─────────────────────────────────────── */
 .vt-tabs {
   display: flex; flex-wrap: wrap; gap: 6px;
-  padding: 8px; background: #f1f5f9; border-radius: 14px;
-  margin-bottom: 28px;
+  padding: 10px; background: #fff;
+  border-radius: 20px; margin-bottom: 28px;
+  box-shadow: 0 4px 20px rgba(79,70,229,.08); border: 1px solid #e8ecff;
 }
 .vt-tab {
-  flex: 1 1 auto; min-width: 100px;
-  display: flex; flex-direction: column; align-items: center; gap: 4px;
-  padding: 10px 12px; border-radius: 10px;
+  flex: 1 1 auto; min-width: 90px;
+  display: flex; flex-direction: column; align-items: center; gap: 5px;
+  padding: 12px 10px; border-radius: 14px;
   cursor: pointer; border: none; background: transparent;
-  font-size: .78rem; font-weight: 600; color: #64748b;
-  transition: all .2s;
+  font-size: .76rem; font-weight: 600; color: #64748b;
+  transition: all .22s cubic-bezier(.4,0,.2,1);
 }
-.vt-tab i { font-size: 1.1rem; }
-.vt-tab:hover { background: #e2e8f0; color: #1e293b; }
-.vt-tab.active { background: #4f46e5; color: #fff; box-shadow: 0 4px 12px rgba(79,70,229,.35); }
+.vt-tab i { font-size: 1.15rem; }
+.vt-tab:hover { background: #f0f4ff; color: var(--vt-indigo); transform: translateY(-1px); }
+.vt-tab.active {
+  background: linear-gradient(135deg,var(--vt-indigo),#7c3aed);
+  color: #fff; box-shadow: 0 6px 18px rgba(79,70,229,.38);
+  transform: translateY(-2px);
+}
 
 /* ── Module panels ──────────────────────────────────────── */
 .vt-panel { display: none; }
-.vt-panel.active { display: block; }
+.vt-panel.active { display: block; animation: fadeIn .22s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 
 /* ── Calculator card ────────────────────────────────────── */
 .calc-card {
-  background: #fff; border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0,0,0,.07);
-  padding: 24px 28px; margin-bottom: 24px;
+  background: var(--vt-card-bg); border-radius: var(--vt-radius);
+  box-shadow: 0 4px 24px rgba(15,23,42,.06), 0 1px 4px rgba(15,23,42,.04);
+  margin-bottom: 24px; overflow: hidden;
+  border: 1px solid #eef0f8; transition: box-shadow .2s;
 }
-.calc-card h3 {
-  font-size: 1.05rem; font-weight: 700; color: #0f172a;
-  margin-bottom: 4px;
+.calc-card:hover { box-shadow: 0 8px 36px rgba(79,70,229,.1), 0 2px 8px rgba(15,23,42,.05); }
+.calc-card > h3 {
+  font-size: 1rem; font-weight: 800; color: #0f172a;
+  margin: 0; padding: 20px 26px 0;
+  display: flex; align-items: center; gap: 10px;
 }
-.calc-card .subtitle {
-  font-size: .8rem; color: #64748b; margin-bottom: 18px;
+.calc-card > h3::before {
+  content: ''; display: inline-block; width: 4px; height: 20px;
+  background: linear-gradient(180deg,#4f46e5,#7c3aed);
+  border-radius: 2px; flex-shrink: 0;
 }
+.calc-card > .subtitle {
+  font-size: .78rem; color: #64748b; margin: 4px 0 0;
+  padding: 0 26px 18px; border-bottom: 1px solid #f0f4ff;
+  line-height: 1.5;
+}
+.calc-card > .inp-grid, .calc-card > .res-grid,
+.calc-card > [id$="_res"], .calc-card > [id$="_verdict"],
+.calc-card > [id$="_table"], .calc-card > [id$="_greeks"],
+.calc-card > div:not(.calc-card-header):not([id]) {
+  margin-left: 26px; margin-right: 26px;
+}
+.calc-card > .inp-grid { margin-top: 18px; }
+.calc-card > [id$="_verdict"] { margin-bottom: 22px !important; }
+/* padding for last child in card */
+.calc-card > *:last-child { margin-bottom: 22px; }
 
 /* ── Input grid ─────────────────────────────────────────── */
 .inp-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 14px; margin-bottom: 18px;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 16px; margin-bottom: 20px;
 }
+.inp-group { position: relative; }
 .inp-group label {
-  display: block; font-size: .75rem; font-weight: 600;
-  color: #475569; margin-bottom: 4px;
+  display: block; font-size: .74rem; font-weight: 700;
+  color: #374151; margin-bottom: 6px; letter-spacing: .01em;
 }
 .inp-group input, .inp-group select {
-  width: 100%; padding: 9px 12px;
-  border: 1.5px solid #e2e8f0; border-radius: 8px;
-  font-size: .92rem; color: #0f172a; background: #f8fafc;
-  outline: none; transition: border .15s, box-shadow .15s;
+  width: 100%; padding: 10px 14px;
+  border: 1.5px solid #e2e8f0; border-radius: 10px;
+  font-size: .9rem; color: #0f172a; background: #f9fafc;
+  outline: none; transition: all .18s; font-family: inherit;
 }
+.inp-group input::placeholder { color: #94a3b8; font-size: .85rem; }
+.inp-group input:hover { border-color: #a5b4fc; background: #fff; }
 .inp-group input:focus, .inp-group select:focus {
-  border-color: #818cf8; box-shadow: 0 0 0 3px rgba(129,140,248,.18);
+  border-color: var(--vt-indigo-light); box-shadow: 0 0 0 4px var(--vt-indigo-glow);
   background: #fff;
+}
+
+/* ── Custom tooltip on hover ────────────────────────────── */
+.inp-group input[title], .inp-group select[title] { cursor: help; }
+.inp-group { overflow: visible; }
+.inp-group input[title]:hover::after,
+.inp-group input[title]:focus::after {
+  content: attr(title);
+  position: absolute; bottom: calc(100% + 34px); left: 0; right: 0;
+  background: #1e293b; color: #f1f5f9; font-size: .71rem; font-weight: 500;
+  padding: 6px 10px; border-radius: 8px; z-index: 100; line-height: 1.5;
+  box-shadow: 0 4px 14px rgba(0,0,0,.25); pointer-events: none;
 }
 
 /* ── Result boxes ───────────────────────────────────────── */
 .res-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
   gap: 12px; margin-top: 4px;
 }
 .res-box {
-  background: linear-gradient(135deg,#f0f4ff,#e8edff);
-  border: 1px solid #c7d2fe;
-  border-radius: 10px; padding: 14px 16px;
+  background: linear-gradient(135deg,#f5f3ff,#ede9fe);
+  border: 1px solid #ddd6fe; border-radius: 12px; padding: 14px 16px;
+  transition: transform .15s;
 }
-.res-box .label { font-size: .72rem; font-weight: 600; color: #4338ca; margin-bottom: 4px; }
-.res-box .value { font-size: 1.35rem; font-weight: 800; color: #1e293b; }
+.res-box:hover { transform: translateY(-2px); }
+.res-box .label { font-size: .7rem; font-weight: 700; color: #5b21b6; margin-bottom: 6px; text-transform: uppercase; letter-spacing: .04em; }
+.res-box .value { font-size: 1.3rem; font-weight: 800; color: #1e293b; }
 .res-box.green  { background: linear-gradient(135deg,#f0fdf4,#dcfce7); border-color: #86efac; }
-.res-box.green .label { color: #15803d; }
-.res-box.amber  { background: linear-gradient(135deg,#fffbeb,#fef3c7); border-color: #fde68a; }
-.res-box.amber .label { color: #92400e; }
+.res-box.green .label { color: #166534; }
+.res-box.amber  { background: linear-gradient(135deg,#fffbeb,#fef9c3); border-color: #fde68a; }
+.res-box.amber .label { color: #78350f; }
 .res-box.red    { background: linear-gradient(135deg,#fef2f2,#fee2e2); border-color: #fca5a5; }
-.res-box.red .label   { color: #b91c1c; }
+.res-box.red .label   { color: #991b1b; }
 
 .verdict {
-  margin-top: 14px; padding: 10px 16px; border-radius: 8px;
-  font-size: .85rem; font-weight: 600;
+  margin-top: 16px; padding: 12px 18px; border-radius: 10px;
+  font-size: .84rem; font-weight: 700; display: flex; align-items: center; gap: 10px;
 }
+.verdict::before { content: '●'; font-size: .6rem; }
 .verdict.positive { background: #f0fdf4; color: #15803d; border-left: 4px solid #22c55e; }
 .verdict.negative { background: #fef2f2; color: #b91c1c; border-left: 4px solid #ef4444; }
-.verdict.neutral  { background: #f0f9ff; color: #0369a1; border-left: 4px solid #0ea5e9; }
+.verdict.neutral  { background: #f0f9ff; color: #0369a1; border-left: 4px solid #38bdf8; }
 
-/* ── NPV table ──────────────────────────────────────────── */
-.cf-table { width: 100%; border-collapse: collapse; font-size: .82rem; margin-top: 12px; }
-.cf-table th { background: #f1f5f9; padding: 7px 10px; text-align: right; font-weight: 600; color: #475569; }
+/* ── NPV / cash flow table ──────────────────────────────── */
+.cf-table { width: 100%; border-collapse: collapse; font-size: .81rem; margin-top: 14px; border-radius: 10px; overflow: hidden; }
+.cf-table thead tr { background: linear-gradient(135deg,#f0f4ff,#e8edff); }
+.cf-table th { padding: 8px 12px; text-align: right; font-weight: 700; color: #3730a3; }
 .cf-table th:first-child { text-align: left; }
-.cf-table td { padding: 6px 10px; text-align: right; border-bottom: 1px solid #f1f5f9; color: #374151; }
-.cf-table td:first-child { text-align: left; font-weight: 500; }
-.cf-table tr:last-child td { font-weight: 700; border-top: 2px solid #e2e8f0; }
+.cf-table td { padding: 7px 12px; text-align: right; border-bottom: 1px solid #f1f5f9; color: #374151; }
+.cf-table td:first-child { text-align: left; font-weight: 600; }
+.cf-table tr:last-child td { font-weight: 800; border-top: 2px solid #e0e7ff; color: #1e293b; }
+.cf-table tr:hover td { background: #fafbff; }
 
-@media(max-width:640px){
-  .calc-card{ padding: 16px; }
-  .vt-tab { font-size: .7rem; padding: 8px 6px; min-width: 70px; }
+/* ── Section divider label ──────────────────────────────── */
+.inp-section-label {
+  font-size: .72rem; font-weight: 800; color: #6366f1;
+  letter-spacing: .08em; text-transform: uppercase;
+  margin-bottom: 10px; margin-top: 4px;
+  display: flex; align-items: center; gap: 8px;
+}
+.inp-section-label::after { content: ''; flex: 1; height: 1px; background: #e0e7ff; }
+
+@media(max-width:768px){
+  .calc-card-header, .calc-card-body { padding: 16px; }
+  .vt-tab { font-size: .68rem; padding: 9px 6px; min-width: 72px; }
+  .vt-hero { padding: 22px 18px; }
+  .vt-hero h1 { font-size: 1.3rem; }
+  .inp-grid { grid-template-columns: 1fr 1fr; }
+}
+@media(max-width:480px){
+  .inp-grid { grid-template-columns: 1fr; }
+  .vt-tabs { gap: 4px; padding: 6px; }
 }
 </style>
 {% endblock %}
@@ -109,18 +213,32 @@
 {% block content %}
 <div class="max-w-6xl mx-auto px-4 py-8">
 
+  <!-- Hero Banner -->
+  <div class="vt-hero">
+    <div class="vt-hero-tag"><i class="fas fa-graduation-cap"></i> CFA INSTITUTE METHODOLOGY</div>
+    <h1>Professional Valuation Suite</h1>
+    <p>Eight institutional-grade valuation models covering Equity, Corporate Finance, Derivatives, Fixed Income, Pension/ALM, Private Capital, Real Assets &amp; Financial Institutions — all built to CFA curriculum standards.</p>
+    <div class="vt-hero-chips">
+      <span class="vt-chip"><i class="fas fa-bolt"></i>Live Calculations</span>
+      <span class="vt-chip"><i class="fas fa-check-circle"></i>CFA Verified</span>
+      <span class="vt-chip"><i class="fas fa-globe-africa"></i>Ghana Market Calibrated</span>
+      <span class="vt-chip"><i class="fas fa-lock-open"></i>Free to Use</span>
+    </div>
+  </div>
+
   <!-- User Guide -->
-  <div class="calc-card" style="margin-bottom:24px;background:linear-gradient(135deg,#f0f4ff,#e8edff);border:1px solid #c7d2fe">
-    <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="toggleGuide()">
+  <div style="background:#fff;border-radius:18px;box-shadow:0 4px 24px rgba(79,70,229,.08);border:1px solid #e8ecff;margin-bottom:24px;overflow:hidden">
+    <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:18px 24px;background:linear-gradient(135deg,#f5f3ff,#ede9fe)" onclick="toggleGuide()">
       <div style="display:flex;align-items:center;gap:12px">
-        <div style="width:36px;height:36px;background:#4f46e5;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1rem"><i class="fas fa-book-open"></i></div>
+        <div style="width:38px;height:38px;background:linear-gradient(135deg,#4f46e5,#7c3aed);border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:.95rem;box-shadow:0 4px 12px rgba(79,70,229,.3)"><i class="fas fa-book-open"></i></div>
         <div>
-          <div style="font-size:1rem;font-weight:700;color:#1e3a8a">How to Use This Suite</div>
-          <div style="font-size:.78rem;color:#4338ca">Click to expand / collapse the guide</div>
+          <div style="font-size:.95rem;font-weight:800;color:#1e1b4b">How to Use This Suite</div>
+          <div style="font-size:.75rem;color:#6366f1">Click to expand / collapse the user guide</div>
         </div>
       </div>
-      <i class="fas fa-chevron-down" id="guide-chevron" style="color:#4338ca;transition:transform .25s"></i>
+      <i class="fas fa-chevron-down" id="guide-chevron" style="color:#6366f1;transition:transform .25s;font-size:1rem"></i>
     </div>
+    <div id="guide-body" style="display:none;padding:20px 24px;border-top:1px solid #ede9fe">
     <div id="guide-body" style="display:none;margin-top:18px;border-top:1px solid #c7d2fe;padding-top:16px">
       <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px">
         <div style="background:#fff;border-radius:10px;padding:14px 16px">
@@ -189,13 +307,13 @@
       <h3>FCFF / FCFE Discounted Cash Flow</h3>
       <p class="subtitle">CFA multi-stage FCFF model — explicit forecast + Gordon Growth terminal value</p>
       <div class="inp-grid">
-        <div class="inp-group"><label>FCFF Year 1 (000)</label><input type="number" id="eq_fcff1" value="12369" oninput="calcEquityDCF()"></div>
-        <div class="inp-group"><label>FCFF Growth Y1–5 (%)</label><input type="number" id="eq_gstage1" value="16" oninput="calcEquityDCF()"></div>
-        <div class="inp-group"><label>Terminal Growth (%)</label><input type="number" id="eq_gterm" value="6" oninput="calcEquityDCF()"></div>
-        <div class="inp-group"><label>WACC (%)</label><input type="number" id="eq_wacc" value="24" oninput="calcEquityDCF()"></div>
-        <div class="inp-group"><label>Net Debt (000)</label><input type="number" id="eq_netdebt" value="47200" oninput="calcEquityDCF()"></div>
-        <div class="inp-group"><label>Shares Outstanding (000)</label><input type="number" id="eq_shares" value="27000" oninput="calcEquityDCF()"></div>
-        <div class="inp-group"><label>Current Share Price</label><input type="number" id="eq_price" value="5" oninput="calcEquityDCF()"></div>
+        <div class="inp-group"><label>FCFF Year 1 (000)</label><input type="number" id="eq_fcff1" value="" title="Year 1 Free Cash Flow to the Firm — enter in thousands (e.g. 12,369 = GHS 12.4m)" placeholder="0" oninput="calcEquityDCF()"></div>
+        <div class="inp-group"><label>FCFF Growth Y1–5 (%)</label><input type="number" id="eq_gstage1" value="" title="Expected annual FCFF growth rate during the explicit 5-year forecast period (e.g. 16 = 16%)" placeholder="0" oninput="calcEquityDCF()"></div>
+        <div class="inp-group"><label>Terminal Growth (%)</label><input type="number" id="eq_gterm" value="" title="Perpetual growth rate after Year 5 — should be ≤ nominal GDP growth (e.g. 6 = 6%)" placeholder="0" oninput="calcEquityDCF()"></div>
+        <div class="inp-group"><label>WACC (%)</label><input type="number" id="eq_wacc" value="" title="Weighted Average Cost of Capital — blended required return on debt + equity (e.g. 24 = 24%)" placeholder="0" oninput="calcEquityDCF()"></div>
+        <div class="inp-group"><label>Net Debt (000)</label><input type="number" id="eq_netdebt" value="" title="Total financial debt minus cash and equivalents — enter in thousands (e.g. 47200)" placeholder="0" oninput="calcEquityDCF()"></div>
+        <div class="inp-group"><label>Shares Outstanding (000)</label><input type="number" id="eq_shares" value="" title="Total shares outstanding — enter in thousands (e.g. 27000 = 27 million shares)" placeholder="0" oninput="calcEquityDCF()"></div>
+        <div class="inp-group"><label>Current Share Price</label><input type="number" id="eq_price" value="" title="Current market price per share (e.g. 5.00 GHS)" placeholder="0" oninput="calcEquityDCF()"></div>
       </div>
       <div id="eq_dcf_res" class="res-grid"></div>
       <div id="eq_dcf_verdict" class="verdict neutral" style="margin-top:12px"></div>
@@ -207,12 +325,12 @@
       <h3>Dividend Discount Models</h3>
       <p class="subtitle">Gordon Growth, two-stage, and H-model (CFA Institute methodology)</p>
       <div class="inp-grid">
-        <div class="inp-group"><label>D0 — Last Dividend Paid</label><input type="number" id="ddm_d0" value="0.40" step="0.01" oninput="calcDDM()"></div>
-        <div class="inp-group"><label>Short-run Growth gS (%)</label><input type="number" id="ddm_gs" value="18" oninput="calcDDM()"></div>
-        <div class="inp-group"><label>Long-run Growth gL (%)</label><input type="number" id="ddm_gl" value="6" oninput="calcDDM()"></div>
-        <div class="inp-group"><label>Required Return Ke (%)</label><input type="number" id="ddm_ke" value="24" oninput="calcDDM()"></div>
-        <div class="inp-group"><label>High-growth period H (yrs)</label><input type="number" id="ddm_h" value="5" oninput="calcDDM()"></div>
-        <div class="inp-group"><label>Current Price</label><input type="number" id="ddm_price" value="2.50" step="0.01" oninput="calcDDM()"></div>
+        <div class="inp-group"><label>D0 — Last Dividend Paid</label><input type="number" id="ddm_d0" value="" title="Most recently paid annual dividend per share (D0)" placeholder="0" step="0.01" oninput="calcDDM()"></div>
+        <div class="inp-group"><label>Short-run Growth gS (%)</label><input type="number" id="ddm_gs" value="" title="Short-run dividend growth rate during the high-growth phase (e.g. 18 = 18%)" placeholder="0" oninput="calcDDM()"></div>
+        <div class="inp-group"><label>Long-run Growth gL (%)</label><input type="number" id="ddm_gl" value="" title="Long-run (terminal) dividend growth rate — sustainable perpetual rate (e.g. 6 = 6%)" placeholder="0" oninput="calcDDM()"></div>
+        <div class="inp-group"><label>Required Return Ke (%)</label><input type="number" id="ddm_ke" value="" title="Required return on equity (cost of equity) from CAPM or other model (e.g. 24 = 24%)" placeholder="0" oninput="calcDDM()"></div>
+        <div class="inp-group"><label>High-growth period H (yrs)</label><input type="number" id="ddm_h" value="" title="Number of years in the high-growth phase for H-model (e.g. 5 years)" placeholder="0" oninput="calcDDM()"></div>
+        <div class="inp-group"><label>Current Price</label><input type="number" id="ddm_price" value="" title="Current market price per share to compare with intrinsic value" placeholder="0" step="0.01" oninput="calcDDM()"></div>
       </div>
       <div id="ddm_res" class="res-grid"></div>
       <div id="ddm_verdict" class="verdict neutral" style="margin-top:12px"></div>
@@ -223,11 +341,11 @@
       <h3>Residual Income Model (RIM)</h3>
       <p class="subtitle">Intrinsic value = Book Value + PV of residual income stream</p>
       <div class="inp-grid">
-        <div class="inp-group"><label>Book Value Per Share (B0)</label><input type="number" id="rim_bv" value="4.20" step="0.01" oninput="calcRIM()"></div>
-        <div class="inp-group"><label>ROE (%)</label><input type="number" id="rim_roe" value="31" oninput="calcRIM()"></div>
-        <div class="inp-group"><label>Cost of Equity Ke (%)</label><input type="number" id="rim_ke" value="24" oninput="calcRIM()"></div>
-        <div class="inp-group"><label>Growth g (%)</label><input type="number" id="rim_g" value="6" oninput="calcRIM()"></div>
-        <div class="inp-group"><label>Current Share Price</label><input type="number" id="rim_price" value="5" step="0.01" oninput="calcRIM()"></div>
+        <div class="inp-group"><label>Book Value Per Share (B0)</label><input type="number" id="rim_bv" value="" title="Book value per share (shareholders equity ÷ shares outstanding)" placeholder="0" step="0.01" oninput="calcRIM()"></div>
+        <div class="inp-group"><label>ROE (%)</label><input type="number" id="rim_roe" value="" title="Return on Equity — net income ÷ book value (e.g. 31 = 31%)" placeholder="0" oninput="calcRIM()"></div>
+        <div class="inp-group"><label>Cost of Equity Ke (%)</label><input type="number" id="rim_ke" value="" title="Required return on equity (cost of equity) — e.g. 24 = 24%" placeholder="0" oninput="calcRIM()"></div>
+        <div class="inp-group"><label>Growth g (%)</label><input type="number" id="rim_g" value="" title="Perpetual growth rate in residual income (e.g. 6 = 6%)" placeholder="0" oninput="calcRIM()"></div>
+        <div class="inp-group"><label>Current Share Price</label><input type="number" id="rim_price" value="" title="Current market price per share for valuation comparison" placeholder="0" step="0.01" oninput="calcRIM()"></div>
       </div>
       <div id="rim_res" class="res-grid"></div>
       <div id="rim_verdict" class="verdict neutral" style="margin-top:12px"></div>
@@ -244,15 +362,15 @@
       <h3>Capital Budgeting — NPV, IRR, Payback</h3>
       <p class="subtitle">CFA incremental after-tax cash flows — expansion project analysis</p>
       <div class="inp-grid">
-        <div class="inp-group"><label>Initial Capex (000)</label><input type="number" id="cb_capex" value="55000" oninput="calcCapBudget()"></div>
-        <div class="inp-group"><label>Project Life (years)</label><input type="number" id="cb_life" value="8" min="1" max="15" oninput="calcCapBudget()"></div>
-        <div class="inp-group"><label>Year-1 Revenue (000)</label><input type="number" id="cb_rev" value="40000" oninput="calcCapBudget()"></div>
-        <div class="inp-group"><label>Revenue Growth (%)</label><input type="number" id="cb_revg" value="8" oninput="calcCapBudget()"></div>
-        <div class="inp-group"><label>Variable Costs (% Rev)</label><input type="number" id="cb_vc" value="45" oninput="calcCapBudget()"></div>
-        <div class="inp-group"><label>Year-1 Fixed Costs (000)</label><input type="number" id="cb_fc" value="6000" oninput="calcCapBudget()"></div>
-        <div class="inp-group"><label>Discount Rate (%)</label><input type="number" id="cb_r" value="18" oninput="calcCapBudget()"></div>
-        <div class="inp-group"><label>Tax Rate (%)</label><input type="number" id="cb_tax" value="25" oninput="calcCapBudget()"></div>
-        <div class="inp-group"><label>Salvage Value (000)</label><input type="number" id="cb_salv" value="8000" oninput="calcCapBudget()"></div>
+        <div class="inp-group"><label>Initial Capex (000)</label><input type="number" id="cb_capex" value="" placeholder="0" oninput="calcCapBudget()"></div>
+        <div class="inp-group"><label>Project Life (years)</label><input type="number" id="cb_life" value="" placeholder="0" min="1" max="15" oninput="calcCapBudget()"></div>
+        <div class="inp-group"><label>Year-1 Revenue (000)</label><input type="number" id="cb_rev" value="" placeholder="0" oninput="calcCapBudget()"></div>
+        <div class="inp-group"><label>Revenue Growth (%)</label><input type="number" id="cb_revg" value="" placeholder="0" oninput="calcCapBudget()"></div>
+        <div class="inp-group"><label>Variable Costs (% Rev)</label><input type="number" id="cb_vc" value="" placeholder="0" oninput="calcCapBudget()"></div>
+        <div class="inp-group"><label>Year-1 Fixed Costs (000)</label><input type="number" id="cb_fc" value="" placeholder="0" oninput="calcCapBudget()"></div>
+        <div class="inp-group"><label>Discount Rate (%)</label><input type="number" id="cb_r" value="" placeholder="0" oninput="calcCapBudget()"></div>
+        <div class="inp-group"><label>Tax Rate (%)</label><input type="number" id="cb_tax" value="" placeholder="0" oninput="calcCapBudget()"></div>
+        <div class="inp-group"><label>Salvage Value (000)</label><input type="number" id="cb_salv" value="" placeholder="0" oninput="calcCapBudget()"></div>
       </div>
       <div id="cb_res" class="res-grid"></div>
       <div id="cb_verdict" class="verdict neutral" style="margin-top:12px"></div>
@@ -264,13 +382,13 @@
       <h3>Economic Value Added (EVA) & MVA</h3>
       <p class="subtitle">EVA = NOPAT − WACC × Invested Capital; firm value = capital + PV(EVA)</p>
       <div class="inp-grid">
-        <div class="inp-group"><label>Invested Capital (000)</label><input type="number" id="eva_ic" value="300000" oninput="calcEVA()"></div>
-        <div class="inp-group"><label>NOPAT Year 1 (000)</label><input type="number" id="eva_nopat" value="54000" oninput="calcEVA()"></div>
-        <div class="inp-group"><label>NOPAT Growth (%)</label><input type="number" id="eva_g" value="10" oninput="calcEVA()"></div>
-        <div class="inp-group"><label>WACC (%)</label><input type="number" id="eva_wacc" value="18" oninput="calcEVA()"></div>
-        <div class="inp-group"><label>Terminal Growth (%)</label><input type="number" id="eva_tg" value="6" oninput="calcEVA()"></div>
-        <div class="inp-group"><label>Net Debt (000)</label><input type="number" id="eva_debt" value="90000" oninput="calcEVA()"></div>
-        <div class="inp-group"><label>Shares Outstanding (000)</label><input type="number" id="eva_sh" value="20000" oninput="calcEVA()"></div>
+        <div class="inp-group"><label>Invested Capital (000)</label><input type="number" id="eva_ic" value="" placeholder="0" oninput="calcEVA()"></div>
+        <div class="inp-group"><label>NOPAT Year 1 (000)</label><input type="number" id="eva_nopat" value="" placeholder="0" oninput="calcEVA()"></div>
+        <div class="inp-group"><label>NOPAT Growth (%)</label><input type="number" id="eva_g" value="" placeholder="0" oninput="calcEVA()"></div>
+        <div class="inp-group"><label>WACC (%)</label><input type="number" id="eva_wacc" value="" placeholder="0" oninput="calcEVA()"></div>
+        <div class="inp-group"><label>Terminal Growth (%)</label><input type="number" id="eva_tg" value="" placeholder="0" oninput="calcEVA()"></div>
+        <div class="inp-group"><label>Net Debt (000)</label><input type="number" id="eva_debt" value="" placeholder="0" oninput="calcEVA()"></div>
+        <div class="inp-group"><label>Shares Outstanding (000)</label><input type="number" id="eva_sh" value="" placeholder="0" oninput="calcEVA()"></div>
       </div>
       <div id="eva_res" class="res-grid"></div>
       <div id="eva_verdict" class="verdict neutral" style="margin-top:12px"></div>
@@ -281,18 +399,18 @@
       <h3>M&A Analysis — Synergies, EPS Accretion/Dilution</h3>
       <p class="subtitle">CFA takeover premium, value creation split, EPS impact</p>
       <div class="inp-grid">
-        <div class="inp-group"><label>Acquirer Share Price</label><input type="number" id="ma_acqp" value="30" oninput="calcMA()"></div>
-        <div class="inp-group"><label>Acquirer Shares (m)</label><input type="number" id="ma_acqs" value="100" oninput="calcMA()"></div>
-        <div class="inp-group"><label>Acquirer Net Income (m)</label><input type="number" id="ma_acqni" value="300" oninput="calcMA()"></div>
-        <div class="inp-group"><label>Target Share Price</label><input type="number" id="ma_tgtp" value="20" oninput="calcMA()"></div>
-        <div class="inp-group"><label>Target Shares (m)</label><input type="number" id="ma_tgts" value="40" oninput="calcMA()"></div>
-        <div class="inp-group"><label>Target Net Income (m)</label><input type="number" id="ma_tgtni" value="80" oninput="calcMA()"></div>
-        <div class="inp-group"><label>Offer Premium (%)</label><input type="number" id="ma_prem" value="30" oninput="calcMA()"></div>
-        <div class="inp-group"><label>Cash % of Consideration</label><input type="number" id="ma_cash" value="50" oninput="calcMA()"></div>
-        <div class="inp-group"><label>Pre-tax Synergies (m)</label><input type="number" id="ma_syn" value="60" oninput="calcMA()"></div>
-        <div class="inp-group"><label>Tax Rate (%)</label><input type="number" id="ma_tax" value="25" oninput="calcMA()"></div>
-        <div class="inp-group"><label>Synergy Discount Rate (%)</label><input type="number" id="ma_synd" value="18" oninput="calcMA()"></div>
-        <div class="inp-group"><label>Synergy Growth (%)</label><input type="number" id="ma_syng" value="4" oninput="calcMA()"></div>
+        <div class="inp-group"><label>Acquirer Share Price</label><input type="number" id="ma_acqp" value="" placeholder="0" oninput="calcMA()"></div>
+        <div class="inp-group"><label>Acquirer Shares (m)</label><input type="number" id="ma_acqs" value="" placeholder="0" oninput="calcMA()"></div>
+        <div class="inp-group"><label>Acquirer Net Income (m)</label><input type="number" id="ma_acqni" value="" placeholder="0" oninput="calcMA()"></div>
+        <div class="inp-group"><label>Target Share Price</label><input type="number" id="ma_tgtp" value="" placeholder="0" oninput="calcMA()"></div>
+        <div class="inp-group"><label>Target Shares (m)</label><input type="number" id="ma_tgts" value="" placeholder="0" oninput="calcMA()"></div>
+        <div class="inp-group"><label>Target Net Income (m)</label><input type="number" id="ma_tgtni" value="" placeholder="0" oninput="calcMA()"></div>
+        <div class="inp-group"><label>Offer Premium (%)</label><input type="number" id="ma_prem" value="" placeholder="0" oninput="calcMA()"></div>
+        <div class="inp-group"><label>Cash % of Consideration</label><input type="number" id="ma_cash" value="" placeholder="0" oninput="calcMA()"></div>
+        <div class="inp-group"><label>Pre-tax Synergies (m)</label><input type="number" id="ma_syn" value="" placeholder="0" oninput="calcMA()"></div>
+        <div class="inp-group"><label>Tax Rate (%)</label><input type="number" id="ma_tax" value="" placeholder="0" oninput="calcMA()"></div>
+        <div class="inp-group"><label>Synergy Discount Rate (%)</label><input type="number" id="ma_synd" value="" placeholder="0" oninput="calcMA()"></div>
+        <div class="inp-group"><label>Synergy Growth (%)</label><input type="number" id="ma_syng" value="" placeholder="0" oninput="calcMA()"></div>
       </div>
       <div id="ma_res" class="res-grid"></div>
       <div id="ma_verdict" class="verdict neutral" style="margin-top:12px"></div>
@@ -309,12 +427,12 @@
       <h3>Black–Scholes–Merton Option Pricing</h3>
       <p class="subtitle">European equity options with continuous dividend yield + Greeks</p>
       <div class="inp-grid">
-        <div class="inp-group"><label>Spot Price (S)</label><input type="number" id="bsm_s" value="50" oninput="calcBSM()"></div>
-        <div class="inp-group"><label>Strike Price (K)</label><input type="number" id="bsm_k" value="52" oninput="calcBSM()"></div>
-        <div class="inp-group"><label>Time to Expiry T (yrs)</label><input type="number" id="bsm_t" value="0.5" step="0.01" oninput="calcBSM()"></div>
-        <div class="inp-group"><label>Risk-free Rate r (%)</label><input type="number" id="bsm_r" value="15" oninput="calcBSM()"></div>
-        <div class="inp-group"><label>Dividend Yield q (%)</label><input type="number" id="bsm_q" value="4" oninput="calcBSM()"></div>
-        <div class="inp-group"><label>Volatility σ (%)</label><input type="number" id="bsm_vol" value="30" oninput="calcBSM()"></div>
+        <div class="inp-group"><label>Spot Price (S)</label><input type="number" id="bsm_s" value="" title="Current underlying asset (stock) spot price (e.g. 50.00)" placeholder="0" oninput="calcBSM()"></div>
+        <div class="inp-group"><label>Strike Price (K)</label><input type="number" id="bsm_k" value="" title="Option exercise (strike) price (e.g. 52.00)" placeholder="0" oninput="calcBSM()"></div>
+        <div class="inp-group"><label>Time to Expiry T (yrs)</label><input type="number" id="bsm_t" value="" title="Time to option expiration in years (e.g. 0.5 = 6 months)" placeholder="0" step="0.01" oninput="calcBSM()"></div>
+        <div class="inp-group"><label>Risk-free Rate r (%)</label><input type="number" id="bsm_r" value="" title="Continuously-compounded risk-free interest rate (e.g. 15 = 15%)" placeholder="0" oninput="calcBSM()"></div>
+        <div class="inp-group"><label>Dividend Yield q (%)</label><input type="number" id="bsm_q" value="" title="Continuous dividend yield on the underlying stock (e.g. 4 = 4%)" placeholder="0" oninput="calcBSM()"></div>
+        <div class="inp-group"><label>Volatility σ (%)</label><input type="number" id="bsm_vol" value="" title="Annualised implied or historical volatility of the stock (e.g. 30 = 30%)" placeholder="0" oninput="calcBSM()"></div>
       </div>
       <div id="bsm_res" class="res-grid"></div>
       <div id="bsm_greeks" style="margin-top:14px"></div>
@@ -328,19 +446,19 @@
         <div>
           <div style="font-size:.8rem;font-weight:700;color:#475569;margin-bottom:10px">EQUITY FORWARD</div>
           <div class="inp-grid" style="grid-template-columns:1fr 1fr">
-            <div class="inp-group"><label>Spot Price S0</label><input type="number" id="fwd_s" value="52" oninput="calcForward()"></div>
-            <div class="inp-group"><label>Risk-free Rate (%)</label><input type="number" id="fwd_r" value="15" oninput="calcForward()"></div>
-            <div class="inp-group"><label>Maturity T (yrs)</label><input type="number" id="fwd_t" value="0.5" step="0.01" oninput="calcForward()"></div>
-            <div class="inp-group"><label>PV of Dividends</label><input type="number" id="fwd_d" value="1.18" step="0.01" oninput="calcForward()"></div>
+            <div class="inp-group"><label>Spot Price S0</label><input type="number" id="fwd_s" value="" placeholder="0" oninput="calcForward()"></div>
+            <div class="inp-group"><label>Risk-free Rate (%)</label><input type="number" id="fwd_r" value="" placeholder="0" oninput="calcForward()"></div>
+            <div class="inp-group"><label>Maturity T (yrs)</label><input type="number" id="fwd_t" value="" placeholder="0" step="0.01" oninput="calcForward()"></div>
+            <div class="inp-group"><label>PV of Dividends</label><input type="number" id="fwd_d" value="" placeholder="0" step="0.01" oninput="calcForward()"></div>
           </div>
         </div>
         <div>
           <div style="font-size:.8rem;font-weight:700;color:#475569;margin-bottom:10px">FX FORWARD (GHS/USD)</div>
           <div class="inp-grid" style="grid-template-columns:1fr 1fr">
-            <div class="inp-group"><label>Spot Rate GHS/USD</label><input type="number" id="fwd_spot" value="15.60" step="0.01" oninput="calcForward()"></div>
-            <div class="inp-group"><label>GHS Rate (%)</label><input type="number" id="fwd_rghs" value="27" oninput="calcForward()"></div>
-            <div class="inp-group"><label>USD Rate (%)</label><input type="number" id="fwd_rusd" value="5" oninput="calcForward()"></div>
-            <div class="inp-group"><label>Tenor (yrs)</label><input type="number" id="fwd_fxt" value="1" step="0.01" oninput="calcForward()"></div>
+            <div class="inp-group"><label>Spot Rate GHS/USD</label><input type="number" id="fwd_spot" value="" placeholder="0" step="0.01" oninput="calcForward()"></div>
+            <div class="inp-group"><label>GHS Rate (%)</label><input type="number" id="fwd_rghs" value="" placeholder="0" oninput="calcForward()"></div>
+            <div class="inp-group"><label>USD Rate (%)</label><input type="number" id="fwd_rusd" value="" placeholder="0" oninput="calcForward()"></div>
+            <div class="inp-group"><label>Tenor (yrs)</label><input type="number" id="fwd_fxt" value="" placeholder="0" step="0.01" oninput="calcForward()"></div>
           </div>
         </div>
       </div>
@@ -352,12 +470,12 @@
       <h3>Credit Default Swap (CDS) Pricing</h3>
       <p class="subtitle">Hazard-rate model: protection leg, risky annuity, par spread, upfront premium</p>
       <div class="inp-grid">
-        <div class="inp-group"><label>Notional (000)</label><input type="number" id="cds_n" value="10000" oninput="calcCDS()"></div>
-        <div class="inp-group"><label>Tenor (years)</label><input type="number" id="cds_t" value="5" min="1" max="10" oninput="calcCDS()"></div>
-        <div class="inp-group"><label>Hazard Rate (%)</label><input type="number" id="cds_h" value="2.5" step="0.1" oninput="calcCDS()"></div>
-        <div class="inp-group"><label>Recovery Rate (%)</label><input type="number" id="cds_rec" value="40" oninput="calcCDS()"></div>
-        <div class="inp-group"><label>Standard Coupon (%)</label><input type="number" id="cds_coup" value="1" step="0.1" oninput="calcCDS()"></div>
-        <div class="inp-group"><label>Risk-free Rate (%)</label><input type="number" id="cds_rf" value="16" oninput="calcCDS()"></div>
+        <div class="inp-group"><label>Notional (000)</label><input type="number" id="cds_n" value="" placeholder="0" oninput="calcCDS()"></div>
+        <div class="inp-group"><label>Tenor (years)</label><input type="number" id="cds_t" value="" placeholder="0" min="1" max="10" oninput="calcCDS()"></div>
+        <div class="inp-group"><label>Hazard Rate (%)</label><input type="number" id="cds_h" value="" placeholder="0" step="0.1" oninput="calcCDS()"></div>
+        <div class="inp-group"><label>Recovery Rate (%)</label><input type="number" id="cds_rec" value="" placeholder="0" oninput="calcCDS()"></div>
+        <div class="inp-group"><label>Standard Coupon (%)</label><input type="number" id="cds_coup" value="" placeholder="0" step="0.1" oninput="calcCDS()"></div>
+        <div class="inp-group"><label>Risk-free Rate (%)</label><input type="number" id="cds_rf" value="" placeholder="0" oninput="calcCDS()"></div>
       </div>
       <div id="cds_res" class="res-grid"></div>
     </div>
@@ -373,8 +491,8 @@
       <h3>Bond Pricing, YTM & Risk Measures</h3>
       <p class="subtitle">Full/flat price, YTM (Newton–Raphson), Macaulay/Modified Duration, Convexity, PVBP</p>
       <div class="inp-grid">
-        <div class="inp-group"><label>Par Value</label><input type="number" id="bp_par" value="100" oninput="calcBond()"></div>
-        <div class="inp-group"><label>Annual Coupon Rate (%)</label><input type="number" id="bp_coup" value="14" oninput="calcBond()"></div>
+        <div class="inp-group"><label>Par Value</label><input type="number" id="bp_par" value="" title="Face / par value of the bond (e.g. 100)" placeholder="0" oninput="calcBond()"></div>
+        <div class="inp-group"><label>Annual Coupon Rate (%)</label><input type="number" id="bp_coup" value="" title="Annual coupon rate stated on the bond (e.g. 14 = 14%)" placeholder="0" oninput="calcBond()"></div>
         <div class="inp-group"><label>Coupons per Year</label>
           <select id="bp_freq" onchange="calcBond()">
             <option value="1">Annual</option>
@@ -382,10 +500,10 @@
             <option value="4">Quarterly</option>
           </select>
         </div>
-        <div class="inp-group"><label>Years to Maturity</label><input type="number" id="bp_ytm_yr" value="10" oninput="calcBond()"></div>
-        <div class="inp-group"><label>Market Clean Price</label><input type="number" id="bp_mkt" value="96.50" step="0.01" oninput="calcBond()"></div>
-        <div class="inp-group"><label>Fraction of Period Elapsed</label><input type="number" id="bp_frac" value="0.25" step="0.01" min="0" max="0.999" oninput="calcBond()"></div>
-        <div class="inp-group"><label>Required Yield (%)</label><input type="number" id="bp_reqy" value="14.5" step="0.01" oninput="calcBond()"></div>
+        <div class="inp-group"><label>Years to Maturity</label><input type="number" id="bp_ytm_yr" value="" title="Remaining years to the bond maturity date (e.g. 10)" placeholder="0" oninput="calcBond()"></div>
+        <div class="inp-group"><label>Market Clean Price</label><input type="number" id="bp_mkt" value="" title="Observed clean (flat) market price per 100 par (e.g. 96.50)" placeholder="0" step="0.01" oninput="calcBond()"></div>
+        <div class="inp-group"><label>Fraction of Period Elapsed</label><input type="number" id="bp_frac" value="" title="Fraction of the current coupon period already elapsed — 0 to 0.999 (e.g. 0.25 = one-quarter through)" placeholder="0" step="0.01" min="0" max="0.999" oninput="calcBond()"></div>
+        <div class="inp-group"><label>Required Yield (%)</label><input type="number" id="bp_reqy" value="" title="Required annual yield used for bond pricing (e.g. 14.5 = 14.5%)" placeholder="0" step="0.01" oninput="calcBond()"></div>
       </div>
       <div id="bp_res" class="res-grid"></div>
       <div id="bp_verdict" class="verdict neutral" style="margin-top:12px"></div>
@@ -396,11 +514,11 @@
       <h3>Credit Valuation Adjustment (CVA)</h3>
       <p class="subtitle">CFA: VND − CVA fair value; credit spread from hazard rate and recovery rate</p>
       <div class="inp-grid">
-        <div class="inp-group"><label>Annual Coupon Rate (%)</label><input type="number" id="cva_coup" value="15" oninput="calcCVA()"></div>
-        <div class="inp-group"><label>Maturity (years)</label><input type="number" id="cva_mat" value="5" min="1" max="10" oninput="calcCVA()"></div>
-        <div class="inp-group"><label>Risk-free Yield (%)</label><input type="number" id="cva_rf" value="11" oninput="calcCVA()"></div>
-        <div class="inp-group"><label>Hazard Rate (%)</label><input type="number" id="cva_h" value="2" step="0.1" oninput="calcCVA()"></div>
-        <div class="inp-group"><label>Recovery Rate (%)</label><input type="number" id="cva_rec" value="40" oninput="calcCVA()"></div>
+        <div class="inp-group"><label>Annual Coupon Rate (%)</label><input type="number" id="cva_coup" value="" placeholder="0" oninput="calcCVA()"></div>
+        <div class="inp-group"><label>Maturity (years)</label><input type="number" id="cva_mat" value="" placeholder="0" min="1" max="10" oninput="calcCVA()"></div>
+        <div class="inp-group"><label>Risk-free Yield (%)</label><input type="number" id="cva_rf" value="" placeholder="0" oninput="calcCVA()"></div>
+        <div class="inp-group"><label>Hazard Rate (%)</label><input type="number" id="cva_h" value="" placeholder="0" step="0.1" oninput="calcCVA()"></div>
+        <div class="inp-group"><label>Recovery Rate (%)</label><input type="number" id="cva_rec" value="" placeholder="0" oninput="calcCVA()"></div>
       </div>
       <div id="cva_res" class="res-grid"></div>
     </div>
@@ -410,15 +528,15 @@
       <h3>Convertible Bond Analysis</h3>
       <p class="subtitle">Straight value, conversion value, minimum value, option-based value (BSM)</p>
       <div class="inp-grid">
-        <div class="inp-group"><label>Par Value</label><input type="number" id="cv_par" value="1000" oninput="calcConvertible()"></div>
-        <div class="inp-group"><label>Conversion Ratio</label><input type="number" id="cv_ratio" value="40" oninput="calcConvertible()"></div>
-        <div class="inp-group"><label>Share Price</label><input type="number" id="cv_sp" value="22" oninput="calcConvertible()"></div>
-        <div class="inp-group"><label>Annual Coupon Rate (%)</label><input type="number" id="cv_coup" value="10" oninput="calcConvertible()"></div>
-        <div class="inp-group"><label>Years to Maturity</label><input type="number" id="cv_mat" value="5" oninput="calcConvertible()"></div>
-        <div class="inp-group"><label>Straight Bond Yield (%)</label><input type="number" id="cv_yield" value="16" oninput="calcConvertible()"></div>
-        <div class="inp-group"><label>Share Volatility (%)</label><input type="number" id="cv_vol" value="30" oninput="calcConvertible()"></div>
-        <div class="inp-group"><label>Risk-free Rate (%)</label><input type="number" id="cv_rf" value="12" oninput="calcConvertible()"></div>
-        <div class="inp-group"><label>Market Price of CB</label><input type="number" id="cv_mkt" value="1050" oninput="calcConvertible()"></div>
+        <div class="inp-group"><label>Par Value</label><input type="number" id="cv_par" value="" placeholder="0" oninput="calcConvertible()"></div>
+        <div class="inp-group"><label>Conversion Ratio</label><input type="number" id="cv_ratio" value="" placeholder="0" oninput="calcConvertible()"></div>
+        <div class="inp-group"><label>Share Price</label><input type="number" id="cv_sp" value="" placeholder="0" oninput="calcConvertible()"></div>
+        <div class="inp-group"><label>Annual Coupon Rate (%)</label><input type="number" id="cv_coup" value="" placeholder="0" oninput="calcConvertible()"></div>
+        <div class="inp-group"><label>Years to Maturity</label><input type="number" id="cv_mat" value="" placeholder="0" oninput="calcConvertible()"></div>
+        <div class="inp-group"><label>Straight Bond Yield (%)</label><input type="number" id="cv_yield" value="" placeholder="0" oninput="calcConvertible()"></div>
+        <div class="inp-group"><label>Share Volatility (%)</label><input type="number" id="cv_vol" value="" placeholder="0" oninput="calcConvertible()"></div>
+        <div class="inp-group"><label>Risk-free Rate (%)</label><input type="number" id="cv_rf" value="" placeholder="0" oninput="calcConvertible()"></div>
+        <div class="inp-group"><label>Market Price of CB</label><input type="number" id="cv_mkt" value="" placeholder="0" oninput="calcConvertible()"></div>
       </div>
       <div id="cv_res" class="res-grid"></div>
       <div id="cv_verdict" class="verdict neutral" style="margin-top:12px"></div>
@@ -434,13 +552,13 @@
       <h3>Defined-Benefit Pension — Funded Status</h3>
       <p class="subtitle">PBO, funding ratio, surplus, duration gap, LDI hedge ratio</p>
       <div class="inp-grid">
-        <div class="inp-group"><label>Market Value of Assets (000)</label><input type="number" id="pen_assets" value="270000" oninput="calcPension()"></div>
-        <div class="inp-group"><label>PBO / Liability (000)</label><input type="number" id="pen_pbo" value="290850" oninput="calcPension()"></div>
-        <div class="inp-group"><label>Asset Modified Duration (yrs)</label><input type="number" id="pen_adur" value="4.45" step="0.01" oninput="calcPension()"></div>
-        <div class="inp-group"><label>Liability Modified Duration (yrs)</label><input type="number" id="pen_ldur" value="17.2" step="0.1" oninput="calcPension()"></div>
-        <div class="inp-group"><label>Target Hedge Ratio (%)</label><input type="number" id="pen_thr" value="80" oninput="calcPension()"></div>
-        <div class="inp-group"><label>Receive-fixed Swap Duration</label><input type="number" id="pen_swapdur" value="5.5" step="0.1" oninput="calcPension()"></div>
-        <div class="inp-group"><label>Rate Shock for Stress (bp)</label><input type="number" id="pen_shock" value="-100" oninput="calcPension()"></div>
+        <div class="inp-group"><label>Market Value of Assets (000)</label><input type="number" id="pen_assets" value="" placeholder="0" oninput="calcPension()"></div>
+        <div class="inp-group"><label>PBO / Liability (000)</label><input type="number" id="pen_pbo" value="" placeholder="0" oninput="calcPension()"></div>
+        <div class="inp-group"><label>Asset Modified Duration (yrs)</label><input type="number" id="pen_adur" value="" placeholder="0" step="0.01" oninput="calcPension()"></div>
+        <div class="inp-group"><label>Liability Modified Duration (yrs)</label><input type="number" id="pen_ldur" value="" placeholder="0" step="0.1" oninput="calcPension()"></div>
+        <div class="inp-group"><label>Target Hedge Ratio (%)</label><input type="number" id="pen_thr" value="" placeholder="0" oninput="calcPension()"></div>
+        <div class="inp-group"><label>Receive-fixed Swap Duration</label><input type="number" id="pen_swapdur" value="" placeholder="0" step="0.1" oninput="calcPension()"></div>
+        <div class="inp-group"><label>Rate Shock for Stress (bp)</label><input type="number" id="pen_shock" value="" placeholder="0" oninput="calcPension()"></div>
       </div>
       <div id="pen_res" class="res-grid"></div>
       <div id="pen_verdict" class="verdict neutral" style="margin-top:12px"></div>
@@ -457,16 +575,16 @@
       <h3>Leveraged Buyout (LBO) Model</h3>
       <p class="subtitle">CFA LBO: deal sizing, debt schedule, equity returns, sponsor IRR</p>
       <div class="inp-grid">
-        <div class="inp-group"><label>LTM EBITDA (000)</label><input type="number" id="lbo_ebitda" value="20950" oninput="calcLBO()"></div>
-        <div class="inp-group"><label>Entry EV/EBITDA</label><input type="number" id="lbo_entry" value="6" step="0.1" oninput="calcLBO()"></div>
-        <div class="inp-group"><label>Exit EV/EBITDA</label><input type="number" id="lbo_exit" value="6" step="0.1" oninput="calcLBO()"></div>
-        <div class="inp-group"><label>Exit Year</label><input type="number" id="lbo_yr" value="5" min="1" max="7" oninput="calcLBO()"></div>
-        <div class="inp-group"><label>Senior Debt × EBITDA</label><input type="number" id="lbo_senior" value="2.5" step="0.1" oninput="calcLBO()"></div>
-        <div class="inp-group"><label>Mezz Debt × EBITDA</label><input type="number" id="lbo_mezz" value="1" step="0.1" oninput="calcLBO()"></div>
-        <div class="inp-group"><label>Senior Rate (%)</label><input type="number" id="lbo_sr" value="19" oninput="calcLBO()"></div>
-        <div class="inp-group"><label>Mezz Cash Coupon (%)</label><input type="number" id="lbo_mr" value="12" oninput="calcLBO()"></div>
-        <div class="inp-group"><label>EBITDA Growth pa (%)</label><input type="number" id="lbo_eg" value="12" oninput="calcLBO()"></div>
-        <div class="inp-group"><label>Tax Rate (%)</label><input type="number" id="lbo_tax" value="25" oninput="calcLBO()"></div>
+        <div class="inp-group"><label>LTM EBITDA (000)</label><input type="number" id="lbo_ebitda" value="" title="Last-twelve-months EBITDA of the target company — in thousands" placeholder="0" oninput="calcLBO()"></div>
+        <div class="inp-group"><label>Entry EV/EBITDA</label><input type="number" id="lbo_entry" value="" title="EV / EBITDA acquisition multiple paid at deal entry (e.g. 6×)" placeholder="0" step="0.1" oninput="calcLBO()"></div>
+        <div class="inp-group"><label>Exit EV/EBITDA</label><input type="number" id="lbo_exit" value="" title="EV / EBITDA multiple assumed at sponsor exit (e.g. 6×)" placeholder="0" step="0.1" oninput="calcLBO()"></div>
+        <div class="inp-group"><label>Exit Year</label><input type="number" id="lbo_yr" value="" title="Planned holding period in years before exit (e.g. 5)" placeholder="0" min="1" max="7" oninput="calcLBO()"></div>
+        <div class="inp-group"><label>Senior Debt × EBITDA</label><input type="number" id="lbo_senior" value="" placeholder="0" step="0.1" oninput="calcLBO()"></div>
+        <div class="inp-group"><label>Mezz Debt × EBITDA</label><input type="number" id="lbo_mezz" value="" placeholder="0" step="0.1" oninput="calcLBO()"></div>
+        <div class="inp-group"><label>Senior Rate (%)</label><input type="number" id="lbo_sr" value="" placeholder="0" oninput="calcLBO()"></div>
+        <div class="inp-group"><label>Mezz Cash Coupon (%)</label><input type="number" id="lbo_mr" value="" placeholder="0" oninput="calcLBO()"></div>
+        <div class="inp-group"><label>EBITDA Growth pa (%)</label><input type="number" id="lbo_eg" value="" placeholder="0" oninput="calcLBO()"></div>
+        <div class="inp-group"><label>Tax Rate (%)</label><input type="number" id="lbo_tax" value="" placeholder="0" oninput="calcLBO()"></div>
       </div>
       <div id="lbo_res" class="res-grid"></div>
       <div id="lbo_verdict" class="verdict neutral" style="margin-top:12px"></div>
@@ -477,16 +595,16 @@
       <h3>Venture Capital Method (Two-Round)</h3>
       <p class="subtitle">CFA: failure-adjusted required returns, post-money valuations, ownership fractions</p>
       <div class="inp-grid">
-        <div class="inp-group"><label>Expected Exit Earnings (000)</label><input type="number" id="vc_earn" value="15000" oninput="calcVC()"></div>
-        <div class="inp-group"><label>Exit P/E Multiple</label><input type="number" id="vc_pe" value="10" oninput="calcVC()"></div>
-        <div class="inp-group"><label>Years to Exit (N)</label><input type="number" id="vc_n" value="5" oninput="calcVC()"></div>
-        <div class="inp-group"><label>Round 1 Investment (000)</label><input type="number" id="vc_inv1" value="5000" oninput="calcVC()"></div>
-        <div class="inp-group"><label>Round 1 Required Return (%)</label><input type="number" id="vc_r1" value="45" oninput="calcVC()"></div>
-        <div class="inp-group"><label>Round 2 at Year</label><input type="number" id="vc_t2" value="2" oninput="calcVC()"></div>
-        <div class="inp-group"><label>Round 2 Investment (000)</label><input type="number" id="vc_inv2" value="10000" oninput="calcVC()"></div>
-        <div class="inp-group"><label>Round 2 Required Return (%)</label><input type="number" id="vc_r2" value="30" oninput="calcVC()"></div>
-        <div class="inp-group"><label>Annual Failure Prob (%)</label><input type="number" id="vc_q" value="5" oninput="calcVC()"></div>
-        <div class="inp-group"><label>Founders' Shares</label><input type="number" id="vc_fsh" value="1000" oninput="calcVC()"></div>
+        <div class="inp-group"><label>Expected Exit Earnings (000)</label><input type="number" id="vc_earn" value="" title="Expected earnings at exit — in thousands (e.g. 15,000)" placeholder="0" oninput="calcVC()"></div>
+        <div class="inp-group"><label>Exit P/E Multiple</label><input type="number" id="vc_pe" value="" title="Exit P/E multiple applied to terminal earnings (e.g. 10×)" placeholder="0" oninput="calcVC()"></div>
+        <div class="inp-group"><label>Years to Exit (N)</label><input type="number" id="vc_n" value="" title="Years from now to the planned exit / IPO" placeholder="0" oninput="calcVC()"></div>
+        <div class="inp-group"><label>Round 1 Investment (000)</label><input type="number" id="vc_inv1" value="" placeholder="0" oninput="calcVC()"></div>
+        <div class="inp-group"><label>Round 1 Required Return (%)</label><input type="number" id="vc_r1" value="" placeholder="0" oninput="calcVC()"></div>
+        <div class="inp-group"><label>Round 2 at Year</label><input type="number" id="vc_t2" value="" placeholder="0" oninput="calcVC()"></div>
+        <div class="inp-group"><label>Round 2 Investment (000)</label><input type="number" id="vc_inv2" value="" placeholder="0" oninput="calcVC()"></div>
+        <div class="inp-group"><label>Round 2 Required Return (%)</label><input type="number" id="vc_r2" value="" placeholder="0" oninput="calcVC()"></div>
+        <div class="inp-group"><label>Annual Failure Prob (%)</label><input type="number" id="vc_q" value="" placeholder="0" oninput="calcVC()"></div>
+        <div class="inp-group"><label>Founders' Shares</label><input type="number" id="vc_fsh" value="" placeholder="0" oninput="calcVC()"></div>
       </div>
       <div id="vc_res" class="res-grid"></div>
     </div>
@@ -496,13 +614,13 @@
       <h3>PE Fund Economics — Waterfall & Performance</h3>
       <p class="subtitle">NAV roll, management fees, carried interest, DPI / RVPI / TVPI, LP IRR</p>
       <div class="inp-grid">
-        <div class="inp-group"><label>Committed Capital (000)</label><input type="number" id="fe_cc" value="100000" oninput="calcFundEcon()"></div>
-        <div class="inp-group"><label>Management Fee (%)</label><input type="number" id="fe_mf" value="2" step="0.1" oninput="calcFundEcon()"></div>
-        <div class="inp-group"><label>Carried Interest (%)</label><input type="number" id="fe_ci" value="20" oninput="calcFundEcon()"></div>
-        <div class="inp-group"><label>Hurdle Rate (%)</label><input type="number" id="fe_hurdle" value="8" oninput="calcFundEcon()"></div>
-        <div class="inp-group"><label>Investment Period (yrs)</label><input type="number" id="fe_ip" value="5" oninput="calcFundEcon()"></div>
-        <div class="inp-group"><label>Total Fund Life (yrs)</label><input type="number" id="fe_life" value="10" oninput="calcFundEcon()"></div>
-        <div class="inp-group"><label>Gross MOIC at Exit</label><input type="number" id="fe_moic" value="2.5" step="0.1" oninput="calcFundEcon()"></div>
+        <div class="inp-group"><label>Committed Capital (000)</label><input type="number" id="fe_cc" value="" placeholder="0" oninput="calcFundEcon()"></div>
+        <div class="inp-group"><label>Management Fee (%)</label><input type="number" id="fe_mf" value="" placeholder="0" step="0.1" oninput="calcFundEcon()"></div>
+        <div class="inp-group"><label>Carried Interest (%)</label><input type="number" id="fe_ci" value="" placeholder="0" oninput="calcFundEcon()"></div>
+        <div class="inp-group"><label>Hurdle Rate (%)</label><input type="number" id="fe_hurdle" value="" placeholder="0" oninput="calcFundEcon()"></div>
+        <div class="inp-group"><label>Investment Period (yrs)</label><input type="number" id="fe_ip" value="" placeholder="0" oninput="calcFundEcon()"></div>
+        <div class="inp-group"><label>Total Fund Life (yrs)</label><input type="number" id="fe_life" value="" placeholder="0" oninput="calcFundEcon()"></div>
+        <div class="inp-group"><label>Gross MOIC at Exit</label><input type="number" id="fe_moic" value="" placeholder="0" step="0.1" oninput="calcFundEcon()"></div>
       </div>
       <div id="fe_res" class="res-grid"></div>
     </div>
@@ -518,17 +636,17 @@
       <h3>Direct Real Estate — NOI, DCF, Levered Return</h3>
       <p class="subtitle">Potential gross income → NOI → cap rate value → 10-yr DCF → equity cash-on-cash</p>
       <div class="inp-grid">
-        <div class="inp-group"><label>Asking / Purchase Price (000)</label><input type="number" id="re_price" value="85000" oninput="calcRE()"></div>
-        <div class="inp-group"><label>Year-1 PGI (000)</label><input type="number" id="re_pgi" value="12000" oninput="calcRE()"></div>
-        <div class="inp-group"><label>Rental Growth (%)</label><input type="number" id="re_rg" value="6" oninput="calcRE()"></div>
-        <div class="inp-group"><label>Vacancy Rate (%)</label><input type="number" id="re_vac" value="8" oninput="calcRE()"></div>
-        <div class="inp-group"><label>OpEx (000)</label><input type="number" id="re_opex" value="3000" oninput="calcRE()"></div>
-        <div class="inp-group"><label>OpEx Growth (%)</label><input type="number" id="re_opexg" value="5" oninput="calcRE()"></div>
-        <div class="inp-group"><label>Going-in Cap Rate (%)</label><input type="number" id="re_capin" value="11" step="0.1" oninput="calcRE()"></div>
-        <div class="inp-group"><label>Exit Cap Rate (%)</label><input type="number" id="re_capexit" value="11.5" step="0.1" oninput="calcRE()"></div>
-        <div class="inp-group"><label>Discount Rate (%)</label><input type="number" id="re_dr" value="15" oninput="calcRE()"></div>
-        <div class="inp-group"><label>LTV (%)</label><input type="number" id="re_ltv" value="40" oninput="calcRE()"></div>
-        <div class="inp-group"><label>Mortgage Rate (%)</label><input type="number" id="re_mr" value="18" oninput="calcRE()"></div>
+        <div class="inp-group"><label>Asking / Purchase Price (000)</label><input type="number" id="re_price" value="" placeholder="0" oninput="calcRE()"></div>
+        <div class="inp-group"><label>Year-1 PGI (000)</label><input type="number" id="re_pgi" value="" placeholder="0" oninput="calcRE()"></div>
+        <div class="inp-group"><label>Rental Growth (%)</label><input type="number" id="re_rg" value="" placeholder="0" oninput="calcRE()"></div>
+        <div class="inp-group"><label>Vacancy Rate (%)</label><input type="number" id="re_vac" value="" placeholder="0" oninput="calcRE()"></div>
+        <div class="inp-group"><label>OpEx (000)</label><input type="number" id="re_opex" value="" placeholder="0" oninput="calcRE()"></div>
+        <div class="inp-group"><label>OpEx Growth (%)</label><input type="number" id="re_opexg" value="" placeholder="0" oninput="calcRE()"></div>
+        <div class="inp-group"><label>Going-in Cap Rate (%)</label><input type="number" id="re_capin" value="" placeholder="0" step="0.1" oninput="calcRE()"></div>
+        <div class="inp-group"><label>Exit Cap Rate (%)</label><input type="number" id="re_capexit" value="" placeholder="0" step="0.1" oninput="calcRE()"></div>
+        <div class="inp-group"><label>Discount Rate (%)</label><input type="number" id="re_dr" value="" placeholder="0" oninput="calcRE()"></div>
+        <div class="inp-group"><label>LTV (%)</label><input type="number" id="re_ltv" value="" placeholder="0" oninput="calcRE()"></div>
+        <div class="inp-group"><label>Mortgage Rate (%)</label><input type="number" id="re_mr" value="" placeholder="0" oninput="calcRE()"></div>
       </div>
       <div id="re_res" class="res-grid"></div>
       <div id="re_verdict" class="verdict neutral" style="margin-top:12px"></div>
@@ -539,22 +657,22 @@
       <h3>REIT Valuation — NAV, FFO/AFFO, DDM</h3>
       <p class="subtitle">CFA REIT: NAV per share, FFO/AFFO multiples, Gordon Growth DDM</p>
       <div class="inp-grid">
-        <div class="inp-group"><label>Forward 12-mo NOI (000)</label><input type="number" id="reit_noi" value="450000" oninput="calcREIT()"></div>
-        <div class="inp-group"><label>Market Cap Rate (%)</label><input type="number" id="reit_cap" value="9.5" step="0.1" oninput="calcREIT()"></div>
-        <div class="inp-group"><label>Other Assets (000)</label><input type="number" id="reit_oa" value="70000" oninput="calcREIT()"></div>
-        <div class="inp-group"><label>Total Debt (000)</label><input type="number" id="reit_debt" value="1800000" oninput="calcREIT()"></div>
-        <div class="inp-group"><label>Other Liabilities (000)</label><input type="number" id="reit_ol" value="100000" oninput="calcREIT()"></div>
-        <div class="inp-group"><label>Shares Outstanding (000)</label><input type="number" id="reit_sh" value="200000" oninput="calcREIT()"></div>
-        <div class="inp-group"><label>Current Share Price</label><input type="number" id="reit_price" value="14" step="0.01" oninput="calcREIT()"></div>
-        <div class="inp-group"><label>Net Income (000)</label><input type="number" id="reit_ni" value="160000" oninput="calcREIT()"></div>
-        <div class="inp-group"><label>RE Depreciation (000)</label><input type="number" id="reit_dep" value="70000" oninput="calcREIT()"></div>
-        <div class="inp-group"><label>Gains on Sales (000)</label><input type="number" id="reit_gains" value="10000" oninput="calcREIT()"></div>
-        <div class="inp-group"><label>Recurring Capex (000)</label><input type="number" id="reit_capex" value="22000" oninput="calcREIT()"></div>
-        <div class="inp-group"><label>Peer P/FFO</label><input type="number" id="reit_pffomult" value="10" oninput="calcREIT()"></div>
-        <div class="inp-group"><label>Peer P/AFFO</label><input type="number" id="reit_paffomult" value="12.5" oninput="calcREIT()"></div>
-        <div class="inp-group"><label>Dividend Per Share</label><input type="number" id="reit_div" value="1.10" step="0.01" oninput="calcREIT()"></div>
-        <div class="inp-group"><label>Dividend Growth (%)</label><input type="number" id="reit_dg" value="5" oninput="calcREIT()"></div>
-        <div class="inp-group"><label>Required Return (%)</label><input type="number" id="reit_ke" value="14" oninput="calcREIT()"></div>
+        <div class="inp-group"><label>Forward 12-mo NOI (000)</label><input type="number" id="reit_noi" value="" placeholder="0" oninput="calcREIT()"></div>
+        <div class="inp-group"><label>Market Cap Rate (%)</label><input type="number" id="reit_cap" value="" placeholder="0" step="0.1" oninput="calcREIT()"></div>
+        <div class="inp-group"><label>Other Assets (000)</label><input type="number" id="reit_oa" value="" placeholder="0" oninput="calcREIT()"></div>
+        <div class="inp-group"><label>Total Debt (000)</label><input type="number" id="reit_debt" value="" placeholder="0" oninput="calcREIT()"></div>
+        <div class="inp-group"><label>Other Liabilities (000)</label><input type="number" id="reit_ol" value="" placeholder="0" oninput="calcREIT()"></div>
+        <div class="inp-group"><label>Shares Outstanding (000)</label><input type="number" id="reit_sh" value="" placeholder="0" oninput="calcREIT()"></div>
+        <div class="inp-group"><label>Current Share Price</label><input type="number" id="reit_price" value="" placeholder="0" step="0.01" oninput="calcREIT()"></div>
+        <div class="inp-group"><label>Net Income (000)</label><input type="number" id="reit_ni" value="" placeholder="0" oninput="calcREIT()"></div>
+        <div class="inp-group"><label>RE Depreciation (000)</label><input type="number" id="reit_dep" value="" placeholder="0" oninput="calcREIT()"></div>
+        <div class="inp-group"><label>Gains on Sales (000)</label><input type="number" id="reit_gains" value="" placeholder="0" oninput="calcREIT()"></div>
+        <div class="inp-group"><label>Recurring Capex (000)</label><input type="number" id="reit_capex" value="" placeholder="0" oninput="calcREIT()"></div>
+        <div class="inp-group"><label>Peer P/FFO</label><input type="number" id="reit_pffomult" value="" placeholder="0" oninput="calcREIT()"></div>
+        <div class="inp-group"><label>Peer P/AFFO</label><input type="number" id="reit_paffomult" value="" placeholder="0" oninput="calcREIT()"></div>
+        <div class="inp-group"><label>Dividend Per Share</label><input type="number" id="reit_div" value="" placeholder="0" step="0.01" oninput="calcREIT()"></div>
+        <div class="inp-group"><label>Dividend Growth (%)</label><input type="number" id="reit_dg" value="" placeholder="0" oninput="calcREIT()"></div>
+        <div class="inp-group"><label>Required Return (%)</label><input type="number" id="reit_ke" value="" placeholder="0" oninput="calcREIT()"></div>
       </div>
       <div id="reit_res" class="res-grid"></div>
     </div>
@@ -564,12 +682,12 @@
       <h3>Commodity Futures Return Decomposition</h3>
       <p class="subtitle">Total return = spot + roll yield + collateral return; curve shape</p>
       <div class="inp-grid">
-        <div class="inp-group"><label>Spot Price, Start</label><input type="number" id="com_s0" value="2300" oninput="calcCommodity()"></div>
-        <div class="inp-group"><label>Spot Price, End</label><input type="number" id="com_s1" value="2420" oninput="calcCommodity()"></div>
-        <div class="inp-group"><label>Near-contract Futures</label><input type="number" id="com_fn" value="2425" oninput="calcCommodity()"></div>
-        <div class="inp-group"><label>Next-contract Futures</label><input type="number" id="com_fnext" value="2445" oninput="calcCommodity()"></div>
-        <div class="inp-group"><label>Rolls per Year</label><input type="number" id="com_rolls" value="4" oninput="calcCommodity()"></div>
-        <div class="inp-group"><label>Collateral Return (%)</label><input type="number" id="com_col" value="11" oninput="calcCommodity()"></div>
+        <div class="inp-group"><label>Spot Price, Start</label><input type="number" id="com_s0" value="" placeholder="0" oninput="calcCommodity()"></div>
+        <div class="inp-group"><label>Spot Price, End</label><input type="number" id="com_s1" value="" placeholder="0" oninput="calcCommodity()"></div>
+        <div class="inp-group"><label>Near-contract Futures</label><input type="number" id="com_fn" value="" placeholder="0" oninput="calcCommodity()"></div>
+        <div class="inp-group"><label>Next-contract Futures</label><input type="number" id="com_fnext" value="" placeholder="0" oninput="calcCommodity()"></div>
+        <div class="inp-group"><label>Rolls per Year</label><input type="number" id="com_rolls" value="" placeholder="0" oninput="calcCommodity()"></div>
+        <div class="inp-group"><label>Collateral Return (%)</label><input type="number" id="com_col" value="" placeholder="0" oninput="calcCommodity()"></div>
       </div>
       <div id="com_res" class="res-grid"></div>
     </div>
@@ -585,12 +703,12 @@
       <h3>Bank Valuation — Justified P/B &amp; Excess-Capital DDM</h3>
       <p class="subtitle">CFA: P/B = (ROE − g)/(Ke − g); residual income; implied cost of equity</p>
       <div class="inp-grid">
-        <div class="inp-group"><label>Book Value Per Share (B0)</label><input type="number" id="bk_bv" value="5.70" step="0.01" oninput="calcBank()"></div>
-        <div class="inp-group"><label>Sustainable ROE (%)</label><input type="number" id="bk_roe" value="31" oninput="calcBank()"></div>
-        <div class="inp-group"><label>Cost of Equity Ke (%)</label><input type="number" id="bk_ke" value="22.75" step="0.01" oninput="calcBank()"></div>
-        <div class="inp-group"><label>Long-run Growth g (%)</label><input type="number" id="bk_g" value="8" oninput="calcBank()"></div>
-        <div class="inp-group"><label>Current Share Price</label><input type="number" id="bk_price" value="7.50" step="0.01" oninput="calcBank()"></div>
-        <div class="inp-group"><label>Dividend Payout Ratio (%)</label><input type="number" id="bk_pay" value="55" oninput="calcBank()"></div>
+        <div class="inp-group"><label>Book Value Per Share (B0)</label><input type="number" id="bk_bv" value="" placeholder="0" step="0.01" oninput="calcBank()"></div>
+        <div class="inp-group"><label>Sustainable ROE (%)</label><input type="number" id="bk_roe" value="" placeholder="0" oninput="calcBank()"></div>
+        <div class="inp-group"><label>Cost of Equity Ke (%)</label><input type="number" id="bk_ke" value="" placeholder="0" step="0.01" oninput="calcBank()"></div>
+        <div class="inp-group"><label>Long-run Growth g (%)</label><input type="number" id="bk_g" value="" placeholder="0" oninput="calcBank()"></div>
+        <div class="inp-group"><label>Current Share Price</label><input type="number" id="bk_price" value="" placeholder="0" step="0.01" oninput="calcBank()"></div>
+        <div class="inp-group"><label>Dividend Payout Ratio (%)</label><input type="number" id="bk_pay" value="" placeholder="0" oninput="calcBank()"></div>
       </div>
       <div id="bk_res" class="res-grid"></div>
       <div id="bk_verdict" class="verdict neutral" style="margin-top:12px"></div>
@@ -601,17 +719,17 @@
       <h3>Life Insurance — Embedded Value (EV) &amp; Appraisal Value</h3>
       <p class="subtitle">EV = Adjusted Net Worth + VIF; Appraisal Value = EV + PV(future new business)</p>
       <div class="inp-grid">
-        <div class="inp-group"><label>Free Surplus (000)</label><input type="number" id="ins_fs" value="180000" oninput="calcInsurance()"></div>
-        <div class="inp-group"><label>Required Capital (000)</label><input type="number" id="ins_rc" value="120000" oninput="calcInsurance()"></div>
-        <div class="inp-group"><label>Year-1 In-force Profit (000)</label><input type="number" id="ins_p1" value="60000" oninput="calcInsurance()"></div>
-        <div class="inp-group"><label>Annual Run-off Rate (%)</label><input type="number" id="ins_runoff" value="12" oninput="calcInsurance()"></div>
-        <div class="inp-group"><label>Risk Discount Rate (%)</label><input type="number" id="ins_rdr" value="20" oninput="calcInsurance()"></div>
-        <div class="inp-group"><label>Investment Return on Capital (%)</label><input type="number" id="ins_inv" value="12" oninput="calcInsurance()"></div>
-        <div class="inp-group"><label>Value of New Business (000)</label><input type="number" id="ins_vnb" value="25000" oninput="calcInsurance()"></div>
-        <div class="inp-group"><label>New Business Growth (%)</label><input type="number" id="ins_ng" value="8" oninput="calcInsurance()"></div>
-        <div class="inp-group"><label>Years of New Business</label><input type="number" id="ins_ny" value="10" oninput="calcInsurance()"></div>
-        <div class="inp-group"><label>Shares Outstanding (000)</label><input type="number" id="ins_sh" value="100000" oninput="calcInsurance()"></div>
-        <div class="inp-group"><label>Current Share Price</label><input type="number" id="ins_price" value="6.20" step="0.01" oninput="calcInsurance()"></div>
+        <div class="inp-group"><label>Free Surplus (000)</label><input type="number" id="ins_fs" value="" placeholder="0" oninput="calcInsurance()"></div>
+        <div class="inp-group"><label>Required Capital (000)</label><input type="number" id="ins_rc" value="" placeholder="0" oninput="calcInsurance()"></div>
+        <div class="inp-group"><label>Year-1 In-force Profit (000)</label><input type="number" id="ins_p1" value="" placeholder="0" oninput="calcInsurance()"></div>
+        <div class="inp-group"><label>Annual Run-off Rate (%)</label><input type="number" id="ins_runoff" value="" placeholder="0" oninput="calcInsurance()"></div>
+        <div class="inp-group"><label>Risk Discount Rate (%)</label><input type="number" id="ins_rdr" value="" placeholder="0" oninput="calcInsurance()"></div>
+        <div class="inp-group"><label>Investment Return on Capital (%)</label><input type="number" id="ins_inv" value="" placeholder="0" oninput="calcInsurance()"></div>
+        <div class="inp-group"><label>Value of New Business (000)</label><input type="number" id="ins_vnb" value="" placeholder="0" oninput="calcInsurance()"></div>
+        <div class="inp-group"><label>New Business Growth (%)</label><input type="number" id="ins_ng" value="" placeholder="0" oninput="calcInsurance()"></div>
+        <div class="inp-group"><label>Years of New Business</label><input type="number" id="ins_ny" value="" placeholder="0" oninput="calcInsurance()"></div>
+        <div class="inp-group"><label>Shares Outstanding (000)</label><input type="number" id="ins_sh" value="" placeholder="0" oninput="calcInsurance()"></div>
+        <div class="inp-group"><label>Current Share Price</label><input type="number" id="ins_price" value="" placeholder="0" step="0.01" oninput="calcInsurance()"></div>
       </div>
       <div id="ins_res" class="res-grid"></div>
       <div id="ins_verdict" class="verdict neutral" style="margin-top:12px"></div>
@@ -1425,16 +1543,14 @@ function calcInsurance() {
   else verdict(vd,'FAIRLY VALUED','neutral');
 }
 
-/* ── Run all calculations on page load ──────────────────── */
+/* ── On load: clear all result areas so they start empty ── */
 window.addEventListener('DOMContentLoaded', () => {
-  calcEquityDCF(); calcDDM(); calcRIM();
-  calcCapBudget(); calcEVA(); calcMA();
-  calcBSM(); calcForward(); calcCDS();
-  calcBond(); calcCVA(); calcConvertible();
-  calcPension();
-  calcLBO(); calcVC(); calcFundEcon();
-  calcRE(); calcREIT(); calcCommodity();
-  calcBank(); calcInsurance();
+  document.querySelectorAll('.res-grid,[id$="_res"],[id$="_verdict"],[id$="_table"],[id$="_greeks"]')
+    .forEach(el => { el.innerHTML = ''; });
+  /* Add "user has interacted" tracking so calcs run normally after first input */
+  document.querySelectorAll('.inp-grid input,.inp-grid select').forEach(el => {
+    el.addEventListener('change', () => { el.dataset.touched = '1'; }, {once:true});
+  });
 });
 </script>
 {% endblock %}
