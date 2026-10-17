@@ -326,16 +326,23 @@ main > div[style*="margin-bottom: 20px"] {
 
         <!-- Drop zone -->
         <div id="pdf-drop-unified"
-             style="border:2px dashed #a5b4fc;border-radius:14px;padding:32px 24px;text-align:center;cursor:pointer;background:linear-gradient(135deg,#f8faff,#f0f4ff);transition:all .25s;position:relative"
+             style="border:2px dashed #a5b4fc;border-radius:14px;padding:28px 24px;text-align:center;cursor:pointer;background:linear-gradient(135deg,#f8faff,#f0f4ff);transition:all .25s;position:relative"
              onclick="document.getElementById('pdf-input-unified').click()"
              ondragover="event.preventDefault();this.style.background='#ede9fe';this.style.borderColor='#7c3aed'"
              ondragleave="this.style.background='linear-gradient(135deg,#f8faff,#f0f4ff)';this.style.borderColor='#a5b4fc'"
              ondrop="handleDropUnified(event)">
-          <i class="fas fa-file-pdf" style="font-size:2.2rem;color:#a5b4fc;margin-bottom:10px;display:block"></i>
-          <div id="pdf-label-unified" style="font-size:.95rem;font-weight:800;color:#4338ca;margin-bottom:4px">Drop Financial Statement PDF here</div>
+          <i class="fas fa-file-pdf" style="font-size:2rem;color:#a5b4fc;margin-bottom:8px;display:block"></i>
+          <div id="pdf-label-unified" style="font-size:.95rem;font-weight:800;color:#4338ca;margin-bottom:4px">Drop up to 3 Financial Statement PDFs here</div>
           <div style="font-size:.75rem;color:#818cf8">or click to browse — any statement type, any Ghanaian bank format</div>
+          <div style="margin-top:8px;display:flex;justify-content:center;gap:6px;flex-wrap:wrap">
+            <span style="font-size:.68rem;background:#eef2ff;color:#4338ca;border:1px solid #c7d2fe;border-radius:6px;padding:2px 8px;font-weight:700"><i class="fas fa-layer-group"></i> Multi-file · up to 3</span>
+            <span style="font-size:.68rem;background:#f0fdf4;color:#065f46;border:1px solid #6ee7b7;border-radius:6px;padding:2px 8px;font-weight:700"><i class="fas fa-magic"></i> Auto-merges figures</span>
+          </div>
         </div>
-        <input type="file" id="pdf-input-unified" accept=".pdf" style="display:none" onchange="handleSelectUnified(this)">
+        <input type="file" id="pdf-input-unified" accept=".pdf" multiple style="display:none" onchange="handleSelectUnified(this)">
+
+        <!-- Per-file processing status list -->
+        <div id="pdf-file-list" style="display:none;margin-top:10px"></div>
 
         <!-- Status + results table -->
         <div id="pdf-status-unified" style="display:none;margin-top:10px;padding:9px 14px;border-radius:10px;font-size:.78rem;font-weight:600"></div>
@@ -997,83 +1004,122 @@ function handleDropUnified(e) {
   const zone = document.getElementById('pdf-drop-unified');
   zone.style.background = 'linear-gradient(135deg,#f8faff,#f0f4ff)';
   zone.style.borderColor = '#a5b4fc';
-  const file = e.dataTransfer.files[0];
-  if (file) _processPdfUnified(file);
+  const files = Array.from(e.dataTransfer.files).filter(f => f.name.toLowerCase().endsWith('.pdf')).slice(0, 3);
+  if (files.length) _processPdfUnified(files);
+  else _setUnifiedStatus('<i class="fas fa-exclamation-triangle"></i> Please drop PDF files only.', 'error');
 }
 
 function handleSelectUnified(input) {
-  if (input.files[0]) _processPdfUnified(input.files[0]);
+  const files = Array.from(input.files).filter(f => f.name.toLowerCase().endsWith('.pdf')).slice(0, 3);
+  if (files.length) _processPdfUnified(files);
 }
 
-async function _processPdfUnified(file) {
-  if (!file.name.toLowerCase().endsWith('.pdf')) {
-    _setUnifiedStatus('<i class="fas fa-exclamation-triangle"></i> Please upload a PDF file.', 'error');
+async function _processPdfUnified(files) {
+  if (!files || files.length === 0) return;
+
+  /* reset UI */
+  document.getElementById('pdf-table-unified').style.display = 'none';
+  document.getElementById('pdf-action-row').style.display = 'none';
+  _pdfAutoFields = {};
+
+  /* build per-file status rows */
+  const fileListEl = document.getElementById('pdf-file-list');
+  fileListEl.style.display = 'block';
+  fileListEl.innerHTML = files.map((f, i) =>
+    `<div id="pfl-${i}" style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:#f8fafc;border-radius:8px;margin-bottom:4px;font-size:.78rem;border:1px solid #e5e7eb">
+       <i id="pfl-icon-${i}" class="fas fa-spinner fa-spin" style="color:#6366f1;width:14px;text-align:center"></i>
+       <span style="flex:1;font-weight:600;color:#374151;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${f.name}</span>
+       <span id="pfl-msg-${i}" style="color:#6366f1;white-space:nowrap">Waiting…</span>
+     </div>`
+  ).join('');
+
+  document.getElementById('pdf-label-unified').innerHTML =
+    `<i class="fas fa-spinner fa-spin"></i> Processing ${files.length} file${files.length>1?'s':''}…`;
+  _setUnifiedStatus(`<i class="fas fa-spinner fa-spin"></i> Analysing ${files.length} PDF${files.length>1?'s':''}…`, 'warn');
+
+  let mergedSummary = {}, mergedFields = {}, totalPages = 0, successCount = 0;
+
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    document.getElementById(`pfl-msg-${i}`).textContent = 'Extracting…';
+
+    const form = new FormData();
+    form.append('pdf', file);
+    form.append('statement_type', 'auto');
+
+    try {
+      const resp = await fetch('/valuation/extract-pdf', { method: 'POST', body: form });
+      const data = await resp.json();
+
+      if (!resp.ok || data.error) {
+        document.getElementById(`pfl-icon-${i}`).className = 'fas fa-times-circle';
+        document.getElementById(`pfl-icon-${i}`).style.color = '#ef4444';
+        document.getElementById(`pfl-msg-${i}`).textContent = data.error || 'Failed';
+        document.getElementById(`pfl-msg-${i}`).style.color = '#ef4444';
+        continue;
+      }
+
+      const summary = data.summary || {}, fields = data.fields || {};
+      const pages = data.pages_read || 0, count = Object.keys(summary).length;
+      totalPages += pages; successCount++;
+
+      /* merge — first non-null value wins per metric */
+      for (const [k, v] of Object.entries(summary)) { if (v != null && mergedSummary[k] == null) mergedSummary[k] = v; }
+      for (const [k, v] of Object.entries(fields))  { if (v != null && mergedFields[k]  == null) mergedFields[k]  = v; }
+
+      document.getElementById(`pfl-icon-${i}`).className = 'fas fa-check-circle';
+      document.getElementById(`pfl-icon-${i}`).style.color = '#10b981';
+      document.getElementById(`pfl-msg-${i}`).textContent = `${count} metrics · ${pages}p`;
+      document.getElementById(`pfl-msg-${i}`).style.color = '#10b981';
+    } catch (err) {
+      document.getElementById(`pfl-icon-${i}`).className = 'fas fa-times-circle';
+      document.getElementById(`pfl-icon-${i}`).style.color = '#ef4444';
+      document.getElementById(`pfl-msg-${i}`).textContent = 'Network error';
+      document.getElementById(`pfl-msg-${i}`).style.color = '#ef4444';
+    }
+  }
+
+  _pdfAutoFields = mergedFields;
+  const keys = Object.keys(mergedSummary);
+
+  if (!keys.length) {
+    _setUnifiedStatus('<i class="fas fa-exclamation-triangle"></i> No figures extracted — PDFs may be image-based or password-protected.', 'warn');
+    document.getElementById('pdf-label-unified').innerHTML = 'No data found — try text-based PDFs';
     return;
   }
-  document.getElementById('pdf-label-unified').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Extracting all statements…';
-  _setUnifiedStatus('<i class="fas fa-spinner fa-spin"></i> Analysing PDF — auto-detecting statement types…', 'warn');
-  document.getElementById('pdf-table-unified').style.display = 'none';
 
-  const form = new FormData();
-  form.append('pdf', file);
-  form.append('statement_type', 'auto');
+  /* merged results table */
+  const bodyEl = document.getElementById('pdf-table-unified-body');
+  bodyEl.innerHTML = keys.map(k => {
+    const val = mergedSummary[k];
+    const fmt = typeof val === 'number' ? val.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) : val;
+    return `<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #f1f5f9;font-size:.78rem">
+      <span style="color:#6b7280;font-weight:600">${k}</span>
+      <span style="color:#111827;font-weight:800">${fmt}</span>
+    </div>`;
+  }).join('');
+  document.getElementById('pdf-table-unified').style.display = 'block';
 
-  try {
-    const resp = await fetch('/valuation/extract-pdf', { method: 'POST', body: form });
-    const data = await resp.json();
+  const fieldCount = Object.keys(_pdfAutoFields).length;
+  const label = files.length > 1 ? `${successCount}/${files.length} reports` : (files[0].name.length > 28 ? files[0].name.substring(0,28)+'…' : files[0].name);
+  _setUnifiedStatus(
+    `<i class="fas fa-check-circle"></i> <strong>${keys.length} metrics</strong> merged from ${label} · ${fieldCount} calculator field(s) ready`,
+    'ok');
+  document.getElementById('pdf-label-unified').innerHTML =
+    `<i class="fas fa-check-circle" style="color:#10b981"></i> ${files.length > 1 ? files.length+' files processed' : label}`;
 
-    if (!resp.ok || data.error) {
-      _setUnifiedStatus('<i class="fas fa-times-circle"></i> ' + (data.error || 'Extraction failed'), 'error');
-      document.getElementById('pdf-label-unified').innerHTML = '<i class="fas fa-exclamation-circle" style="color:#ef4444"></i> Failed — try another PDF';
-      return;
-    }
-
-    _pdfAutoFields = data.fields || {};
-    const summary  = data.summary || {};
-    const pages    = data.pages_read || '?';
-    const keys     = Object.keys(summary);
-
-    if (!keys.length) {
-      _setUnifiedStatus('<i class="fas fa-exclamation-triangle"></i> No figures found — the PDF may be a scanned image. Use a text-based PDF.', 'warn');
-      document.getElementById('pdf-label-unified').innerHTML = 'No data found — try another PDF';
-      return;
-    }
-
-    /* results table */
-    const bodyEl = document.getElementById('pdf-table-unified-body');
-    bodyEl.innerHTML = keys.map(k => {
-      const val = summary[k];
-      const fmt = typeof val === 'number' ? val.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) : val;
-      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #f1f5f9;font-size:.78rem">
-        <span style="color:#6b7280;font-weight:600">${k}</span>
-        <span style="color:#111827;font-weight:800">${fmt}</span>
-      </div>`;
-    }).join('');
-    document.getElementById('pdf-table-unified').style.display = 'block';
-
-    const fieldCount = Object.keys(_pdfAutoFields).length;
-    const fname = file.name.length > 28 ? file.name.substring(0,28) + '…' : file.name;
-    _setUnifiedStatus(
-      `<i class="fas fa-check-circle"></i> <strong>${keys.length} metrics</strong> extracted from ${pages} page(s) — ${fieldCount} calculator field(s) ready.  <em style="font-weight:500;color:#374151">${fname}</em>`,
-      'ok');
-    document.getElementById('pdf-label-unified').innerHTML =
-      `<i class="fas fa-check-circle" style="color:#10b981"></i> ${fname}`;
-
-    _refreshActionRow();
-  } catch (err) {
-    _setUnifiedStatus('<i class="fas fa-times-circle"></i> Network error: ' + err.message, 'error');
-    document.getElementById('pdf-label-unified').innerHTML = 'Error — retry';
-  }
+  _refreshActionRow();
 }
 
 /* Legacy stubs — keep for any lingering references */
 function handleDrop(e, type) {
   e.preventDefault();
-  const file = e.dataTransfer.files[0];
-  if (file) _processPdfUnified(file);
+  const files = Array.from(e.dataTransfer.files).filter(f => f.name.toLowerCase().endsWith('.pdf')).slice(0,3);
+  if (files.length) _processPdfUnified(files);
 }
 function handleSelect(input, type) {
-  if (input.files[0]) _processPdfUnified(input.files[0]);
+  const files = Array.from(input.files).filter(f => f.name.toLowerCase().endsWith('.pdf')).slice(0,3);
+  if (files.length) _processPdfUnified(files);
 }
 
 /* Which model tab's fields to populate from PDF extraction */
@@ -1133,7 +1179,9 @@ function clearAllPdf() {
   if (st) st.style.display = 'none';
   const tbl = document.getElementById('pdf-table-unified');
   if (tbl) tbl.style.display = 'none';
-  document.getElementById('pdf-label-unified').innerHTML = 'Drop Financial Statement PDF here';
+  const fl = document.getElementById('pdf-file-list');
+  if (fl) { fl.style.display = 'none'; fl.innerHTML = ''; }
+  document.getElementById('pdf-label-unified').innerHTML = 'Drop up to 3 Financial Statement PDFs here';
   document.getElementById('pdf-action-row').style.display = 'none';
 }
 
