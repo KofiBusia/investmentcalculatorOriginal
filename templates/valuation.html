@@ -13,7 +13,8 @@ main { padding-top: 6px !important; }
 main > div:has(.nav-pill) { display: none !important; }
 
 /* ── Move top ad to a fixed right sidebar ───────────────── */
-main > div[style*="margin-bottom:20px"] {
+main > div[style*="margin-bottom:20px"],
+main > div[style*="margin-bottom: 20px"] {
   position: fixed !important;
   right: 8px !important;
   top: 88px !important;
@@ -23,7 +24,8 @@ main > div[style*="margin-bottom:20px"] {
   z-index: 50;
 }
 @media (max-width: 1200px) {
-  main > div[style*="margin-bottom:20px"] { display: none !important; }
+  main > div[style*="margin-bottom:20px"],
+  main > div[style*="margin-bottom: 20px"] { display: none !important; }
 }
 
 :root {
