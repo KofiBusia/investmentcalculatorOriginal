@@ -143,8 +143,18 @@ def build_pptx(data=None):
     _dcf = data.get('dcf') or {}
     _ddm = data.get('ddm') or {}
     _rim = data.get('rim') or {}
-    _eva = data.get('eva') or {}
-    _pa  = data.get('pa')  or {}
+    _eva  = data.get('eva')  or {}
+    _pa   = data.get('pa')   or {}
+    _meta = data.get('meta') or {}
+
+    # ── Company metadata ────────────────────────────────────────────────
+    _co_name = _meta.get('name')   or '[ Company Name ]'
+    _co_tick = _meta.get('ticker') or '[ TICKER ]'
+    _co_sect = _meta.get('sector') or '[ Sector ]'
+    _reco    = _meta.get('reco')   or '[ BUY / SELL / HOLD ]'
+    _team    = _meta.get('team')   or '[ Your Team Name ]'
+    _date    = _meta.get('date')   or '[ Presentation Date ]'
+    _reco_col = GREEN if _reco == 'BUY' else (RED if _reco == 'SELL' else GOLD)
 
     # ── Pre-compute formatted valuation strings ─────────────────────────────
     dcf_iv   = _dcf.get('ivps')
@@ -203,6 +213,20 @@ def build_pptx(data=None):
     while len(_hdr) < 3: _hdr.insert(0, '—')
     _hdr_y2, _hdr_y1, _hdr_yl = _hdr[0], _hdr[1], _hdr[2]
 
+    # ── Extra computed ratios ───────────────────────────────────────────
+    _ebitda_latest = ([v for v in (_pa.get('ebitda') or []) if v] or [None])[-1]
+    _net_margin    = (f"{(ni_yl / rev_yl * 100):.1f}%" if ni_yl and rev_yl and rev_yl != 0 else "[ X% ]")
+    _ev_ebitda     = (f"{(_dcf.get('ev') / _ebitda_latest):.1f}x"
+                      if _dcf.get('ev') and _ebitda_latest and _ebitda_latest != 0 else "[ Xx ]")
+    _shares_out    = _dcf.get('shares') or _eva.get('shares') or 0
+    _mkt_cap_str   = (f"GHc {(_any_pr * _shares_out):,.0f}k" if _any_pr and _shares_out else "[ Xm ]")
+    _rev_cagr_str  = '—'
+    _pa_rev_clean  = [v for v in _pa_rev if v is not None and v != 0]
+    if len(_pa_rev_clean) >= 2:
+        import math as _math
+        _rc = (_math.pow(_pa_rev_clean[-1] / _pa_rev_clean[0], 1 / (len(_pa_rev_clean)-1)) - 1) * 100
+        _rev_cagr_str = f"{_rc:+.1f}%"
+
     prs = Presentation()
     prs.slide_width  = Inches(13.33)
     prs.slide_height = Inches(7.5)
@@ -233,13 +257,13 @@ def build_pptx(data=None):
     # Team info placeholders
     _add_rect(s, 2.5, 5.0, 8.33, 1.6, RGBColor(0x1e, 0x29, 0x3b))
     _add_text(s, "Team Name:", 2.7, 5.1, 3.5, 0.35, font_size=11, color=GRAY)
-    _add_text(s, "[ Your Team Name ]", 2.7, 5.35, 3.5, 0.35, font_size=13, bold=True, color=WHITE)
+    _add_text(s, _team, 2.7, 5.35, 3.5, 0.35, font_size=13, bold=True, color=WHITE)
     _add_text(s, "Stock Ticker:", 7.0, 5.1, 3.5, 0.35, font_size=11, color=GRAY)
-    _add_text(s, "[ GSE: TICKER ]", 7.0, 5.35, 3.5, 0.35, font_size=13, bold=True, color=GOLD)
+    _add_text(s, f"GSE: {_co_tick}", 7.0, 5.35, 3.5, 0.35, font_size=13, bold=True, color=GOLD)
     _add_text(s, "Recommendation:", 2.7, 5.8, 3.5, 0.35, font_size=11, color=GRAY)
-    _add_text(s, "[ BUY / SELL / HOLD ]", 2.7, 6.05, 3.5, 0.35, font_size=13, bold=True, color=GREEN)
+    _add_text(s, _reco, 2.7, 6.05, 3.5, 0.35, font_size=13, bold=True, color=_reco_col)
     _add_text(s, "Date:", 7.0, 5.8, 3.5, 0.35, font_size=11, color=GRAY)
-    _add_text(s, "[ Presentation Date ]", 7.0, 6.05, 3.5, 0.35, font_size=13, color=WHITE)
+    _add_text(s, _date, 7.0, 6.05, 3.5, 0.35, font_size=13, color=WHITE)
     _footer(s, 1)
 
     # ── SLIDE 2: Table of Contents ──────────────────────────────────────────────
@@ -279,11 +303,11 @@ def build_pptx(data=None):
     _add_rect(s, 0.4, 1.5, 12.5, 2.2, RGBColor(0x1e, 0x29, 0x3b))
     _add_rect(s, 0.4, 1.5, 0.1, 2.2, GOLD)
     _add_text(s, '"I think that', 0.6, 1.6, 11.8, 0.45, font_size=15, color=GRAY, italic=True)
-    _add_text(s, '[ COMPANY NAME ]', 0.6, 1.95, 4.5, 0.5, font_size=20, bold=True, color=GOLD)
+    _add_text(s, _co_name.upper() if _co_name != '[ Company Name ]' else '[ COMPANY NAME ]', 0.6, 1.95, 4.5, 0.5, font_size=20, bold=True, color=GOLD)
     _add_text(s, 'is a', 5.0, 1.95, 1.0, 0.5, font_size=16, color=WHITE, italic=True)
-    _add_text(s, '[ BUY / SELL / HOLD ]', 5.9, 1.95, 4.5, 0.5, font_size=20, bold=True, color=GREEN)
+    _add_text(s, _reco, 5.9, 1.95, 4.5, 0.5, font_size=20, bold=True, color=_reco_col)
     _add_text(s, 'because [ qualitative reason — e.g. dominant market position, strong earnings growth ]', 0.6, 2.5, 11.8, 0.5, font_size=13, color=WHITE, italic=True)
-    _add_text(s, 'and our valuation shows the stock is [ undervalued / overvalued ] at its current price of GHc [ X.XX ]."', 0.6, 3.0, 11.8, 0.55, font_size=13, color=LIGHTBLUE, italic=True)
+    _add_text(s, f'and our valuation shows the stock is {"undervalued" if blended and ref_pr and blended>ref_pr else "[ undervalued / overvalued ]"} at its current price of {f"GHc {_fv(ref_pr)}" if ref_pr else "GHc [ X.XX ]"}."', 0.6, 3.0, 11.8, 0.55, font_size=13, color=LIGHTBLUE, italic=True)
     # Tips
     _add_text(s, "What Makes a Great Opening", 0.4, 3.85, 12, 0.4, font_size=13, bold=True, color=WHITE)
     tips = [
@@ -326,7 +350,7 @@ def build_pptx(data=None):
     # ── SLIDE 5: Economic Analysis — Impact on Your Stock ───────────────────────
     s = prs.slides.add_slide(blank)
     _dark_slide(s)
-    _header_bar(s, "Economic Analysis", "How the Macro Environment Affects [ Company Name ]", BLUE)
+    _header_bar(s, "Economic Analysis", f"How the Macro Environment Affects {_co_name}", BLUE)
     _add_text(s, "Map each macro factor to a direct impact on your chosen company.", 0.4, 1.5, 12.5, 0.35, font_size=11, color=GRAY)
     headers = ["Macro Factor", "Current Status", "Impact on Company", "Bullish / Bearish?"]
     widths  = [2.8, 2.5, 5.2, 2.3]
@@ -356,7 +380,7 @@ def build_pptx(data=None):
     s = prs.slides.add_slide(blank)
     _dark_slide(s)
     _header_bar(s, "Industry Analysis", "Step 2 of 6 — The Competitive Landscape", RGBColor(0x5b, 0x21, 0xb6))
-    _add_text(s, "Sector:  [ Banking / Manufacturing / Telecoms / Oil & Gas / Food & Beverage / Other ]", 0.4, 1.5, 12.5, 0.35, font_size=12, bold=True, color=GOLD)
+    _add_text(s, f"Sector:  {_co_sect}", 0.4, 1.5, 12.5, 0.35, font_size=12, bold=True, color=GOLD)
     # Industry metrics
     metrics = [
         ("Industry Size (GHc)", "[ Total market size ]"),
@@ -405,7 +429,7 @@ def build_pptx(data=None):
     s = prs.slides.add_slide(blank)
     _dark_slide(s)
     _header_bar(s, "Company Overview", "Step 3 of 6 — Know Your Company Inside Out", GREEN)
-    _add_text(s, "Company:  [ Full Legal Name ]      GSE Ticker:  [ XXX ]      Sector:  [ Sector ]", 0.4, 1.5, 12.5, 0.4, font_size=12, bold=True, color=GOLD)
+    _add_text(s, f"Company:  {_co_name}      GSE Ticker:  {_co_tick}      Sector:  {_co_sect}", 0.4, 1.5, 12.5, 0.4, font_size=12, bold=True, color=GOLD)
     info_items = [
         ("Founded", "[ Year ]"),
         ("HQ Location", "[ City, Ghana ]"),
@@ -485,10 +509,10 @@ def build_pptx(data=None):
     # Side commentary
     _add_rect(s, 9.1, 1.95, 4.1, 4.5, RGBColor(0x1e, 0x29, 0x3b))
     _add_text(s, "Key Observations", 9.25, 2.05, 3.8, 0.4, font_size=12, bold=True, color=LIGHTBLUE)
-    obs = ["Revenue CAGR: [ X% over 5 yrs ]",
-           "Profit margin trend: [ improving / declining ]",
+    obs = [f"Revenue CAGR: {_rev_cagr_str} ({len(_pa_rev_clean)}-yr)" if _pa_rev_clean else "Revenue CAGR: [ X% over N yrs ]",
+           f"Latest Net Margin: {_net_margin}" if ni_yl and rev_yl else "Net margin trend: [ improving / declining ]",
+           f"Latest ROE: {_roe_latest}" if roe_yl else "ROE trend: [ improving / declining ]",
            "Best year: [ Year ] — why?",
-           "Worst year: [ Year ] — why?",
            "Guidance for next year: [ management forecast ]"]
     for i, o in enumerate(obs):
         _add_text(s, f"• {o}", 9.25, 2.55 + i * 0.7, 3.8, 0.6, font_size=9.5, color=WHITE)
@@ -501,15 +525,15 @@ def build_pptx(data=None):
     sections = [
         ("Profitability Ratios", BLUE, [
             ("Gross Margin",     "[ X% ]",    "Revenue - COGS / Revenue"),
-            ("Net Profit Margin","[ X% ]",    "Net Profit / Revenue"),
+            ("Net Profit Margin", _net_margin, "Net Profit / Revenue"),
             ("ROE",              _roe_latest, "Net Profit / Shareholder Equity"),
             ("ROA",              "[ X% ]",    "Net Profit / Total Assets"),
         ]),
         ("Valuation Ratios", GOLD, [
-            ("P/E Ratio",       _pe_latest,  "Price / EPS"),
-            ("P/B Ratio",       _pb_latest,  "Price / Book Value per Share"),
-            ("EV/EBITDA",       "[ Xx ]",    "Enterprise Value / EBITDA"),
-            ("Dividend Yield",  _dyd_str,    "DPS / Share Price"),
+            ("P/E Ratio",       _pe_latest,   "Price / EPS"),
+            ("P/B Ratio",       _pb_latest,   "Price / Book Value per Share"),
+            ("EV/EBITDA",       _ev_ebitda,   "Enterprise Value / EBITDA"),
+            ("Dividend Yield",  _dyd_str,     "DPS / Share Price"),
         ]),
         ("Leverage Ratios", RED, [
             ("Debt-to-Equity",  "[ Xx ]",  "Total Debt / Equity"),
@@ -569,15 +593,21 @@ def build_pptx(data=None):
     _dark_slide(s)
     _header_bar(s, "Investment Thesis", "Why This Stock? Your 3 Core Arguments", BLUE)
     _add_text(s, "State the 3 most compelling reasons for your recommendation. Each argument must combine qualitative insight with data.", 0.4, 1.5, 12.5, 0.4, font_size=11, color=GRAY, italic=True)
+    _arg1_data = (f"Revenue CAGR {_rev_cagr_str}  ·  Net Margin {_net_margin}  ·  ROE {_roe_latest}"
+                  if any(v != '[ X% ]' and v != '—' for v in [_rev_cagr_str, _net_margin, _roe_latest])
+                  else "Supporting data: [ Specific metric ]")
+    _upside_pct = _fupside(ref_pr, blended)
+    _arg2_data  = (f"Blended IV GHc {_fv(blended)}  ·  P/E {_pe_latest}  ·  Upside {_upside_pct}"
+                   if blended and ref_pr else "Supporting data: [ Specific metric ]")
     args = [
-        ("Argument 1 — [ Growth ]",
-         "[ Describe first reason — e.g. 'Revenue growing at 25% CAGR driven by digital banking adoption' ]",
-         "Supporting data: [ Specific metric ]", BLUE),
-        ("Argument 2 — [ Valuation ]",
-         "[ Describe second reason — e.g. 'Stock trades at 8x P/E vs sector average of 14x, offering 40% discount' ]",
-         "Supporting data: [ Specific metric ]", GOLD),
-        ("Argument 3 — [ Catalyst ]",
-         "[ Describe third reason — e.g. 'Upcoming bond issuance and FX recovery will expand margins by 3pp' ]",
+        ("Argument 1 — Growth",
+         "[ Describe your first reason — e.g. 'Revenue growing at double-digit CAGR driven by market expansion' ]",
+         _arg1_data, BLUE),
+        ("Argument 2 — Valuation",
+         "[ Describe your second reason — e.g. 'Stock trades at a significant discount to intrinsic value' ]",
+         _arg2_data, GOLD),
+        ("Argument 3 — Catalyst",
+         "[ Describe your third reason — e.g. 'Upcoming product launch / FX recovery will drive re-rating' ]",
          "Supporting data: [ Specific metric ]", GREEN),
     ]
     for i, (title, body, data, col) in enumerate(args):
@@ -991,14 +1021,14 @@ def build_pptx(data=None):
     # ── SLIDE 26: Recommendation ─────────────────────────────────────────────────
     s = prs.slides.add_slide(blank)
     _dark_slide(s)
-    _header_bar(s, "Our Recommendation", "The Final Verdict — BUY / SELL / HOLD", GREEN)
+    _header_bar(s, "Our Recommendation", f"The Final Verdict — {_reco}", _reco_col)
     # Large verdict box
     _add_rect(s, 0.4, 1.6, 5.5, 5.5, RGBColor(0x0a, 0x20, 0x10))
     _add_rect(s, 0.4, 1.6, 5.5, 0.06, GREEN)
     _add_rect(s, 0.4, 7.04, 5.5, 0.06, GREEN)
     _add_text(s, "RECOMMENDATION", 0.5, 1.75, 5.3, 0.45, font_size=11, bold=True, color=GREEN, align=PP_ALIGN.CENTER)
-    _add_text(s, "[ BUY ]", 0.5, 2.3, 5.3, 1.3, font_size=60, bold=True, color=GREEN, align=PP_ALIGN.CENTER)
-    _add_text(s, "[ Company Name ]  ·  GSE: [ XXX ]", 0.5, 3.7, 5.3, 0.45, font_size=12, bold=True, color=WHITE, align=PP_ALIGN.CENTER)
+    _add_text(s, _reco, 0.5, 2.3, 5.3, 1.3, font_size=60, bold=True, color=_reco_col, align=PP_ALIGN.CENTER)
+    _add_text(s, f"{_co_name}  ·  GSE: {_co_tick}", 0.5, 3.7, 5.3, 0.45, font_size=12, bold=True, color=WHITE, align=PP_ALIGN.CENTER)
     key_metrics = [
         ("Current Price",  f"GHc {_fv(ref_pr)}" if ref_pr else "GHc [ X.XX ]"),
         ("Target Price",   f"GHc {_fv(blended)}" if blended else "GHc [ X.XX ]"),
@@ -1108,7 +1138,7 @@ def build_pptx(data=None):
     _add_text(s, "We Welcome Your Questions", 0.5, 2.8, 12.3, 0.7, font_size=22, color=LIGHTBLUE, align=PP_ALIGN.CENTER)
     # Summary box
     _add_rect(s, 1.5, 3.7, 10.3, 2.6, RGBColor(0x1e, 0x29, 0x3b))
-    _add_text(s, "[ Company Name ]  ·  GSE: [ XXX ]  ·  Recommendation:  [ BUY / SELL / HOLD ]", 1.7, 3.82, 9.9, 0.45, font_size=13, bold=True, color=GOLD, align=PP_ALIGN.CENTER)
+    _add_text(s, f"{_co_name}  ·  GSE: {_co_tick}  ·  Recommendation:  {_reco}", 1.7, 3.82, 9.9, 0.45, font_size=13, bold=True, color=GOLD, align=PP_ALIGN.CENTER)
     summary_row = [
         ("Current Price", f"GHc {_fv(ref_pr)}" if ref_pr else "GHc [ X.XX ]"),
         ("Target Price",  f"GHc {_fv(blended)}" if blended else "GHc [ X.XX ]"),

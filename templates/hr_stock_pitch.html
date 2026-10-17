@@ -89,22 +89,52 @@ function openDrawer(){document.getElementById('mobile-drawer').style.left='0';do
 function closeDrawer(){document.getElementById('mobile-drawer').style.left='-280px';document.getElementById('drawer-overlay').style.display='none';document.body.style.overflow='';}
 
 // ── Pitch deck pre-fill from InvestIQ valuation results ──────────────────
+const _META_KEY = 'iq_meta';
+function _loadMeta() {
+  try { return JSON.parse(localStorage.getItem(_META_KEY) || '{}'); } catch(e) { return {}; }
+}
+function _saveMeta() {
+  const m = {
+    name:   document.getElementById('meta-name')?.value.trim() || '',
+    ticker: (document.getElementById('meta-ticker')?.value.trim() || '').toUpperCase(),
+    sector: document.getElementById('meta-sector')?.value || '',
+    reco:   document.getElementById('meta-reco')?.value || 'BUY',
+    team:   document.getElementById('meta-team')?.value.trim() || '',
+    date:   document.getElementById('meta-date')?.value || '',
+  };
+  try { localStorage.setItem(_META_KEY, JSON.stringify(m)); } catch(e) {}
+}
 document.addEventListener('DOMContentLoaded', function() {
   try {
     const raw = localStorage.getItem('iq_pitch');
-    if (!raw) return;
-    const d = JSON.parse(raw);
-    if (!d.dcf && !d.ddm && !d.rim) return;
-    const hint = document.getElementById('hero-pitch-hint');
-    if (hint) hint.style.display = 'block';
+    if (raw) {
+      const d = JSON.parse(raw);
+      if (d.dcf || d.ddm || d.rim) {
+        const hint = document.getElementById('hero-pitch-hint');
+        if (hint) hint.style.display = 'block';
+      }
+    }
+    const m = _loadMeta();
+    if (m.name)   document.getElementById('meta-name').value   = m.name;
+    if (m.ticker) document.getElementById('meta-ticker').value = m.ticker;
+    if (m.sector) document.getElementById('meta-sector').value = m.sector;
+    if (m.reco)   document.getElementById('meta-reco').value   = m.reco;
+    if (m.team)   document.getElementById('meta-team').value   = m.team;
+    if (m.date)   document.getElementById('meta-date').value   = m.date;
+    else {
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('meta-date').value = today;
+    }
   } catch(e) {}
 });
 
 function generatePrefilledPptx(btn) {
+  _saveMeta();
   let pitchData = null;
   try { pitchData = JSON.parse(localStorage.getItem('iq_pitch') || 'null'); } catch(e) {}
   const hasData = pitchData && (pitchData.dcf || pitchData.ddm || pitchData.rim);
-  const payload = hasData ? pitchData : {};
+  const meta = _loadMeta();
+  const payload = { ...(hasData ? pitchData : {}), meta };
 
   const orig = btn.innerHTML;
   btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Generating…';
@@ -188,6 +218,71 @@ function generatePrefilledPptx(btn) {
       <i class="fas fa-check-circle text-green-400 mr-1"></i>
       Valuation data found from InvestIQ — your pitch deck will be pre-filled with your DCF / DDM / RIM results.
     </p>
+  </div>
+</section>
+
+<!-- ── STOCK DETAILS FORM ── -->
+<section class="max-w-3xl mx-auto px-4 py-10">
+  <div style="background:#fff;border-radius:20px;border:2px solid #e2e8f0;box-shadow:0 4px 32px rgba(15,76,129,.09);overflow:hidden;">
+    <div style="background:linear-gradient(135deg,#0f172a,#1e3a5f);padding:1.1rem 1.4rem;display:flex;align-items:center;gap:.75rem;">
+      <i class="fas fa-edit" style="color:#fbbf24;font-size:1.1rem;"></i>
+      <div>
+        <div style="color:#fff;font-weight:800;font-size:1rem;">Your Stock Details</div>
+        <div style="color:#93c5fd;font-size:.78rem;">Fill these once — they pre-fill company name, ticker, recommendation &amp; more across all 30 slides</div>
+      </div>
+    </div>
+    <div style="padding:1.4rem;display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+      <div>
+        <label style="font-size:.75rem;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.5px;">Company Name</label>
+        <input id="meta-name" type="text" placeholder="e.g. MTN Ghana Limited" oninput="_saveMeta()"
+               style="width:100%;margin-top:4px;padding:.55rem .75rem;border:1.5px solid #e2e8f0;border-radius:9px;font-size:.92rem;font-weight:600;color:#0f172a;outline:none;box-sizing:border-box;"
+               onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='#e2e8f0'">
+      </div>
+      <div>
+        <label style="font-size:.75rem;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.5px;">GSE Ticker</label>
+        <input id="meta-ticker" type="text" placeholder="e.g. MTNGH" maxlength="10" oninput="this.value=this.value.toUpperCase();_saveMeta()"
+               style="width:100%;margin-top:4px;padding:.55rem .75rem;border:1.5px solid #e2e8f0;border-radius:9px;font-size:.92rem;font-weight:700;color:#d97706;letter-spacing:.5px;outline:none;box-sizing:border-box;"
+               onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='#e2e8f0'">
+      </div>
+      <div>
+        <label style="font-size:.75rem;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.5px;">Sector</label>
+        <select id="meta-sector" onchange="_saveMeta()"
+                style="width:100%;margin-top:4px;padding:.55rem .75rem;border:1.5px solid #e2e8f0;border-radius:9px;font-size:.88rem;font-weight:600;color:#0f172a;outline:none;background:#fff;box-sizing:border-box;">
+          <option value="">— Select —</option>
+          <option value="Banking">Banking</option>
+          <option value="Insurance">Insurance</option>
+          <option value="Manufacturing">Manufacturing</option>
+          <option value="Telecoms">Telecoms</option>
+          <option value="Oil &amp; Gas">Oil &amp; Gas</option>
+          <option value="Food &amp; Beverage">Food &amp; Beverage</option>
+          <option value="Real Estate">Real Estate</option>
+          <option value="Distribution">Distribution</option>
+          <option value="Mining">Mining</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:.75rem;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.5px;">Recommendation</label>
+        <select id="meta-reco" onchange="_saveMeta()"
+                style="width:100%;margin-top:4px;padding:.55rem .75rem;border:1.5px solid #e2e8f0;border-radius:9px;font-size:.92rem;font-weight:800;color:#16a34a;outline:none;background:#fff;box-sizing:border-box;">
+          <option value="BUY" style="color:#16a34a;">BUY</option>
+          <option value="HOLD" style="color:#d97706;">HOLD</option>
+          <option value="SELL" style="color:#dc2626;">SELL</option>
+        </select>
+      </div>
+      <div>
+        <label style="font-size:.75rem;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.5px;">Team / Analyst Name</label>
+        <input id="meta-team" type="text" placeholder="e.g. Team Alpha" oninput="_saveMeta()"
+               style="width:100%;margin-top:4px;padding:.55rem .75rem;border:1.5px solid #e2e8f0;border-radius:9px;font-size:.92rem;color:#0f172a;outline:none;box-sizing:border-box;"
+               onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='#e2e8f0'">
+      </div>
+      <div>
+        <label style="font-size:.75rem;font-weight:700;color:#475569;text-transform:uppercase;letter-spacing:.5px;">Presentation Date</label>
+        <input id="meta-date" type="date" oninput="_saveMeta()"
+               style="width:100%;margin-top:4px;padding:.55rem .75rem;border:1.5px solid #e2e8f0;border-radius:9px;font-size:.88rem;color:#0f172a;outline:none;box-sizing:border-box;"
+               onfocus="this.style.borderColor='#3b82f6'" onblur="this.style.borderColor='#e2e8f0'">
+      </div>
+    </div>
   </div>
 </section>
 
