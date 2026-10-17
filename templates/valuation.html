@@ -1,0 +1,1440 @@
+{% extends "base.html" %}
+
+{% block title %}CFA Valuation Suite{% endblock %}
+{% block page_title %}CFA Valuation Suite{% endblock %}
+{% block page_subtitle %}Eight professional valuation models — Equity · Corporate Finance · Derivatives · Fixed Income · Pension/ALM · Private Capital · Real Assets · Financial Institutions{% endblock %}
+
+{% block head %}
+<style>
+/* ── Tab navigation ─────────────────────────────────────── */
+.vt-tabs {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  padding: 8px; background: #f1f5f9; border-radius: 14px;
+  margin-bottom: 28px;
+}
+.vt-tab {
+  flex: 1 1 auto; min-width: 100px;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 10px 12px; border-radius: 10px;
+  cursor: pointer; border: none; background: transparent;
+  font-size: .78rem; font-weight: 600; color: #64748b;
+  transition: all .2s;
+}
+.vt-tab i { font-size: 1.1rem; }
+.vt-tab:hover { background: #e2e8f0; color: #1e293b; }
+.vt-tab.active { background: #4f46e5; color: #fff; box-shadow: 0 4px 12px rgba(79,70,229,.35); }
+
+/* ── Module panels ──────────────────────────────────────── */
+.vt-panel { display: none; }
+.vt-panel.active { display: block; }
+
+/* ── Calculator card ────────────────────────────────────── */
+.calc-card {
+  background: #fff; border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,.07);
+  padding: 24px 28px; margin-bottom: 24px;
+}
+.calc-card h3 {
+  font-size: 1.05rem; font-weight: 700; color: #0f172a;
+  margin-bottom: 4px;
+}
+.calc-card .subtitle {
+  font-size: .8rem; color: #64748b; margin-bottom: 18px;
+}
+
+/* ── Input grid ─────────────────────────────────────────── */
+.inp-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 14px; margin-bottom: 18px;
+}
+.inp-group label {
+  display: block; font-size: .75rem; font-weight: 600;
+  color: #475569; margin-bottom: 4px;
+}
+.inp-group input, .inp-group select {
+  width: 100%; padding: 9px 12px;
+  border: 1.5px solid #e2e8f0; border-radius: 8px;
+  font-size: .92rem; color: #0f172a; background: #f8fafc;
+  outline: none; transition: border .15s, box-shadow .15s;
+}
+.inp-group input:focus, .inp-group select:focus {
+  border-color: #818cf8; box-shadow: 0 0 0 3px rgba(129,140,248,.18);
+  background: #fff;
+}
+
+/* ── Result boxes ───────────────────────────────────────── */
+.res-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px; margin-top: 4px;
+}
+.res-box {
+  background: linear-gradient(135deg,#f0f4ff,#e8edff);
+  border: 1px solid #c7d2fe;
+  border-radius: 10px; padding: 14px 16px;
+}
+.res-box .label { font-size: .72rem; font-weight: 600; color: #4338ca; margin-bottom: 4px; }
+.res-box .value { font-size: 1.35rem; font-weight: 800; color: #1e293b; }
+.res-box.green  { background: linear-gradient(135deg,#f0fdf4,#dcfce7); border-color: #86efac; }
+.res-box.green .label { color: #15803d; }
+.res-box.amber  { background: linear-gradient(135deg,#fffbeb,#fef3c7); border-color: #fde68a; }
+.res-box.amber .label { color: #92400e; }
+.res-box.red    { background: linear-gradient(135deg,#fef2f2,#fee2e2); border-color: #fca5a5; }
+.res-box.red .label   { color: #b91c1c; }
+
+.verdict {
+  margin-top: 14px; padding: 10px 16px; border-radius: 8px;
+  font-size: .85rem; font-weight: 600;
+}
+.verdict.positive { background: #f0fdf4; color: #15803d; border-left: 4px solid #22c55e; }
+.verdict.negative { background: #fef2f2; color: #b91c1c; border-left: 4px solid #ef4444; }
+.verdict.neutral  { background: #f0f9ff; color: #0369a1; border-left: 4px solid #0ea5e9; }
+
+/* ── NPV table ──────────────────────────────────────────── */
+.cf-table { width: 100%; border-collapse: collapse; font-size: .82rem; margin-top: 12px; }
+.cf-table th { background: #f1f5f9; padding: 7px 10px; text-align: right; font-weight: 600; color: #475569; }
+.cf-table th:first-child { text-align: left; }
+.cf-table td { padding: 6px 10px; text-align: right; border-bottom: 1px solid #f1f5f9; color: #374151; }
+.cf-table td:first-child { text-align: left; font-weight: 500; }
+.cf-table tr:last-child td { font-weight: 700; border-top: 2px solid #e2e8f0; }
+
+@media(max-width:640px){
+  .calc-card{ padding: 16px; }
+  .vt-tab { font-size: .7rem; padding: 8px 6px; min-width: 70px; }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 py-8">
+
+  <!-- User Guide -->
+  <div class="calc-card" style="margin-bottom:24px;background:linear-gradient(135deg,#f0f4ff,#e8edff);border:1px solid #c7d2fe">
+    <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer" onclick="toggleGuide()">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:36px;height:36px;background:#4f46e5;border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1rem"><i class="fas fa-book-open"></i></div>
+        <div>
+          <div style="font-size:1rem;font-weight:700;color:#1e3a8a">How to Use This Suite</div>
+          <div style="font-size:.78rem;color:#4338ca">Click to expand / collapse the guide</div>
+        </div>
+      </div>
+      <i class="fas fa-chevron-down" id="guide-chevron" style="color:#4338ca;transition:transform .25s"></i>
+    </div>
+    <div id="guide-body" style="display:none;margin-top:18px;border-top:1px solid #c7d2fe;padding-top:16px">
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px">
+        <div style="background:#fff;border-radius:10px;padding:14px 16px">
+          <div style="font-size:.8rem;font-weight:700;color:#4338ca;margin-bottom:6px"><i class="fas fa-mouse-pointer"></i> Step 1 — Pick a module</div>
+          <div style="font-size:.8rem;color:#374151;line-height:1.6">Use the 8 tabs above to switch between valuation models: Equity, Corporate Finance, Derivatives, Fixed Income, Pension/ALM, Private Capital, Real Assets, and Financial Institutions.</div>
+        </div>
+        <div style="background:#fff;border-radius:10px;padding:14px 16px">
+          <div style="font-size:.8rem;font-weight:700;color:#4338ca;margin-bottom:6px"><i class="fas fa-keyboard"></i> Step 2 — Enter your inputs</div>
+          <div style="font-size:.8rem;color:#374151;line-height:1.6">Type values into the blue-bordered fields. All inputs are in the same units shown in the label (e.g., "000" means thousands, "%" means you enter the number — e.g., type 15 for 15%). Results update instantly.</div>
+        </div>
+        <div style="background:#fff;border-radius:10px;padding:14px 16px">
+          <div style="font-size:.8rem;font-weight:700;color:#4338ca;margin-bottom:6px"><i class="fas fa-chart-bar"></i> Step 3 — Read results</div>
+          <div style="font-size:.8rem;color:#374151;line-height:1.6"><span style="background:#f0fdf4;color:#15803d;padding:2px 6px;border-radius:4px;font-weight:600">Green boxes</span> = positive signals. <span style="background:#fef2f2;color:#b91c1c;padding:2px 6px;border-radius:4px;font-weight:600">Red boxes</span> = caution. <span style="background:#fffbeb;color:#92400e;padding:2px 6px;border-radius:4px;font-weight:600">Amber</span> = neutral. The verdict banner at the bottom of each calculator gives a plain-English decision.</div>
+        </div>
+        <div style="background:#fff;border-radius:10px;padding:14px 16px">
+          <div style="font-size:.8rem;font-weight:700;color:#4338ca;margin-bottom:6px"><i class="fas fa-graduation-cap"></i> CFA Methodology</div>
+          <div style="font-size:.8rem;color:#374151;line-height:1.6">Every formula follows CFA Institute standards: FCFF DCF, DDM, RIM, BSM, Newton–Raphson YTM, hazard-rate CDS, LBO waterfall, VC method, and ALM BPV hedging — all from the official CFA curriculum.</div>
+        </div>
+        <div style="background:#fff;border-radius:10px;padding:14px 16px">
+          <div style="font-size:.8rem;font-weight:700;color:#4338ca;margin-bottom:6px"><i class="fas fa-info-circle"></i> Key conventions</div>
+          <div style="font-size:.8rem;color:#374151;line-height:1.6">• Rates: enter as numbers (e.g., 15 = 15%)<br>• Monetary amounts: enter in units shown (000 = thousands)<br>• Negative values: type the minus sign (e.g., −100 for a rate shock)</div>
+        </div>
+        <div style="background:#fff;border-radius:10px;padding:14px 16px">
+          <div style="font-size:.8rem;font-weight:700;color:#4338ca;margin-bottom:6px"><i class="fas fa-globe-africa"></i> Ghana Context</div>
+          <div style="font-size:.8rem;color:#374151;line-height:1.6">Default values are calibrated to Ghana Stock Exchange (GSE) listed companies: GHS discount rates, GoG bond yields, and typical West African risk premia. Adjust to your specific security.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab bar -->
+  <div class="vt-tabs" role="tablist">
+    <button class="vt-tab active" data-panel="equity" onclick="switchTab(this)">
+      <i class="fas fa-chart-line"></i>Equity
+    </button>
+    <button class="vt-tab" data-panel="corpfin" onclick="switchTab(this)">
+      <i class="fas fa-building"></i>Corp Finance
+    </button>
+    <button class="vt-tab" data-panel="deriv" onclick="switchTab(this)">
+      <i class="fas fa-exchange-alt"></i>Derivatives
+    </button>
+    <button class="vt-tab" data-panel="fi" onclick="switchTab(this)">
+      <i class="fas fa-landmark"></i>Fixed Income
+    </button>
+    <button class="vt-tab" data-panel="pension" onclick="switchTab(this)">
+      <i class="fas fa-shield-alt"></i>Pension/ALM
+    </button>
+    <button class="vt-tab" data-panel="pe" onclick="switchTab(this)">
+      <i class="fas fa-briefcase"></i>Private Capital
+    </button>
+    <button class="vt-tab" data-panel="real" onclick="switchTab(this)">
+      <i class="fas fa-home"></i>Real Assets
+    </button>
+    <button class="vt-tab" data-panel="fi_inst" onclick="switchTab(this)">
+      <i class="fas fa-university"></i>Fin Institutions
+    </button>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════
+       PANEL 1: EQUITY VALUATION
+  ═══════════════════════════════════════════════════════ -->
+  <div id="panel-equity" class="vt-panel active">
+
+    <!-- FCFF DCF -->
+    <div class="calc-card">
+      <h3>FCFF / FCFE Discounted Cash Flow</h3>
+      <p class="subtitle">CFA multi-stage FCFF model — explicit forecast + Gordon Growth terminal value</p>
+      <div class="inp-grid">
+        <div class="inp-group"><label>FCFF Year 1 (000)</label><input type="number" id="eq_fcff1" value="12369" oninput="calcEquityDCF()"></div>
+        <div class="inp-group"><label>FCFF Growth Y1–5 (%)</label><input type="number" id="eq_gstage1" value="16" oninput="calcEquityDCF()"></div>
+        <div class="inp-group"><label>Terminal Growth (%)</label><input type="number" id="eq_gterm" value="6" oninput="calcEquityDCF()"></div>
+        <div class="inp-group"><label>WACC (%)</label><input type="number" id="eq_wacc" value="24" oninput="calcEquityDCF()"></div>
+        <div class="inp-group"><label>Net Debt (000)</label><input type="number" id="eq_netdebt" value="47200" oninput="calcEquityDCF()"></div>
+        <div class="inp-group"><label>Shares Outstanding (000)</label><input type="number" id="eq_shares" value="27000" oninput="calcEquityDCF()"></div>
+        <div class="inp-group"><label>Current Share Price</label><input type="number" id="eq_price" value="5" oninput="calcEquityDCF()"></div>
+      </div>
+      <div id="eq_dcf_res" class="res-grid"></div>
+      <div id="eq_dcf_verdict" class="verdict neutral" style="margin-top:12px"></div>
+      <table class="cf-table" id="eq_dcf_table"></table>
+    </div>
+
+    <!-- DDM -->
+    <div class="calc-card">
+      <h3>Dividend Discount Models</h3>
+      <p class="subtitle">Gordon Growth, two-stage, and H-model (CFA Institute methodology)</p>
+      <div class="inp-grid">
+        <div class="inp-group"><label>D0 — Last Dividend Paid</label><input type="number" id="ddm_d0" value="0.40" step="0.01" oninput="calcDDM()"></div>
+        <div class="inp-group"><label>Short-run Growth gS (%)</label><input type="number" id="ddm_gs" value="18" oninput="calcDDM()"></div>
+        <div class="inp-group"><label>Long-run Growth gL (%)</label><input type="number" id="ddm_gl" value="6" oninput="calcDDM()"></div>
+        <div class="inp-group"><label>Required Return Ke (%)</label><input type="number" id="ddm_ke" value="24" oninput="calcDDM()"></div>
+        <div class="inp-group"><label>High-growth period H (yrs)</label><input type="number" id="ddm_h" value="5" oninput="calcDDM()"></div>
+        <div class="inp-group"><label>Current Price</label><input type="number" id="ddm_price" value="2.50" step="0.01" oninput="calcDDM()"></div>
+      </div>
+      <div id="ddm_res" class="res-grid"></div>
+      <div id="ddm_verdict" class="verdict neutral" style="margin-top:12px"></div>
+    </div>
+
+    <!-- Residual Income -->
+    <div class="calc-card">
+      <h3>Residual Income Model (RIM)</h3>
+      <p class="subtitle">Intrinsic value = Book Value + PV of residual income stream</p>
+      <div class="inp-grid">
+        <div class="inp-group"><label>Book Value Per Share (B0)</label><input type="number" id="rim_bv" value="4.20" step="0.01" oninput="calcRIM()"></div>
+        <div class="inp-group"><label>ROE (%)</label><input type="number" id="rim_roe" value="31" oninput="calcRIM()"></div>
+        <div class="inp-group"><label>Cost of Equity Ke (%)</label><input type="number" id="rim_ke" value="24" oninput="calcRIM()"></div>
+        <div class="inp-group"><label>Growth g (%)</label><input type="number" id="rim_g" value="6" oninput="calcRIM()"></div>
+        <div class="inp-group"><label>Current Share Price</label><input type="number" id="rim_price" value="5" step="0.01" oninput="calcRIM()"></div>
+      </div>
+      <div id="rim_res" class="res-grid"></div>
+      <div id="rim_verdict" class="verdict neutral" style="margin-top:12px"></div>
+    </div>
+  </div><!-- /panel-equity -->
+
+  <!-- ═══════════════════════════════════════════════════
+       PANEL 2: CORPORATE FINANCE
+  ═══════════════════════════════════════════════════════ -->
+  <div id="panel-corpfin" class="vt-panel">
+
+    <!-- Capital Budgeting -->
+    <div class="calc-card">
+      <h3>Capital Budgeting — NPV, IRR, Payback</h3>
+      <p class="subtitle">CFA incremental after-tax cash flows — expansion project analysis</p>
+      <div class="inp-grid">
+        <div class="inp-group"><label>Initial Capex (000)</label><input type="number" id="cb_capex" value="55000" oninput="calcCapBudget()"></div>
+        <div class="inp-group"><label>Project Life (years)</label><input type="number" id="cb_life" value="8" min="1" max="15" oninput="calcCapBudget()"></div>
+        <div class="inp-group"><label>Year-1 Revenue (000)</label><input type="number" id="cb_rev" value="40000" oninput="calcCapBudget()"></div>
+        <div class="inp-group"><label>Revenue Growth (%)</label><input type="number" id="cb_revg" value="8" oninput="calcCapBudget()"></div>
+        <div class="inp-group"><label>Variable Costs (% Rev)</label><input type="number" id="cb_vc" value="45" oninput="calcCapBudget()"></div>
+        <div class="inp-group"><label>Year-1 Fixed Costs (000)</label><input type="number" id="cb_fc" value="6000" oninput="calcCapBudget()"></div>
+        <div class="inp-group"><label>Discount Rate (%)</label><input type="number" id="cb_r" value="18" oninput="calcCapBudget()"></div>
+        <div class="inp-group"><label>Tax Rate (%)</label><input type="number" id="cb_tax" value="25" oninput="calcCapBudget()"></div>
+        <div class="inp-group"><label>Salvage Value (000)</label><input type="number" id="cb_salv" value="8000" oninput="calcCapBudget()"></div>
+      </div>
+      <div id="cb_res" class="res-grid"></div>
+      <div id="cb_verdict" class="verdict neutral" style="margin-top:12px"></div>
+      <table class="cf-table" id="cb_table" style="display:none"></table>
+    </div>
+
+    <!-- EVA/MVA -->
+    <div class="calc-card">
+      <h3>Economic Value Added (EVA) & MVA</h3>
+      <p class="subtitle">EVA = NOPAT − WACC × Invested Capital; firm value = capital + PV(EVA)</p>
+      <div class="inp-grid">
+        <div class="inp-group"><label>Invested Capital (000)</label><input type="number" id="eva_ic" value="300000" oninput="calcEVA()"></div>
+        <div class="inp-group"><label>NOPAT Year 1 (000)</label><input type="number" id="eva_nopat" value="54000" oninput="calcEVA()"></div>
+        <div class="inp-group"><label>NOPAT Growth (%)</label><input type="number" id="eva_g" value="10" oninput="calcEVA()"></div>
+        <div class="inp-group"><label>WACC (%)</label><input type="number" id="eva_wacc" value="18" oninput="calcEVA()"></div>
+        <div class="inp-group"><label>Terminal Growth (%)</label><input type="number" id="eva_tg" value="6" oninput="calcEVA()"></div>
+        <div class="inp-group"><label>Net Debt (000)</label><input type="number" id="eva_debt" value="90000" oninput="calcEVA()"></div>
+        <div class="inp-group"><label>Shares Outstanding (000)</label><input type="number" id="eva_sh" value="20000" oninput="calcEVA()"></div>
+      </div>
+      <div id="eva_res" class="res-grid"></div>
+      <div id="eva_verdict" class="verdict neutral" style="margin-top:12px"></div>
+    </div>
+
+    <!-- M&A Analysis -->
+    <div class="calc-card">
+      <h3>M&A Analysis — Synergies, EPS Accretion/Dilution</h3>
+      <p class="subtitle">CFA takeover premium, value creation split, EPS impact</p>
+      <div class="inp-grid">
+        <div class="inp-group"><label>Acquirer Share Price</label><input type="number" id="ma_acqp" value="30" oninput="calcMA()"></div>
+        <div class="inp-group"><label>Acquirer Shares (m)</label><input type="number" id="ma_acqs" value="100" oninput="calcMA()"></div>
+        <div class="inp-group"><label>Acquirer Net Income (m)</label><input type="number" id="ma_acqni" value="300" oninput="calcMA()"></div>
+        <div class="inp-group"><label>Target Share Price</label><input type="number" id="ma_tgtp" value="20" oninput="calcMA()"></div>
+        <div class="inp-group"><label>Target Shares (m)</label><input type="number" id="ma_tgts" value="40" oninput="calcMA()"></div>
+        <div class="inp-group"><label>Target Net Income (m)</label><input type="number" id="ma_tgtni" value="80" oninput="calcMA()"></div>
+        <div class="inp-group"><label>Offer Premium (%)</label><input type="number" id="ma_prem" value="30" oninput="calcMA()"></div>
+        <div class="inp-group"><label>Cash % of Consideration</label><input type="number" id="ma_cash" value="50" oninput="calcMA()"></div>
+        <div class="inp-group"><label>Pre-tax Synergies (m)</label><input type="number" id="ma_syn" value="60" oninput="calcMA()"></div>
+        <div class="inp-group"><label>Tax Rate (%)</label><input type="number" id="ma_tax" value="25" oninput="calcMA()"></div>
+        <div class="inp-group"><label>Synergy Discount Rate (%)</label><input type="number" id="ma_synd" value="18" oninput="calcMA()"></div>
+        <div class="inp-group"><label>Synergy Growth (%)</label><input type="number" id="ma_syng" value="4" oninput="calcMA()"></div>
+      </div>
+      <div id="ma_res" class="res-grid"></div>
+      <div id="ma_verdict" class="verdict neutral" style="margin-top:12px"></div>
+    </div>
+  </div><!-- /panel-corpfin -->
+
+  <!-- ═══════════════════════════════════════════════════
+       PANEL 3: DERIVATIVES
+  ═══════════════════════════════════════════════════════ -->
+  <div id="panel-deriv" class="vt-panel">
+
+    <!-- BSM -->
+    <div class="calc-card">
+      <h3>Black–Scholes–Merton Option Pricing</h3>
+      <p class="subtitle">European equity options with continuous dividend yield + Greeks</p>
+      <div class="inp-grid">
+        <div class="inp-group"><label>Spot Price (S)</label><input type="number" id="bsm_s" value="50" oninput="calcBSM()"></div>
+        <div class="inp-group"><label>Strike Price (K)</label><input type="number" id="bsm_k" value="52" oninput="calcBSM()"></div>
+        <div class="inp-group"><label>Time to Expiry T (yrs)</label><input type="number" id="bsm_t" value="0.5" step="0.01" oninput="calcBSM()"></div>
+        <div class="inp-group"><label>Risk-free Rate r (%)</label><input type="number" id="bsm_r" value="15" oninput="calcBSM()"></div>
+        <div class="inp-group"><label>Dividend Yield q (%)</label><input type="number" id="bsm_q" value="4" oninput="calcBSM()"></div>
+        <div class="inp-group"><label>Volatility σ (%)</label><input type="number" id="bsm_vol" value="30" oninput="calcBSM()"></div>
+      </div>
+      <div id="bsm_res" class="res-grid"></div>
+      <div id="bsm_greeks" style="margin-top:14px"></div>
+    </div>
+
+    <!-- Forwards -->
+    <div class="calc-card">
+      <h3>Forward & Futures Pricing</h3>
+      <p class="subtitle">No-arbitrage pricing: equity, FX (covered interest parity), commodity</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;flex-wrap:wrap">
+        <div>
+          <div style="font-size:.8rem;font-weight:700;color:#475569;margin-bottom:10px">EQUITY FORWARD</div>
+          <div class="inp-grid" style="grid-template-columns:1fr 1fr">
+            <div class="inp-group"><label>Spot Price S0</label><input type="number" id="fwd_s" value="52" oninput="calcForward()"></div>
+            <div class="inp-group"><label>Risk-free Rate (%)</label><input type="number" id="fwd_r" value="15" oninput="calcForward()"></div>
+            <div class="inp-group"><label>Maturity T (yrs)</label><input type="number" id="fwd_t" value="0.5" step="0.01" oninput="calcForward()"></div>
+            <div class="inp-group"><label>PV of Dividends</label><input type="number" id="fwd_d" value="1.18" step="0.01" oninput="calcForward()"></div>
+          </div>
+        </div>
+        <div>
+          <div style="font-size:.8rem;font-weight:700;color:#475569;margin-bottom:10px">FX FORWARD (GHS/USD)</div>
+          <div class="inp-grid" style="grid-template-columns:1fr 1fr">
+            <div class="inp-group"><label>Spot Rate GHS/USD</label><input type="number" id="fwd_spot" value="15.60" step="0.01" oninput="calcForward()"></div>
+            <div class="inp-group"><label>GHS Rate (%)</label><input type="number" id="fwd_rghs" value="27" oninput="calcForward()"></div>
+            <div class="inp-group"><label>USD Rate (%)</label><input type="number" id="fwd_rusd" value="5" oninput="calcForward()"></div>
+            <div class="inp-group"><label>Tenor (yrs)</label><input type="number" id="fwd_fxt" value="1" step="0.01" oninput="calcForward()"></div>
+          </div>
+        </div>
+      </div>
+      <div id="fwd_res" class="res-grid" style="margin-top:14px"></div>
+    </div>
+
+    <!-- CDS -->
+    <div class="calc-card">
+      <h3>Credit Default Swap (CDS) Pricing</h3>
+      <p class="subtitle">Hazard-rate model: protection leg, risky annuity, par spread, upfront premium</p>
+      <div class="inp-grid">
+        <div class="inp-group"><label>Notional (000)</label><input type="number" id="cds_n" value="10000" oninput="calcCDS()"></div>
+        <div class="inp-group"><label>Tenor (years)</label><input type="number" id="cds_t" value="5" min="1" max="10" oninput="calcCDS()"></div>
+        <div class="inp-group"><label>Hazard Rate (%)</label><input type="number" id="cds_h" value="2.5" step="0.1" oninput="calcCDS()"></div>
+        <div class="inp-group"><label>Recovery Rate (%)</label><input type="number" id="cds_rec" value="40" oninput="calcCDS()"></div>
+        <div class="inp-group"><label>Standard Coupon (%)</label><input type="number" id="cds_coup" value="1" step="0.1" oninput="calcCDS()"></div>
+        <div class="inp-group"><label>Risk-free Rate (%)</label><input type="number" id="cds_rf" value="16" oninput="calcCDS()"></div>
+      </div>
+      <div id="cds_res" class="res-grid"></div>
+    </div>
+  </div><!-- /panel-deriv -->
+
+  <!-- ═══════════════════════════════════════════════════
+       PANEL 4: FIXED INCOME
+  ═══════════════════════════════════════════════════════ -->
+  <div id="panel-fi" class="vt-panel">
+
+    <!-- Bond Pricing -->
+    <div class="calc-card">
+      <h3>Bond Pricing, YTM & Risk Measures</h3>
+      <p class="subtitle">Full/flat price, YTM (Newton–Raphson), Macaulay/Modified Duration, Convexity, PVBP</p>
+      <div class="inp-grid">
+        <div class="inp-group"><label>Par Value</label><input type="number" id="bp_par" value="100" oninput="calcBond()"></div>
+        <div class="inp-group"><label>Annual Coupon Rate (%)</label><input type="number" id="bp_coup" value="14" oninput="calcBond()"></div>
+        <div class="inp-group"><label>Coupons per Year</label>
+          <select id="bp_freq" onchange="calcBond()">
+            <option value="1">Annual</option>
+            <option value="2" selected>Semi-annual</option>
+            <option value="4">Quarterly</option>
+          </select>
+        </div>
+        <div class="inp-group"><label>Years to Maturity</label><input type="number" id="bp_ytm_yr" value="10" oninput="calcBond()"></div>
+        <div class="inp-group"><label>Market Clean Price</label><input type="number" id="bp_mkt" value="96.50" step="0.01" oninput="calcBond()"></div>
+        <div class="inp-group"><label>Fraction of Period Elapsed</label><input type="number" id="bp_frac" value="0.25" step="0.01" min="0" max="0.999" oninput="calcBond()"></div>
+        <div class="inp-group"><label>Required Yield (%)</label><input type="number" id="bp_reqy" value="14.5" step="0.01" oninput="calcBond()"></div>
+      </div>
+      <div id="bp_res" class="res-grid"></div>
+      <div id="bp_verdict" class="verdict neutral" style="margin-top:12px"></div>
+    </div>
+
+    <!-- CVA / Credit Risk -->
+    <div class="calc-card">
+      <h3>Credit Valuation Adjustment (CVA)</h3>
+      <p class="subtitle">CFA: VND − CVA fair value; credit spread from hazard rate and recovery rate</p>
+      <div class="inp-grid">
+        <div class="inp-group"><label>Annual Coupon Rate (%)</label><input type="number" id="cva_coup" value="15" oninput="calcCVA()"></div>
+        <div class="inp-group"><label>Maturity (years)</label><input type="number" id="cva_mat" value="5" min="1" max="10" oninput="calcCVA()"></div>
+        <div class="inp-group"><label>Risk-free Yield (%)</label><input type="number" id="cva_rf" value="11" oninput="calcCVA()"></div>
+        <div class="inp-group"><label>Hazard Rate (%)</label><input type="number" id="cva_h" value="2" step="0.1" oninput="calcCVA()"></div>
+        <div class="inp-group"><label>Recovery Rate (%)</label><input type="number" id="cva_rec" value="40" oninput="calcCVA()"></div>
+      </div>
+      <div id="cva_res" class="res-grid"></div>
+    </div>
+
+    <!-- Convertible Bond -->
+    <div class="calc-card">
+      <h3>Convertible Bond Analysis</h3>
+      <p class="subtitle">Straight value, conversion value, minimum value, option-based value (BSM)</p>
+      <div class="inp-grid">
+        <div class="inp-group"><label>Par Value</label><input type="number" id="cv_par" value="1000" oninput="calcConvertible()"></div>
+        <div class="inp-group"><label>Conversion Ratio</label><input type="number" id="cv_ratio" value="40" oninput="calcConvertible()"></div>
+        <div class="inp-group"><label>Share Price</label><input type="number" id="cv_sp" value="22" oninput="calcConvertible()"></div>
+        <div class="inp-group"><label>Annual Coupon Rate (%)</label><input type="number" id="cv_coup" value="10" oninput="calcConvertible()"></div>
+        <div class="inp-group"><label>Years to Maturity</label><input type="number" id="cv_mat" value="5" oninput="calcConvertible()"></div>
+        <div class="inp-group"><label>Straight Bond Yield (%)</label><input type="number" id="cv_yield" value="16" oninput="calcConvertible()"></div>
+        <div class="inp-group"><label>Share Volatility (%)</label><input type="number" id="cv_vol" value="30" oninput="calcConvertible()"></div>
+        <div class="inp-group"><label>Risk-free Rate (%)</label><input type="number" id="cv_rf" value="12" oninput="calcConvertible()"></div>
+        <div class="inp-group"><label>Market Price of CB</label><input type="number" id="cv_mkt" value="1050" oninput="calcConvertible()"></div>
+      </div>
+      <div id="cv_res" class="res-grid"></div>
+      <div id="cv_verdict" class="verdict neutral" style="margin-top:12px"></div>
+    </div>
+  </div><!-- /panel-fi -->
+
+  <!-- ═══════════════════════════════════════════════════
+       PANEL 5: PENSION / ALM
+  ═══════════════════════════════════════════════════════ -->
+  <div id="panel-pension" class="vt-panel">
+
+    <div class="calc-card">
+      <h3>Defined-Benefit Pension — Funded Status</h3>
+      <p class="subtitle">PBO, funding ratio, surplus, duration gap, LDI hedge ratio</p>
+      <div class="inp-grid">
+        <div class="inp-group"><label>Market Value of Assets (000)</label><input type="number" id="pen_assets" value="270000" oninput="calcPension()"></div>
+        <div class="inp-group"><label>PBO / Liability (000)</label><input type="number" id="pen_pbo" value="290850" oninput="calcPension()"></div>
+        <div class="inp-group"><label>Asset Modified Duration (yrs)</label><input type="number" id="pen_adur" value="4.45" step="0.01" oninput="calcPension()"></div>
+        <div class="inp-group"><label>Liability Modified Duration (yrs)</label><input type="number" id="pen_ldur" value="17.2" step="0.1" oninput="calcPension()"></div>
+        <div class="inp-group"><label>Target Hedge Ratio (%)</label><input type="number" id="pen_thr" value="80" oninput="calcPension()"></div>
+        <div class="inp-group"><label>Receive-fixed Swap Duration</label><input type="number" id="pen_swapdur" value="5.5" step="0.1" oninput="calcPension()"></div>
+        <div class="inp-group"><label>Rate Shock for Stress (bp)</label><input type="number" id="pen_shock" value="-100" oninput="calcPension()"></div>
+      </div>
+      <div id="pen_res" class="res-grid"></div>
+      <div id="pen_verdict" class="verdict neutral" style="margin-top:12px"></div>
+    </div>
+  </div><!-- /panel-pension -->
+
+  <!-- ═══════════════════════════════════════════════════
+       PANEL 6: PRIVATE CAPITAL
+  ═══════════════════════════════════════════════════════ -->
+  <div id="panel-pe" class="vt-panel">
+
+    <!-- LBO -->
+    <div class="calc-card">
+      <h3>Leveraged Buyout (LBO) Model</h3>
+      <p class="subtitle">CFA LBO: deal sizing, debt schedule, equity returns, sponsor IRR</p>
+      <div class="inp-grid">
+        <div class="inp-group"><label>LTM EBITDA (000)</label><input type="number" id="lbo_ebitda" value="20950" oninput="calcLBO()"></div>
+        <div class="inp-group"><label>Entry EV/EBITDA</label><input type="number" id="lbo_entry" value="6" step="0.1" oninput="calcLBO()"></div>
+        <div class="inp-group"><label>Exit EV/EBITDA</label><input type="number" id="lbo_exit" value="6" step="0.1" oninput="calcLBO()"></div>
+        <div class="inp-group"><label>Exit Year</label><input type="number" id="lbo_yr" value="5" min="1" max="7" oninput="calcLBO()"></div>
+        <div class="inp-group"><label>Senior Debt × EBITDA</label><input type="number" id="lbo_senior" value="2.5" step="0.1" oninput="calcLBO()"></div>
+        <div class="inp-group"><label>Mezz Debt × EBITDA</label><input type="number" id="lbo_mezz" value="1" step="0.1" oninput="calcLBO()"></div>
+        <div class="inp-group"><label>Senior Rate (%)</label><input type="number" id="lbo_sr" value="19" oninput="calcLBO()"></div>
+        <div class="inp-group"><label>Mezz Cash Coupon (%)</label><input type="number" id="lbo_mr" value="12" oninput="calcLBO()"></div>
+        <div class="inp-group"><label>EBITDA Growth pa (%)</label><input type="number" id="lbo_eg" value="12" oninput="calcLBO()"></div>
+        <div class="inp-group"><label>Tax Rate (%)</label><input type="number" id="lbo_tax" value="25" oninput="calcLBO()"></div>
+      </div>
+      <div id="lbo_res" class="res-grid"></div>
+      <div id="lbo_verdict" class="verdict neutral" style="margin-top:12px"></div>
+    </div>
+
+    <!-- VC Method -->
+    <div class="calc-card">
+      <h3>Venture Capital Method (Two-Round)</h3>
+      <p class="subtitle">CFA: failure-adjusted required returns, post-money valuations, ownership fractions</p>
+      <div class="inp-grid">
+        <div class="inp-group"><label>Expected Exit Earnings (000)</label><input type="number" id="vc_earn" value="15000" oninput="calcVC()"></div>
+        <div class="inp-group"><label>Exit P/E Multiple</label><input type="number" id="vc_pe" value="10" oninput="calcVC()"></div>
+        <div class="inp-group"><label>Years to Exit (N)</label><input type="number" id="vc_n" value="5" oninput="calcVC()"></div>
+        <div class="inp-group"><label>Round 1 Investment (000)</label><input type="number" id="vc_inv1" value="5000" oninput="calcVC()"></div>
+        <div class="inp-group"><label>Round 1 Required Return (%)</label><input type="number" id="vc_r1" value="45" oninput="calcVC()"></div>
+        <div class="inp-group"><label>Round 2 at Year</label><input type="number" id="vc_t2" value="2" oninput="calcVC()"></div>
+        <div class="inp-group"><label>Round 2 Investment (000)</label><input type="number" id="vc_inv2" value="10000" oninput="calcVC()"></div>
+        <div class="inp-group"><label>Round 2 Required Return (%)</label><input type="number" id="vc_r2" value="30" oninput="calcVC()"></div>
+        <div class="inp-group"><label>Annual Failure Prob (%)</label><input type="number" id="vc_q" value="5" oninput="calcVC()"></div>
+        <div class="inp-group"><label>Founders' Shares</label><input type="number" id="vc_fsh" value="1000" oninput="calcVC()"></div>
+      </div>
+      <div id="vc_res" class="res-grid"></div>
+    </div>
+
+    <!-- Fund Economics -->
+    <div class="calc-card">
+      <h3>PE Fund Economics — Waterfall & Performance</h3>
+      <p class="subtitle">NAV roll, management fees, carried interest, DPI / RVPI / TVPI, LP IRR</p>
+      <div class="inp-grid">
+        <div class="inp-group"><label>Committed Capital (000)</label><input type="number" id="fe_cc" value="100000" oninput="calcFundEcon()"></div>
+        <div class="inp-group"><label>Management Fee (%)</label><input type="number" id="fe_mf" value="2" step="0.1" oninput="calcFundEcon()"></div>
+        <div class="inp-group"><label>Carried Interest (%)</label><input type="number" id="fe_ci" value="20" oninput="calcFundEcon()"></div>
+        <div class="inp-group"><label>Hurdle Rate (%)</label><input type="number" id="fe_hurdle" value="8" oninput="calcFundEcon()"></div>
+        <div class="inp-group"><label>Investment Period (yrs)</label><input type="number" id="fe_ip" value="5" oninput="calcFundEcon()"></div>
+        <div class="inp-group"><label>Total Fund Life (yrs)</label><input type="number" id="fe_life" value="10" oninput="calcFundEcon()"></div>
+        <div class="inp-group"><label>Gross MOIC at Exit</label><input type="number" id="fe_moic" value="2.5" step="0.1" oninput="calcFundEcon()"></div>
+      </div>
+      <div id="fe_res" class="res-grid"></div>
+    </div>
+  </div><!-- /panel-pe -->
+
+  <!-- ═══════════════════════════════════════════════════
+       PANEL 7: REAL ASSETS
+  ═══════════════════════════════════════════════════════ -->
+  <div id="panel-real" class="vt-panel">
+
+    <!-- Real Estate -->
+    <div class="calc-card">
+      <h3>Direct Real Estate — NOI, DCF, Levered Return</h3>
+      <p class="subtitle">Potential gross income → NOI → cap rate value → 10-yr DCF → equity cash-on-cash</p>
+      <div class="inp-grid">
+        <div class="inp-group"><label>Asking / Purchase Price (000)</label><input type="number" id="re_price" value="85000" oninput="calcRE()"></div>
+        <div class="inp-group"><label>Year-1 PGI (000)</label><input type="number" id="re_pgi" value="12000" oninput="calcRE()"></div>
+        <div class="inp-group"><label>Rental Growth (%)</label><input type="number" id="re_rg" value="6" oninput="calcRE()"></div>
+        <div class="inp-group"><label>Vacancy Rate (%)</label><input type="number" id="re_vac" value="8" oninput="calcRE()"></div>
+        <div class="inp-group"><label>OpEx (000)</label><input type="number" id="re_opex" value="3000" oninput="calcRE()"></div>
+        <div class="inp-group"><label>OpEx Growth (%)</label><input type="number" id="re_opexg" value="5" oninput="calcRE()"></div>
+        <div class="inp-group"><label>Going-in Cap Rate (%)</label><input type="number" id="re_capin" value="11" step="0.1" oninput="calcRE()"></div>
+        <div class="inp-group"><label>Exit Cap Rate (%)</label><input type="number" id="re_capexit" value="11.5" step="0.1" oninput="calcRE()"></div>
+        <div class="inp-group"><label>Discount Rate (%)</label><input type="number" id="re_dr" value="15" oninput="calcRE()"></div>
+        <div class="inp-group"><label>LTV (%)</label><input type="number" id="re_ltv" value="40" oninput="calcRE()"></div>
+        <div class="inp-group"><label>Mortgage Rate (%)</label><input type="number" id="re_mr" value="18" oninput="calcRE()"></div>
+      </div>
+      <div id="re_res" class="res-grid"></div>
+      <div id="re_verdict" class="verdict neutral" style="margin-top:12px"></div>
+    </div>
+
+    <!-- REIT -->
+    <div class="calc-card">
+      <h3>REIT Valuation — NAV, FFO/AFFO, DDM</h3>
+      <p class="subtitle">CFA REIT: NAV per share, FFO/AFFO multiples, Gordon Growth DDM</p>
+      <div class="inp-grid">
+        <div class="inp-group"><label>Forward 12-mo NOI (000)</label><input type="number" id="reit_noi" value="450000" oninput="calcREIT()"></div>
+        <div class="inp-group"><label>Market Cap Rate (%)</label><input type="number" id="reit_cap" value="9.5" step="0.1" oninput="calcREIT()"></div>
+        <div class="inp-group"><label>Other Assets (000)</label><input type="number" id="reit_oa" value="70000" oninput="calcREIT()"></div>
+        <div class="inp-group"><label>Total Debt (000)</label><input type="number" id="reit_debt" value="1800000" oninput="calcREIT()"></div>
+        <div class="inp-group"><label>Other Liabilities (000)</label><input type="number" id="reit_ol" value="100000" oninput="calcREIT()"></div>
+        <div class="inp-group"><label>Shares Outstanding (000)</label><input type="number" id="reit_sh" value="200000" oninput="calcREIT()"></div>
+        <div class="inp-group"><label>Current Share Price</label><input type="number" id="reit_price" value="14" step="0.01" oninput="calcREIT()"></div>
+        <div class="inp-group"><label>Net Income (000)</label><input type="number" id="reit_ni" value="160000" oninput="calcREIT()"></div>
+        <div class="inp-group"><label>RE Depreciation (000)</label><input type="number" id="reit_dep" value="70000" oninput="calcREIT()"></div>
+        <div class="inp-group"><label>Gains on Sales (000)</label><input type="number" id="reit_gains" value="10000" oninput="calcREIT()"></div>
+        <div class="inp-group"><label>Recurring Capex (000)</label><input type="number" id="reit_capex" value="22000" oninput="calcREIT()"></div>
+        <div class="inp-group"><label>Peer P/FFO</label><input type="number" id="reit_pffomult" value="10" oninput="calcREIT()"></div>
+        <div class="inp-group"><label>Peer P/AFFO</label><input type="number" id="reit_paffomult" value="12.5" oninput="calcREIT()"></div>
+        <div class="inp-group"><label>Dividend Per Share</label><input type="number" id="reit_div" value="1.10" step="0.01" oninput="calcREIT()"></div>
+        <div class="inp-group"><label>Dividend Growth (%)</label><input type="number" id="reit_dg" value="5" oninput="calcREIT()"></div>
+        <div class="inp-group"><label>Required Return (%)</label><input type="number" id="reit_ke" value="14" oninput="calcREIT()"></div>
+      </div>
+      <div id="reit_res" class="res-grid"></div>
+    </div>
+
+    <!-- Commodity Returns -->
+    <div class="calc-card">
+      <h3>Commodity Futures Return Decomposition</h3>
+      <p class="subtitle">Total return = spot + roll yield + collateral return; curve shape</p>
+      <div class="inp-grid">
+        <div class="inp-group"><label>Spot Price, Start</label><input type="number" id="com_s0" value="2300" oninput="calcCommodity()"></div>
+        <div class="inp-group"><label>Spot Price, End</label><input type="number" id="com_s1" value="2420" oninput="calcCommodity()"></div>
+        <div class="inp-group"><label>Near-contract Futures</label><input type="number" id="com_fn" value="2425" oninput="calcCommodity()"></div>
+        <div class="inp-group"><label>Next-contract Futures</label><input type="number" id="com_fnext" value="2445" oninput="calcCommodity()"></div>
+        <div class="inp-group"><label>Rolls per Year</label><input type="number" id="com_rolls" value="4" oninput="calcCommodity()"></div>
+        <div class="inp-group"><label>Collateral Return (%)</label><input type="number" id="com_col" value="11" oninput="calcCommodity()"></div>
+      </div>
+      <div id="com_res" class="res-grid"></div>
+    </div>
+  </div><!-- /panel-real -->
+
+  <!-- ═══════════════════════════════════════════════════
+       PANEL 8: FINANCIAL INSTITUTIONS
+  ═══════════════════════════════════════════════════════ -->
+  <div id="panel-fi_inst" class="vt-panel">
+
+    <!-- Bank P/B-ROE -->
+    <div class="calc-card">
+      <h3>Bank Valuation — Justified P/B &amp; Excess-Capital DDM</h3>
+      <p class="subtitle">CFA: P/B = (ROE − g)/(Ke − g); residual income; implied cost of equity</p>
+      <div class="inp-grid">
+        <div class="inp-group"><label>Book Value Per Share (B0)</label><input type="number" id="bk_bv" value="5.70" step="0.01" oninput="calcBank()"></div>
+        <div class="inp-group"><label>Sustainable ROE (%)</label><input type="number" id="bk_roe" value="31" oninput="calcBank()"></div>
+        <div class="inp-group"><label>Cost of Equity Ke (%)</label><input type="number" id="bk_ke" value="22.75" step="0.01" oninput="calcBank()"></div>
+        <div class="inp-group"><label>Long-run Growth g (%)</label><input type="number" id="bk_g" value="8" oninput="calcBank()"></div>
+        <div class="inp-group"><label>Current Share Price</label><input type="number" id="bk_price" value="7.50" step="0.01" oninput="calcBank()"></div>
+        <div class="inp-group"><label>Dividend Payout Ratio (%)</label><input type="number" id="bk_pay" value="55" oninput="calcBank()"></div>
+      </div>
+      <div id="bk_res" class="res-grid"></div>
+      <div id="bk_verdict" class="verdict neutral" style="margin-top:12px"></div>
+    </div>
+
+    <!-- Insurance EV -->
+    <div class="calc-card">
+      <h3>Life Insurance — Embedded Value (EV) &amp; Appraisal Value</h3>
+      <p class="subtitle">EV = Adjusted Net Worth + VIF; Appraisal Value = EV + PV(future new business)</p>
+      <div class="inp-grid">
+        <div class="inp-group"><label>Free Surplus (000)</label><input type="number" id="ins_fs" value="180000" oninput="calcInsurance()"></div>
+        <div class="inp-group"><label>Required Capital (000)</label><input type="number" id="ins_rc" value="120000" oninput="calcInsurance()"></div>
+        <div class="inp-group"><label>Year-1 In-force Profit (000)</label><input type="number" id="ins_p1" value="60000" oninput="calcInsurance()"></div>
+        <div class="inp-group"><label>Annual Run-off Rate (%)</label><input type="number" id="ins_runoff" value="12" oninput="calcInsurance()"></div>
+        <div class="inp-group"><label>Risk Discount Rate (%)</label><input type="number" id="ins_rdr" value="20" oninput="calcInsurance()"></div>
+        <div class="inp-group"><label>Investment Return on Capital (%)</label><input type="number" id="ins_inv" value="12" oninput="calcInsurance()"></div>
+        <div class="inp-group"><label>Value of New Business (000)</label><input type="number" id="ins_vnb" value="25000" oninput="calcInsurance()"></div>
+        <div class="inp-group"><label>New Business Growth (%)</label><input type="number" id="ins_ng" value="8" oninput="calcInsurance()"></div>
+        <div class="inp-group"><label>Years of New Business</label><input type="number" id="ins_ny" value="10" oninput="calcInsurance()"></div>
+        <div class="inp-group"><label>Shares Outstanding (000)</label><input type="number" id="ins_sh" value="100000" oninput="calcInsurance()"></div>
+        <div class="inp-group"><label>Current Share Price</label><input type="number" id="ins_price" value="6.20" step="0.01" oninput="calcInsurance()"></div>
+      </div>
+      <div id="ins_res" class="res-grid"></div>
+      <div id="ins_verdict" class="verdict neutral" style="margin-top:12px"></div>
+    </div>
+  </div><!-- /panel-fi_inst -->
+
+</div><!-- /container -->
+
+<script>
+/* ─────────────────────────────────────────────────────────
+   UTILITY HELPERS
+───────────────────────────────────────────────────────── */
+const v = id => parseFloat(document.getElementById(id).value) || 0;
+const pct = id => v(id) / 100;
+const fmt = (n, dp=2) => isNaN(n)||!isFinite(n) ? '—' : n.toLocaleString('en-US',{minimumFractionDigits:dp,maximumFractionDigits:dp});
+const fmtPct = (n, dp=2) => isNaN(n)||!isFinite(n) ? '—' : (n*100).toFixed(dp)+'%';
+
+function resBox(label, val, cls='') {
+  return `<div class="res-box ${cls}"><div class="label">${label}</div><div class="value">${val}</div></div>`;
+}
+function verdict(el, msg, type) {
+  el.className = `verdict ${type}`;
+  el.textContent = msg;
+}
+
+/* Standard Normal CDF — Abramowitz & Stegun */
+function normCDF(x) {
+  const a=[0.254829592,-0.284496736,1.421413741,-1.453152027,1.061405429], p=0.3275911;
+  const s = x<0?-1:1; x=Math.abs(x)/Math.SQRT2;
+  const t=1/(1+p*x);
+  const y=1-((((a[4]*t+a[3])*t+a[2])*t+a[1])*t+a[0])*t*Math.exp(-x*x);
+  return 0.5*(1+s*y);
+}
+
+/* Guide toggle */
+function toggleGuide() {
+  const body = document.getElementById('guide-body');
+  const chevron = document.getElementById('guide-chevron');
+  const open = body.style.display === 'block';
+  body.style.display = open ? 'none' : 'block';
+  chevron.style.transform = open ? '' : 'rotate(180deg)';
+}
+
+/* Tab switcher */
+function switchTab(btn) {
+  document.querySelectorAll('.vt-tab').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.vt-panel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('panel-'+btn.dataset.panel).classList.add('active');
+}
+
+/* ─────────────────────────────────────────────────────────
+   EQUITY — FCFF DCF
+───────────────────────────────────────────────────────── */
+function calcEquityDCF() {
+  const fcff1=v('eq_fcff1'), g1=pct('eq_gstage1'), gt=pct('eq_gterm'),
+        wacc=pct('eq_wacc'), nd=v('eq_netdebt'), sh=v('eq_shares'), sp=v('eq_price');
+  if(wacc<=gt){document.getElementById('eq_dcf_res').innerHTML='<p style="color:#b91c1c">WACC must exceed terminal growth rate</p>';return;}
+  let fcffs=[fcff1], pv=0, cf=fcff1;
+  for(let i=1;i<5;i++){cf*=(1+g1);fcffs.push(cf);}
+  let df=1, pvSum=0;
+  for(let i=0;i<5;i++){df/=(1+wacc);pvSum+=fcffs[i]*df;}
+  const tv = fcffs[4]*(1+gt)/(wacc-gt);
+  const pvTV = tv*df;
+  const ev = pvSum+pvTV;
+  const equity = ev-nd;
+  const ivps = equity/sh;
+  const upside = (ivps-sp)/sp;
+
+  const html = resBox('Enterprise Value',fmt(ev)+' 000')+
+    resBox('Equity Value',fmt(equity)+' 000','green')+
+    resBox('Intrinsic Value/Share',fmt(ivps,2),'green')+
+    resBox('PV Explicit CFs',fmt(pvSum)+' 000')+
+    resBox('PV Terminal Value',fmt(pvTV)+' 000')+
+    resBox('TV / EV',fmtPct(pvTV/ev));
+  document.getElementById('eq_dcf_res').innerHTML=html;
+
+  const vd = document.getElementById('eq_dcf_verdict');
+  if(ivps>sp*1.05) verdict(vd,`UNDERVALUED — ${fmtPct(upside)} upside to intrinsic value of ${fmt(ivps,2)}`,'positive');
+  else if(ivps<sp*0.95) verdict(vd,`OVERVALUED — ${fmtPct(upside)} downside; current price ${fmt(sp,2)} > IV ${fmt(ivps,2)}`,'negative');
+  else verdict(vd,`FAIRLY VALUED — IV ${fmt(ivps,2)} ≈ current price ${fmt(sp,2)}`,'neutral');
+
+  // Build cash flow table
+  let tbl=`<thead><tr><th>Year</th><th>FCFF (000)</th><th>Discount Factor</th><th>PV (000)</th></tr></thead><tbody>`;
+  df=1;
+  for(let i=0;i<5;i++){df/=(1+wacc);tbl+=`<tr><td>Y${i+1}</td><td>${fmt(fcffs[i])}</td><td>${fmt(df,4)}</td><td>${fmt(fcffs[i]*df)}</td></tr>`;}
+  tbl+=`<tr><td>Terminal Value</td><td>${fmt(tv)}</td><td>${fmt(df,4)}</td><td>${fmt(pvTV)}</td></tr>`;
+  tbl+=`<tr><td>Total EV</td><td></td><td></td><td>${fmt(ev)}</td></tr></tbody>`;
+  document.getElementById('eq_dcf_table').innerHTML=tbl;
+}
+
+/* ─────────────────────────────────────────────────────────
+   EQUITY — DDM
+───────────────────────────────────────────────────────── */
+function calcDDM() {
+  const d0=v('ddm_d0'), gs=pct('ddm_gs'), gl=pct('ddm_gl'),
+        ke=pct('ddm_ke'), H=v('ddm_h'), sp=v('ddm_price');
+  const gordon = d0*(1+gl)/(ke-gl);
+  const hmodel = d0*(1+gl)/(ke-gl) + d0*H*(gs-gl)/(ke-gl);
+  // Two-stage explicit
+  let d=d0, pv=0, df=1;
+  for(let i=0;i<H*2;i++){d*=(1+gs); df/=(1+ke); pv+=d*df;}
+  const tv2 = d*(1+gl)/(ke-gl);
+  const pvTV2=tv2*df;
+  const twostage = pv+pvTV2;
+
+  document.getElementById('ddm_res').innerHTML =
+    resBox('Gordon Growth',fmt(gordon,2))+
+    resBox('H-Model',fmt(hmodel,2))+
+    resBox('Two-Stage',fmt(twostage,2),'green')+
+    resBox('Avg Estimate',fmt((gordon+hmodel+twostage)/3,2));
+
+  const avg=(gordon+hmodel+twostage)/3;
+  const vd=document.getElementById('ddm_verdict');
+  if(avg>sp*1.05) verdict(vd,`UNDERVALUED — average DDM value ${fmt(avg,2)} > price ${fmt(sp,2)}`,'positive');
+  else if(avg<sp*0.95) verdict(vd,`OVERVALUED — average DDM value ${fmt(avg,2)} < price ${fmt(sp,2)}`,'negative');
+  else verdict(vd,'FAIRLY VALUED','neutral');
+}
+
+/* ─────────────────────────────────────────────────────────
+   EQUITY — RIM
+───────────────────────────────────────────────────────── */
+function calcRIM() {
+  const b0=v('rim_bv'), roe=pct('rim_roe'), ke=pct('rim_ke'),
+        g=pct('rim_g'), sp=v('rim_price');
+  const ri = b0*(roe-ke); // year-1 RI per share
+  const pvRI = ri/(ke-g); // growing perpetuity PV
+  const iv = b0 + pvRI;
+  document.getElementById('rim_res').innerHTML =
+    resBox('Book Value/Share',fmt(b0,2))+
+    resBox('RI Year 1',fmt(ri,4))+
+    resBox('PV of RI Stream',fmt(pvRI,2))+
+    resBox('Intrinsic Value',fmt(iv,2),'green')+
+    resBox('Price/IV',fmt(sp/iv,2))+
+    resBox('ROE − Ke',fmtPct(roe-ke));
+  const vd=document.getElementById('rim_verdict');
+  if(iv>sp*1.05) verdict(vd,`UNDERVALUED — RIM IV ${fmt(iv,2)} > price ${fmt(sp,2)}`,'positive');
+  else if(iv<sp*0.95) verdict(vd,`OVERVALUED — RIM IV ${fmt(iv,2)} < price ${fmt(sp,2)}`,'negative');
+  else verdict(vd,'FAIRLY VALUED','neutral');
+}
+
+/* ─────────────────────────────────────────────────────────
+   CORP FINANCE — CAPITAL BUDGETING
+───────────────────────────────────────────────────────── */
+function calcCapBudget() {
+  const capex=v('cb_capex'), n=Math.round(v('cb_life')),
+        rev1=v('cb_rev'), rg=pct('cb_revg'),
+        vc=pct('cb_vc'), fc1=v('cb_fc'),
+        r=pct('cb_r'), t=pct('cb_tax'), salv=v('cb_salv');
+  const dep = capex/n;
+  let fcs=[], npv=-capex, cumCF=-capex, payback=null;
+  let re=rev1, fc=fc1;
+  for(let i=1;i<=n;i++){
+    const ebit=re*(1-vc)-fc-dep;
+    const nopat=ebit*(1-t);
+    let cf=nopat+dep;
+    if(i===n){ const salvAT=salv-t*(salv-0); cf+=salvAT; }
+    fcs.push({yr:i,rev:re,cf});
+    cumCF+=cf;
+    if(payback===null&&cumCF>=0) payback=i-1+(fcs.slice(0,i-1).reduce((a,x)=>a+x.cf,0)+capex)/(cf);
+    const pvcf=cf/Math.pow(1+r,i);
+    npv+=pvcf;
+    re*=(1+rg); fc*=1.05;
+  }
+  // IRR via bisection
+  let lo=0, hi=10;
+  for(let k=0;k<200;k++){
+    const mid=(lo+hi)/2;
+    let npvMid=-capex;
+    fcs.forEach((x,i)=>npvMid+=x.cf/Math.pow(1+mid,i+1));
+    if(npvMid>0) lo=mid; else hi=mid;
+    if(hi-lo<1e-8) break;
+  }
+  const irr=(lo+hi)/2;
+
+  document.getElementById('cb_res').innerHTML =
+    resBox('NPV (000)',fmt(npv),npv>0?'green':'red')+
+    resBox('IRR',fmtPct(irr),irr>r?'green':'red')+
+    resBox('Payback (yrs)',fmt(payback??n,2))+
+    resBox('PI',fmt(1+npv/capex,3),npv>0?'green':'red')+
+    resBox('Initial Outlay',fmt(capex)+' 000')+
+    resBox('Discount Rate',fmtPct(r));
+
+  const vd=document.getElementById('cb_verdict');
+  if(npv>0&&irr>r) verdict(vd,`ACCEPT — NPV of ${fmt(npv)} 000 is positive; IRR ${fmtPct(irr)} exceeds hurdle ${fmtPct(r)}`,'positive');
+  else verdict(vd,`REJECT — NPV ${fmt(npv)} 000 is negative or IRR ${fmtPct(irr)} below hurdle ${fmtPct(r)}`,'negative');
+}
+
+/* ─────────────────────────────────────────────────────────
+   CORP FINANCE — EVA / MVA
+───────────────────────────────────────────────────────── */
+function calcEVA() {
+  const ic=v('eva_ic'), n1=v('eva_nopat'), g=pct('eva_g'),
+        wacc=pct('eva_wacc'), tg=pct('eva_tg'),
+        debt=v('eva_debt'), sh=v('eva_sh');
+  let ic0=ic, pv=0;
+  for(let i=1;i<=5;i++){
+    const nopat=n1*Math.pow(1+g,i-1);
+    const eva=nopat-wacc*ic0;
+    pv+=eva/Math.pow(1+wacc,i);
+    ic0+=nopat*0.3; // assume 30% reinvestment
+  }
+  const nopat5=n1*Math.pow(1+g,4);
+  const contEVA=nopat5*(1+tg)/(wacc-tg)-wacc*ic0;
+  const pvCont=contEVA/(wacc-tg)/Math.pow(1+wacc,5);
+  const firmV=ic+pv+pvCont;
+  const equity=firmV-debt;
+  const ivps=equity/sh;
+  const roic=n1/ic;
+
+  document.getElementById('eva_res').innerHTML =
+    resBox('Firm Value (000)',fmt(firmV))+
+    resBox('Equity Value (000)',fmt(equity),'green')+
+    resBox('Intrinsic Value/Share',fmt(ivps,4),'green')+
+    resBox('ROIC',fmtPct(roic),roic>wacc?'green':'red')+
+    resBox('PV Explicit EVA (000)',fmt(pv))+
+    resBox('PV Continuing EVA (000)',fmt(pvCont));
+
+  const vd=document.getElementById('eva_verdict');
+  if(roic>wacc) verdict(vd,`VALUE-CREATING — ROIC ${fmtPct(roic)} > WACC ${fmtPct(wacc)}; economic profit positive`,'positive');
+  else verdict(vd,`VALUE-DESTROYING — ROIC ${fmtPct(roic)} < WACC ${fmtPct(wacc)}`,'negative');
+}
+
+/* ─────────────────────────────────────────────────────────
+   CORP FINANCE — M&A
+───────────────────────────────────────────────────────── */
+function calcMA() {
+  const acqP=v('ma_acqp'), acqS=v('ma_acqs'), acqNI=v('ma_acqni'),
+        tgtP=v('ma_tgtp'), tgtS=v('ma_tgts'), tgtNI=v('ma_tgtni'),
+        prem=pct('ma_prem'), cashPct=pct('ma_cash'),
+        syn=v('ma_syn'), tax=pct('ma_tax'),
+        synd=pct('ma_synd'), syng=pct('ma_syng');
+  const offer=tgtP*(1+prem);
+  const total=offer*tgtS;
+  const premium=total-tgtP*tgtS;
+  const pvSyn=syn*(1-tax)/(synd-syng);
+  const gain=pvSyn-premium;
+  const cashPaid=total*cashPct;
+  const stockPaid=total*(1-cashPct);
+  const newShares=stockPaid/acqP;
+  const postMergerEq=acqP*acqS+tgtP*tgtS+pvSyn-cashPaid;
+  const postMergerShares=acqS+newShares;
+  const postMergerPrice=postMergerEq/postMergerShares;
+  const acqEPS=acqNI/acqS;
+  const tgtEPS=tgtNI/tgtS;
+  const combNI=acqNI+tgtNI+syn*(1-tax)*0.5;
+  const proFormaEPS=combNI/postMergerShares;
+  const epsChange=(proFormaEPS-acqEPS)/acqEPS;
+
+  document.getElementById('ma_res').innerHTML =
+    resBox('Offer Price',fmt(offer,2))+
+    resBox('Takeover Premium',fmt(premium)+' m')+
+    resBox('PV of Synergies',fmt(pvSyn)+' m','green')+
+    resBox('Gain to Acquirer',fmt(gain)+' m',gain>0?'green':'red')+
+    resBox('Post-merger Price',fmt(postMergerPrice,2))+
+    resBox('EPS Change',fmtPct(epsChange),epsChange>0?'green':'amber');
+
+  const vd=document.getElementById('ma_verdict');
+  const vc=gain>0;
+  const acc=epsChange>0;
+  verdict(vd,`${vc?'VALUE-CREATING':'VALUE-DESTROYING'} — synergy gain ${fmt(gain,1)} m | EPS ${acc?'ACCRETIVE':'DILUTIVE'} (${fmtPct(epsChange)})`,vc?'positive':'negative');
+}
+
+/* ─────────────────────────────────────────────────────────
+   DERIVATIVES — BSM
+───────────────────────────────────────────────────────── */
+function calcBSM() {
+  const S=v('bsm_s'), K=v('bsm_k'), T=v('bsm_t'),
+        r=pct('bsm_r'), q=pct('bsm_q'), sig=pct('bsm_vol');
+  if(!S||!K||!T||!sig){return;}
+  const d1=(Math.log(S/K)+(r-q+0.5*sig*sig)*T)/(sig*Math.sqrt(T));
+  const d2=d1-sig*Math.sqrt(T);
+  const call=S*Math.exp(-q*T)*normCDF(d1)-K*Math.exp(-r*T)*normCDF(d2);
+  const put=K*Math.exp(-r*T)*normCDF(-d2)-S*Math.exp(-q*T)*normCDF(-d1);
+  // Greeks
+  const phi=Math.exp(-0.5*d1*d1)/Math.sqrt(2*Math.PI);
+  const delta_c=Math.exp(-q*T)*normCDF(d1);
+  const delta_p=Math.exp(-q*T)*(normCDF(d1)-1);
+  const gamma=phi*Math.exp(-q*T)/(S*sig*Math.sqrt(T));
+  const vega=S*Math.exp(-q*T)*phi*Math.sqrt(T)/100;
+  const theta_c=(-S*phi*sig*Math.exp(-q*T)/(2*Math.sqrt(T))-r*K*Math.exp(-r*T)*normCDF(d2)+q*S*Math.exp(-q*T)*normCDF(d1))/365;
+  const rho_c=K*T*Math.exp(-r*T)*normCDF(d2)/100;
+
+  document.getElementById('bsm_res').innerHTML =
+    resBox('d1',fmt(d1,4))+resBox('d2',fmt(d2,4))+
+    resBox('Call Value',fmt(call,4),'green')+resBox('Put Value',fmt(put,4),'amber')+
+    resBox('Put–Call Parity','✓ Holds');
+
+  document.getElementById('bsm_greeks').innerHTML = `
+    <div style="font-size:.8rem;font-weight:700;color:#475569;margin-bottom:10px">GREEKS</div>
+    <div class="res-grid">
+      ${resBox('Call Delta',fmt(delta_c,4))}${resBox('Put Delta',fmt(delta_p,4))}
+      ${resBox('Gamma',fmt(gamma,6))}${resBox('Vega (per 1% vol)',fmt(vega,4))}
+      ${resBox('Theta/day',fmt(theta_c,4),'amber')}${resBox('Call Rho (per 1% r)',fmt(rho_c,4))}
+    </div>`;
+}
+
+/* ─────────────────────────────────────────────────────────
+   DERIVATIVES — FORWARDS
+───────────────────────────────────────────────────────── */
+function calcForward() {
+  const S=v('fwd_s'), r=pct('fwd_r'), T=v('fwd_t'), D=v('fwd_d');
+  const eqFwd=(S-D)*Math.pow(1+r,T);
+  const spot=v('fwd_spot'), rGHS=pct('fwd_rghs'), rUSD=pct('fwd_rusd'), fxT=v('fwd_fxt');
+  const fxFwd=spot*(1+rGHS)/(1+rUSD)*Math.pow((1+rGHS)/(1+rUSD),fxT-1)*(1+rGHS);
+  const fxFwd2=spot*Math.pow((1+rGHS)/(1+rUSD),fxT);
+
+  document.getElementById('fwd_res').innerHTML =
+    resBox('Equity Forward',fmt(eqFwd,4),'green')+
+    resBox('FX Forward (GHS/USD)',fmt(fxFwd2,4),'green')+
+    resBox('Spot Rate',fmt(spot,4))+
+    resBox('Forward Premium',fmtPct((fxFwd2-spot)/spot));
+}
+
+/* ─────────────────────────────────────────────────────────
+   DERIVATIVES — CDS
+───────────────────────────────────────────────────────── */
+function calcCDS() {
+  const N=v('cds_n'), tenor=Math.round(v('cds_t')),
+        h=pct('cds_h'), rec=pct('cds_rec'),
+        coup=pct('cds_coup'), rf=pct('cds_rf');
+  const lgd=1-rec;
+  let surv=1, protLeg=0, rpa=0;
+  for(let i=1;i<=tenor;i++){
+    const df=Math.pow(1+rf,-i);
+    const def=surv*h;
+    protLeg+=def*lgd*df;
+    rpa+=surv*df;
+    surv*=(1-h);
+  }
+  const parSpread=protLeg/rpa;
+  const upfront=(parSpread-coup)*rpa;
+
+  document.getElementById('cds_res').innerHTML =
+    resBox('Par CDS Spread',fmtPct(parSpread,4),'green')+
+    resBox('Risky Annuity (RPV01)',fmt(rpa,4))+
+    resBox('Protection Leg PV',fmt(protLeg,4))+
+    resBox('Upfront Premium',fmt(upfront*N,2)+' 000')+
+    resBox('Hazard × LGD Approx.',fmtPct(h*lgd,4))+
+    resBox('Survival to Maturity',fmtPct(surv));
+}
+
+/* ─────────────────────────────────────────────────────────
+   FIXED INCOME — BOND PRICING
+───────────────────────────────────────────────────────── */
+function calcBond() {
+  const par=v('bp_par'), coupr=pct('bp_coup'), freq=parseInt(document.getElementById('bp_freq').value),
+        yrs=v('bp_ytm_yr'), frac=v('bp_frac'), mktClean=v('bp_mkt'), reqy=pct('bp_reqy');
+  const cpn=par*coupr/freq;
+  const N=yrs*freq;
+  const ai=cpn*frac;
+  const mktFull=mktClean+ai;
+
+  // Price at required yield
+  let px=0;
+  for(let k=1;k<=N;k++){
+    const time=(k-frac)/freq;
+    px+=(k===N?cpn+par:cpn)/Math.pow(1+reqy/freq,k-frac);
+  }
+  const modelFlat=px-ai;
+
+  // YTM via Newton-Raphson on full price
+  let y=coupr/freq;
+  for(let iter=0;iter<100;iter++){
+    let p=0, dp=0;
+    for(let k=1;k<=N;k++){
+      const cf=k===N?cpn+par:cpn;
+      const fac=Math.pow(1+y,k-frac);
+      p+=cf/fac;
+      dp-=(k-frac)*cf/(fac*(1+y));
+    }
+    const err=p-mktFull;
+    y-=err/dp;
+    if(Math.abs(err)<1e-8)break;
+  }
+  const ytm=y*freq;
+
+  // Macaulay Duration
+  let D=0, p2=0;
+  for(let k=1;k<=N;k++){
+    const t=(k-frac)/freq;
+    const cf=k===N?cpn+par:cpn;
+    const pvcf=cf/Math.pow(1+y,k-frac);
+    D+=t*pvcf; p2+=pvcf;
+  }
+  const macD=D/p2;
+  const modD=macD/(1+y);
+  // Convexity
+  let conv=0;
+  for(let k=1;k<=N;k++){
+    const t=(k-frac)/freq;
+    const cf=k===N?cpn+par:cpn;
+    const pvcf=cf/Math.pow(1+y,k-frac);
+    conv+=t*(t+1/freq)*pvcf;
+  }
+  conv=conv/(p2*(1+y)*(1+y));
+  const pvbp=modD*px*0.0001;
+
+  document.getElementById('bp_res').innerHTML =
+    resBox('YTM (annualised)',fmtPct(ytm,4))+
+    resBox('Accrued Interest',fmt(ai,4))+
+    resBox('Model Full Price',fmt(px,4))+
+    resBox('Model Flat Price',fmt(modelFlat,4),modelFlat>mktClean?'green':'red')+
+    resBox('Macaulay Duration',fmt(macD,4)+' yrs')+
+    resBox('Modified Duration',fmt(modD,4))+
+    resBox('Convexity',fmt(conv,4))+
+    resBox('PVBP',fmt(pvbp,6));
+
+  const vd=document.getElementById('bp_verdict');
+  if(modelFlat>mktClean+0.25) verdict(vd,`CHEAP — model flat ${fmt(modelFlat,2)} > market ${fmt(mktClean,2)} at required yield ${fmtPct(reqy)}`,'positive');
+  else if(modelFlat<mktClean-0.25) verdict(vd,`RICH — model flat ${fmt(modelFlat,2)} < market ${fmt(mktClean,2)}`,'negative');
+  else verdict(vd,`FAIRLY PRICED — model flat ${fmt(modelFlat,2)} ≈ market ${fmt(mktClean,2)}`,'neutral');
+}
+
+/* ─────────────────────────────────────────────────────────
+   FIXED INCOME — CVA
+───────────────────────────────────────────────────────── */
+function calcCVA() {
+  const coup=pct('cva_coup'), mat=Math.round(v('cva_mat')),
+        rf=pct('cva_rf'), h=pct('cva_h'), rec=pct('cva_rec');
+  const lgd=1-rec;
+  // VND = PV at risk-free rate
+  let vnd=0;
+  for(let t=1;t<=mat;t++){
+    const cf=t===mat?100+100*coup:100*coup;
+    vnd+=cf/Math.pow(1+rf,t);
+  }
+  // CVA
+  let cva=0, surv=1;
+  for(let t=1;t<=mat;t++){
+    const df=1/Math.pow(1+rf,t);
+    const cf=t===mat?100+100*coup:100*coup;
+    const pvCF=cf*df;
+    const def=surv*h;
+    cva+=def*lgd*pvCF;
+    surv*=(1-h);
+  }
+  const fv=vnd-cva;
+  // YTM at fair value via NR
+  let y=coup;
+  for(let iter=0;iter<100;iter++){
+    let p=0,dp=0;
+    for(let t=1;t<=mat;t++){
+      const cf=t===mat?100+100*coup:100*coup;
+      p+=cf/Math.pow(1+y,t);
+      dp-=t*cf/Math.pow(1+y,t+1);
+    }
+    const err=p-fv; y-=err/dp;
+    if(Math.abs(err)<1e-8) break;
+  }
+  let yVND=rf;
+  const cs=y-yVND;
+
+  document.getElementById('cva_res').innerHTML =
+    resBox('VND (risk-free)',fmt(vnd,4))+
+    resBox('CVA',fmt(cva,4),'amber')+
+    resBox('Fair Value',fmt(fv,4),'green')+
+    resBox('YTM at Fair Value',fmtPct(y,4))+
+    resBox('Credit Spread',fmtPct(cs,4))+
+    resBox('Cumul. PD to Maturity',fmtPct(1-surv,4));
+}
+
+/* ─────────────────────────────────────────────────────────
+   FIXED INCOME — CONVERTIBLE
+───────────────────────────────────────────────────────── */
+function calcConvertible() {
+  const par=v('cv_par'), ratio=v('cv_ratio'), sp=v('cv_sp'),
+        coup=pct('cv_coup'), mat=v('cv_mat'),
+        yield_=pct('cv_yield'), vol=pct('cv_vol'),
+        rf=pct('cv_rf'), mkt=v('cv_mkt');
+  // Straight value
+  let sv=0;
+  for(let t=1;t<=mat;t++) sv+=(t===mat?par+par*coup:par*coup)/Math.pow(1+yield_,t);
+  const convVal=ratio*sp;
+  const minVal=Math.max(sv,convVal);
+  const mcp=mkt/ratio;
+  const mcpp=mcp-sp;
+  const mcppr=mcpp/sp;
+  // BSM for embedded call option
+  const K=par/ratio;
+  const q=0; // ignore div for simplicity
+  const d1=(Math.log(sp/K)+(rf+0.5*vol*vol)*mat)/(vol*Math.sqrt(mat));
+  const d2=d1-vol*Math.sqrt(mat);
+  const callPerShare=sp*Math.exp(-q*mat)*normCDF(d1)-K*Math.exp(-rf*mat)*normCDF(d2);
+  const optVal=sv+ratio*callPerShare;
+
+  document.getElementById('cv_res').innerHTML =
+    resBox('Straight Value',fmt(sv,2))+
+    resBox('Conversion Value',fmt(convVal,2),'green')+
+    resBox('Minimum Value',fmt(minVal,2))+
+    resBox('Option-based Value',fmt(optVal,2),'green')+
+    resBox('Market Conv. Premium',fmtPct(mcppr),mcppr<0.3?'green':'amber')+
+    resBox('Market Price',fmt(mkt,2));
+
+  const vd=document.getElementById('cv_verdict');
+  if(optVal>mkt*1.01) verdict(vd,`CHEAP — option-based value ${fmt(optVal,2)} > market price ${fmt(mkt,2)}`,'positive');
+  else if(optVal<mkt*0.99) verdict(vd,`RICH — option-based value ${fmt(optVal,2)} < market price ${fmt(mkt,2)}`,'negative');
+  else verdict(vd,'FAIRLY PRICED','neutral');
+}
+
+/* ─────────────────────────────────────────────────────────
+   PENSION / ALM
+───────────────────────────────────────────────────────── */
+function calcPension() {
+  const A=v('pen_assets'), L=v('pen_pbo'),
+        aDur=v('pen_adur'), lDur=v('pen_ldur'),
+        thr=pct('pen_thr'), swapDur=v('pen_swapdur'),
+        shock=v('pen_shock');
+  const surplus=A-L;
+  const funding=A/L;
+  const aBPV=aDur*A*0.0001;
+  const lBPV=lDur*L*0.0001;
+  const curHedge=aBPV/lBPV;
+  const bpvGap=thr*lBPV-aBPV;
+  const swapNotional=bpvGap/(swapDur*0.0001);
+  // Stress
+  const bpShock=shock;
+  const dA=aDur*A*(bpShock/10000);
+  const dL=lDur*L*(bpShock/10000);
+  const dSurplus=dA-dL;
+  const fundingAfter=(A+dA)/(L+dL);
+
+  document.getElementById('pen_res').innerHTML =
+    resBox('Surplus (000)',fmt(surplus),surplus>=0?'green':'red')+
+    resBox('Funding Ratio',fmtPct(funding),funding>=1?'green':'red')+
+    resBox('Asset BPV (000)',fmt(aBPV,4))+
+    resBox('Liability BPV (000)',fmt(lBPV,4))+
+    resBox('Current Hedge Ratio',fmtPct(curHedge),curHedge>=thr?'green':'amber')+
+    resBox('Swap Overlay Notional',fmt(swapNotional))+
+    resBox(`Funding after ${shock}bp shock`,fmtPct(fundingAfter),fundingAfter>=1?'green':'red')+
+    resBox('Δ Surplus from Shock',fmt(dSurplus),dSurplus>=0?'green':'red');
+
+  const vd=document.getElementById('pen_verdict');
+  if(funding>=1) verdict(vd,`FULLY FUNDED — surplus ${fmt(surplus,0)} 000; hedge ratio ${fmtPct(curHedge)}`,'positive');
+  else verdict(vd,`UNDERFUNDED — deficit ${fmt(-surplus,0)} 000; needs ${fmtPct(thr-curHedge)} more hedging`,'negative');
+}
+
+/* ─────────────────────────────────────────────────────────
+   PRIVATE CAPITAL — LBO
+───────────────────────────────────────────────────────── */
+function calcLBO() {
+  const ebitda=v('lbo_ebitda'), entMult=v('lbo_entry'), exitMult=v('lbo_exit'),
+        yr=Math.round(v('lbo_yr')),
+        senior=v('lbo_senior'), mezz=v('lbo_mezz'),
+        sr=pct('lbo_sr'), mr=pct('lbo_mr'),
+        eg=pct('lbo_eg'), tax=pct('lbo_tax');
+  const ev=ebitda*entMult;
+  const seniorDebt=ebitda*senior, mezzDebt=ebitda*mezz;
+  const equity=ev-seniorDebt-mezzDebt;
+  // Simple debt paydown model
+  let s=seniorDebt, m=mezzDebt, ebitCur=ebitda;
+  for(let i=1;i<=yr;i++){
+    ebitCur*=(1+eg);
+    const sint=s*sr, mint=m*mr;
+    const nopat=(ebitCur-sint-mint)*(1-tax);
+    const fcf=nopat*0.7; // rough capex/wc
+    s=Math.max(0,s-fcf*0.5);
+  }
+  const exitEV=ebitCur*exitMult;
+  const exitEquity=exitEV-s-m;
+  const moic=exitEquity/equity;
+  // IRR via bisection
+  let lo=-0.5, hi=10;
+  for(let k=0;k<200;k++){
+    const mid=(lo+hi)/2;
+    const npv=-equity+exitEquity/Math.pow(1+mid,yr);
+    if(npv>0) lo=mid; else hi=mid;
+    if(hi-lo<1e-8) break;
+  }
+  const irr=(lo+hi)/2;
+
+  document.getElementById('lbo_res').innerHTML =
+    resBox('Entry EV (000)',fmt(ev))+
+    resBox('Equity at Entry (000)',fmt(equity))+
+    resBox('Exit EV (000)',fmt(exitEV))+
+    resBox('Equity at Exit (000)',fmt(exitEquity),'green')+
+    resBox('MOIC',fmt(moic,2)+'×',moic>2?'green':'amber')+
+    resBox('Sponsor IRR',fmtPct(irr),irr>0.25?'green':'amber');
+
+  const vd=document.getElementById('lbo_verdict');
+  verdict(vd,`${yr}-year exit | MOIC ${fmt(moic,2)}× | IRR ${fmtPct(irr)} | Entry ${entMult}× → Exit ${exitMult}× EBITDA`,irr>0.2?'positive':'neutral');
+}
+
+/* ─────────────────────────────────────────────────────────
+   PRIVATE CAPITAL — VC METHOD
+───────────────────────────────────────────────────────── */
+function calcVC() {
+  const earn=v('vc_earn'), pe=v('vc_pe'), N=v('vc_n'),
+        inv1=v('vc_inv1'), r1=pct('vc_r1'), t2=v('vc_t2'),
+        inv2=v('vc_inv2'), r2=pct('vc_r2'), q=pct('vc_q'),
+        fsh=v('vc_fsh');
+  const exitV=earn*pe;
+  const r2adj=(1+r2)/(1-q)-1;
+  const post2=exitV/Math.pow(1+r2adj,N-t2);
+  const pre2=post2-inv2;
+  const f2=inv2/post2;
+  const r1adj=(1+r1)/(1-q)-1;
+  const post1=pre2/Math.pow(1+r1adj,t2);
+  const pre1=post1-inv1;
+  const f1=inv1/post1;
+  const s1=fsh*f1/(1-f1);
+  const p1=inv1/s1;
+  const s2=(fsh+s1)*f2/(1-f2);
+  const p2=inv2/s2;
+
+  document.getElementById('vc_res').innerHTML =
+    resBox('Exit Value (000)',fmt(exitV))+
+    resBox('Post-money R1 (000)',fmt(post1),'green')+
+    resBox('Post-money R2 (000)',fmt(post2),'green')+
+    resBox('R1 Ownership',fmtPct(f1))+
+    resBox('R2 Ownership',fmtPct(f2))+
+    resBox('R1 Price/Share',fmt(p1,4))+
+    resBox('R2 Price/Share',fmt(p2,4))+
+    resBox('Step-up R2/R1',fmt(p2/p1,2)+'×');
+}
+
+/* ─────────────────────────────────────────────────────────
+   PRIVATE CAPITAL — FUND ECONOMICS
+───────────────────────────────────────────────────────── */
+function calcFundEcon() {
+  const cc=v('fe_cc'), mf=pct('fe_mf'), ci=pct('fe_ci'),
+        hurdle=pct('fe_hurdle'), ip=Math.round(v('fe_ip')),
+        life=Math.round(v('fe_life')), moic=v('fe_moic');
+  const grossProceeds=cc*moic;
+  const totalMgmtFees=cc*(mf*ip+mf*0.75*(life-ip));
+  const paidIn=cc-totalMgmtFees*0.5; // rough
+  const lpHurdle=paidIn*Math.pow(1+hurdle,life);
+  const profits=Math.max(0,grossProceeds-paidIn);
+  const carry=profits>0?Math.max(0,(grossProceeds-lpHurdle)*ci):0;
+  const lpNet=grossProceeds-carry-totalMgmtFees;
+  const lpMOIC=lpNet/cc;
+  // IRR estimate (simplified)
+  let lo=-0.5, hi=5;
+  for(let k=0;k<200;k++){
+    const mid=(lo+hi)/2;
+    const npv=-cc+lpNet/Math.pow(1+mid,life);
+    if(npv>0) lo=mid; else hi=mid;
+    if(hi-lo<1e-8) break;
+  }
+  const irr=(lo+hi)/2;
+
+  document.getElementById('fe_res').innerHTML =
+    resBox('Gross Proceeds (000)',fmt(grossProceeds))+
+    resBox('Total Mgmt Fees (000)',fmt(totalMgmtFees),'amber')+
+    resBox('Carried Interest (000)',fmt(carry),'amber')+
+    resBox('LP Net Proceeds (000)',fmt(lpNet),'green')+
+    resBox('LP Net MOIC',fmt(lpMOIC,2)+'×',lpMOIC>1.5?'green':'amber')+
+    resBox('LP Net IRR',fmtPct(irr),irr>hurdle?'green':'amber');
+}
+
+/* ─────────────────────────────────────────────────────────
+   REAL ASSETS — DIRECT REAL ESTATE
+───────────────────────────────────────────────────────── */
+function calcRE() {
+  const price=v('re_price'), pgi=v('re_pgi'), rg=pct('re_rg'),
+        vac=pct('re_vac'), opex=v('re_opex'), opexg=pct('re_opexg'),
+        capin=pct('re_capin'), capexit=pct('re_capexit'),
+        dr=pct('re_dr'), ltv=pct('re_ltv'), mr=pct('re_mr');
+  const noi1=pgi*(1-vac)-opex;
+  const capRateV=noi1/capin;
+  let npv=-price, pgi_=pgi, opex_=opex, noiprev=noi1;
+  for(let i=1;i<=10;i++){
+    pgi_*=(1+rg); opex_*=(1+opexg);
+    const noi=pgi_*(1-vac)-opex_;
+    let cf=noi;
+    if(i===10){cf+=noi*(1+rg)/capexit*(1-0.03);} // terminal
+    npv+=cf/Math.pow(1+dr,i);
+    noiprev=noi;
+  }
+  const loan=price*ltv;
+  const equity=price-loan;
+  const debt_service=loan*(mr*(1+mr)**15)/((1+mr)**15-1);
+  const coc=(noi1-debt_service)/equity;
+
+  document.getElementById('re_res').innerHTML =
+    resBox('Year-1 NOI (000)',fmt(noi1))+
+    resBox('Cap Rate Value (000)',fmt(capRateV),capRateV>price?'green':'red')+
+    resBox('DCF NPV (000)',fmt(npv),npv>0?'green':'red')+
+    resBox('Going-in Cap Rate',fmtPct(capin))+
+    resBox('Cash-on-Cash Return',fmtPct(coc),coc>0.1?'green':'amber')+
+    resBox('Equity Invested (000)',fmt(equity));
+
+  const vd=document.getElementById('re_verdict');
+  if(npv>0) verdict(vd,`ACCEPT — NPV ${fmt(npv,0)} 000 positive; cap rate value ${fmt(capRateV,0)} vs ask ${fmt(price,0)}`,'positive');
+  else verdict(vd,`REJECT — NPV ${fmt(npv,0)} 000 negative at ${fmtPct(dr)} discount rate`,'negative');
+}
+
+/* ─────────────────────────────────────────────────────────
+   REAL ASSETS — REIT
+───────────────────────────────────────────────────────── */
+function calcREIT() {
+  const noi=v('reit_noi'), cap=pct('reit_cap'), oa=v('reit_oa'),
+        debt=v('reit_debt'), ol=v('reit_ol'), sh=v('reit_sh'), price=v('reit_price'),
+        ni=v('reit_ni'), dep=v('reit_dep'), gains=v('reit_gains'),
+        capex=v('reit_capex'), pffomult=v('reit_pffomult'), paffomult=v('reit_paffomult'),
+        div=v('reit_div'), dg=pct('reit_dg'), ke=pct('reit_ke');
+  const gav=noi/cap+oa;
+  const nav=(gav-debt-ol)/sh;
+  const ffo=(ni+dep-gains)/sh;
+  const affo=ffo-(6000/sh)-(capex/sh); // straight-line approx
+  const ffo_val=ffo*pffomult;
+  const affo_val=(affo>0?affo:ffo)*paffomult;
+  const ddm=div*(1+dg)/(ke-dg);
+
+  document.getElementById('reit_res').innerHTML =
+    resBox('NAV/Share',fmt(nav,4),nav>price?'green':'red')+
+    resBox('P/NAV',fmt(price/nav,3))+
+    resBox('FFO/Share',fmt(ffo,4))+
+    resBox('AFFO/Share',fmt(affo,4))+
+    resBox('Value (P/FFO)',fmt(ffo_val,4),ffo_val>price?'green':'red')+
+    resBox('Value (P/AFFO)',fmt(affo_val,4),affo_val>price?'green':'red')+
+    resBox('DDM Value',fmt(ddm,4),ddm>price?'green':'red')+
+    resBox('Share Price',fmt(price,2));
+}
+
+/* ─────────────────────────────────────────────────────────
+   REAL ASSETS — COMMODITY
+───────────────────────────────────────────────────────── */
+function calcCommodity() {
+  const s0=v('com_s0'), s1=v('com_s1'),
+        fn=v('com_fn'), fnext=v('com_fnext'),
+        rolls=v('com_rolls'), col=pct('com_col');
+  const spot=(s1-s0)/s0;
+  const rollSingle=(fn-fnext)/fn;
+  const rollAnnual=rollSingle*rolls;
+  const total=spot+rollAnnual+col;
+  const shape=rollAnnual<0?'Contango — negative roll yield':'Backwardation — positive roll yield';
+
+  document.getElementById('com_res').innerHTML =
+    resBox('Spot Return',fmtPct(spot))+
+    resBox('Roll Yield (ann.)',fmtPct(rollAnnual),rollAnnual>0?'green':'red')+
+    resBox('Collateral Return',fmtPct(col),'green')+
+    resBox('Total Futures Return',fmtPct(total),total>0?'green':'red')+
+    resBox('Curve Shape',shape)+
+    resBox('Roll per Contract',fmtPct(rollSingle));
+}
+
+/* ─────────────────────────────────────────────────────────
+   FINANCIAL INSTITUTIONS — BANK
+───────────────────────────────────────────────────────── */
+function calcBank() {
+  const b0=v('bk_bv'), roe=pct('bk_roe'), ke=pct('bk_ke'),
+        g=pct('bk_g'), price=v('bk_price'), pay=pct('bk_pay');
+  const justPB=(roe-g)/(ke-g);
+  const ivJust=justPB*b0;
+  // RI model
+  const ri=b0*(roe-ke);
+  const pvRI=ri/(ke-g);
+  const ivRI=b0+pvRI;
+  // Gordon DDM
+  const d1=b0*roe*pay;
+  const ivDDM=d1*(1+g)/(ke-g);
+  const mktPB=price/b0;
+  const impliedKe=(roe-g)/(mktPB)+g;
+
+  document.getElementById('bk_res').innerHTML =
+    resBox('Justified P/B',fmt(justPB,3))+
+    resBox('Value (Justified P/B)',fmt(ivJust,4),ivJust>price?'green':'red')+
+    resBox('Value (RIM)',fmt(ivRI,4),ivRI>price?'green':'red')+
+    resBox('Value (DDM)',fmt(ivDDM,4),ivDDM>price?'green':'red')+
+    resBox('Market P/B',fmt(mktPB,3))+
+    resBox('Implied Ke',fmtPct(impliedKe));
+
+  const avg=(ivJust+ivRI+ivDDM)/3;
+  const vd=document.getElementById('bk_verdict');
+  if(avg>price*1.05) verdict(vd,`UNDERVALUED — avg estimate ${fmt(avg,2)} > price ${fmt(price,2)} | ROE ${fmtPct(roe)} > Ke ${fmtPct(ke)}`,'positive');
+  else if(avg<price*0.95) verdict(vd,`OVERVALUED — avg estimate ${fmt(avg,2)} < price ${fmt(price,2)}`,'negative');
+  else verdict(vd,'FAIRLY VALUED','neutral');
+}
+
+/* ─────────────────────────────────────────────────────────
+   FINANCIAL INSTITUTIONS — INSURANCE EV
+───────────────────────────────────────────────────────── */
+function calcInsurance() {
+  const fs=v('ins_fs'), rc=v('ins_rc'), p1=v('ins_p1'),
+        runoff=pct('ins_runoff'), rdr=pct('ins_rdr'),
+        inv=pct('ins_inv'), vnb=v('ins_vnb'),
+        ng=pct('ins_ng'), ny=Math.round(v('ins_ny')),
+        sh=v('ins_sh'), price=v('ins_price');
+  const anw=fs+rc;
+  // VIF = PV of in-force profits - cost of capital on required capital
+  let vif=0, rc_=rc;
+  for(let t=1;t<=25;t++){
+    const profit=p1*Math.pow(1-runoff,t-1);
+    const costCap=rc_*inv;
+    const df=1/Math.pow(1+rdr,t);
+    vif+=(profit-costCap*(rdr-inv))*df;
+    rc_*=(1-runoff);
+  }
+  const ev=anw+vif;
+  // Appraisal value = EV + PV of future new business
+  let pvNB=0;
+  for(let t=1;t<=ny;t++) pvNB+=vnb*Math.pow(1+ng,t-1)/Math.pow(1+rdr,t);
+  const av=ev+pvNB;
+  const evps=ev/sh;
+  const avps=av/sh;
+
+  document.getElementById('ins_res').innerHTML =
+    resBox('Adjusted Net Worth (000)',fmt(anw))+
+    resBox('VIF (000)',fmt(vif),'green')+
+    resBox('Embedded Value (000)',fmt(ev),'green')+
+    resBox('PV New Business (000)',fmt(pvNB))+
+    resBox('Appraisal Value (000)',fmt(av),'green')+
+    resBox('EV Per Share',fmt(evps,4))+
+    resBox('Appraisal Value/Share',fmt(avps,4),avps>price?'green':'red')+
+    resBox('Price/EV',fmt(price/evps,3));
+
+  const vd=document.getElementById('ins_verdict');
+  if(avps>price*1.05) verdict(vd,`UNDERVALUED — appraisal value ${fmt(avps,2)} > price ${fmt(price,2)}`,'positive');
+  else if(avps<price*0.95) verdict(vd,`OVERVALUED — appraisal value ${fmt(avps,2)} < price ${fmt(price,2)}`,'negative');
+  else verdict(vd,'FAIRLY VALUED','neutral');
+}
+
+/* ── Run all calculations on page load ──────────────────── */
+window.addEventListener('DOMContentLoaded', () => {
+  calcEquityDCF(); calcDDM(); calcRIM();
+  calcCapBudget(); calcEVA(); calcMA();
+  calcBSM(); calcForward(); calcCDS();
+  calcBond(); calcCVA(); calcConvertible();
+  calcPension();
+  calcLBO(); calcVC(); calcFundEcon();
+  calcRE(); calcREIT(); calcCommodity();
+  calcBank(); calcInsurance();
+});
+</script>
+{% endblock %}

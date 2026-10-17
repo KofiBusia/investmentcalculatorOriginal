@@ -2257,6 +2257,10 @@ def calculate_cost_of_equity():
 def target_price():
     return render_template('target_price.html')
 
+@app.route('/valuation')
+def valuation():
+    return render_template('valuation.html')
+
 # --- STATIC / REDIRECT ROUTES ---
 @app.route('/about')
 def about():
