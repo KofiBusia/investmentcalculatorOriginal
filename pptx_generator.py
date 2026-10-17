@@ -103,7 +103,46 @@ def _placeholder_box(slide, label, l, t, w, h,
               color=RGBColor(0x64, 0x74, 0x8b), align=PP_ALIGN.CENTER)
 
 
-def build_pptx():
+def _fv(v, decimals=2, default='[ X.XX ]'):
+    """Format a number value or return default placeholder."""
+    if v is None or v == 0:
+        return default
+    return f"{v:,.{decimals}f}"
+
+
+def _fp(v, default='[ X% ]'):
+    """Format a percentage (0.24 → '24.0%') or return default."""
+    if v is None:
+        return default
+    return f"{v * 100:.1f}%"
+
+
+def _fupside(price, iv, default='[ ±X% ]'):
+    if not price or not iv:
+        return default
+    pct = (iv - price) / price * 100
+    return f"+{pct:.1f}%" if pct >= 0 else f"{pct:.1f}%"
+
+
+def build_pptx(data=None):
+    data = data or {}
+    _dcf = data.get('dcf') or {}
+    _ddm = data.get('ddm') or {}
+    _rim = data.get('rim') or {}
+
+    # ── Pre-compute formatted valuation strings ─────────────────────────────
+    dcf_iv   = _dcf.get('ivps')
+    dcf_pr   = _dcf.get('price')
+    ddm_val  = _ddm.get('twostage')
+    ddm_pr   = _ddm.get('price')
+    rim_iv   = _rim.get('iv')
+    rim_pr   = _rim.get('price')
+
+    # blended target (average of available model values)
+    _models  = [v for v in [dcf_iv, ddm_val, rim_iv] if v]
+    blended  = sum(_models) / len(_models) if _models else None
+    ref_pr   = dcf_pr or ddm_pr or rim_pr
+
     prs = Presentation()
     prs.slide_width  = Inches(13.33)
     prs.slide_height = Inches(7.5)
@@ -496,11 +535,14 @@ def build_pptx():
     _header_bar(s, "Valuation Framework", "Step 6 — How We Value the Stock", RGBColor(0xf9, 0x73, 0x16))
     _add_text(s, "We used 3 complementary models. Each provides a different lens. Together they give a robust target price range.", 0.4, 1.5, 12.5, 0.35, font_size=11, italic=True, color=GRAY)
     models = [
-        ("DCF Valuation", "Discounted Cash Flow", "Intrinsic value based on projected future free cash flows discounted at WACC.", "Best for: companies with predictable FCF", BLUE, "Slide 16"),
-        ("Graham Formula", "Intrinsic Value (Benjamin Graham)", "Classic margin-of-safety formula: √(22.5 × EPS × BVPS)", "Best for: any listed company with positive earnings", GREEN, "Slide 17"),
-        ("Target Price / DDM", "Forward EPS × P/E or Gordon Growth", "Analyst-style price target or dividend discount model.", "Best for: dividend-paying stocks or peer multiples", GOLD, "Slide 18"),
+        ("DCF Valuation", "Discounted Cash Flow", "Intrinsic value based on projected future free cash flows discounted at WACC.", "Best for: companies with predictable FCF", BLUE, "Slide 16",
+         f"GHc {_fv(dcf_iv)}" if dcf_iv else "GHc [ X.XX ]"),
+        ("RIM Intrinsic Value", "Residual Income Model", "Intrinsic value = Book Value + PV of future residual income stream.", "Best for: companies with stable ROE & book value", GREEN, "Slide 17",
+         f"GHc {_fv(rim_iv)}" if rim_iv else "GHc [ X.XX ]"),
+        ("DDM Valuation", "Dividend Discount Model (Two-Stage)", "Analyst-style price target or dividend discount model.", "Best for: dividend-paying stocks", GOLD, "Slide 18",
+         f"GHc {_fv(ddm_val)}" if ddm_val else "GHc [ X.XX ]"),
     ]
-    for i, (short, full, desc, note, col, sref) in enumerate(models):
+    for i, (short, full, desc, note, col, sref, tp_str) in enumerate(models):
         x = 0.4 + i * 4.3
         _add_rect(s, x, 2.05, 4.1, 4.6, RGBColor(0x1e, 0x29, 0x3b))
         _add_rect(s, x, 2.05, 4.1, 0.35, col)
@@ -510,7 +552,7 @@ def build_pptx():
         _add_text(s, desc,  x + 0.15, 3.08, 3.8, 1.2,  font_size=9.5, color=WHITE)
         _add_text(s, note,  x + 0.15, 4.35, 3.8, 0.5,  font_size=8.5, italic=True, color=GRAY)
         _add_text(s, "Target Price", x + 0.15, 5.2, 3.8, 0.3, font_size=9, color=GRAY)
-        _add_text(s, "GHc [ X.XX ]", x + 0.15, 5.5, 3.8, 0.45, font_size=18, bold=True, color=col, align=PP_ALIGN.CENTER)
+        _add_text(s, tp_str, x + 0.15, 5.5, 3.8, 0.45, font_size=18, bold=True, color=col, align=PP_ALIGN.CENTER)
     _footer(s, 15)
 
     # ── SLIDE 16: DCF Valuation ──────────────────────────────────────────────────
@@ -523,15 +565,15 @@ def build_pptx():
     _add_rect(s, 0.4, 2.0, 5.5, 0.38, BLUE)
     _add_text(s, "DCF Inputs", 0.6, 2.03, 5.2, 0.32, font_size=12, bold=True, color=WHITE)
     dcf_inputs = [
-        ("Base-Year Free Cash Flow (GHc)", "[ Enter FCF ]"),
-        ("Revenue Growth Rate — Yr 1-5",   "[ X% ]"),
-        ("Revenue Growth Rate — Yr 6-10",  "[ X% ]"),
+        ("Base-Year FCFF (GHc 000)",       f"{_dcf['fcff1']:,.0f}" if _dcf.get('fcff1') else "[ Enter FCF ]"),
+        ("FCFF Growth Rate (Yr 1–5)",      _fp(_dcf.get('gstage1'))),
+        ("Revenue Growth Rate — Yr 6–10",  "[ X% ]"),
         ("EBITDA Margin",                   "[ X% ]"),
         ("Tax Rate",                        "[ X% ]"),
         ("Capex as % of Revenue",           "[ X% ]"),
-        ("WACC (Discount Rate)",            "[ X% ]"),
-        ("Terminal Growth Rate",            "[ X% ]"),
-        ("Shares Outstanding",              "[ X million ]"),
+        ("WACC (Discount Rate)",            _fp(_dcf.get('wacc'))),
+        ("Terminal Growth Rate",            _fp(_dcf.get('gterm'))),
+        ("Shares Outstanding (000)",        f"{_dcf['shares']:,.0f}" if _dcf.get('shares') else "[ X million ]"),
     ]
     for i, (label, val) in enumerate(dcf_inputs):
         y = 2.48 + i * 0.52
@@ -541,17 +583,18 @@ def build_pptx():
     _add_rect(s, 6.1, 2.0, 6.8, 5.2, RGBColor(0x1e, 0x29, 0x3b))
     _add_rect(s, 6.1, 2.0, 6.8, 0.38, BLUE)
     _add_text(s, "DCF Outputs", 6.3, 2.03, 6.5, 0.32, font_size=12, bold=True, color=WHITE)
+    _dcf_upside = _fupside(dcf_pr, dcf_iv)
     dcf_out = [
-        ("PV of FCF (Years 1–10)", "[ GHc Xm ]", LIGHTBLUE),
-        ("Terminal Value",          "[ GHc Xm ]", LIGHTBLUE),
-        ("Enterprise Value",        "[ GHc Xm ]", WHITE),
-        ("Less: Net Debt",          "[ (GHc Xm) ]", RED),
-        ("Equity Value",            "[ GHc Xm ]", GREEN),
-        ("÷ Shares Outstanding",    "[ X million ]", GRAY),
+        ("PV of FCF (Years 1–10)", f"GHc {_fv(_dcf.get('pvSum'), 0)} 000" if _dcf.get('pvSum') else "[ GHc Xm ]", LIGHTBLUE),
+        ("Terminal Value",          f"GHc {_fv(_dcf.get('pvTV'), 0)} 000" if _dcf.get('pvTV') else "[ GHc Xm ]", LIGHTBLUE),
+        ("Enterprise Value",        f"GHc {_fv(_dcf.get('ev'), 0)} 000" if _dcf.get('ev') else "[ GHc Xm ]", WHITE),
+        ("Less: Net Debt",          f"({_fv(_dcf.get('netdebt'), 0)} 000)" if _dcf.get('netdebt') else "[ (GHc Xm) ]", RED),
+        ("Equity Value",            f"GHc {_fv(_dcf.get('equity'), 0)} 000" if _dcf.get('equity') else "[ GHc Xm ]", GREEN),
+        ("÷ Shares Outstanding",    f"{_dcf['shares']:,.0f} 000" if _dcf.get('shares') else "[ X million ]", GRAY),
         ("",                        "",              WHITE),
-        ("DCF Intrinsic Value / Share", "GHc [ X.XX ]", GOLD),
-        ("Current Market Price",    "GHc [ X.XX ]", WHITE),
-        ("Upside / (Downside)",     "[ +X% / -X% ]", GREEN),
+        ("DCF Intrinsic Value / Share", f"GHc {_fv(dcf_iv)}" if dcf_iv else "GHc [ X.XX ]", GOLD),
+        ("Current Market Price",    f"GHc {_fv(dcf_pr)}" if dcf_pr else "GHc [ X.XX ]", WHITE),
+        ("Upside / (Downside)",     _dcf_upside, GREEN if dcf_iv and dcf_pr and dcf_iv >= dcf_pr else RED),
     ]
     for i, (label, val, col) in enumerate(dcf_out):
         y = 2.48 + i * 0.46
@@ -565,35 +608,39 @@ def build_pptx():
     # ── SLIDE 17: Graham / Intrinsic Value ──────────────────────────────────────
     s = prs.slides.add_slide(blank)
     _dark_slide(s)
-    _header_bar(s, "Valuation Model 2 — Benjamin Graham Formula", "Intrinsic Value & Margin of Safety", GREEN)
+    _header_bar(s, "Valuation Model 2 — Residual Income Model (RIM)", "Intrinsic Value = Book Value + PV of Residual Income Stream", GREEN)
     _add_rect(s, 0.4, 1.55, 12.5, 1.0, RGBColor(0x1e, 0x29, 0x3b))
-    _add_text(s, "Graham Formula:  V = EPS × (8.5 + 2g)  ×  (4.4 / AAA Bond Yield)", 0.6, 1.6, 12, 0.4, font_size=14, bold=True, color=GREEN, align=PP_ALIGN.CENTER)
-    _add_text(s, "where  g = expected EPS growth rate (%),  8.5 = base P/E for zero-growth company", 0.6, 2.0, 12, 0.35, font_size=10, italic=True, color=GRAY, align=PP_ALIGN.CENTER)
+    _add_text(s, "RIM Formula:  V = B₀ + RI₁ / (Ke − g)     where  RI₁ = B₀ × (ROE − Ke)", 0.6, 1.6, 12, 0.4, font_size=14, bold=True, color=GREEN, align=PP_ALIGN.CENTER)
+    _add_text(s, "B₀ = Book Value/Share,  ROE = Return on Equity,  Ke = Cost of Equity,  g = perpetual growth", 0.6, 2.0, 12, 0.35, font_size=10, italic=True, color=GRAY, align=PP_ALIGN.CENTER)
     inputs_g = [
-        ("Earnings Per Share (EPS)", "[ GHc X.XX ]"),
-        ("Expected EPS Growth Rate (g)", "[ X% per year ]"),
-        ("Risk-Free / AAA Bond Yield", "[ X% ]"),
-        ("Current Market Price", "[ GHc X.XX ]"),
+        ("Book Value Per Share (B₀)",  f"GHc {_fv(_rim.get('bv'))}" if _rim.get('bv') else "[ GHc X.XX ]"),
+        ("Return on Equity (ROE)",      _fp(_rim.get('roe'))),
+        ("Cost of Equity (Ke)",         _fp(_rim.get('ke'))),
+        ("Perpetual Growth Rate (g)",   _fp(_rim.get('g'))),
     ]
     _add_rect(s, 0.4, 2.55, 5.8, 4.2, RGBColor(0x1e, 0x29, 0x3b))
-    _add_text(s, "Inputs", 0.6, 2.6, 5.5, 0.38, font_size=12, bold=True, color=LIGHTBLUE)
+    _add_text(s, "Inputs (from InvestIQ)", 0.6, 2.6, 5.5, 0.38, font_size=12, bold=True, color=LIGHTBLUE)
     for i, (label, val) in enumerate(inputs_g):
         y = 3.1 + i * 0.9
         _add_text(s, label, 0.6, y, 3.8, 0.35, font_size=10, color=GRAY)
         _add_text(s, val,   0.6, y + 0.38, 3.8, 0.42, font_size=15, bold=True, color=WHITE)
     _add_rect(s, 6.4, 2.55, 6.5, 4.2, RGBColor(0x1e, 0x29, 0x3b))
     _add_text(s, "Results", 6.6, 2.6, 6.2, 0.38, font_size=12, bold=True, color=LIGHTBLUE)
+    _rim_margin = _fupside(rim_pr, rim_iv)
+    _rim_verdict = ("Undervalued → BUY" if rim_iv and rim_pr and rim_iv > rim_pr * 1.05
+                    else ("Overvalued → SELL" if rim_iv and rim_pr and rim_iv < rim_pr * 0.95
+                          else "[ Undervalued → BUY  /  Overvalued → SELL ]"))
     results = [
-        ("Graham Intrinsic Value", "GHc [ X.XX ]", GREEN),
-        ("Current Market Price",   "GHc [ X.XX ]", WHITE),
-        ("Margin of Safety",       "[ +X% Discount / -X% Premium ]", GOLD),
-        ("Verdict",                "[ Undervalued → BUY  /  Overvalued → SELL ]", LIGHTBLUE),
+        ("RIM Intrinsic Value",    f"GHc {_fv(rim_iv)}" if rim_iv else "GHc [ X.XX ]", GREEN),
+        ("Current Market Price",   f"GHc {_fv(rim_pr)}" if rim_pr else "GHc [ X.XX ]", WHITE),
+        ("Margin of Safety",       _rim_margin, GOLD),
+        ("Verdict",                _rim_verdict, LIGHTBLUE),
     ]
     for i, (label, val, col) in enumerate(results):
         y = 3.1 + i * 0.97
         _add_text(s, label, 6.6, y, 6.0, 0.35, font_size=10, color=GRAY)
         _add_text(s, val, 6.6, y + 0.38, 6.0, 0.48, font_size=14, bold=True, color=col)
-    _add_text(s, "⚠  Use InvestIQ Intrinsic Value Calculator at investright.onrender.com", 0.4, 6.95, 12.5, 0.3, font_size=9, italic=True, color=GRAY, align=PP_ALIGN.CENTER)
+    _add_text(s, "⚠  Calculated using InvestIQ RIM (Residual Income Model) at investright.onrender.com/valuation", 0.4, 6.95, 12.5, 0.3, font_size=9, italic=True, color=GRAY, align=PP_ALIGN.CENTER)
     _footer(s, 17)
 
     # ── SLIDE 18: DDM / Target Price ─────────────────────────────────────────────
@@ -611,7 +658,7 @@ def build_pptx():
         ("Sector Average P/E","[ Xx ]"),
         ("Target P/E Applied","[ Xx ]"),
         ("Target Price",      "GHc [ X.XX ]"),
-        ("Current Price",     "GHc [ X.XX ]"),
+        ("Current Price",     f"GHc {_fv(ddm_pr)}" if ddm_pr else "GHc [ X.XX ]"),
         ("Upside Potential",  "[ +X% ]"),
     ]
     for i, (label, val) in enumerate(tp_inputs):
@@ -624,15 +671,19 @@ def build_pptx():
     _add_rect(s, 6.7, 1.55, 6.3, 0.35, LIGHTBLUE)
     _add_text(s, "Dividend Discount Model (Gordon Growth)", 6.9, 1.57, 6.0, 0.3, font_size=11, bold=True, color=WHITE)
     _add_text(s, "Formula:  P = D₁ / (Ke − g)  where  D₁ = DPS × (1+g)", 6.9, 2.0, 6.0, 0.38, font_size=10, bold=True, color=LIGHTBLUE)
+    _d0 = _ddm.get('d0')
+    _d1 = (_d0 * (1 + (_ddm.get('gs') or 0))) if _d0 else None
+    _ddm_upside = _fupside(ddm_pr, ddm_val)
+    _ddm_yield = ((_d0 / ddm_pr * 100) if _d0 and ddm_pr else None)
     ddm_inputs = [
-        ("Current DPS (GHc)",       "[ X.XX ]"),
-        ("Dividend Growth Rate (g)", "[ X% ]"),
-        ("D₁ — Next Year DPS",      "GHc [ X.XX ]"),
-        ("Cost of Equity (Ke)",      "[ X% ]  (from CAPM)"),
-        ("DDM Intrinsic Value",      "GHc [ X.XX ]"),
-        ("Current Market Price",     "GHc [ X.XX ]"),
-        ("Upside / Downside",        "[ +X% / -X% ]"),
-        ("Dividend Yield",           "[ X% ]"),
+        ("Current DPS (GHc)",       f"{_fv(_d0)}" if _d0 else "[ X.XX ]"),
+        ("Dividend Growth Rate (g)", _fp(_ddm.get('gs'))),
+        ("D₁ — Next Year DPS",      f"GHc {_fv(_d1)}" if _d1 else "GHc [ X.XX ]"),
+        ("Cost of Equity (Ke)",      f"{_fp(_ddm.get('ke'))}  (from CAPM)" if _ddm.get('ke') else "[ X% ]  (from CAPM)"),
+        ("DDM Intrinsic Value",      f"GHc {_fv(ddm_val)}" if ddm_val else "GHc [ X.XX ]"),
+        ("Current Market Price",     f"GHc {_fv(ddm_pr)}" if ddm_pr else "GHc [ X.XX ]"),
+        ("Upside / Downside",        _ddm_upside),
+        ("Dividend Yield",           f"{_ddm_yield:.1f}%" if _ddm_yield else "[ X% ]"),
     ]
     for i, (label, val) in enumerate(ddm_inputs):
         y = 2.5 + i * 0.6
@@ -648,24 +699,29 @@ def build_pptx():
     _header_bar(s, "Valuation Summary", "Blended Target Price — Three Models, One Verdict", RGBColor(0xf9, 0x73, 0x16))
     _add_text(s, "We ran three independent valuation models. The blended average gives our final 12-month price target.", 0.4, 1.55, 12.5, 0.35, font_size=11, italic=True, color=GRAY)
     # Three model summary boxes
-    for i, (model, val, col) in enumerate([
-        ("DCF Valuation",            "GHc [ X.XX ]", BLUE),
-        ("Graham Intrinsic Value",   "GHc [ X.XX ]", GREEN),
-        ("Target Price / DDM",       "GHc [ X.XX ]", GOLD),
-    ]):
+    _sum_models = [
+        ("DCF Valuation",       f"GHc {_fv(dcf_iv)}" if dcf_iv else "GHc [ X.XX ]", BLUE,  _fupside(ref_pr, dcf_iv) if dcf_iv else "[ Upside: +X% ]"),
+        ("RIM Intrinsic Value", f"GHc {_fv(rim_iv)}" if rim_iv else "GHc [ X.XX ]", GREEN, _fupside(ref_pr, rim_iv) if rim_iv else "[ Upside: +X% ]"),
+        ("DDM Valuation",       f"GHc {_fv(ddm_val)}" if ddm_val else "GHc [ X.XX ]", GOLD, _fupside(ref_pr, ddm_val) if ddm_val else "[ Upside: +X% ]"),
+    ]
+    for i, (model, val, col, upside_lbl) in enumerate(_sum_models):
         x = 0.4 + i * 4.3
         _add_rect(s, x, 2.05, 4.1, 2.0, RGBColor(0x1e, 0x29, 0x3b))
         _add_rect(s, x, 2.05, 4.1, 0.35, col)
         _add_text(s, model, x + 0.15, 2.07, 3.9, 0.3, font_size=10, bold=True, color=WHITE)
         _add_text(s, val, x + 0.15, 2.55, 3.9, 0.85, font_size=26, bold=True, color=col, align=PP_ALIGN.CENTER)
-        _add_text(s, "[ Upside: +X% ]", x + 0.15, 3.5, 3.9, 0.35, font_size=10, color=GRAY, align=PP_ALIGN.CENTER)
+        _add_text(s, f"Upside: {upside_lbl}", x + 0.15, 3.5, 3.9, 0.35, font_size=10, color=GRAY, align=PP_ALIGN.CENTER)
     # Blended target box
+    _blended_str  = f"GHc {_fv(blended)}" if blended else "GHc [ X.XX ]"
+    _blended_note = (f"vs. Current Price GHc {_fv(ref_pr)}  ·  Implied Upside: {_fupside(ref_pr, blended)}  ·  12-Month Horizon"
+                     if blended and ref_pr else
+                     "vs. Current Price GHc [ X.XX ]  ·  Implied Upside: [ +X% ]  ·  12-Month Horizon")
     _add_rect(s, 2.3, 4.25, 8.7, 2.0, RGBColor(0x14, 0x28, 0x14))
     _add_rect(s, 2.3, 4.25, 8.7, 0.06, GREEN)
     _add_rect(s, 2.3, 6.19, 8.7, 0.06, GREEN)
     _add_text(s, "BLENDED TARGET PRICE (12-Month)", 2.5, 4.3, 8.4, 0.45, font_size=13, bold=True, color=GREEN, align=PP_ALIGN.CENTER)
-    _add_text(s, "GHc [ X.XX ]", 2.5, 4.85, 8.4, 0.85, font_size=40, bold=True, color=WHITE, align=PP_ALIGN.CENTER)
-    _add_text(s, "vs. Current Price GHc [ X.XX ]  ·  Implied Upside: [ +X% ]  ·  12-Month Horizon", 2.5, 5.8, 8.4, 0.35, font_size=10, color=GREEN, align=PP_ALIGN.CENTER)
+    _add_text(s, _blended_str, 2.5, 4.85, 8.4, 0.85, font_size=40, bold=True, color=WHITE, align=PP_ALIGN.CENTER)
+    _add_text(s, _blended_note, 2.5, 5.8, 8.4, 0.35, font_size=10, color=GREEN, align=PP_ALIGN.CENTER)
     _footer(s, 19)
 
     # ── SLIDE 20: Comparable Companies ──────────────────────────────────────────

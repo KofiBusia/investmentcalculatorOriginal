@@ -5922,6 +5922,19 @@ def download_stock_pitch_pptx():
     )
 
 
+@app.route('/stock-pitch/generate-pptx', methods=['POST'])
+def generate_stock_pitch_pptx():
+    from pptx_generator import build_pptx
+    data = request.get_json(silent=True) or {}
+    buf = build_pptx(data)
+    return send_file(
+        buf,
+        as_attachment=True,
+        download_name='YIN_Stock_Pitch_Prefilled.pptx',
+        mimetype='application/vnd.openxmlformats-officedocument.presentationml.presentation'
+    )
+
+
 # ── GISI EXAMS ───────────────────────────────────────────────────────────────
 @app.route('/gisi-exams')
 def gisi_exams():

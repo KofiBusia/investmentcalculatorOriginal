@@ -87,6 +87,50 @@
 <script>
 function openDrawer(){document.getElementById('mobile-drawer').style.left='0';document.getElementById('drawer-overlay').style.display='block';document.body.style.overflow='hidden';}
 function closeDrawer(){document.getElementById('mobile-drawer').style.left='-280px';document.getElementById('drawer-overlay').style.display='none';document.body.style.overflow='';}
+
+// ── Pitch deck pre-fill from InvestIQ valuation results ──────────────────
+(function() {
+  try {
+    const raw = localStorage.getItem('iq_pitch');
+    if (!raw) return;
+    const d = JSON.parse(raw);
+    if (!d.dcf && !d.ddm && !d.rim) return;
+    const hint = document.getElementById('hero-pitch-hint');
+    if (hint) hint.style.display = 'block';
+  } catch(e) {}
+})();
+
+function generatePrefilledPptx(btn) {
+  let pitchData = null;
+  try { pitchData = JSON.parse(localStorage.getItem('iq_pitch') || 'null'); } catch(e) {}
+  const hasData = pitchData && (pitchData.dcf || pitchData.ddm || pitchData.rim);
+  const payload = hasData ? pitchData : {};
+
+  const orig = btn.innerHTML;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Generating…';
+  btn.disabled = true;
+
+  fetch('/stock-pitch/generate-pptx', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(payload)
+  })
+  .then(r => { if (!r.ok) throw new Error(); return r.blob(); })
+  .then(blob => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = hasData ? 'YIN_Stock_Pitch_Prefilled.pptx' : 'YIN_Stock_Pitch_Template.pptx';
+    a.click();
+    URL.revokeObjectURL(url);
+    btn.innerHTML = '<i class="fas fa-check mr-2"></i>Downloaded!';
+    setTimeout(() => { btn.innerHTML = orig; btn.disabled = false; }, 3000);
+  })
+  .catch(() => {
+    btn.innerHTML = orig; btn.disabled = false;
+    alert('Generation failed — please try again.');
+  });
+}
 </script>
 
 <!-- ── HERO ── -->
@@ -133,9 +177,17 @@ function closeDrawer(){document.getElementById('mobile-drawer').style.left='-280
         <i class="fas fa-info-circle mr-2"></i>Competition Details
       </a>
       <a href="/stock-pitch/download-pptx" class="bg-yellow-400 hover:bg-yellow-300 text-gray-900 px-8 py-3.5 rounded-xl font-bold text-base transition-colors shadow-lg">
-        <i class="fas fa-file-powerpoint mr-2"></i>Download PPTX Template
+        <i class="fas fa-file-powerpoint mr-2"></i>Download Blank Template
       </a>
+      <button id="hero-prefill-btn" onclick="generatePrefilledPptx(this)"
+              class="bg-green-400 hover:bg-green-300 text-gray-900 px-8 py-3.5 rounded-xl font-bold text-base transition-colors shadow-lg flex items-center gap-2">
+        <i class="fas fa-magic"></i>Generate Pre-filled Deck
+      </button>
     </div>
+    <p id="hero-pitch-hint" class="text-blue-200 text-sm mt-3" style="display:none">
+      <i class="fas fa-check-circle text-green-400 mr-1"></i>
+      Valuation data found from InvestIQ — your pitch deck will be pre-filled with your DCF / DDM / RIM results.
+    </p>
   </div>
 </section>
 
@@ -776,8 +828,12 @@ function closeDrawer(){document.getElementById('mobile-drawer').style.left='-280
         <i class="fas fa-calculator mr-2"></i>Open Calculators
       </a>
       <a href="/stock-pitch/download-pptx" class="bg-yellow-400 hover:bg-yellow-300 text-gray-900 px-8 py-4 rounded-xl font-bold text-base transition-colors shadow-lg">
-        <i class="fas fa-file-powerpoint mr-2"></i>Download PPTX Template
+        <i class="fas fa-file-powerpoint mr-2"></i>Download Blank Template
       </a>
+      <button id="bottom-prefill-btn" onclick="generatePrefilledPptx(this)"
+              class="bg-green-500 hover:bg-green-400 text-white px-8 py-4 rounded-xl font-bold text-base transition-colors shadow-lg flex items-center gap-2">
+        <i class="fas fa-magic mr-2"></i>Generate Pre-filled Deck
+      </button>
       <a href="/jobs" class="bg-gray-100 hover:bg-gray-200 text-gray-800 px-8 py-4 rounded-xl font-bold text-base transition-colors">
         <i class="fas fa-arrow-left mr-2"></i>Back to Jobs
       </a>

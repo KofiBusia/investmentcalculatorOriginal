@@ -510,6 +510,10 @@ main > div[style*="margin-bottom: 20px"] {
     <button class="vt-tab" data-panel="fi_inst" onclick="switchTab(this)">
       <i class="fas fa-university"></i>Fin Institutions
     </button>
+    <a class="vt-tab" href="/stock-pitch#competition"
+       style="background:linear-gradient(135deg,#b45309,#d97706);color:#fff;text-decoration:none;display:inline-flex;align-items:center;gap:6px;border:none;white-space:nowrap;">
+      <i class="fas fa-trophy"></i>Stock Pitch
+    </a>
   </div>
 
   <!-- ═══════════════════════════════════════════════════
@@ -565,6 +569,29 @@ main > div[style*="margin-bottom: 20px"] {
       <div id="rim_res" class="res-grid"></div>
       <div id="rim_verdict" class="verdict neutral" style="margin-top:12px"></div>
     </div>
+
+    <!-- ── Stock Pitch Export Bar ─────────────────────────────────────────── -->
+    <div style="background:linear-gradient(135deg,#0f172a,#1e3a5f);border-radius:14px;padding:20px 24px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;margin-top:10px;border:1px solid #334155;">
+      <div>
+        <div style="color:#fbbf24;font-weight:800;font-size:1rem;margin-bottom:5px">
+          <i class="fas fa-trophy" style="margin-right:8px"></i>YIN Stock Pitch Competition
+        </div>
+        <div style="color:#94a3b8;font-size:.83rem;line-height:1.5">
+          Export your DCF · DDM · RIM results into a pre-filled 30-slide PowerPoint pitch deck. Manual sections (SWOT, Management, Macro) stay blank for you to complete.
+        </div>
+      </div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+        <a href="/stock-pitch#competition"
+           style="padding:9px 18px;background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.2);color:#e2e8f0;border-radius:10px;font-weight:700;font-size:.82rem;text-decoration:none;display:inline-flex;align-items:center;gap:7px">
+          <i class="fas fa-info-circle"></i>Competition Details
+        </a>
+        <button id="pitch-export-btn" onclick="exportToPitchDeck()"
+                style="padding:9px 18px;background:linear-gradient(135deg,#f59e0b,#d97706);border:none;color:#1c1917;border-radius:10px;font-weight:800;font-size:.82rem;cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:opacity .2s">
+          <i class="fas fa-file-powerpoint"></i>Export to Pitch Deck
+        </button>
+      </div>
+    </div>
+
   </div><!-- /panel-equity -->
 
   <!-- ═══════════════════════════════════════════════════
@@ -1515,6 +1542,8 @@ function calcEquityDCF() {
   tbl+=`<tr><td>Terminal Value</td><td>${fmt(tv)}</td><td>${fmt(df,4)}</td><td>${fmt(pvTV)}</td></tr>`;
   tbl+=`<tr><td>Total EV</td><td></td><td></td><td>${fmt(ev)}</td></tr></tbody>`;
   document.getElementById('eq_dcf_table').innerHTML=tbl;
+  window._lastDCF = {fcff1: fcff1, gstage1: g1, gterm: gt, wacc: wacc, netdebt: nd, shares: sh, price: sp, ivps: ivps, ev: ev, equity: equity, pvSum: pvSum, pvTV: pvTV};
+  _savePitchData();
 }
 
 /* ─────────────────────────────────────────────────────────
@@ -1543,6 +1572,8 @@ function calcDDM() {
   if(avg>sp*1.05) verdict(vd,`UNDERVALUED — average DDM value ${fmt(avg,2)} > price ${fmt(sp,2)}`,'positive');
   else if(avg<sp*0.95) verdict(vd,`OVERVALUED — average DDM value ${fmt(avg,2)} < price ${fmt(sp,2)}`,'negative');
   else verdict(vd,'FAIRLY VALUED','neutral');
+  window._lastDDM = {d0: d0, gs: gs, gl: gl, ke: ke, price: sp, gordon: gordon, hmodel: hmodel, twostage: twostage, avg: avg};
+  _savePitchData();
 }
 
 /* ─────────────────────────────────────────────────────────
@@ -1565,6 +1596,42 @@ function calcRIM() {
   if(iv>sp*1.05) verdict(vd,`UNDERVALUED — RIM IV ${fmt(iv,2)} > price ${fmt(sp,2)}`,'positive');
   else if(iv<sp*0.95) verdict(vd,`OVERVALUED — RIM IV ${fmt(iv,2)} < price ${fmt(sp,2)}`,'negative');
   else verdict(vd,'FAIRLY VALUED','neutral');
+  window._lastRIM = {bv: b0, roe: roe, ke: ke, g: g, price: sp, iv: iv};
+  _savePitchData();
+}
+
+/* ─── PITCH DECK EXPORT ──────────────────────────────────────────────────── */
+function _savePitchData() {
+  try { localStorage.setItem('iq_pitch', JSON.stringify({dcf: window._lastDCF||null, ddm: window._lastDDM||null, rim: window._lastRIM||null})); } catch(e) {}
+}
+
+function exportToPitchDeck() {
+  const dcf = window._lastDCF || null;
+  const ddm = window._lastDDM || null;
+  const rim = window._lastRIM || null;
+  if (!dcf && !ddm && !rim) {
+    alert('Please run at least one valuation model (DCF, DDM, or RIM) before exporting.');
+    return;
+  }
+  const btn = document.getElementById('pitch-export-btn');
+  if (btn) { btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Generating…'; btn.disabled = true; }
+  fetch('/stock-pitch/generate-pptx', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({dcf, ddm, rim})
+  })
+  .then(r => { if (!r.ok) throw new Error('Server error'); return r.blob(); })
+  .then(blob => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'YIN_Stock_Pitch_Prefilled.pptx'; a.click();
+    URL.revokeObjectURL(url);
+    if (btn) { btn.innerHTML = '<i class="fas fa-check"></i> Downloaded!'; setTimeout(() => { btn.innerHTML = '<i class="fas fa-file-powerpoint"></i> Export to Pitch Deck'; btn.disabled = false; }, 3000); }
+  })
+  .catch(() => {
+    if (btn) { btn.innerHTML = '<i class="fas fa-file-powerpoint"></i> Export to Pitch Deck'; btn.disabled = false; }
+    alert('Export failed — please try again.');
+  });
 }
 
 /* ─────────────────────────────────────────────────────────
