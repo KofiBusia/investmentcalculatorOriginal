@@ -117,6 +117,20 @@ def _fp(v, default='[ X% ]'):
     return f"{v * 100:.1f}%"
 
 
+def _dcf_sens_iv(fcff1, g1, wacc_v, tg_v, nd, sh):
+    """DCF intrinsic value per share for sensitivity table."""
+    if wacc_v <= tg_v or not sh: return None
+    pv_sum = 0.0
+    last_cf = fcff1
+    for i in range(10):
+        cf_i = fcff1 * (1 + g1) ** i
+        pv_sum += cf_i / (1 + wacc_v) ** (i + 1)
+        last_cf = cf_i
+    tv   = last_cf * (1 + tg_v) / (wacc_v - tg_v)
+    pv_tv = tv / (1 + wacc_v) ** 10
+    return (pv_sum + pv_tv - nd) / sh
+
+
 def _fupside(price, iv, default='[ ±X% ]'):
     if not price or not iv:
         return default
@@ -129,6 +143,8 @@ def build_pptx(data=None):
     _dcf = data.get('dcf') or {}
     _ddm = data.get('ddm') or {}
     _rim = data.get('rim') or {}
+    _eva = data.get('eva') or {}
+    _pa  = data.get('pa')  or {}
 
     # ── Pre-compute formatted valuation strings ─────────────────────────────
     dcf_iv   = _dcf.get('ivps')
@@ -137,11 +153,55 @@ def build_pptx(data=None):
     ddm_pr   = _ddm.get('price')
     rim_iv   = _rim.get('iv')
     rim_pr   = _rim.get('price')
+    eva_iv   = _eva.get('ivps')
 
-    # blended target (average of available model values)
-    _models  = [v for v in [dcf_iv, ddm_val, rim_iv] if v]
+    # blended target (average of available model values, including EVA when present)
+    _models  = [v for v in [dcf_iv, ddm_val, rim_iv, eva_iv] if v]
     blended  = sum(_models) / len(_models) if _models else None
     ref_pr   = dcf_pr or ddm_pr or rim_pr
+
+    # ── PA helpers ─────────────────────────────────────────────────────────
+    def _pa_last3(arr):
+        """Last 3 non-null values, left-padded with None."""
+        vals = [v for v in (arr or []) if v is not None]
+        while len(vals) < 3: vals.insert(0, None)
+        return vals[-3], vals[-2], vals[-1]
+
+    def _fmt_pa_num(v, dec=0):
+        return '—' if v is None else f"{v:,.{dec}f}"
+
+    def _fmt_pa_eps(v):
+        return '—' if v is None else f"GHc {v:.4f}"
+
+    def _fmt_pa_roe(v):
+        return '—' if v is None else f"{v:.1f}%"
+
+    _pa_rev  = _pa.get('revenue') or []
+    _pa_ni   = _pa.get('netinc')  or []
+    _pa_eps  = _pa.get('eps')     or []
+    _pa_roe  = _pa.get('roe')     or []
+    _pa_bvps = _pa.get('bvps')    or []
+    _pa_labs = _pa.get('labels')  or []
+
+    rev_y2, rev_y1, rev_yl = _pa_last3(_pa_rev)
+    ni_y2,  ni_y1,  ni_yl  = _pa_last3(_pa_ni)
+    eps_y2, eps_y1, eps_yl = _pa_last3(_pa_eps)
+    roe_y2, roe_y1, roe_yl = _pa_last3(_pa_roe)
+
+    _d0          = _ddm.get('d0')
+    _any_pr      = ref_pr or _ddm.get('price') or _rim.get('price')
+    _pe_latest   = f"{(_any_pr / eps_yl):.1f}x"  if eps_yl  and _any_pr else "[ Xx ]"
+    _bvps_latest = ([v for v in _pa_bvps if v] or [None])[-1]
+    _pb_latest   = f"{(_any_pr / _bvps_latest):.1f}x" if _bvps_latest and _any_pr else "[ Xx ]"
+    _roe_latest  = _fmt_pa_roe(roe_yl)
+    _nd_val      = _dcf.get('netdebt')
+    _nd_str      = f"GHc {_nd_val:,.0f}k" if _nd_val else "[ Xm ]"
+    _dyd_str     = f"{(_d0 / _any_pr * 100):.1f}%" if _d0 and _any_pr else "[ X% ]"
+
+    # Year labels for table headers
+    _hdr = list(_pa_labs[-3:]) if len(_pa_labs) >= 3 else list(_pa_labs)
+    while len(_hdr) < 3: _hdr.insert(0, '—')
+    _hdr_y2, _hdr_y1, _hdr_yl = _hdr[0], _hdr[1], _hdr[2]
 
     prs = Presentation()
     prs.slide_width  = Inches(13.33)
@@ -393,18 +453,18 @@ def build_pptx(data=None):
     _dark_slide(s)
     _header_bar(s, "Financial Summary", "Step 4 of 6 — Key Metrics (from Annual Reports)", GOLD)
     _add_text(s, "Source: Company Annual Reports / GSE Disclosures / Ghana Stock Exchange Data", 0.4, 1.5, 12.5, 0.35, font_size=10, italic=True, color=GRAY)
-    # Metrics grid
+    # Metrics grid — populated from Historical Period Analysis when available
     kpis = [
-        ("Revenue (GHc)", "[ Year-2 ]", "[ Year-1 ]", "[ Latest ]", BLUE),
-        ("Net Profit (GHc)", "[ Year-2 ]", "[ Year-1 ]", "[ Latest ]", GREEN),
-        ("EPS (GHc)",        "[ Year-2 ]", "[ Year-1 ]", "[ Latest ]", GOLD),
-        ("DPS (GHc)",        "[ Year-2 ]", "[ Year-1 ]", "[ Latest ]", LIGHTBLUE),
-        ("P/E Ratio",        "[ Year-2 ]", "[ Year-1 ]", "[ Latest ]", RGBColor(0xa8, 0x5c, 0xf5)),
-        ("ROE (%)",          "[ Year-2 ]", "[ Year-1 ]", "[ Latest ]", RED),
+        ("Revenue (GHc 000)", _fmt_pa_num(rev_y2), _fmt_pa_num(rev_y1), _fmt_pa_num(rev_yl), BLUE),
+        ("Net Profit (000)",  _fmt_pa_num(ni_y2),  _fmt_pa_num(ni_y1),  _fmt_pa_num(ni_yl),  GREEN),
+        ("EPS (GHc)",         _fmt_pa_eps(eps_y2), _fmt_pa_eps(eps_y1), _fmt_pa_eps(eps_yl), GOLD),
+        ("DPS (GHc)",         "—", "—", _fv(_d0) if _d0 else "[ X.XX ]",                    LIGHTBLUE),
+        ("P/E Ratio",         "—", "—", _pe_latest,                                           RGBColor(0xa8, 0x5c, 0xf5)),
+        ("ROE (%)",           _fmt_pa_roe(roe_y2), _fmt_pa_roe(roe_y1), _fmt_pa_roe(roe_yl), RED),
     ]
-    # Table header
+    # Table header — use actual year labels when available
     _add_rect(s, 0.3, 2.0, 12.7, 0.42, NAVY)
-    for hdr, xp in [("Metric", 0.4), ("Year -2", 4.2), ("Year -1", 7.2), ("Latest Year", 10.0)]:
+    for hdr, xp in [("Metric", 0.4), (_hdr_y2, 4.2), (_hdr_y1, 7.2), (_hdr_yl, 10.0)]:
         _add_text(s, hdr, xp, 2.02, 3.0, 0.38, font_size=10, bold=True, color=LIGHTBLUE)
     for ri, (name, y2, y1, yl, col) in enumerate(kpis):
         bg = RGBColor(0x1e, 0x29, 0x3b) if ri % 2 == 0 else RGBColor(0x14, 0x1e, 0x2e)
@@ -440,22 +500,22 @@ def build_pptx(data=None):
     _header_bar(s, "Key Ratios & Balance Sheet", "Profitability, Efficiency, and Leverage", GOLD)
     sections = [
         ("Profitability Ratios", BLUE, [
-            ("Gross Margin",    "[ X% ]", "Revenue - COGS / Revenue"),
-            ("Net Profit Margin","[ X% ]","Net Profit / Revenue"),
-            ("ROE",             "[ X% ]", "Net Profit / Shareholder Equity"),
-            ("ROA",             "[ X% ]", "Net Profit / Total Assets"),
+            ("Gross Margin",     "[ X% ]",    "Revenue - COGS / Revenue"),
+            ("Net Profit Margin","[ X% ]",    "Net Profit / Revenue"),
+            ("ROE",              _roe_latest, "Net Profit / Shareholder Equity"),
+            ("ROA",              "[ X% ]",    "Net Profit / Total Assets"),
         ]),
         ("Valuation Ratios", GOLD, [
-            ("P/E Ratio",       "[ Xx ]", "Price / EPS"),
-            ("P/B Ratio",       "[ Xx ]", "Price / Book Value per Share"),
-            ("EV/EBITDA",       "[ Xx ]", "Enterprise Value / EBITDA"),
-            ("Dividend Yield",  "[ X% ]", "DPS / Share Price"),
+            ("P/E Ratio",       _pe_latest,  "Price / EPS"),
+            ("P/B Ratio",       _pb_latest,  "Price / Book Value per Share"),
+            ("EV/EBITDA",       "[ Xx ]",    "Enterprise Value / EBITDA"),
+            ("Dividend Yield",  _dyd_str,    "DPS / Share Price"),
         ]),
         ("Leverage Ratios", RED, [
-            ("Debt-to-Equity",  "[ Xx ]", "Total Debt / Equity"),
-            ("Current Ratio",   "[ Xx ]", "Current Assets / Current Liabilities"),
-            ("Interest Cover",  "[ Xx ]", "EBIT / Interest Expense"),
-            ("Net Debt (GHc)",  "[ Xm ]", "Total Debt - Cash & Equivalents"),
+            ("Debt-to-Equity",  "[ Xx ]",  "Total Debt / Equity"),
+            ("Current Ratio",   "[ Xx ]",  "Current Assets / Current Liabilities"),
+            ("Interest Cover",  "[ Xx ]",  "EBIT / Interest Expense"),
+            ("Net Debt (GHc)",  _nd_str,   "Total Debt - Cash & Equivalents"),
         ]),
     ]
     for ci, (title, col, items) in enumerate(sections):
@@ -812,7 +872,17 @@ def build_pptx(data=None):
     _header_bar(s, "Sensitivity Analysis", "How Does Our Target Price Change Under Different Scenarios?", BLUE)
     _add_text(s, "A sensitivity table shows judges you've stress-tested your valuation. Vary WACC and growth rate to see price range.", 0.4, 1.5, 12.5, 0.35, font_size=11, italic=True, color=GRAY)
     _add_text(s, "DCF Sensitivity: Intrinsic Value (GHc) — Varying WACC vs Terminal Growth Rate", 0.4, 2.0, 12.5, 0.38, font_size=12, bold=True, color=WHITE)
-    wacc_vals = ["WACC - 2%", "WACC - 1%", "Base WACC", "WACC + 1%", "WACC + 2%"]
+    _has_sens = bool(_dcf.get('fcff1') and _dcf.get('wacc') and _dcf.get('shares'))
+    _bw  = _dcf.get('wacc') or 0.12
+    _btg = _dcf.get('gterm') or 0.05
+    _wacc5 = [_bw - 0.02, _bw - 0.01, _bw, _bw + 0.01, _bw + 0.02]
+    _tgr5  = [0.01, 0.02, 0.03, 0.04, 0.05]
+    wacc_vals = (
+        [f"{w*100:.0f}% (WACC{'+' if i>2 else '-' if i<2 else ''}{'0' if i==2 else abs(i-2)}%)" if False
+         else (f"Base {_bw*100:.0f}%" if i == 2 else f"{w*100:.0f}%")
+         for i, w in enumerate(_wacc5)]
+        if _has_sens else ["WACC - 2%", "WACC - 1%", "Base WACC", "WACC + 1%", "WACC + 2%"]
+    )
     tgr_vals  = ["TGR 1%", "TGR 2%", "TGR 3%", "TGR 4%", "TGR 5%"]
     col_w = 2.0
     _add_rect(s, 0.3, 2.55, 13.0, 0.45, BLUE)
@@ -826,7 +896,13 @@ def build_pptx(data=None):
         _add_text(s, wacc, 0.4, y + 0.16, 2.0, 0.38, font_size=9.5, bold=(ri==2), color=GOLD if ri==2 else WHITE)
         for ci in range(5):
             fc = GREEN if ri == 2 and ci == 2 else (LIGHTBLUE if ri < 2 else (RED if ri > 2 else WHITE))
-            _add_text(s, "GHc [ X.XX ]", 2.5 + ci * col_w, y + 0.16, col_w - 0.1, 0.38,
+            if _has_sens:
+                _iv_s = _dcf_sens_iv(_dcf['fcff1'], _dcf.get('gstage1', 0), _wacc5[ri], _tgr5[ci],
+                                     _dcf.get('netdebt', 0), _dcf['shares'])
+                cell_str = f"GHc {_iv_s:.2f}" if _iv_s is not None and _iv_s > 0 else "N/A"
+            else:
+                cell_str = "GHc [ X.XX ]"
+            _add_text(s, cell_str, 2.5 + ci * col_w, y + 0.16, col_w - 0.1, 0.38,
                       font_size=9.5, bold=(ri==2 and ci==2), color=fc, align=PP_ALIGN.CENTER)
     _add_text(s, "Green = Base Case  ·  Blue = Bull Scenario  ·  Red = Bear Scenario", 0.4, 6.95, 12.5, 0.3, font_size=9, italic=True, color=GRAY, align=PP_ALIGN.CENTER)
     _footer(s, 23)
@@ -924,9 +1000,9 @@ def build_pptx(data=None):
     _add_text(s, "[ BUY ]", 0.5, 2.3, 5.3, 1.3, font_size=60, bold=True, color=GREEN, align=PP_ALIGN.CENTER)
     _add_text(s, "[ Company Name ]  ·  GSE: [ XXX ]", 0.5, 3.7, 5.3, 0.45, font_size=12, bold=True, color=WHITE, align=PP_ALIGN.CENTER)
     key_metrics = [
-        ("Current Price",  "GHc [ X.XX ]"),
-        ("Target Price",   "GHc [ X.XX ]"),
-        ("Upside",         "[ +X% ]"),
+        ("Current Price",  f"GHc {_fv(ref_pr)}" if ref_pr else "GHc [ X.XX ]"),
+        ("Target Price",   f"GHc {_fv(blended)}" if blended else "GHc [ X.XX ]"),
+        ("Upside",         _fupside(ref_pr, blended)),
         ("Time Horizon",   "12 months"),
         ("Risk Rating",    "[ Low / Med / High ]"),
     ]
@@ -1034,9 +1110,9 @@ def build_pptx(data=None):
     _add_rect(s, 1.5, 3.7, 10.3, 2.6, RGBColor(0x1e, 0x29, 0x3b))
     _add_text(s, "[ Company Name ]  ·  GSE: [ XXX ]  ·  Recommendation:  [ BUY / SELL / HOLD ]", 1.7, 3.82, 9.9, 0.45, font_size=13, bold=True, color=GOLD, align=PP_ALIGN.CENTER)
     summary_row = [
-        ("Current Price", "GHc [ X.XX ]"),
-        ("Target Price",  "GHc [ X.XX ]"),
-        ("Upside",        "[ +X% ]"),
+        ("Current Price", f"GHc {_fv(ref_pr)}" if ref_pr else "GHc [ X.XX ]"),
+        ("Target Price",  f"GHc {_fv(blended)}" if blended else "GHc [ X.XX ]"),
+        ("Upside",        _fupside(ref_pr, blended)),
         ("Horizon",       "12 Months"),
     ]
     for i, (label, val) in enumerate(summary_row):

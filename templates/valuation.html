@@ -1570,6 +1570,7 @@ function _buildPaResultsTable(labels, cagrMap, avgMap) {
 }
 
 function applyPaGrowthRates() {
+  _paComputeAutoRows(); // ensure BVPS, EPS, ROE dataset.val are fresh before reading
   // 1. Growth rates → model growth fields
   const growthMap = {
     revenue: ['cb_revg'],
@@ -1815,8 +1816,26 @@ function calcRIM() {
 }
 
 /* ─── PITCH DECK EXPORT ──────────────────────────────────────────────────── */
+function _getPaForPitch() {
+  _paComputeAutoRows();
+  const labels = _paPeriodLabels();
+  const out = { labels };
+  ['revenue','netinc','eps','roe','bvps','ebitda','fcf','equity'].forEach(id => {
+    out[id] = _paVals(id);
+  });
+  const hasData = Object.values(out).some(v => Array.isArray(v) && v.some(x => x != null));
+  return hasData ? out : null;
+}
 function _savePitchData() {
-  try { localStorage.setItem('iq_pitch', JSON.stringify({dcf: window._lastDCF||null, ddm: window._lastDDM||null, rim: window._lastRIM||null})); } catch(e) {}
+  try {
+    localStorage.setItem('iq_pitch', JSON.stringify({
+      dcf: window._lastDCF || null,
+      ddm: window._lastDDM || null,
+      rim: window._lastRIM || null,
+      eva: window._lastEVA || null,
+      pa:  _getPaForPitch()
+    }));
+  } catch(e) {}
 }
 
 function exportToPitchDeck() {
@@ -1928,6 +1947,8 @@ function calcEVA() {
   const vd=document.getElementById('eva_verdict');
   if(roic>wacc) verdict(vd,`VALUE-CREATING — ROIC ${fmtPct(roic)} > WACC ${fmtPct(wacc)}; economic profit positive`,'positive');
   else verdict(vd,`VALUE-DESTROYING — ROIC ${fmtPct(roic)} < WACC ${fmtPct(wacc)}`,'negative');
+  window._lastEVA = {ic, nopat1: n1, g, wacc, tg, debt, shares: sh, firmV, equity, ivps, roic, pv, pvCont};
+  _savePitchData();
 }
 
 /* ─────────────────────────────────────────────────────────
