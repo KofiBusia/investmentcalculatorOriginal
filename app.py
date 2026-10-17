@@ -2682,22 +2682,52 @@ def _build_fields(inc, bs, cf):
     return fields
 
 
+_FIN_KW_RE = re.compile(
+    r'\b(revenue|turnover|profit|income|loss|ebitda|ebit|assets|liabilities|equity|'
+    r'cash|dividend|interest|tax|earnings|borrowing|payable|receivable|depreciation)\b',
+    re.IGNORECASE,
+)
+
+
 def _pdf_to_text(raw_bytes):
     """Extract plain text from PDF bytes.
 
-    Tier 1 – pdfplumber  (fast; works on most digital PDFs)
-    Tier 2 – PyMuPDF text extraction  (more robust for non-standard layouts)
-    Tier 3 – Tesseract OCR  (last resort; handles scanned / image-based PDFs)
+    Tier 1 – PyMuPDF fast text extraction with financial-page targeting
+    Tier 2 – pdfplumber  (better at complex table layouts, capped to save time)
+    Tier 3 – Tesseract OCR  (last resort; hard cap at 15 pages to avoid timeout)
     """
-    MIN_CHARS = 200  # below this we consider the tier a failure
+    MIN_CHARS = 200
 
-    # ── Tier 1: pdfplumber ────────────────────────────────────────────────
+    # ── Tier 1: PyMuPDF — fast; for large PDFs target financial pages only ─
+    try:
+        import fitz
+        doc = fitz.open(stream=raw_bytes, filetype='pdf')
+        total = len(doc)
+
+        if total > 30:
+            # Quick keyword scan to locate financial-statement pages
+            fin_pages = [i for i in range(min(total, 100))
+                         if _FIN_KW_RE.search(doc[i].get_text('text'))]
+            page_range = fin_pages[:60] if fin_pages else list(range(min(total, 60)))
+        else:
+            page_range = list(range(total))
+
+        parts = [t for i in page_range
+                 if (t := doc[i].get_text('text').strip())]
+        doc.close()
+        text = '\n'.join(parts)
+        if len(text.strip()) >= MIN_CHARS:
+            return text, len(parts)
+    except Exception as e:
+        logger.warning(f'PyMuPDF fast extraction failed: {e}')
+
+    # ── Tier 2: pdfplumber — better table parsing, capped to avoid timeout ─
     try:
         import pdfplumber
         parts = []
         with pdfplumber.open(io.BytesIO(raw_bytes)) as pdf:
-            for page in pdf.pages[:100]:
-                t = page.extract_text()
+            for page in pdf.pages[:50]:
+                t = page.extract_text(x_tolerance=3, y_tolerance=3)
                 if t:
                     parts.append(t)
         text = '\n'.join(parts)
@@ -2706,23 +2736,8 @@ def _pdf_to_text(raw_bytes):
     except Exception as e:
         logger.warning(f'pdfplumber failed: {e}')
 
-    # ── Tier 2: PyMuPDF direct text extraction ───────────────────────────
-    try:
-        import fitz
-        parts = []
-        doc = fitz.open(stream=raw_bytes, filetype='pdf')
-        for i in range(min(len(doc), 100)):
-            t = doc[i].get_text('text')
-            if t and t.strip():
-                parts.append(t)
-        doc.close()
-        text = '\n'.join(parts)
-        if len(text.strip()) >= MIN_CHARS:
-            return text, len(parts)
-    except Exception as e:
-        logger.warning(f'PyMuPDF text extraction failed: {e}')
-
-    # ── Tier 3: Tesseract OCR (image-based / scanned PDFs) ───────────────
+    # ── Tier 3: Tesseract OCR — last resort; strict 15-page cap to stay
+    #    well within the 120 s gunicorn timeout (~4 s/page × 15 = ~60 s max)
     try:
         import fitz
         import pytesseract
@@ -2730,9 +2745,9 @@ def _pdf_to_text(raw_bytes):
 
         ocr_parts = []
         doc = fitz.open(stream=raw_bytes, filetype='pdf')
-        for i in range(min(len(doc), 50)):  # cap at 50 pages for speed
+        for i in range(min(len(doc), 15)):
             page = doc[i]
-            mat = fitz.Matrix(150 / 72, 150 / 72)  # 150 DPI — fast + accurate
+            mat = fitz.Matrix(150 / 72, 150 / 72)  # 150 DPI
             pix = page.get_pixmap(matrix=mat, colorspace=fitz.csGRAY)
             img = _PILImage.frombytes('L', [pix.width, pix.height], pix.samples)
             t = pytesseract.image_to_string(img, config='--psm 6 --oem 3')
@@ -2762,6 +2777,14 @@ def valuation_extract_pdf():
         return jsonify({'error': 'Only PDF files are accepted'}), 400
 
     raw = f.read(50 * 1024 * 1024)  # match MAX_CONTENT_LENGTH
+    size_mb = len(raw) / (1024 * 1024)
+    logger.info(f'PDF extract: {f.filename!r}, {size_mb:.1f} MB')
+    if size_mb > 20:
+        return jsonify({'error': (
+            f'File is {size_mb:.0f} MB — too large to process on the server. '
+            'Please upload only the financial statements section of the annual report (usually 5–15 pages).'
+        )}), 413
+
     try:
         full_text, pages = _pdf_to_text(raw)
     except Exception as e:
