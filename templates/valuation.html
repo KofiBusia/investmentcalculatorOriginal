@@ -493,7 +493,7 @@ main > div[style*="margin-bottom: 20px"] {
         <div class="inp-group"><label>Terminal Growth (%)</label><input type="number" id="eq_gterm" value="" title="Perpetual growth rate after Year 5 — should be ≤ nominal GDP growth (e.g. 6 = 6%)" placeholder="0" oninput="calcEquityDCF()"></div>
         <div class="inp-group"><label>WACC (%)</label><input type="number" id="eq_wacc" value="" title="Weighted Average Cost of Capital — blended required return on debt + equity (e.g. 24 = 24%)" placeholder="0" oninput="calcEquityDCF()"></div>
         <div class="inp-group"><label>Net Debt (000)</label><input type="number" id="eq_netdebt" value="" title="Total financial debt minus cash and equivalents — enter in thousands (e.g. 47200)" placeholder="0" oninput="calcEquityDCF()"></div>
-        <div class="inp-group"><label>Shares Outstanding (000)</label><input type="number" id="eq_shares" value="" title="Total shares outstanding — enter in thousands (e.g. 27000 = 27 million shares)" placeholder="0" oninput="calcEquityDCF()"></div>
+        <div class="inp-group"><label>Shares Outstanding (000)</label><input type="number" id="eq_shares" value="" title="Total shares outstanding — enter in thousands (e.g. 27000 = 27 million shares)" placeholder="0" oninput="syncShares('eq_shares',this.value);calcEquityDCF()"></div>
         <div class="inp-group"><label>Current Share Price</label><input type="number" id="eq_price" value="" title="Current market price per share (e.g. 5.00 GHS)" placeholder="0" oninput="calcEquityDCF()"></div>
       </div>
       <div id="eq_dcf_res" class="res-grid"></div>
@@ -592,7 +592,7 @@ main > div[style*="margin-bottom: 20px"] {
         <div class="inp-group"><label>WACC (%)</label><input type="number" id="eva_wacc" value="" placeholder="0" oninput="calcEVA()"></div>
         <div class="inp-group"><label>Terminal Growth (%)</label><input type="number" id="eva_tg" value="" placeholder="0" oninput="calcEVA()"></div>
         <div class="inp-group"><label>Net Debt (000)</label><input type="number" id="eva_debt" value="" placeholder="0" oninput="calcEVA()"></div>
-        <div class="inp-group"><label>Shares Outstanding (000)</label><input type="number" id="eva_sh" value="" placeholder="0" oninput="calcEVA()"></div>
+        <div class="inp-group"><label>Shares Outstanding (000)</label><input type="number" id="eva_sh" value="" placeholder="0" oninput="syncShares('eva_sh',this.value);calcEVA()"></div>
       </div>
       <div id="eva_res" class="res-grid"></div>
       <div id="eva_verdict" class="verdict neutral" style="margin-top:12px"></div>
@@ -1177,6 +1177,10 @@ function applyAllPdfFields() {
       applied++;
     }
   }
+  // Propagate shares to all models and recompute PA auto rows
+  const shEl = document.getElementById('eq_shares');
+  if (shEl && shEl.value) syncShares('eq_shares', shEl.value);
+
   const summaryEl = document.getElementById('pdf-action-summary');
   const modelName = { all:'All Models', equity:'Equity', corp:'Corp Finance', fi:'Fixed Income' }[_pdfModelFilter] || 'All';
   if (applied === 0) {
@@ -1259,21 +1263,23 @@ function _paPeriodLabels() {
 /* Metric definitions. auto=true rows are computed, not entered manually. */
 const _PA_METRICS = [
   { id: 'revenue', label: 'Revenue (000)',         auto: false,
-    tip: 'Total sales / turnover for the period. Enter in GHS thousands (e.g. 3,200 = GHS 3.2m).' },
+    tip: 'Total sales / turnover for the period. Enter in GHS thousands.' },
   { id: 'ebitda',  label: 'EBITDA (000)',           auto: false,
-    tip: 'Earnings Before Interest, Tax, Depreciation & Amortisation — in thousands. Take directly from income statement or calculate as Operating Profit + D&A.' },
+    tip: 'Earnings Before Interest, Tax, Depreciation & Amortisation — in thousands.' },
   { id: 'netinc',  label: 'Net Income (000)',       auto: false,
-    tip: 'Profit after tax attributable to equity holders — in thousands. Use the bottom-line figure from the income statement.' },
-  { id: 'eps',     label: 'EPS',                    auto: false,
-    tip: 'Earnings Per Share in GHS. Basic EPS from the income statement notes (e.g. 1.44 = GHS 1.44 per share).' },
+    tip: 'Profit after tax attributable to equity holders — in thousands.' },
+  { id: 'eps',     label: 'EPS',                    auto: true,
+    tip: 'Auto-calculated: Net Income ÷ Shares Outstanding. Enter Shares once in the FCFF model.' },
+  { id: 'equity',  label: 'Total Equity (000)',     auto: false,
+    tip: 'Total shareholders equity from the balance sheet — in thousands.' },
+  { id: 'bvps',    label: 'Book Value / Share',     auto: true,
+    tip: 'Auto-calculated: Total Equity ÷ Shares Outstanding. Enter Shares once in the FCFF model.' },
   { id: 'opcf',    label: 'Operating CF (000)',     auto: false,
     tip: 'Net cash generated from operating activities — from the cash flow statement, in thousands.' },
   { id: 'capex',   label: 'CapEx (000)',             auto: false,
     tip: 'Capital Expenditure — purchase of property, plant & equipment. Enter as a positive number in thousands.' },
   { id: 'fcf',     label: 'Free Cash Flow (000)',   auto: true,
     tip: 'Auto-calculated: Operating Cash Flow minus Capital Expenditure. No entry needed.' },
-  { id: 'bvps',    label: 'Book Value / Share',     auto: false,
-    tip: 'Book value per share = Total equity divided by shares outstanding. Find in balance sheet notes.' },
 ];
 
 function _paGetVal(id, i) {
@@ -1333,7 +1339,10 @@ function _buildPaGrid() {
 }
 
 function _paComputeAutoRows() {
+  const globalShares = parseFloat(document.getElementById('eq_shares')?.value) || 0;
+
   for (let i = 0; i < _paCount; i++) {
+    // FCF = OCF − CapEx
     const opcf  = _paGetVal('opcf',  i);
     const capex = _paGetVal('capex', i);
     const fcfEl = document.getElementById(`pa_fcf_${i}`);
@@ -1342,10 +1351,29 @@ function _paComputeAutoRows() {
         const fcf = opcf - capex;
         fcfEl.textContent = fcf.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
         fcfEl.dataset.val = String(fcf);
-      } else {
-        fcfEl.textContent = '—';
-        fcfEl.dataset.val = '';
-      }
+      } else { fcfEl.textContent = '—'; fcfEl.dataset.val = ''; }
+    }
+
+    // EPS = Net Income (000) / Shares (000) — result in GHS per share
+    const epsEl = document.getElementById(`pa_eps_${i}`);
+    if (epsEl) {
+      const ni = _paGetVal('netinc', i);
+      if (ni !== null && globalShares > 0) {
+        const eps = (ni / globalShares).toFixed(4);
+        epsEl.textContent = eps;
+        epsEl.dataset.val = eps;
+      } else { epsEl.textContent = globalShares > 0 ? '—' : '← enter shares'; epsEl.dataset.val = ''; }
+    }
+
+    // BVPS = Total Equity (000) / Shares (000)
+    const bvpsEl = document.getElementById(`pa_bvps_${i}`);
+    if (bvpsEl) {
+      const eq = _paGetVal('equity', i);
+      if (eq !== null && globalShares > 0) {
+        const bvps = (eq / globalShares).toFixed(4);
+        bvpsEl.textContent = bvps;
+        bvpsEl.dataset.val = bvps;
+      } else { bvpsEl.textContent = globalShares > 0 ? '—' : '← enter shares'; bvpsEl.dataset.val = ''; }
     }
   }
 }
@@ -1530,6 +1558,23 @@ function clearPaPanel() {
   _paAvgStore  = {};
   document.getElementById('pa-results').style.display = 'none';
   document.getElementById('pa-apply-msg').style.display = 'none';
+}
+
+/* Shares pass-through — enter once, flows to all models */
+let _syncingShares = false;
+function syncShares(srcId, rawVal) {
+  if (_syncingShares) return;
+  _syncingShares = true;
+  const val = parseFloat(rawVal) || 0;
+  ['eq_shares', 'eva_sh'].forEach(id => {
+    if (id === srcId) return;
+    const el = document.getElementById(id);
+    if (el && (!el.value || parseFloat(el.value) === 0)) el.value = val || '';
+  });
+  // Recompute auto rows (EPS, BVPS depend on shares)
+  _paComputeAutoRows();
+  if (document.getElementById('pa-results').style.display !== 'none') computePaResults();
+  _syncingShares = false;
 }
 
 /* Tab switcher */
