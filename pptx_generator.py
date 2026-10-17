@@ -221,11 +221,39 @@ def build_pptx(data=None):
     _shares_out    = _dcf.get('shares') or _eva.get('shares') or 0
     _mkt_cap_str   = (f"GHc {(_any_pr * _shares_out):,.0f}k" if _any_pr and _shares_out else "[ Xm ]")
     _rev_cagr_str  = '—'
+    _rc            = 0.0
     _pa_rev_clean  = [v for v in _pa_rev if v is not None and v != 0]
     if len(_pa_rev_clean) >= 2:
         import math as _math
         _rc = (_math.pow(_pa_rev_clean[-1] / _pa_rev_clean[0], 1 / (len(_pa_rev_clean)-1)) - 1) * 100
         _rev_cagr_str = f"{_rc:+.1f}%"
+
+    # ── FCF, scenario and additional ratio pre-computations ─────────────────
+    _pa_fcf       = _pa.get('fcf') or []
+    _pa_fcf_clean = [v for v in _pa_fcf if v is not None and v != 0]
+    _fcf_latest   = _pa_fcf_clean[-1] if _pa_fcf_clean else _dcf.get('fcff1')
+    _fcf_ps       = (_fcf_latest / _shares_out) if _fcf_latest and _shares_out else None
+    _fcf_yield_s  = (f"{(_fcf_ps / ref_pr * 100):.1f}%" if _fcf_ps and ref_pr else "[ X% ]")
+    _fcf_payo_s   = (f"{(_d0 / _fcf_ps * 100):.0f}%" if _d0 and _fcf_ps and _fcf_ps > 0 else "[ X% ]")
+    _div_cov_s    = ("YES ✓" if _d0 and _fcf_ps and _fcf_ps > _d0 else ("NO ✗" if _d0 and _fcf_ps else "[ ? ]"))
+    _ebitda_m_s   = (f"{(_ebitda_latest / rev_yl * 100):.1f}%" if _ebitda_latest and rev_yl and rev_yl != 0 else "[ X% ]")
+    _roic_s       = (f"{_eva.get('roic') * 100:.1f}%" if _eva.get('roic') else "[ X% ]")
+    _de_s         = (f"{(_eva.get('debt') / _eva.get('equity')):.2f}x"
+                     if _eva.get('debt') and _eva.get('equity') and _eva.get('equity') != 0 else "[ Xx ]")
+    _eps_g_rate   = _ddm.get('gs') or _dcf.get('gstage1') or 0
+    _fwd_eps      = (eps_yl * (1 + _eps_g_rate)) if eps_yl else None
+    _has_sens     = bool(_dcf.get('fcff1') and _dcf.get('wacc') and _dcf.get('shares'))
+    _bw           = _dcf.get('wacc') or 0.12
+    _wacc5        = [_bw - 0.02, _bw - 0.01, _bw, _bw + 0.01, _bw + 0.02]
+    _tgr5         = [0.01, 0.02, 0.03, 0.04, 0.05]
+    _bear_iv      = (_dcf_sens_iv(_dcf['fcff1'], _dcf.get('gstage1', 0), _bw + 0.02, 0.01,
+                                  _dcf.get('netdebt', 0), _dcf['shares']) if _has_sens else None)
+    _bull_iv      = (_dcf_sens_iv(_dcf['fcff1'], _dcf.get('gstage1', 0), _bw - 0.02, 0.05,
+                                  _dcf.get('netdebt', 0), _dcf['shares']) if _has_sens else None)
+    _implied_pe   = (f"{(blended / eps_yl):.1f}x" if blended and eps_yl and eps_yl > 0 else "[ Xx ]")
+    _fcf_ps_str   = (f"GHc {_fcf_ps:,.4f}" if _fcf_ps else "GHc [ X.XX ]")
+    _ocf_str      = (f"GHc {_fcf_latest:,.0f}" if _fcf_latest else "GHc [ Xm ]")
+    _eps_g_str    = (_fp(_eps_g_rate) if _eps_g_rate else "[ X% ]")
 
     prs = Presentation()
     prs.slide_width  = Inches(13.33)
@@ -500,22 +528,72 @@ def build_pptx(data=None):
             _add_text(s, val, xp, y + 0.18, 2.8, 0.38, font_size=11, color=col)
     _footer(s, 10)
 
-    # ── SLIDE 11: Revenue & Earnings Trend ──────────────────────────────────────
+    # ── SLIDE 11: Revenue & Earnings Trend — auto bar chart ─────────────────
     s = prs.slides.add_slide(blank)
     _dark_slide(s)
     _header_bar(s, "Revenue & Earnings Trend", "5-Year Performance at a Glance", GOLD)
-    _add_text(s, "Insert a bar or line chart here showing 5-year revenue and net profit trend.", 0.4, 1.5, 12.5, 0.35, font_size=11, color=GRAY, italic=True)
-    _placeholder_box(s, "INSERT CHART: 5-Year Revenue vs Net Profit Bar Chart\n(Use data from Annual Reports — you can embed a chart from Excel or paste an image)", 0.4, 1.95, 8.5, 4.5)
-    # Side commentary
-    _add_rect(s, 9.1, 1.95, 4.1, 4.5, RGBColor(0x1e, 0x29, 0x3b))
+
+    _pa_rev_all = [v for v in (_pa.get('revenue') or [])]
+    _pa_ni_all  = [v for v in (_pa.get('netinc')  or [])]
+    _pa_lab_all = list(_pa_labs)
+    _n_bars     = min(len(_pa_rev_all), len(_pa_ni_all), len(_pa_lab_all), 5)
+
+    CX, CY, CW, CH = 0.4, 1.95, 8.5, 4.8
+    if _n_bars >= 2:
+        _revs = _pa_rev_all[-_n_bars:]
+        _nis  = _pa_ni_all[-_n_bars:]
+        _blabs = _pa_lab_all[-_n_bars:]
+        _all_v = [v for v in _revs + _nis if v is not None and v > 0]
+        if _all_v:
+            _vmax   = max(_all_v) * 1.15
+            _col_w  = CW / _n_bars
+            _bar_w  = _col_w * 0.32
+            _ch_h   = CH - 0.55
+            _add_rect(s, CX, CY, CW, CH, RGBColor(0x0d, 0x14, 0x24))
+            _add_rect(s, CX, CY + CH - 0.48, CW, 0.015, GRAY)
+            for _bi in range(_n_bars):
+                _xc = CX + (_bi + 0.5) * _col_w
+                _rv = _revs[_bi] if _revs[_bi] else 0
+                _rh = max((_rv / _vmax) * _ch_h, 0.015) if _rv > 0 else 0.015
+                _ry = CY + CH - 0.48 - _rh
+                _add_rect(s, _xc - _bar_w * 1.1, _ry, _bar_w, _rh, BLUE)
+                if _rv > 0:
+                    _add_text(s, _fmt_pa_num(_rv, 0), _xc - _bar_w * 1.4, _ry - 0.28,
+                              _bar_w * 2.1, 0.26, font_size=6.5, color=LIGHTBLUE, align=PP_ALIGN.CENTER)
+                _nv = _nis[_bi] if _nis[_bi] else 0
+                _nh = max((_nv / _vmax) * _ch_h, 0.015) if _nv > 0 else 0.015
+                _ny = CY + CH - 0.48 - _nh
+                _add_rect(s, _xc + 0.08, _ny, _bar_w, _nh, GREEN)
+                if _nv > 0:
+                    _add_text(s, _fmt_pa_num(_nv, 0), _xc - _bar_w * 0.2, _ny - 0.28,
+                              _bar_w * 2.1, 0.26, font_size=6.5, color=GREEN, align=PP_ALIGN.CENTER)
+                _add_text(s, str(_blabs[_bi]) if _blabs[_bi] else '—',
+                          _xc - _col_w * 0.45, CY + CH - 0.44, _col_w * 0.9, 0.36,
+                          font_size=8.5, color=GRAY, align=PP_ALIGN.CENTER)
+            _add_rect(s, CX + 0.15, CY + 0.1, 0.2, 0.15, BLUE)
+            _add_text(s, "Revenue (GHc 000)", CX + 0.4, CY + 0.09, 2.4, 0.2, font_size=7.5, color=LIGHTBLUE)
+            _add_rect(s, CX + 3.0, CY + 0.1, 0.2, 0.15, GREEN)
+            _add_text(s, "Net Profit (000)", CX + 3.25, CY + 0.09, 2.2, 0.2, font_size=7.5, color=GREEN)
+        else:
+            _placeholder_box(s, "Add data to Historical Period Analysis to generate chart", CX, CY, CW, CH)
+    else:
+        _add_rect(s, CX, CY, CW, CH, RGBColor(0x0d, 0x14, 0x24))
+        _add_text(s, "Add 2+ years to Historical Period Analysis to auto-generate this chart",
+                  CX + 0.2, CY + CH / 2 - 0.2, CW - 0.4, 0.4,
+                  font_size=11, italic=True, color=GRAY, align=PP_ALIGN.CENTER)
+
+    _add_rect(s, 9.1, 1.95, 4.1, 4.8, RGBColor(0x1e, 0x29, 0x3b))
     _add_text(s, "Key Observations", 9.25, 2.05, 3.8, 0.4, font_size=12, bold=True, color=LIGHTBLUE)
-    obs = [f"Revenue CAGR: {_rev_cagr_str} ({len(_pa_rev_clean)}-yr)" if _pa_rev_clean else "Revenue CAGR: [ X% over N yrs ]",
-           f"Latest Net Margin: {_net_margin}" if ni_yl and rev_yl else "Net margin trend: [ improving / declining ]",
-           f"Latest ROE: {_roe_latest}" if roe_yl else "ROE trend: [ improving / declining ]",
-           "Best year: [ Year ] — why?",
-           "Guidance for next year: [ management forecast ]"]
-    for i, o in enumerate(obs):
-        _add_text(s, f"• {o}", 9.25, 2.55 + i * 0.7, 3.8, 0.6, font_size=9.5, color=WHITE)
+    _obs11 = [
+        f"Rev CAGR: {_rev_cagr_str} ({len(_pa_rev_clean)}-yr)" if _pa_rev_clean else "Rev CAGR: [ X% ]",
+        f"Net Margin: {_net_margin}",
+        f"EBITDA Margin: {_ebitda_m_s}",
+        f"ROE: {_roe_latest}",
+        f"Latest EPS: {_fmt_pa_eps(eps_yl)}",
+        f"BVPS: {_fmt_pa_eps(([v for v in _pa_bvps if v] or [None])[-1])}",
+    ]
+    for _oi, _oo in enumerate(_obs11):
+        _add_text(s, f"• {_oo}", 9.25, 2.55 + _oi * 0.68, 3.8, 0.6, font_size=9.5, color=WHITE)
     _footer(s, 11)
 
     # ── SLIDE 12: Ratios & Balance Sheet ────────────────────────────────────────
@@ -524,10 +602,10 @@ def build_pptx(data=None):
     _header_bar(s, "Key Ratios & Balance Sheet", "Profitability, Efficiency, and Leverage", GOLD)
     sections = [
         ("Profitability Ratios", BLUE, [
-            ("Gross Margin",     "[ X% ]",    "Revenue - COGS / Revenue"),
-            ("Net Profit Margin", _net_margin, "Net Profit / Revenue"),
-            ("ROE",              _roe_latest, "Net Profit / Shareholder Equity"),
-            ("ROA",              "[ X% ]",    "Net Profit / Total Assets"),
+            ("EBITDA Margin",     _ebitda_m_s,  "EBITDA / Revenue"),
+            ("Net Profit Margin", _net_margin,  "Net Profit / Revenue"),
+            ("ROE",               _roe_latest,  "Net Profit / Shareholder Equity"),
+            ("ROIC",              _roic_s,      "NOPAT / Invested Capital (EVA)"),
         ]),
         ("Valuation Ratios", GOLD, [
             ("P/E Ratio",       _pe_latest,   "Price / EPS"),
@@ -535,11 +613,11 @@ def build_pptx(data=None):
             ("EV/EBITDA",       _ev_ebitda,   "Enterprise Value / EBITDA"),
             ("Dividend Yield",  _dyd_str,     "DPS / Share Price"),
         ]),
-        ("Leverage Ratios", RED, [
-            ("Debt-to-Equity",  "[ Xx ]",  "Total Debt / Equity"),
-            ("Current Ratio",   "[ Xx ]",  "Current Assets / Current Liabilities"),
-            ("Interest Cover",  "[ Xx ]",  "EBIT / Interest Expense"),
-            ("Net Debt (GHc)",  _nd_str,   "Total Debt - Cash & Equivalents"),
+        ("Leverage & Cashflow", RED, [
+            ("Debt-to-Equity",  _de_s,    "Total Debt / Equity (EVA)"),
+            ("FCF per Share",   _fcf_ps_str, "Free Cash Flow / Shares"),
+            ("FCF Yield",       _fcf_yield_s, "FCF per Share / Price"),
+            ("Net Debt (GHc)",  _nd_str,  "Total Debt - Cash & Equivalents"),
         ]),
     ]
     for ci, (title, col, items) in enumerate(sections):
@@ -655,15 +733,15 @@ def build_pptx(data=None):
     _add_rect(s, 0.4, 2.0, 5.5, 0.38, BLUE)
     _add_text(s, "DCF Inputs", 0.6, 2.03, 5.2, 0.32, font_size=12, bold=True, color=WHITE)
     dcf_inputs = [
-        ("Base-Year FCFF (GHc 000)",       f"{_dcf['fcff1']:,.0f}" if _dcf.get('fcff1') else "[ Enter FCF ]"),
-        ("FCFF Growth Rate (Yr 1–5)",      _fp(_dcf.get('gstage1'))),
-        ("Revenue Growth Rate — Yr 6–10",  "[ X% ]"),
-        ("EBITDA Margin",                   "[ X% ]"),
-        ("Tax Rate",                        "[ X% ]"),
-        ("Capex as % of Revenue",           "[ X% ]"),
-        ("WACC (Discount Rate)",            _fp(_dcf.get('wacc'))),
-        ("Terminal Growth Rate",            _fp(_dcf.get('gterm'))),
-        ("Shares Outstanding (000)",        f"{_dcf['shares']:,.0f}" if _dcf.get('shares') else "[ X million ]"),
+        ("Base-Year FCFF (GHc 000)",      f"{_dcf['fcff1']:,.0f}" if _dcf.get('fcff1') else "[ Enter FCF ]"),
+        ("FCFF Growth Rate (Stage 1)",    _fp(_dcf.get('gstage1'))),
+        ("EBITDA Margin (latest)",        _ebitda_m_s),
+        ("Net Profit Margin (latest)",    _net_margin),
+        ("WACC (Discount Rate)",          _fp(_dcf.get('wacc'))),
+        ("Terminal Growth Rate",          _fp(_dcf.get('gterm'))),
+        ("Net Debt (GHc 000)",            f"{_dcf['netdebt']:,.0f}" if _dcf.get('netdebt') else "[ X ]"),
+        ("Shares Outstanding (000)",      f"{_dcf['shares']:,.0f}" if _dcf.get('shares') else "[ X million ]"),
+        ("Current Market Price (GHc)",    f"{_fv(dcf_pr)}" if dcf_pr else "[ X.XX ]"),
     ]
     for i, (label, val) in enumerate(dcf_inputs):
         y = 2.48 + i * 0.52
@@ -742,14 +820,14 @@ def build_pptx(data=None):
     _add_text(s, "Target Price — Forward P/E Method", 0.6, 1.57, 5.8, 0.3, font_size=11, bold=True, color=WHITE)
     _add_text(s, "Formula:  Target Price = Forward EPS × Target P/E", 0.6, 2.0, 5.8, 0.38, font_size=10, bold=True, color=GOLD)
     tp_inputs = [
-        ("Current EPS (GHc)", "[ X.XX ]"),
-        ("EPS Growth Rate",   "[ X% ]"),
-        ("Forward EPS (1yr)", "[ GHc X.XX ]"),
-        ("Sector Average P/E","[ Xx ]"),
-        ("Target P/E Applied","[ Xx ]"),
-        ("Target Price",      "GHc [ X.XX ]"),
-        ("Current Price",     f"GHc {_fv(ddm_pr)}" if ddm_pr else "GHc [ X.XX ]"),
-        ("Upside Potential",  "[ +X% ]"),
+        ("Current EPS (GHc)",   _fmt_pa_eps(eps_yl) if eps_yl else "[ GHc X.XXXX ]"),
+        ("EPS Growth Rate",     _eps_g_str),
+        ("Forward EPS (1yr)",   _fmt_pa_eps(_fwd_eps) if _fwd_eps else "[ GHc X.XXXX ]"),
+        ("Sector Average P/E",  "[ Xx ] — check GSE"),
+        ("Implied P/E (model)", _implied_pe),
+        ("Target Price",        f"GHc {_fv(blended)}" if blended else "GHc [ X.XX ]"),
+        ("Current Price",       f"GHc {_fv(ref_pr)}" if ref_pr else "GHc [ X.XX ]"),
+        ("Upside Potential",    _fupside(ref_pr, blended)),
     ]
     for i, (label, val) in enumerate(tp_inputs):
         y = 2.5 + i * 0.6
@@ -889,11 +967,28 @@ def build_pptx(data=None):
     ]
     for i, (period, col, bullets) in enumerate(cats):
         x = 0.4 + i * 4.3
-        _add_rect(s, x, 2.05, 4.1, 4.7, RGBColor(0x1e, 0x29, 0x3b))
+        _add_rect(s, x, 2.05, 4.1, 3.9, RGBColor(0x1e, 0x29, 0x3b))
         _add_rect(s, x, 2.05, 4.1, 0.38, col)
         _add_text(s, period, x + 0.15, 2.08, 3.8, 0.3, font_size=11, bold=True, color=WHITE)
         for j, b in enumerate(bullets):
-            _add_text(s, f"→  {b}", x + 0.15, 2.6 + j * 1.3, 3.85, 1.18, font_size=9.5, color=WHITE)
+            _add_text(s, f"→  {b}", x + 0.15, 2.58 + j * 1.1, 3.85, 1.0, font_size=9.5, color=WHITE)
+    # Quantitative data strip supporting catalysts
+    _add_rect(s, 0.4, 6.08, 12.5, 0.95, RGBColor(0x0d, 0x1a, 0x2e))
+    _add_rect(s, 0.4, 6.08, 12.5, 0.04, GOLD)
+    _add_text(s, "Valuation Data", 0.55, 6.1, 2.0, 0.28, font_size=8.5, bold=True, color=GOLD)
+    _strip_data = [
+        ("Current Price", f"GHc {_fv(ref_pr)}" if ref_pr else "[ X.XX ]", WHITE),
+        ("Target Price",  f"GHc {_fv(blended)}" if blended else "[ X.XX ]", GREEN),
+        ("Upside",        _fupside(ref_pr, blended), GREEN if blended and ref_pr and blended > ref_pr else RED),
+        ("P/E",           _pe_latest, LIGHTBLUE),
+        ("Net Margin",    _net_margin, LIGHTBLUE),
+        ("ROE",           _roe_latest, LIGHTBLUE),
+        ("Div Yield",     _dyd_str, GOLD),
+    ]
+    for _si, (_sl, _sv, _sc) in enumerate(_strip_data):
+        _sx = 2.55 + _si * 1.48
+        _add_text(s, _sl, _sx, 6.12, 1.4, 0.24, font_size=7.5, color=GRAY, align=PP_ALIGN.CENTER)
+        _add_text(s, _sv, _sx, 6.38, 1.4, 0.48, font_size=11, bold=True, color=_sc, align=PP_ALIGN.CENTER)
     _footer(s, 22)
 
     # ── SLIDE 23: Sensitivity Analysis ──────────────────────────────────────────
@@ -902,11 +997,6 @@ def build_pptx(data=None):
     _header_bar(s, "Sensitivity Analysis", "How Does Our Target Price Change Under Different Scenarios?", BLUE)
     _add_text(s, "A sensitivity table shows judges you've stress-tested your valuation. Vary WACC and growth rate to see price range.", 0.4, 1.5, 12.5, 0.35, font_size=11, italic=True, color=GRAY)
     _add_text(s, "DCF Sensitivity: Intrinsic Value (GHc) — Varying WACC vs Terminal Growth Rate", 0.4, 2.0, 12.5, 0.38, font_size=12, bold=True, color=WHITE)
-    _has_sens = bool(_dcf.get('fcff1') and _dcf.get('wacc') and _dcf.get('shares'))
-    _bw  = _dcf.get('wacc') or 0.12
-    _btg = _dcf.get('gterm') or 0.05
-    _wacc5 = [_bw - 0.02, _bw - 0.01, _bw, _bw + 0.01, _bw + 0.02]
-    _tgr5  = [0.01, 0.02, 0.03, 0.04, 0.05]
     wacc_vals = (
         [f"{w*100:.0f}% (WACC{'+' if i>2 else '-' if i<2 else ''}{'0' if i==2 else abs(i-2)}%)" if False
          else (f"Base {_bw*100:.0f}%" if i == 2 else f"{w*100:.0f}%")
@@ -945,13 +1035,16 @@ def build_pptx(data=None):
     _add_rect(s, 0.4, 1.95, 6.0, 5.2, RGBColor(0x1e, 0x29, 0x3b))
     _add_rect(s, 0.4, 1.95, 6.0, 0.38, GOLD)
     _add_text(s, "Dividend History", 0.6, 1.97, 5.7, 0.32, font_size=12, bold=True, color=WHITE)
+    _dps_payout = (f"{(_d0 * _shares_out / ni_yl * 100):.0f}%"
+                   if _d0 and _shares_out and ni_yl and ni_yl != 0 else "[ X% ]")
     div_data = [
-        ("Year", "DPS (GHc)", "Payout Ratio", "Yield"),
-        ("[ Year -4 ]", "[ X.XX ]", "[ X% ]", "[ X% ]"),
-        ("[ Year -3 ]", "[ X.XX ]", "[ X% ]", "[ X% ]"),
-        ("[ Year -2 ]", "[ X.XX ]", "[ X% ]", "[ X% ]"),
-        ("[ Year -1 ]", "[ X.XX ]", "[ X% ]", "[ X% ]"),
-        ("[ Latest ]",  "[ X.XX ]", "[ X% ]", "[ X% ]"),
+        ("Year",                 "DPS (GHc)",            "Payout Ratio",  "Yield"),
+        (_hdr[0] if len(_hdr) > 2 else "[ Year -4 ]", "—", "—",         "—"),
+        (_hdr[1] if len(_hdr) > 1 else "[ Year -3 ]", "—", "—",         "—"),
+        ("[ Year -2 ]",          "—",                    "—",             "—"),
+        ("[ Year -1 ]",          "—",                    "—",             "—"),
+        (_hdr_yl if _hdr_yl != '—' else "Latest",
+         _fv(_d0) if _d0 else "[ X.XX ]", _dps_payout,  _dyd_str),
     ]
     for ri, row in enumerate(div_data):
         bg = BLUE if ri == 0 else (RGBColor(0x1a, 0x20, 0x2e) if ri % 2 else RGBColor(0x14, 0x1a, 0x28))
@@ -965,13 +1058,13 @@ def build_pptx(data=None):
     _add_rect(s, 6.6, 1.95, 6.4, 0.38, GREEN)
     _add_text(s, "Free Cash Flow Summary", 6.8, 1.97, 6.1, 0.32, font_size=12, bold=True, color=WHITE)
     fcf_items = [
-        ("Operating Cash Flow",   "GHc [ Xm ]"),
-        ("Less: Capital Expenditure", "(GHc [ Xm ])"),
-        ("Free Cash Flow",        "GHc [ Xm ]"),
-        ("FCF per Share",         "GHc [ X.XX ]"),
-        ("FCF Yield",             "[ X% ]"),
-        ("FCF Payout Ratio",      "[ X% ]"),
-        ("Is Dividend Covered?",  "[ YES / NO ]"),
+        ("Free Cash Flow (latest)",  _ocf_str),
+        ("FCF per Share (GHc)",      _fcf_ps_str),
+        ("FCF Yield",                _fcf_yield_s),
+        ("",                         ""),
+        ("Current DPS (GHc)",        _fv(_d0) if _d0 else "[ X.XX ]"),
+        ("FCF Payout Ratio",         _fcf_payo_s),
+        ("Is Dividend Covered?",     _div_cov_s),
     ]
     for i, (label, val) in enumerate(fcf_items):
         y = 2.5 + i * 0.65
@@ -987,22 +1080,28 @@ def build_pptx(data=None):
     _dark_slide(s)
     _header_bar(s, "Scenario Analysis", "Bull, Base & Bear Case — What Are the Outcomes?", BLUE)
     _add_text(s, "Present 3 scenarios. The base case is your primary recommendation. Bull and bear show the range of possible outcomes.", 0.4, 1.5, 12.5, 0.35, font_size=11, italic=True, color=GRAY)
+    _bear_tp = _bear_iv or (blended * 0.78 if blended else None)
+    _bull_tp = _bull_iv or (blended * 1.28 if blended else None)
+    _base_tp = blended
     scenarios = [
-        ("BEAR CASE",    RED,   "[ Probability: X% ]",
-         ["Revenue declines X% due to macro headwinds",
-          "Margin compression from rising costs",
-          "Dividend cut or suspension"],
-         "GHc [ X.XX ]", "Downside of [ -X% ]"),
-        ("BASE CASE",    GOLD,  "[ Probability: X% ]",
-         ["Revenue grows at X% — in line with guidance",
-          "Margins stable at current levels",
-          "Dividend maintained at current DPS"],
-         "GHc [ X.XX ]", "Upside of [ +X% ]"),
-        ("BULL CASE",    GREEN, "[ Probability: X% ]",
-         ["Revenue beats expectations by X%",
-          "Margin expansion from operating leverage",
-          "Re-rating as sector recovers"],
-         "GHc [ X.XX ]", "Upside of [ +X% ]"),
+        ("BEAR CASE",    RED,   "Probability: ~20%",
+         [f"Revenue CAGR slows to {(_rc * 0.4):+.1f}%" if _pa_rev_clean else "Revenue underperforms guidance",
+          f"Net margin compresses from {_net_margin}",
+          "Dividend at risk — FCF under pressure"],
+         f"GHc {_fv(_bear_tp)}" if _bear_tp else "GHc [ X.XX ]",
+         _fupside(ref_pr, _bear_tp) if _bear_tp else "Downside of [ -X% ]"),
+        ("BASE CASE",    GOLD,  "Probability: ~60%",
+         [f"Revenue CAGR: {_rev_cagr_str} continues",
+          f"Net margin holds at {_net_margin}",
+          f"Dividend maintained: GHc {_fv(_d0)}/share" if _d0 else "Dividend maintained"],
+         f"GHc {_fv(_base_tp)}" if _base_tp else "GHc [ X.XX ]",
+         _fupside(ref_pr, _base_tp) if _base_tp else "Upside of [ +X% ]"),
+        ("BULL CASE",    GREEN, "Probability: ~20%",
+         [f"Revenue CAGR accelerates beyond {_rev_cagr_str}",
+          f"Margin expansion above {_net_margin}",
+          "Re-rating: sector recovery + earnings beat"],
+         f"GHc {_fv(_bull_tp)}" if _bull_tp else "GHc [ X.XX ]",
+         _fupside(ref_pr, _bull_tp) if _bull_tp else "Upside of [ +X% ]"),
     ]
     for i, (title, col, prob, bullets, tp, updown) in enumerate(scenarios):
         x = 0.4 + i * 4.3
@@ -1043,11 +1142,27 @@ def build_pptx(data=None):
     # Right side — reasoning
     _add_rect(s, 6.1, 1.6, 7.1, 5.5, RGBColor(0x1e, 0x29, 0x3b))
     _add_text(s, "Why We Recommend This", 6.3, 1.72, 6.8, 0.42, font_size=13, bold=True, color=WHITE)
+    _val_reason = (
+        f"{'Undervalued' if blended and ref_pr and blended > ref_pr else 'Overvalued'} — "
+        f"Blended IV GHc {_fv(blended)} vs current GHc {_fv(ref_pr)} "
+        f"({_fupside(ref_pr, blended)} upside). DCF GHc {_fv(dcf_iv)} · RIM GHc {_fv(rim_iv)} · DDM GHc {_fv(ddm_val)}"
+        if blended and ref_pr else "Stock trades at a significant discount to blended intrinsic value — [ GHc X.XX ]")
+    _earn_reason = (
+        f"Revenue CAGR {_rev_cagr_str} · Net Margin {_net_margin} · ROE {_roe_latest} · "
+        f"EPS {_fmt_pa_eps(eps_yl)} · EBITDA Margin {_ebitda_m_s}")
+    _div_reason = (
+        f"DPS GHc {_fv(_d0)} · Dividend Yield {_dyd_str} · FCF/Share {_fcf_ps_str} · "
+        f"FCF Payout {_fcf_payo_s} · Dividend Covered: {_div_cov_s}"
+        if _d0 else "[ Dividend analysis — enter DPS in DDM model ]")
+    _cat_reason = (
+        f"Sector: {_co_sect}. P/E {_pe_latest} vs implied target P/E {_implied_pe}. "
+        f"Bear case: GHc {_fv(_bear_tp)} | Base: GHc {_fv(_base_tp)} | Bull: GHc {_fv(_bull_tp)}"
+        if _base_tp else "[ Sector-specific catalyst will drive a re-rating within 12 months ]")
     reasons = [
-        ("1. Valuation", "[ Stock trades at significant discount to intrinsic value of GHc X.XX — X% margin of safety ]"),
-        ("2. Earnings Growth", "[ EPS growing at X% CAGR with improving margins driven by [ specific driver ] ]"),
-        ("3. Strong Dividends", "[ Consistent dividend payer — X% yield, well-covered by FCF at X% payout ratio ]"),
-        ("4. Sector Catalyst", "[ [ Industry-specific catalyst ] will drive a re-rating within 12 months ]"),
+        ("1. Valuation",      _val_reason),
+        ("2. Earnings Growth", _earn_reason),
+        ("3. Dividends & FCF", _div_reason),
+        ("4. Risk/Reward",     _cat_reason),
     ]
     for i, (label, text) in enumerate(reasons):
         y = 2.2 + i * 1.2
