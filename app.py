@@ -2689,31 +2689,67 @@ _FIN_KW_RE = re.compile(
 )
 
 
+_FIN_SECTION_RE = re.compile(
+    r'(income\s+statement|profit\s+(?:and|or)\s+loss|statement\s+of\s+(?:comprehensive\s+)?income'
+    r'|balance\s+sheet|statement\s+of\s+financial\s+position'
+    r'|cash\s+flow\s+statement|statement\s+of\s+cash\s+flows)',
+    re.IGNORECASE,
+)
+
+
+def _truncate_for_extraction(text, max_lines=2500):
+    """Return at most max_lines lines, starting from the first financial-
+    statement section header if one is found."""
+    lines = text.split('\n')
+    if len(lines) <= max_lines:
+        return text
+    # Try to start from the first section header
+    joined = '\n'.join(lines[:5000])  # only scan first 5000 lines for speed
+    m = _FIN_SECTION_RE.search(joined)
+    if m:
+        start = joined[:m.start()].count('\n')
+        start = max(0, start - 2)
+    else:
+        start = 0
+    return '\n'.join(lines[start:start + max_lines])
+
+
 def _pdf_to_text(raw_bytes):
     """Extract plain text from PDF bytes.
 
-    Tier 1 – PyMuPDF fast text extraction with financial-page targeting
-    Tier 2 – pdfplumber  (better at complex table layouts, capped to save time)
-    Tier 3 – Tesseract OCR  (last resort; hard cap at 15 pages to avoid timeout)
+    Tier 1 – PyMuPDF fast text extraction with financial-page targeting.
+              Page texts cached from the keyword scan to avoid double get_text().
+    Tier 2 – pdfplumber  (better at complex table layouts, hard cap 20 pages)
+    Tier 3 – Tesseract OCR  (last resort; hard cap at 10 pages)
     """
     MIN_CHARS = 200
 
-    # ── Tier 1: PyMuPDF — fast; for large PDFs target financial pages only ─
+    # ── Tier 1: PyMuPDF — fast; cache page texts from keyword scan ────────
     try:
         import fitz
         doc = fitz.open(stream=raw_bytes, filetype='pdf')
         total = len(doc)
 
         if total > 30:
-            # Quick keyword scan to locate financial-statement pages
-            fin_pages = [i for i in range(min(total, 100))
-                         if _FIN_KW_RE.search(doc[i].get_text('text'))]
-            page_range = fin_pages[:60] if fin_pages else list(range(min(total, 60)))
+            # One-pass scan: cache text and score for financial keywords
+            cached = {}
+            fin_pages = []
+            for i in range(min(total, 80)):
+                t = doc[i].get_text('text')
+                cached[i] = t
+                if _FIN_KW_RE.search(t):
+                    fin_pages.append(i)
+            page_range = fin_pages[:40] if fin_pages else list(range(min(total, 40)))
         else:
+            cached = {}
             page_range = list(range(total))
 
-        parts = [t for i in page_range
-                 if (t := doc[i].get_text('text').strip())]
+        parts = []
+        for i in page_range:
+            t = cached.get(i) or doc[i].get_text('text')
+            t = t.strip()
+            if t:
+                parts.append(t)
         doc.close()
         text = '\n'.join(parts)
         if len(text.strip()) >= MIN_CHARS:
@@ -2721,12 +2757,12 @@ def _pdf_to_text(raw_bytes):
     except Exception as e:
         logger.warning(f'PyMuPDF fast extraction failed: {e}')
 
-    # ── Tier 2: pdfplumber — better table parsing, capped to avoid timeout ─
+    # ── Tier 2: pdfplumber — 20-page hard cap to stay within timeout ──────
     try:
         import pdfplumber
         parts = []
         with pdfplumber.open(io.BytesIO(raw_bytes)) as pdf:
-            for page in pdf.pages[:50]:
+            for page in pdf.pages[:20]:
                 t = page.extract_text(x_tolerance=3, y_tolerance=3)
                 if t:
                     parts.append(t)
@@ -2736,8 +2772,7 @@ def _pdf_to_text(raw_bytes):
     except Exception as e:
         logger.warning(f'pdfplumber failed: {e}')
 
-    # ── Tier 3: Tesseract OCR — last resort; strict 15-page cap to stay
-    #    well within the 120 s gunicorn timeout (~4 s/page × 15 = ~60 s max)
+    # ── Tier 3: Tesseract OCR — last resort; 10-page hard cap ────────────
     try:
         import fitz
         import pytesseract
@@ -2745,7 +2780,7 @@ def _pdf_to_text(raw_bytes):
 
         ocr_parts = []
         doc = fitz.open(stream=raw_bytes, filetype='pdf')
-        for i in range(min(len(doc), 15)):
+        for i in range(min(len(doc), 10)):
             page = doc[i]
             mat = fitz.Matrix(150 / 72, 150 / 72)  # 150 DPI
             pix = page.get_pixmap(matrix=mat, colorspace=fitz.csGRAY)
@@ -2779,39 +2814,64 @@ def valuation_extract_pdf():
     raw = f.read(50 * 1024 * 1024)  # match MAX_CONTENT_LENGTH
     size_mb = len(raw) / (1024 * 1024)
     logger.info(f'PDF extract: {f.filename!r}, {size_mb:.1f} MB')
-    if size_mb > 20:
+    if size_mb > 15:
         return jsonify({'error': (
             f'File is {size_mb:.0f} MB — too large to process on the server. '
-            'Please upload only the financial statements section of the annual report (usually 5–15 pages).'
+            'Please upload only the financial statements pages of the report (5–20 pages, usually < 5 MB).'
         )}), 413
 
-    try:
-        full_text, pages = _pdf_to_text(raw)
-    except Exception as e:
-        return jsonify({'error': f'Could not read PDF: {e}'}), 422
+    # Run extraction in a daemon thread so we can enforce a hard timeout.
+    # gevent monkey-patches threading, but a thread.join(timeout) on a
+    # CPU-bound greenlet still respects wall-clock time.
+    import threading as _threading
+    _result = [None, None, None]  # [text, pages, exc]
+
+    def _extract_worker():
+        try:
+            _result[0], _result[1] = _pdf_to_text(raw)
+        except Exception as exc:
+            _result[2] = exc
+
+    _t = _threading.Thread(target=_extract_worker, daemon=True)
+    _t.start()
+    _t.join(timeout=85)
+
+    if _t.is_alive():
+        logger.warning(f'PDF extract timed out for {f.filename!r}')
+        return jsonify({'error': (
+            'PDF processing timed out. Please upload only the financial statements '
+            'pages (5–20 pages, < 5 MB) rather than the full annual report.'
+        )}), 408
+
+    if _result[2]:
+        return jsonify({'error': f'Could not read PDF: {_result[2]}'}), 422
+
+    full_text, pages = _result[0] or '', _result[1] or 0
 
     if not full_text.strip():
         return jsonify({'error': 'No text could be extracted — PDF may be password-protected or corrupted'}), 422
 
-    scale = _detect_scale(full_text)
+    # Truncate to a focused financial-section window before running regex extractors
+    extract_text = _truncate_for_extraction(full_text, max_lines=2500)
+    scale = _detect_scale(extract_text)
 
     if stmt_type == 'income':
-        data = _extract_income_statement(full_text, scale)
+        data = _extract_income_statement(extract_text, scale)
         summary = data['summary']
         fields  = _build_fields(data, {}, {})
     elif stmt_type == 'balance':
-        data = _extract_balance_sheet(full_text, scale)
+        data = _extract_balance_sheet(extract_text, scale)
         summary = data['summary']
         fields  = _build_fields({}, data, {})
     elif stmt_type == 'cashflow':
-        data = _extract_cash_flow(full_text, scale)
+        data = _extract_cash_flow(extract_text, scale)
         summary = data['summary']
         fields  = _build_fields({}, {}, data)
     else:
         # auto: run all three and merge
-        inc = _extract_income_statement(full_text, scale)
-        bs  = _extract_balance_sheet(full_text, scale)
-        cf  = _extract_cash_flow(full_text, scale)
+        inc = _extract_income_statement(extract_text, scale)
+        bs  = _extract_balance_sheet(extract_text, scale)
+        cf  = _extract_cash_flow(extract_text, scale)
         summary = {**inc['summary'], **bs['summary'], **cf['summary']}
         fields  = _build_fields(inc, bs, cf)
 
