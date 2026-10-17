@@ -2678,15 +2678,68 @@ def _build_fields(inc, bs, cf):
 
 
 def _pdf_to_text(raw_bytes):
-    """Extract plain text from PDF bytes using pdfplumber; raises on failure."""
-    import pdfplumber
-    parts = []
-    with pdfplumber.open(io.BytesIO(raw_bytes)) as pdf:
-        for page in pdf.pages[:100]:
-            t = page.extract_text()
-            if t:
+    """Extract plain text from PDF bytes.
+
+    Tier 1 – pdfplumber  (fast; works on most digital PDFs)
+    Tier 2 – PyMuPDF text extraction  (more robust for non-standard layouts)
+    Tier 3 – Tesseract OCR  (last resort; handles scanned / image-based PDFs)
+    """
+    MIN_CHARS = 200  # below this we consider the tier a failure
+
+    # ── Tier 1: pdfplumber ────────────────────────────────────────────────
+    try:
+        import pdfplumber
+        parts = []
+        with pdfplumber.open(io.BytesIO(raw_bytes)) as pdf:
+            for page in pdf.pages[:100]:
+                t = page.extract_text()
+                if t:
+                    parts.append(t)
+        text = '\n'.join(parts)
+        if len(text.strip()) >= MIN_CHARS:
+            return text, len(parts)
+    except Exception as e:
+        logger.warning(f'pdfplumber failed: {e}')
+
+    # ── Tier 2: PyMuPDF direct text extraction ───────────────────────────
+    try:
+        import fitz
+        parts = []
+        doc = fitz.open(stream=raw_bytes, filetype='pdf')
+        for i in range(min(len(doc), 100)):
+            t = doc[i].get_text('text')
+            if t and t.strip():
                 parts.append(t)
-    return '\n'.join(parts), len(parts)
+        doc.close()
+        text = '\n'.join(parts)
+        if len(text.strip()) >= MIN_CHARS:
+            return text, len(parts)
+    except Exception as e:
+        logger.warning(f'PyMuPDF text extraction failed: {e}')
+
+    # ── Tier 3: Tesseract OCR (image-based / scanned PDFs) ───────────────
+    try:
+        import fitz
+        import pytesseract
+        from PIL import Image as _PILImage
+
+        ocr_parts = []
+        doc = fitz.open(stream=raw_bytes, filetype='pdf')
+        for i in range(min(len(doc), 50)):  # cap at 50 pages for speed
+            page = doc[i]
+            mat = fitz.Matrix(150 / 72, 150 / 72)  # 150 DPI — fast + accurate
+            pix = page.get_pixmap(matrix=mat, colorspace=fitz.csGRAY)
+            img = _PILImage.frombytes('L', [pix.width, pix.height], pix.samples)
+            t = pytesseract.image_to_string(img, config='--psm 6 --oem 3')
+            if t.strip():
+                ocr_parts.append(t)
+        doc.close()
+        if ocr_parts:
+            return '\n'.join(ocr_parts), len(ocr_parts)
+    except Exception as e:
+        logger.warning(f'OCR fallback failed: {e}')
+
+    return '', 0
 
 
 @app.route('/valuation/extract-pdf', methods=['POST'])
@@ -2710,7 +2763,7 @@ def valuation_extract_pdf():
         return jsonify({'error': f'Could not read PDF: {e}'}), 422
 
     if not full_text.strip():
-        return jsonify({'error': 'No text found — PDF may be image-based. Use a text PDF.'}), 422
+        return jsonify({'error': 'No text could be extracted — PDF may be password-protected or corrupted'}), 422
 
     scale = _detect_scale(full_text)
 
