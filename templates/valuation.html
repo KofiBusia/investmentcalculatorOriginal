@@ -1063,16 +1063,24 @@ async function _processPdfUnified(files) {
 
       const summary = data.summary || {}, fields = data.fields || {};
       const pages = data.pages_read || 0, count = Object.keys(summary).length;
-      totalPages += pages; successCount++;
+      totalPages += pages;
 
       /* merge — first non-null value wins per metric */
       for (const [k, v] of Object.entries(summary)) { if (v != null && mergedSummary[k] == null) mergedSummary[k] = v; }
       for (const [k, v] of Object.entries(fields))  { if (v != null && mergedFields[k]  == null) mergedFields[k]  = v; }
 
-      document.getElementById(`pfl-icon-${i}`).className = 'fas fa-check-circle';
-      document.getElementById(`pfl-icon-${i}`).style.color = '#10b981';
-      document.getElementById(`pfl-msg-${i}`).textContent = `${count} metrics · ${pages}p`;
-      document.getElementById(`pfl-msg-${i}`).style.color = '#10b981';
+      if (count > 0) {
+        successCount++;
+        document.getElementById(`pfl-icon-${i}`).className = 'fas fa-check-circle';
+        document.getElementById(`pfl-icon-${i}`).style.color = '#10b981';
+        document.getElementById(`pfl-msg-${i}`).textContent = `${count} metrics · ${pages}p`;
+        document.getElementById(`pfl-msg-${i}`).style.color = '#10b981';
+      } else {
+        document.getElementById(`pfl-icon-${i}`).className = 'fas fa-exclamation-circle';
+        document.getElementById(`pfl-icon-${i}`).style.color = '#f59e0b';
+        document.getElementById(`pfl-msg-${i}`).textContent = `Read ${pages}p · no figures found`;
+        document.getElementById(`pfl-msg-${i}`).style.color = '#f59e0b';
+      }
     } catch (err) {
       document.getElementById(`pfl-icon-${i}`).className = 'fas fa-times-circle';
       document.getElementById(`pfl-icon-${i}`).style.color = '#ef4444';
@@ -1085,8 +1093,13 @@ async function _processPdfUnified(files) {
   const keys = Object.keys(mergedSummary);
 
   if (!keys.length) {
-    _setUnifiedStatus('<i class="fas fa-exclamation-triangle"></i> No figures extracted — PDFs may be image-based or password-protected.', 'warn');
-    document.getElementById('pdf-label-unified').innerHTML = 'No data found — try text-based PDFs';
+    const allFailed = successCount === 0;
+    _setUnifiedStatus(
+      `<i class="fas fa-exclamation-triangle"></i> ${allFailed
+        ? 'Extraction failed — check error messages above'
+        : 'No financial figures found — ensure this is a financial statement PDF'}`,
+      'warn');
+    document.getElementById('pdf-label-unified').innerHTML = 'Drop up to 3 Financial Statement PDFs here';
     return;
   }
 

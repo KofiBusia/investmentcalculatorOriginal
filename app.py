@@ -2408,7 +2408,10 @@ def _extract_income_statement(text, scale):
     revenue   = s(_find_val(text,
         r'\btotal\s+revenue\b', r'\bnet\s+revenue\b', r'\bnet\s+sales?\b',
         r'\bturnover\b',
+        r'\bnet\s+interest\s+income\b',           # banks
+        r'\btotal\s+income\b',                    # banks / general
         r'\bnet\s+operating\s+income\b', r'\btotal\s+operating\s+income\b',
+        r'\bincome\s+from\s+operations?\b',
         r'\brevenue\s+from\s+(?:contract|sale)\b',
         r'^\s*revenue\b'))
     ebitda    = s(_find_val(text, r'\bebitda\b'))
@@ -2416,7 +2419,9 @@ def _extract_income_statement(text, scale):
         r'\bebit\b',
         r'\boperating\s+profit\b',
         r'\bprofit\s+from\s+operations?\b',
-        r'\bprofit\s+before\s+(?:finance\s+(?:costs?|income)|interest|(?:income\s+)?tax)\b'))
+        r'\bprofit\s+before\s+(?:finance\s+(?:costs?|income)|interest|(?:income\s+)?tax)\b',
+        r'\bprofit\s+before\s+tax\b',             # banks
+        r'\bpre.?tax\s+profit\b'))
     net_inc   = s(_find_val(text,
         r'\bnet\s+(?:income|profit)\b',
         r'\bprofit\s+(?:for|after)\s+(?:the\s+)?(?:year|period)\b',
@@ -2756,7 +2761,7 @@ def valuation_extract_pdf():
     if not f.filename.lower().endswith('.pdf'):
         return jsonify({'error': 'Only PDF files are accepted'}), 400
 
-    raw = f.read(20 * 1024 * 1024)
+    raw = f.read(50 * 1024 * 1024)  # match MAX_CONTENT_LENGTH
     try:
         full_text, pages = _pdf_to_text(raw)
     except Exception as e:
