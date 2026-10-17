@@ -5,9 +5,26 @@
 
 {% block head %}
 <style>
-/* collapse header bottom padding now that the hero block is empty */
+/* ── Collapse header / shrink top gap ───────────────────── */
 header.gradient-bg { padding-bottom: 0 !important; }
-main { padding-top: 12px !important; }
+main { padding-top: 6px !important; }
+
+/* ── Hide nav pills row (Home / All Calculators / Help) ─── */
+main > div:has(.nav-pill) { display: none !important; }
+
+/* ── Move top ad to a fixed right sidebar ───────────────── */
+main > div[style*="margin-bottom:20px"] {
+  position: fixed !important;
+  right: 8px !important;
+  top: 88px !important;
+  width: 160px !important;
+  text-align: center !important;
+  margin: 0 !important;
+  z-index: 50;
+}
+@media (max-width: 1200px) {
+  main > div[style*="margin-bottom:20px"] { display: none !important; }
+}
 
 :root {
   --vt-indigo: #4f46e5;
