@@ -89,7 +89,7 @@ function openDrawer(){document.getElementById('mobile-drawer').style.left='0';do
 function closeDrawer(){document.getElementById('mobile-drawer').style.left='-280px';document.getElementById('drawer-overlay').style.display='none';document.body.style.overflow='';}
 
 // ── Pitch deck pre-fill from InvestIQ valuation results ──────────────────
-(function() {
+document.addEventListener('DOMContentLoaded', function() {
   try {
     const raw = localStorage.getItem('iq_pitch');
     if (!raw) return;
@@ -98,7 +98,7 @@ function closeDrawer(){document.getElementById('mobile-drawer').style.left='-280
     const hint = document.getElementById('hero-pitch-hint');
     if (hint) hint.style.display = 'block';
   } catch(e) {}
-})();
+});
 
 function generatePrefilledPptx(btn) {
   let pitchData = null;
