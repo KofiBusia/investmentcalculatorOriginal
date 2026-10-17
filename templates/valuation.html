@@ -299,7 +299,7 @@ main > div[style*="margin-bottom: 20px"] {
         <div style="width:38px;height:38px;background:linear-gradient(135deg,#059669,#10b981);border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:.95rem;box-shadow:0 4px 12px rgba(5,150,105,.3)"><i class="fas fa-file-pdf"></i></div>
         <div>
           <div style="font-size:.95rem;font-weight:800;color:#064e3b">Auto-Fill from Financial Statements</div>
-          <div style="font-size:.75rem;color:#059669">Upload each statement separately — Income Statement, Balance Sheet &amp; Cash Flow</div>
+          <div style="font-size:.75rem;color:#059669">Drop any financial statement PDF — Income, Balance Sheet or Cash Flow auto-detected</div>
         </div>
       </div>
       <i class="fas fa-chevron-down" id="pdf-chevron" style="color:#059669;transition:transform .25s;font-size:1rem"></i>
@@ -307,90 +307,38 @@ main > div[style*="margin-bottom: 20px"] {
 
     <div id="pdf-panel" style="display:none;padding:20px 24px 24px;border-top:1px solid #d1fae5">
 
-      <!-- Three upload cards side by side -->
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-bottom:18px">
-
-        <!-- 1 · Income Statement -->
-        <div id="pdf-card-income" class="pdf-stmt-card" data-type="income"
-             style="border:2px solid #e0e7ff;border-radius:14px;overflow:hidden;transition:border-color .2s">
-          <div style="background:linear-gradient(135deg,#eef2ff,#e0e7ff);padding:12px 16px;display:flex;align-items:center;gap:10px">
-            <div style="width:32px;height:32px;background:linear-gradient(135deg,#4f46e5,#6366f1);border-radius:9px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:.85rem;flex-shrink:0"><i class="fas fa-chart-bar"></i></div>
-            <div>
-              <div style="font-size:.85rem;font-weight:800;color:#312e81">Income Statement</div>
-              <div style="font-size:.7rem;color:#6366f1">Revenue · EBITDA · Net Income · EPS</div>
-            </div>
-          </div>
-          <div style="padding:12px 16px">
-            <div class="pdf-drop" data-type="income"
-                 style="border:2px dashed #a5b4fc;border-radius:10px;padding:18px 12px;text-align:center;cursor:pointer;background:#f5f3ff;transition:background .2s"
-                 onclick="document.getElementById('pdf-input-income').click()"
-                 ondragover="event.preventDefault();this.style.background='#ede9fe'"
-                 ondragleave="this.style.background='#f5f3ff'"
-                 ondrop="handleDrop(event,'income')">
-              <i class="fas fa-cloud-upload-alt" style="font-size:1.4rem;color:#a5b4fc;margin-bottom:6px;display:block"></i>
-              <div id="pdf-label-income" style="font-size:.8rem;font-weight:700;color:#4338ca">Drop PDF or click</div>
-            </div>
-            <input type="file" id="pdf-input-income" accept=".pdf" style="display:none" onchange="handleSelect(this,'income')">
-            <div id="pdf-status-income" style="display:none;margin-top:8px;padding:7px 10px;border-radius:8px;font-size:.75rem;font-weight:600"></div>
-            <div id="pdf-table-income" style="display:none;margin-top:8px"></div>
-          </div>
+      <!-- Single unified upload zone -->
+      <div style="margin-bottom:18px">
+        <!-- Statement type badges -->
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+          <span style="display:inline-flex;align-items:center;gap:5px;background:#eef2ff;color:#4338ca;border:1px solid #c7d2fe;border-radius:8px;padding:4px 10px;font-size:.73rem;font-weight:700"><i class="fas fa-chart-bar"></i> Income Statement</span>
+          <span style="display:inline-flex;align-items:center;gap:5px;background:#f0fdf4;color:#065f46;border:1px solid #6ee7b7;border-radius:8px;padding:4px 10px;font-size:.73rem;font-weight:700"><i class="fas fa-balance-scale"></i> Balance Sheet</span>
+          <span style="display:inline-flex;align-items:center;gap:5px;background:#fffbeb;color:#78350f;border:1px solid #fcd34d;border-radius:8px;padding:4px 10px;font-size:.73rem;font-weight:700"><i class="fas fa-water"></i> Cash Flow</span>
+          <span style="display:inline-flex;align-items:center;gap:5px;background:#fef3c7;color:#92400e;border:1px solid #f59e0b;border-radius:8px;padding:4px 10px;font-size:.73rem;font-weight:800"><i class="fas fa-magic"></i> Auto-Detected</span>
         </div>
 
-        <!-- 2 · Balance Sheet -->
-        <div id="pdf-card-balance" class="pdf-stmt-card" data-type="balance"
-             style="border:2px solid #d1fae5;border-radius:14px;overflow:hidden;transition:border-color .2s">
-          <div style="background:linear-gradient(135deg,#f0fdf4,#d1fae5);padding:12px 16px;display:flex;align-items:center;gap:10px">
-            <div style="width:32px;height:32px;background:linear-gradient(135deg,#059669,#10b981);border-radius:9px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:.85rem;flex-shrink:0"><i class="fas fa-balance-scale"></i></div>
-            <div>
-              <div style="font-size:.85rem;font-weight:800;color:#064e3b">Balance Sheet</div>
-              <div style="font-size:.7rem;color:#059669">Debt · Equity · Cash · Shares</div>
-            </div>
-          </div>
-          <div style="padding:12px 16px">
-            <div class="pdf-drop" data-type="balance"
-                 style="border:2px dashed #6ee7b7;border-radius:10px;padding:18px 12px;text-align:center;cursor:pointer;background:#f0fdf4;transition:background .2s"
-                 onclick="document.getElementById('pdf-input-balance').click()"
-                 ondragover="event.preventDefault();this.style.background='#d1fae5'"
-                 ondragleave="this.style.background='#f0fdf4'"
-                 ondrop="handleDrop(event,'balance')">
-              <i class="fas fa-cloud-upload-alt" style="font-size:1.4rem;color:#6ee7b7;margin-bottom:6px;display:block"></i>
-              <div id="pdf-label-balance" style="font-size:.8rem;font-weight:700;color:#065f46">Drop PDF or click</div>
-            </div>
-            <input type="file" id="pdf-input-balance" accept=".pdf" style="display:none" onchange="handleSelect(this,'balance')">
-            <div id="pdf-status-balance" style="display:none;margin-top:8px;padding:7px 10px;border-radius:8px;font-size:.75rem;font-weight:600"></div>
-            <div id="pdf-table-balance" style="display:none;margin-top:8px"></div>
-          </div>
+        <!-- Drop zone -->
+        <div id="pdf-drop-unified"
+             style="border:2px dashed #a5b4fc;border-radius:14px;padding:32px 24px;text-align:center;cursor:pointer;background:linear-gradient(135deg,#f8faff,#f0f4ff);transition:all .25s;position:relative"
+             onclick="document.getElementById('pdf-input-unified').click()"
+             ondragover="event.preventDefault();this.style.background='#ede9fe';this.style.borderColor='#7c3aed'"
+             ondragleave="this.style.background='linear-gradient(135deg,#f8faff,#f0f4ff)';this.style.borderColor='#a5b4fc'"
+             ondrop="handleDropUnified(event)">
+          <i class="fas fa-file-pdf" style="font-size:2.2rem;color:#a5b4fc;margin-bottom:10px;display:block"></i>
+          <div id="pdf-label-unified" style="font-size:.95rem;font-weight:800;color:#4338ca;margin-bottom:4px">Drop Financial Statement PDF here</div>
+          <div style="font-size:.75rem;color:#818cf8">or click to browse — any statement type, any Ghanaian bank format</div>
         </div>
+        <input type="file" id="pdf-input-unified" accept=".pdf" style="display:none" onchange="handleSelectUnified(this)">
 
-        <!-- 3 · Cash Flow Statement -->
-        <div id="pdf-card-cashflow" class="pdf-stmt-card" data-type="cashflow"
-             style="border:2px solid #fde68a;border-radius:14px;overflow:hidden;transition:border-color .2s">
-          <div style="background:linear-gradient(135deg,#fffbeb,#fef3c7);padding:12px 16px;display:flex;align-items:center;gap:10px">
-            <div style="width:32px;height:32px;background:linear-gradient(135deg,#d97706,#f59e0b);border-radius:9px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:.85rem;flex-shrink:0"><i class="fas fa-water"></i></div>
-            <div>
-              <div style="font-size:.85rem;font-weight:800;color:#78350f">Cash Flow Statement</div>
-              <div style="font-size:.7rem;color:#d97706">Operating CF · CapEx · Free Cash Flow</div>
-            </div>
-          </div>
-          <div style="padding:12px 16px">
-            <div class="pdf-drop" data-type="cashflow"
-                 style="border:2px dashed #fcd34d;border-radius:10px;padding:18px 12px;text-align:center;cursor:pointer;background:#fffbeb;transition:background .2s"
-                 onclick="document.getElementById('pdf-input-cashflow').click()"
-                 ondragover="event.preventDefault();this.style.background='#fef3c7'"
-                 ondragleave="this.style.background='#fffbeb'"
-                 ondrop="handleDrop(event,'cashflow')">
-              <i class="fas fa-cloud-upload-alt" style="font-size:1.4rem;color:#fcd34d;margin-bottom:6px;display:block"></i>
-              <div id="pdf-label-cashflow" style="font-size:.8rem;font-weight:700;color:#92400e">Drop PDF or click</div>
-            </div>
-            <input type="file" id="pdf-input-cashflow" accept=".pdf" style="display:none" onchange="handleSelect(this,'cashflow')">
-            <div id="pdf-status-cashflow" style="display:none;margin-top:8px;padding:7px 10px;border-radius:8px;font-size:.75rem;font-weight:600"></div>
-            <div id="pdf-table-cashflow" style="display:none;margin-top:8px"></div>
-          </div>
+        <!-- Status + results table -->
+        <div id="pdf-status-unified" style="display:none;margin-top:10px;padding:9px 14px;border-radius:10px;font-size:.78rem;font-weight:600"></div>
+        <div id="pdf-table-unified" style="display:none;margin-top:10px;border:1px solid #e5e7eb;border-radius:10px;overflow:hidden">
+          <div style="padding:10px 14px;background:#f8fafc;font-size:.75rem;font-weight:700;color:#475569;border-bottom:1px solid #e5e7eb">Extracted Figures</div>
+          <div id="pdf-table-unified-body" style="padding:8px 14px;max-height:260px;overflow-y:auto"></div>
         </div>
+      </div><!-- /single zone -->
 
-      </div><!-- /grid -->
-
-      <!-- Combined action row (shown once at least one extract done) -->
+      <!-- Action row (shown after extraction) -->
       <div id="pdf-action-row" style="display:none;background:#f8fafc;border-radius:12px;padding:14px 18px;border:1px solid #e2e8f0">
         <div style="display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:10px">
           <span style="font-size:.8rem;font-weight:700;color:#475569;white-space:nowrap">Apply to model:</span>
@@ -407,11 +355,11 @@ main > div[style*="margin-bottom: 20px"] {
             <i class="fas fa-magic"></i> Populate Calculator Fields
           </button>
           <button onclick="clearAllPdf()" style="background:#f1f5f9;color:#64748b;border:none;border-radius:10px;padding:10px 16px;font-size:.85rem;font-weight:600;cursor:pointer">
-            <i class="fas fa-times"></i> Clear All
+            <i class="fas fa-times"></i> Clear
           </button>
         </div>
       </div>
-      <div style="font-size:.72rem;color:#94a3b8;margin-top:10px"><i class="fas fa-info-circle"></i> You can upload one, two or all three statements — figures are merged automatically. Always review populated values before running calculations.</div>
+      <div style="font-size:.72rem;color:#94a3b8;margin-top:10px"><i class="fas fa-info-circle"></i> Upload any annual report or quarterly statement PDF — the system auto-extracts all available figures across all statement types. Always review before running calculations.</div>
 
     </div>
   </div><!-- /pdf-upload-section -->
@@ -1015,7 +963,7 @@ function toggleGuide() {
   chevron.style.transform = open ? '' : 'rotate(180deg)';
 }
 
-/* ── PDF upload — 3-panel (income / balance / cashflow) ─── */
+/* ── PDF upload — unified single-zone (auto-detect) ─── */
 function togglePdfPanel() {
   const panel = document.getElementById('pdf-panel');
   const chevron = document.getElementById('pdf-chevron');
@@ -1024,17 +972,11 @@ function togglePdfPanel() {
   chevron.style.transform = open ? '' : 'rotate(180deg)';
 }
 
-/* Per-statement field stores */
-const _pdfStore = { income: {}, balance: {}, cashflow: {} };
+/* Single unified field store (auto mode extracts all statement types at once) */
+let _pdfAutoFields = {};
 
-const _stmtColors = {
-  income:   { bg: '#f0fdf4', border: '#6ee7b7', text: '#065f46' },
-  balance:  { bg: '#f0fdf4', border: '#6ee7b7', text: '#065f46' },
-  cashflow: { bg: '#fffbeb', border: '#fde68a', text: '#92400e' }
-};
-
-function _setStatus(type, msg, kind) {
-  const el = document.getElementById('pdf-status-' + type);
+function _setUnifiedStatus(msg, kind) {
+  const el = document.getElementById('pdf-status-unified');
   if (!el) return;
   el.style.display = 'block';
   el.style.background = kind === 'error' ? '#fef2f2' : kind === 'ok' ? '#f0fdf4' : '#fffbeb';
@@ -1043,79 +985,88 @@ function _setStatus(type, msg, kind) {
   el.innerHTML = msg;
 }
 
-function _setLabel(type, text) {
-  const el = document.getElementById('pdf-label-' + type);
-  if (el) el.innerHTML = text;
-}
-
-function handleDrop(e, type) {
+function handleDropUnified(e) {
   e.preventDefault();
-  const zone = e.currentTarget;
-  const bgMap = { income: '#ede9fe', balance: '#f0fdf4', cashflow: '#fffbeb' };
-  zone.style.background = bgMap[type] || '#f8fafc';
+  const zone = document.getElementById('pdf-drop-unified');
+  zone.style.background = 'linear-gradient(135deg,#f8faff,#f0f4ff)';
+  zone.style.borderColor = '#a5b4fc';
   const file = e.dataTransfer.files[0];
-  if (file) _processPdfForType(file, type);
+  if (file) _processPdfUnified(file);
 }
 
-function handleSelect(input, type) {
-  if (input.files[0]) _processPdfForType(input.files[0], type);
+function handleSelectUnified(input) {
+  if (input.files[0]) _processPdfUnified(input.files[0]);
 }
 
-async function _processPdfForType(file, type) {
+async function _processPdfUnified(file) {
   if (!file.name.toLowerCase().endsWith('.pdf')) {
-    _setStatus(type, '<i class="fas fa-exclamation-triangle"></i> Please upload a PDF file.', 'error');
+    _setUnifiedStatus('<i class="fas fa-exclamation-triangle"></i> Please upload a PDF file.', 'error');
     return;
   }
-  _setLabel(type, '<i class="fas fa-spinner fa-spin"></i> Extracting…');
-  _setStatus(type, '<i class="fas fa-spinner fa-spin"></i> Reading PDF…', 'warn');
-  document.getElementById('pdf-table-' + type).style.display = 'none';
+  document.getElementById('pdf-label-unified').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Extracting all statements…';
+  _setUnifiedStatus('<i class="fas fa-spinner fa-spin"></i> Analysing PDF — auto-detecting statement types…', 'warn');
+  document.getElementById('pdf-table-unified').style.display = 'none';
 
   const form = new FormData();
   form.append('pdf', file);
-  form.append('statement_type', type);
+  form.append('statement_type', 'auto');
 
   try {
     const resp = await fetch('/valuation/extract-pdf', { method: 'POST', body: form });
     const data = await resp.json();
 
     if (!resp.ok || data.error) {
-      _setStatus(type, '<i class="fas fa-times-circle"></i> ' + (data.error || 'Extraction failed'), 'error');
-      _setLabel(type, '<i class="fas fa-exclamation-circle" style="color:#ef4444"></i> Failed — try again');
+      _setUnifiedStatus('<i class="fas fa-times-circle"></i> ' + (data.error || 'Extraction failed'), 'error');
+      document.getElementById('pdf-label-unified').innerHTML = '<i class="fas fa-exclamation-circle" style="color:#ef4444"></i> Failed — try another PDF';
       return;
     }
 
-    _pdfStore[type] = data.fields || {};
-    const summary = data.summary || {};
-    const pages = data.pages_read || '?';
-    const keys = Object.keys(summary);
+    _pdfAutoFields = data.fields || {};
+    const summary  = data.summary || {};
+    const pages    = data.pages_read || '?';
+    const keys     = Object.keys(summary);
 
     if (!keys.length) {
-      _setStatus(type, '<i class="fas fa-exclamation-triangle"></i> No figures found — ensure the PDF has selectable text, not a scan.', 'warn');
-      _setLabel(type, 'No data found');
+      _setUnifiedStatus('<i class="fas fa-exclamation-triangle"></i> No figures found — the PDF may be a scanned image. Use a text-based PDF.', 'warn');
+      document.getElementById('pdf-label-unified').innerHTML = 'No data found — try another PDF';
       return;
     }
 
-    /* mini results table */
-    const tableEl = document.getElementById('pdf-table-' + type);
-    tableEl.innerHTML = keys.map(k => {
+    /* results table */
+    const bodyEl = document.getElementById('pdf-table-unified-body');
+    bodyEl.innerHTML = keys.map(k => {
       const val = summary[k];
       const fmt = typeof val === 'number' ? val.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) : val;
-      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #e5e7eb;font-size:.78rem">
+      return `<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #f1f5f9;font-size:.78rem">
         <span style="color:#6b7280;font-weight:600">${k}</span>
         <span style="color:#111827;font-weight:800">${fmt}</span>
       </div>`;
     }).join('');
-    tableEl.style.display = 'block';
+    document.getElementById('pdf-table-unified').style.display = 'block';
 
-    const fieldCount = Object.keys(_pdfStore[type]).length;
-    _setStatus(type, `<i class="fas fa-check-circle"></i> ${keys.length} metric(s) from ${pages} page(s). ${fieldCount} field(s) ready.`, 'ok');
-    _setLabel(type, `<i class="fas fa-check-circle" style="color:#10b981"></i> ${file.name.substring(0,22)}${file.name.length>22?'…':''}`);
+    const fieldCount = Object.keys(_pdfAutoFields).length;
+    const fname = file.name.length > 28 ? file.name.substring(0,28) + '…' : file.name;
+    _setUnifiedStatus(
+      `<i class="fas fa-check-circle"></i> <strong>${keys.length} metrics</strong> extracted from ${pages} page(s) — ${fieldCount} calculator field(s) ready.  <em style="font-weight:500;color:#374151">${fname}</em>`,
+      'ok');
+    document.getElementById('pdf-label-unified').innerHTML =
+      `<i class="fas fa-check-circle" style="color:#10b981"></i> ${fname}`;
 
     _refreshActionRow();
   } catch (err) {
-    _setStatus(type, '<i class="fas fa-times-circle"></i> Network error: ' + err.message, 'error');
-    _setLabel(type, 'Error — retry');
+    _setUnifiedStatus('<i class="fas fa-times-circle"></i> Network error: ' + err.message, 'error');
+    document.getElementById('pdf-label-unified').innerHTML = 'Error — retry';
   }
+}
+
+/* Legacy stubs — keep for any lingering references */
+function handleDrop(e, type) {
+  e.preventDefault();
+  const file = e.dataTransfer.files[0];
+  if (file) _processPdfUnified(file);
+}
+function handleSelect(input, type) {
+  if (input.files[0]) _processPdfUnified(input.files[0]);
 }
 
 /* Which model tab's fields to populate from PDF extraction */
@@ -1139,51 +1090,43 @@ function setPdfModel(model) {
 }
 
 function _refreshActionRow() {
-  const total = Object.values(_pdfStore).reduce((s, m) => s + Object.keys(m).length, 0);
+  const total = Object.keys(_pdfAutoFields).length;
   const row = document.getElementById('pdf-action-row');
   if (total === 0) { row.style.display = 'none'; return; }
   row.style.display = 'block';
-  const loaded = Object.entries(_pdfStore).filter(([,m])=>Object.keys(m).length>0).map(([t])=>t);
-  document.getElementById('pdf-action-summary').textContent =
-    loaded.map(t => ({ income:'Income Statement', balance:'Balance Sheet', cashflow:'Cash Flow' }[t])).join(' + ')
-    + ` — ${total} field(s) ready`;
+  document.getElementById('pdf-action-summary').textContent = `${total} field(s) ready to populate`;
 }
 
 function applyAllPdfFields() {
   const prefixes = _PDF_MODEL_PREFIXES[_pdfModelFilter] || null;
   let applied = 0;
-  for (const fields of Object.values(_pdfStore)) {
-    for (const [id, val] of Object.entries(fields)) {
-      if (prefixes && !prefixes.some(p => id.startsWith(p))) continue;
-      const el = document.getElementById(id);
-      if (el && val != null) {
-        el.value = val;
-        el.dispatchEvent(new Event('input'));
-        applied++;
-      }
+  for (const [id, val] of Object.entries(_pdfAutoFields)) {
+    if (prefixes && !prefixes.some(p => id.startsWith(p))) continue;
+    const el = document.getElementById(id);
+    if (el && val != null) {
+      el.value = val;
+      el.dispatchEvent(new Event('input'));
+      applied++;
     }
   }
   const summaryEl = document.getElementById('pdf-action-summary');
   const modelName = { all:'All Models', equity:'Equity', corp:'Corp Finance', fi:'Fixed Income' }[_pdfModelFilter] || 'All';
   if (applied === 0) {
-    summaryEl.innerHTML = `<span style="color:#b91c1c"><i class="fas fa-exclamation-triangle"></i> No ${modelName} fields matched — try "All Models" or upload more statements.</span>`;
+    summaryEl.innerHTML = `<span style="color:#b91c1c"><i class="fas fa-exclamation-triangle"></i> No ${modelName} fields matched — try "All Models".</span>`;
   } else {
     summaryEl.innerHTML = `<i class="fas fa-check-circle" style="color:#10b981"></i> ${applied} ${modelName} field(s) populated — review values then click Calculate.`;
   }
 }
 
 function clearAllPdf() {
-  ['income','balance','cashflow'].forEach(type => {
-    _pdfStore[type] = {};
-    const inp = document.getElementById('pdf-input-' + type);
-    if (inp) inp.value = '';
-    _setStatus(type, '', 'ok');
-    const st = document.getElementById('pdf-status-' + type);
-    if (st) st.style.display = 'none';
-    const tbl = document.getElementById('pdf-table-' + type);
-    if (tbl) { tbl.innerHTML = ''; tbl.style.display = 'none'; }
-    _setLabel(type, 'Drop PDF or click');
-  });
+  _pdfAutoFields = {};
+  const inp = document.getElementById('pdf-input-unified');
+  if (inp) inp.value = '';
+  const st = document.getElementById('pdf-status-unified');
+  if (st) st.style.display = 'none';
+  const tbl = document.getElementById('pdf-table-unified');
+  if (tbl) tbl.style.display = 'none';
+  document.getElementById('pdf-label-unified').innerHTML = 'Drop Financial Statement PDF here';
   document.getElementById('pdf-action-row').style.display = 'none';
 }
 

@@ -2266,7 +2266,8 @@ def valuation():
 # ── PDF Financial Statement Extraction ────────────────────────────────
 
 _NUM_PAT = re.compile(
-    r'\(?([\d]{1,3}(?:[,\s][\d]{3})*(?:\.\d+)?)\)?'
+    r'\([\d]{1,3}(?:,[\d]{3})*(?:\.\d+)?\)'    # parenthetical negative: (1,234)
+    r'|[\d]{1,3}(?:,[\d]{3})*(?:\.\d+)?'         # plain number: 1,234
 )
 
 def _parse_num(s):
@@ -2301,8 +2302,9 @@ def _detect_scale(text):
     # Billions expressed
     if re.search(r"in\s+billions?|GHS?\s*bn\b", t, re.I):
         return 1_000_000.0
-    # Heuristic: if many 9+ digit numbers appear, likely full units (cedis) → ÷1000
-    large = re.findall(r'\b\d[\d,]{8,}\b', text[:6000])
+    # Heuristic: if many 13+ char numbers appear (4+ comma groups = billions+),
+    # values are likely in full cedis rather than thousands → ÷1000
+    large = re.findall(r'\b\d{1,3}(?:,\d{3}){3,}\b', text[:6000])
     if len(large) >= 3:
         return 0.001
     return 1.0
@@ -2310,39 +2312,82 @@ def _detect_scale(text):
 
 def _find_val(text, *label_pats, require_positive=True):
     """
-    Scan lines for a label match, extract the first (current-year) numeric
-    token appearing after the label on the same line, or on the next 1-2
-    non-empty lines (handles columnar table layouts).
-    Parenthetical negatives such as (1,234) are parsed as negative numbers.
+    Scan lines for a label match and extract the first (current-year) numeric
+    value.  Handles:
+      • Same-line values                          (standard layout)
+      • Next-line values                          (columnar / wrapped labels)
+      • Prior-line standalone numeric values      (Access-Bank style: current-year
+        column printed one line ABOVE the label+note+prior-year row)
+      • Note-reference integers (e.g. "7", "27") skipped when larger or decimal
+        values are present on the same candidates list
+      • Parenthetical negatives                   (1,234) → -1,234
     """
     lines = text.split('\n')
+
+    def _is_note_ref(v, peers):
+        """True when v looks like a note-reference integer (0 < v < 100, no decimal)."""
+        if not (0 < v < 100 and v == round(v)):
+            return False
+        others = [x for x in peers if x != v]
+        return any(abs(x) >= 100 for x in others) or any(x != round(x) for x in others)
+
+    def _pick(candidates):
+        vals = [_parse_num(c) for c in candidates]
+        vals = [v for v in vals if v is not None]
+        for v in vals:
+            if _is_note_ref(v, vals):
+                continue
+            if not require_positive or v > 0:
+                return v
+        return None
+
     for i, line in enumerate(lines):
         for pat in label_pats:
             if not re.search(pat, line, re.IGNORECASE):
                 continue
-            # Strip the label part to avoid matching numbers inside label text
-            rest = re.sub(pat, '', line, flags=re.IGNORECASE, count=1)
-            # Also strip common leading noise (dashes, dots, whitespace)
+
+            # 1. Same-line candidates (text AFTER the matched label only)
+            m = re.search(pat, line, re.IGNORECASE)
+            rest = line[m.end():]
             rest = re.sub(r'^[\s\-–—\.]+', '', rest)
-            candidates = _NUM_PAT.findall(rest)
-            for c in candidates:
-                v = _parse_num(c)
-                if v is not None and (not require_positive or v > 0):
-                    return v
-            # Look at the next 1-3 non-blank lines (columnar layout)
-            for j in range(i + 1, min(i + 4, len(lines))):
-                next_line = lines[j].strip()
-                if not next_line:
-                    continue
-                # Stop if next non-blank line looks like another label (no digits)
-                if not re.search(r'\d', next_line):
-                    break
-                candidates = _NUM_PAT.findall(next_line)
-                for c in candidates:
-                    v = _parse_num(c)
-                    if v is not None and (not require_positive or v > 0):
+            same_cands = _NUM_PAT.findall(rest)
+
+            # Skip comparison-table rows (3+ cols + %) and narrative sentences
+            # (values stated in millions/billions mid-sentence, e.g. "GHS 92.98 million").
+            if (len(same_cands) >= 3 and '%' in rest) or re.search(r'\b(?:million|billion|bn)\b', rest, re.I):
+                continue
+
+            # 2. Prior pure-numeric line (Access-Bank style: current-year value
+            #    printed one row ABOVE the label+note+prior-year row).
+            #    Only used when the same-line candidates contain a note reference
+            #    (small integer like "7" or "14"), signalling a layout where the
+            #    first data column was printed above the label row.
+            same_vals = [_parse_num(c) for c in same_cands]
+            same_vals = [v for v in same_vals if v is not None]
+            has_note_ref = any(_is_note_ref(v, same_vals) for v in same_vals)
+
+            if has_note_ref and i > 0:
+                prev = lines[i - 1].strip()
+                if prev and not re.search(r'[a-zA-Z]', prev):
+                    v = _pick(_NUM_PAT.findall(prev))
+                    if v is not None:
                         return v
-                break   # only look one non-blank line ahead
+
+            v = _pick(same_cands)
+            if v is not None:
+                return v
+
+            # 3. Next 1-3 non-blank lines (columnar / multi-line labels)
+            for j in range(i + 1, min(i + 4, len(lines))):
+                nxt = lines[j].strip()
+                if not nxt:
+                    continue
+                if not re.search(r'\d', nxt):
+                    break
+                v = _pick(_NUM_PAT.findall(nxt))
+                if v is not None:
+                    return v
+                break
     return None
 
 
@@ -2354,26 +2399,40 @@ def _extract_income_statement(text, scale):
 
     revenue   = s(_find_val(text,
         r'\btotal\s+revenue\b', r'\bnet\s+revenue\b', r'\bnet\s+sales?\b',
-        r'\bturnover\b', r'^revenue\b'))
+        r'\bturnover\b',
+        r'\bnet\s+operating\s+income\b', r'\btotal\s+operating\s+income\b',
+        r'\brevenue\s+from\s+(?:contract|sale)\b',
+        r'^\s*revenue\b'))
     ebitda    = s(_find_val(text, r'\bebitda\b'))
     ebit      = s(_find_val(text,
-        r'\bebit\b', r'\boperating\s+profit\b', r'\boperating\s+income\b',
-        r'\bprofit\s+from\s+operations?\b', r'\bprofit\s+before\s+(finance|interest|tax)\b'))
+        r'\bebit\b',
+        r'\boperating\s+profit\b',
+        r'\bprofit\s+from\s+operations?\b',
+        r'\bprofit\s+before\s+(?:finance\s+(?:costs?|income)|interest|(?:income\s+)?tax)\b'))
     net_inc   = s(_find_val(text,
         r'\bnet\s+(?:income|profit)\b',
         r'\bprofit\s+(?:for|after)\s+(?:the\s+)?(?:year|period)\b',
         r'\bprofit\s+attributable\s+to\s+(?:owners?|shareholders?|equity)\b',
-        r'\bprofit\s+for\s+the\s+(?:year|period)\b'))
-    da        = s(_find_val(text,
+        r'\bprofit\s+for\s+the\s+(?:year|period)\b',
+        r'\bprofit\s+for\s+the\s+period\s+and\s+total\b'))
+    _da_raw   = _find_val(text,
         r'\bdepreciation\s+(?:and|&)\s+amortis?ation\b',
         r'\bdepreciation\s+and\s+impairment\b',
-        r'\bamortisation\s+(?:and|of)\b'))
-    interest  = s(_find_val(text,
+        r'\bdepreciation\s+of\s+property\b',
+        r'\bamortisation\s+(?:and|of)\b',
+        require_positive=False)
+    da        = s(abs(_da_raw) if _da_raw is not None else None)
+    _int_raw  = _find_val(text,
         r'\bfinance\s+costs?\b', r'\binterest\s+expense\b',
-        r'\binterest\s+(?:and\s+)?finance\s+charges?\b'))
-    tax_exp   = s(_find_val(text,
+        r'\binterest\s+(?:and\s+)?finance\s+charges?\b',
+        r'\binterest\s+expense\s+on\s+borrowings\b',
+        require_positive=False)
+    interest  = s(abs(_int_raw) if _int_raw is not None else None)
+    _tax_raw  = _find_val(text,
         r'\bincome\s+tax\s+expense\b', r'\btaxation\b',
-        r'\bcorporate\s+tax\b'))
+        r'\bcorporate\s+tax\b',
+        require_positive=False)
+    tax_exp   = s(abs(_tax_raw) if _tax_raw is not None else None)
     tax_rate  = _find_val(text,
         r'\beffective\s+tax\s+rate\b',
         r'\btax\s+rate\b', require_positive=False)
@@ -2382,7 +2441,8 @@ def _extract_income_statement(text, scale):
         tax_rate = round(tax_exp / ebit * 100, 1)
     eps = _find_val(text,
         r'\b(?:basic\s+)?earnings\s+per\s+share\b',
-        r'\beps\b', r'\bearnings\s+per\s+ordinary\s+share\b')
+        r'\beps\b', r'\bearnings\s+per\s+ordinary\s+share\b',
+        r'^\s*basic\b')
     dps = _find_val(text,
         r'\bdividend(?:s)?\s+per\s+share\b',
         r'\bdps\b', r'\bdividend\s+declared\s+per\s+share\b')
@@ -2426,14 +2486,17 @@ def _extract_balance_sheet(text, scale):
     total_debt = s(_find_val(text,
         r'\btotal\s+borrowings?\b',
         r'\btotal\s+(?:financial\s+)?debt\b',
-        r'\btotal\s+interest[- ]bearing\s+liabilities?\b'))
+        r'\btotal\s+interest[- ]bearing\s+liabilities?\b',
+        r'^\s*borrowings?\b'))
     if total_debt is None and (st_debt or lt_debt):
         total_debt = round((st_debt or 0) + (lt_debt or 0), 2)
     equity    = s(_find_val(text,
-        r'\btotal\s+(?:shareholders?|stockholders?)[\'s]*\s+equity\b',
+        r'\btotal\s+(?:shareholders?|stockholders?)[^\w\s]*s?\s+equity\b',
         r'\btotal\s+equity\b',
-        r'\bshareholders?[\'s]*\s+funds?\b',
-        r'\bequity\s+attributable\s+to\s+(?:owners?|equity\s+holders?)\b'))
+        r'\bshareholders?[^\w\s]*s?\s+funds?\b',
+        r'\bequity\s+attributable\s+to\s+(?:owners?|equity\s+holders?)\b',
+        r'^\s*equity\b(?=.*\d)',
+        require_positive=False))
     shares    = _find_val(text,
         r'\bshares?\s+(?:outstanding|in\s+issue)\b',
         r'\bnumber\s+of\s+(?:issued|outstanding)\s+(?:ordinary\s+)?shares?\b',
@@ -2442,7 +2505,7 @@ def _extract_balance_sheet(text, scale):
         r'\bbook\s+value\s+per\s+share\b',
         r'\bnet\s+asset\s+value\s+per\s+share\b',
         r'\bnav\s+per\s+share\b')
-    total_assets = s(_find_val(text, r'\btotal\s+assets?\b'))
+    total_assets = s(_find_val(text, r'\btotal\s+assets?\b(?!\s+per\b)'))
 
     net_debt = None
     if total_debt is not None and cash is not None:
@@ -2472,14 +2535,20 @@ def _extract_cash_flow(text, scale):
         return round(v * scale, 2) if v is not None else None
 
     ocf = s(_find_val(text,
-        r'\bnet\s+cash\s+(?:from|generated\s+(?:from|by))\s+operating\s+activities?\b',
+        r'\bnet\s+cash\s+flows?\s+generated\s+from\s+operating\s+activities?\b',
+        r'\bnet\s+cash\s+flows?\s+from\s+operating\s+activities?\b',
+        r'\bnet\s+cash\s+(?:flows?\s+)?(?:generated\s+(?:from|by)|used(?:/generated)?\s+in|used\s+in|from)\s+operating\s+activities?\b',
+        r'\bnet\s+cash\s?flows?\s+used\s+in\s+operating\s+activities?\b',
         r'\bcash\s+(?:flows?\s+)?from\s+operations?\b',
-        r'\boperating\s+cash\s+(?:flow|inflow)\b'))
-    capex = s(_find_val(text,
+        r'\boperating\s+cash\s+(?:flow|inflow)\b',
+        require_positive=False))
+    _capex_raw = _find_val(text,
         r'\bpurchase\s+of\s+(?:property|fixed\s+assets?|ppe|plant\s+and\s+equipment)\b',
-        r'\bacquisition\s+of\s+(?:property|fixed\s+assets?|ppe)\b',
+        r'\bacquisition\s+of\s+(?:property(?:\s+and\s+equipment)?|fixed\s+assets?|ppe)\b',
         r'\bcapital\s+expenditure(?:s)?\b',
-        r'\bcapex\b'))
+        r'\bcapex\b',
+        require_positive=False)
+    capex = s(abs(_capex_raw) if _capex_raw is not None else None)
     fcf_direct = s(_find_val(text, r'\bfree\s+cash\s+flow\b'))
     fcf = fcf_direct
     if fcf is None and ocf is not None and capex is not None:
@@ -2490,10 +2559,13 @@ def _extract_cash_flow(text, scale):
     proceeds = s(_find_val(text,
         r'\bproceeds\s+from\s+(?:disposal|sale)\s+of\s+(?:property|fixed\s+assets?|ppe)\b'))
     financing_cf = s(_find_val(text,
+        r'\bnet\s+cash\s?flows?\s+(?:generated\s+from|used\s+in|from)\s+financing\s+activities?\b',
+        r'\bnet\s+cash\s+flow\s+(?:\(used\)\s+or\s+)?from\s+financing\s+activities?\b',
         r'\bnet\s+cash\s+(?:used\s+in|from)\s+financing\s+activities?\b',
         require_positive=False))
     investing_cf = s(_find_val(text,
-        r'\bnet\s+cash\s+used\s+in\s+investing\s+activities?\b',
+        r'\bnet\s+cash\s?flows?\s+(?:from\s+)?(?:used\s+in\s+)?investing\s+activities?\b',
+        r'\bnet\s+cash\s+(?:flows?\s+from\s+)?used\s+in\s+investing\s+activities?\b',
         r'\bnet\s+cash\s+(?:from|used\s+in)\s+investing\s+activities?\b',
         require_positive=False))
 
@@ -2602,7 +2674,7 @@ def _pdf_to_text(raw_bytes):
     import pdfplumber
     parts = []
     with pdfplumber.open(io.BytesIO(raw_bytes)) as pdf:
-        for page in pdf.pages[:35]:
+        for page in pdf.pages[:100]:
             t = page.extract_text()
             if t:
                 parts.append(t)
