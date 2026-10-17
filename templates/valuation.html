@@ -1,11 +1,14 @@
 ﻿{% extends "base.html" %}
 
 {% block title %}CFA Valuation Suite{% endblock %}
-{% block page_title %}CFA Valuation Suite{% endblock %}
-{% block page_subtitle %}Eight professional valuation models — Equity · Corporate Finance · Derivatives · Fixed Income · Pension/ALM · Private Capital · Real Assets · Financial Institutions{% endblock %}
+{% block hero %}{% endblock %}
 
 {% block head %}
 <style>
+/* collapse header bottom padding now that the hero block is empty */
+header.gradient-bg { padding-bottom: 0 !important; }
+main { padding-top: 12px !important; }
+
 :root {
   --vt-indigo: #4f46e5;
   --vt-indigo-light: #6366f1;
