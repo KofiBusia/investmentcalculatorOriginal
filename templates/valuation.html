@@ -446,6 +446,74 @@ main > div[style*="margin-bottom: 20px"] {
     </div>
   </div><!-- /pa-section -->
 
+  <!-- ── Global Assumptions ──────────────────────────────── -->
+  <div id="global-assumptions" style="background:#fff;border-radius:18px;box-shadow:0 4px 24px rgba(79,70,229,.08);border:1px solid #e8ecff;margin-bottom:24px;overflow:hidden">
+    <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:14px 24px;background:linear-gradient(135deg,#eef2ff,#e0e7ff)" onclick="toggleGlobalPanel()">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="width:34px;height:34px;background:linear-gradient(135deg,#4f46e5,#7c3aed);border-radius:10px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:.85rem;box-shadow:0 4px 12px rgba(79,70,229,.3)"><i class="fas fa-sliders-h"></i></div>
+        <div>
+          <div style="font-size:.92rem;font-weight:800;color:#1e1b4b">Global Assumptions</div>
+          <div style="font-size:.72rem;color:#6366f1">Enter once — auto-fills WACC, growth, price, tax across all models</div>
+        </div>
+      </div>
+      <i class="fas fa-chevron-down" id="global-chevron" style="color:#4f46e5;transition:transform .25s;font-size:.9rem"></i>
+    </div>
+    <div id="global-panel" style="display:none;padding:16px 24px 20px;border-top:1px solid #e0e7ff">
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px">
+
+        <div class="inp-group">
+          <label style="font-size:.78rem;font-weight:700;color:#4f46e5"><i class="fas fa-percentage" style="margin-right:4px"></i>WACC (%)</label>
+          <input type="number" id="global_wacc" placeholder="e.g. 24" step="0.1"
+            style="width:100%;padding:8px 10px;border:1.5px solid #c7d2fe;border-radius:9px;font-size:.88rem;font-weight:700;outline:none"
+            oninput="syncGlobal('global_wacc',this.value)"
+            title="Weighted Average Cost of Capital — pushed to FCFF DCF and EVA models">
+        </div>
+
+        <div class="inp-group">
+          <label style="font-size:.78rem;font-weight:700;color:#4f46e5"><i class="fas fa-infinity" style="margin-right:4px"></i>Terminal Growth (%)</label>
+          <input type="number" id="global_tg" placeholder="e.g. 6" step="0.1"
+            style="width:100%;padding:8px 10px;border:1.5px solid #c7d2fe;border-radius:9px;font-size:.88rem;font-weight:700;outline:none"
+            oninput="syncGlobal('global_tg',this.value)"
+            title="Perpetual terminal growth rate — pushed to FCFF DCF and EVA terminal values">
+        </div>
+
+        <div class="inp-group">
+          <label style="font-size:.78rem;font-weight:700;color:#4f46e5"><i class="fas fa-hand-holding-usd" style="margin-right:4px"></i>Cost of Equity Ke (%)</label>
+          <input type="number" id="global_ke" placeholder="e.g. 22" step="0.1"
+            style="width:100%;padding:8px 10px;border:1.5px solid #c7d2fe;border-radius:9px;font-size:.88rem;font-weight:700;outline:none"
+            oninput="syncGlobal('global_ke',this.value)"
+            title="Required return on equity — pushed to DDM and Residual Income Model">
+        </div>
+
+        <div class="inp-group">
+          <label style="font-size:.78rem;font-weight:700;color:#4f46e5"><i class="fas fa-tag" style="margin-right:4px"></i>Current Share Price</label>
+          <input type="number" id="global_price" placeholder="e.g. 1.80" step="0.01"
+            style="width:100%;padding:8px 10px;border:1.5px solid #c7d2fe;border-radius:9px;font-size:.88rem;font-weight:700;outline:none"
+            oninput="syncGlobal('global_price',this.value)"
+            title="Live market price per share — pushed to FCFF DCF, DDM and RIM for upside/downside calculation">
+        </div>
+
+        <div class="inp-group">
+          <label style="font-size:.78rem;font-weight:700;color:#4f46e5"><i class="fas fa-minus-circle" style="margin-right:4px"></i>Net Debt (000)</label>
+          <input type="number" id="global_nd" placeholder="e.g. 47200" step="1"
+            style="width:100%;padding:8px 10px;border:1.5px solid #c7d2fe;border-radius:9px;font-size:.88rem;font-weight:700;outline:none"
+            oninput="syncGlobal('global_nd',this.value)"
+            title="Net Debt (total debt − cash) — pushed to FCFF DCF and EVA">
+        </div>
+
+        <div class="inp-group">
+          <label style="font-size:.78rem;font-weight:700;color:#4f46e5"><i class="fas fa-receipt" style="margin-right:4px"></i>Tax Rate (%)</label>
+          <input type="number" id="global_tax" placeholder="e.g. 25" step="0.1"
+            style="width:100%;padding:8px 10px;border:1.5px solid #c7d2fe;border-radius:9px;font-size:.88rem;font-weight:700;outline:none"
+            oninput="syncGlobal('global_tax',this.value)"
+            title="Corporate tax rate — pushed to Capital Budgeting, M&A and LBO models">
+        </div>
+
+      </div>
+      <div style="margin-top:10px;font-size:.72rem;color:#94a3b8"><i class="fas fa-info-circle"></i> Values push to all relevant models instantly. Individual model fields can still be fine-tuned.</div>
+    </div>
+  </div><!-- /global-assumptions -->
+
   <!-- Tab bar -->
   <div class="vt-tabs" role="tablist">
     <button class="vt-tab active" data-panel="equity" onclick="switchTab(this)">
@@ -490,11 +558,11 @@ main > div[style*="margin-bottom: 20px"] {
       <div class="inp-grid">
         <div class="inp-group"><label>FCFF Year 1 (000)</label><input type="number" id="eq_fcff1" value="" title="Year 1 Free Cash Flow to the Firm — enter in thousands (e.g. 12,369 = GHS 12.4m)" placeholder="0" oninput="calcEquityDCF()"></div>
         <div class="inp-group"><label>FCFF Growth Y1–5 (%)</label><input type="number" id="eq_gstage1" value="" title="Expected annual FCFF growth rate during the explicit 5-year forecast period (e.g. 16 = 16%)" placeholder="0" oninput="calcEquityDCF()"></div>
-        <div class="inp-group"><label>Terminal Growth (%)</label><input type="number" id="eq_gterm" value="" title="Perpetual growth rate after Year 5 — should be ≤ nominal GDP growth (e.g. 6 = 6%)" placeholder="0" oninput="calcEquityDCF()"></div>
-        <div class="inp-group"><label>WACC (%)</label><input type="number" id="eq_wacc" value="" title="Weighted Average Cost of Capital — blended required return on debt + equity (e.g. 24 = 24%)" placeholder="0" oninput="calcEquityDCF()"></div>
-        <div class="inp-group"><label>Net Debt (000)</label><input type="number" id="eq_netdebt" value="" title="Total financial debt minus cash and equivalents — enter in thousands (e.g. 47200)" placeholder="0" oninput="calcEquityDCF()"></div>
+        <div class="inp-group"><label>Terminal Growth (%)</label><input type="number" id="eq_gterm" value="" title="Perpetual growth rate after Year 5 — should be ≤ nominal GDP growth (e.g. 6 = 6%)" placeholder="0" oninput="reverseGlobal('eq_gterm',this.value);calcEquityDCF()"></div>
+        <div class="inp-group"><label>WACC (%)</label><input type="number" id="eq_wacc" value="" title="Weighted Average Cost of Capital — blended required return on debt + equity (e.g. 24 = 24%)" placeholder="0" oninput="reverseGlobal('eq_wacc',this.value);calcEquityDCF()"></div>
+        <div class="inp-group"><label>Net Debt (000)</label><input type="number" id="eq_netdebt" value="" title="Total financial debt minus cash and equivalents — enter in thousands (e.g. 47200)" placeholder="0" oninput="reverseGlobal('eq_netdebt',this.value);calcEquityDCF()"></div>
         <div class="inp-group"><label>Shares Outstanding (000)</label><input type="number" id="eq_shares" value="" title="Total shares outstanding — enter in thousands (e.g. 27000 = 27 million shares)" placeholder="0" oninput="syncShares('eq_shares',this.value);calcEquityDCF()"></div>
-        <div class="inp-group"><label>Current Share Price</label><input type="number" id="eq_price" value="" title="Current market price per share (e.g. 5.00 GHS)" placeholder="0" oninput="calcEquityDCF()"></div>
+        <div class="inp-group"><label>Current Share Price</label><input type="number" id="eq_price" value="" title="Current market price per share (e.g. 5.00 GHS)" placeholder="0" oninput="reverseGlobal('eq_price',this.value);calcEquityDCF()"></div>
       </div>
       <div id="eq_dcf_res" class="res-grid"></div>
       <div id="eq_dcf_verdict" class="verdict neutral" style="margin-top:12px"></div>
@@ -509,9 +577,9 @@ main > div[style*="margin-bottom: 20px"] {
         <div class="inp-group"><label>D0 — Last Dividend Paid</label><input type="number" id="ddm_d0" value="" title="Most recently paid annual dividend per share (D0)" placeholder="0" step="0.01" oninput="calcDDM()"></div>
         <div class="inp-group"><label>Short-run Growth gS (%)</label><input type="number" id="ddm_gs" value="" title="Short-run dividend growth rate during the high-growth phase (e.g. 18 = 18%)" placeholder="0" oninput="calcDDM()"></div>
         <div class="inp-group"><label>Long-run Growth gL (%)</label><input type="number" id="ddm_gl" value="" title="Long-run (terminal) dividend growth rate — sustainable perpetual rate (e.g. 6 = 6%)" placeholder="0" oninput="calcDDM()"></div>
-        <div class="inp-group"><label>Required Return Ke (%)</label><input type="number" id="ddm_ke" value="" title="Required return on equity (cost of equity) from CAPM or other model (e.g. 24 = 24%)" placeholder="0" oninput="calcDDM()"></div>
+        <div class="inp-group"><label>Required Return Ke (%)</label><input type="number" id="ddm_ke" value="" title="Required return on equity (cost of equity) from CAPM or other model (e.g. 24 = 24%)" placeholder="0" oninput="reverseGlobal('ddm_ke',this.value);calcDDM()"></div>
         <div class="inp-group"><label>High-growth period H (yrs)</label><input type="number" id="ddm_h" value="" title="Number of years in the high-growth phase for H-model (e.g. 5 years)" placeholder="0" oninput="calcDDM()"></div>
-        <div class="inp-group"><label>Current Price</label><input type="number" id="ddm_price" value="" title="Current market price per share to compare with intrinsic value" placeholder="0" step="0.01" oninput="calcDDM()"></div>
+        <div class="inp-group"><label>Current Price</label><input type="number" id="ddm_price" value="" title="Current market price per share to compare with intrinsic value" placeholder="0" step="0.01" oninput="reverseGlobal('ddm_price',this.value);calcDDM()"></div>
       </div>
       <div id="ddm_res" class="res-grid"></div>
       <div id="ddm_verdict" class="verdict neutral" style="margin-top:12px"></div>
@@ -524,9 +592,9 @@ main > div[style*="margin-bottom: 20px"] {
       <div class="inp-grid">
         <div class="inp-group"><label>Book Value Per Share (B0)</label><input type="number" id="rim_bv" value="" title="Book value per share (shareholders equity ÷ shares outstanding)" placeholder="0" step="0.01" oninput="calcRIM()"></div>
         <div class="inp-group"><label>ROE (%)</label><input type="number" id="rim_roe" value="" title="Return on Equity — net income ÷ book value (e.g. 31 = 31%)" placeholder="0" oninput="calcRIM()"></div>
-        <div class="inp-group"><label>Cost of Equity Ke (%)</label><input type="number" id="rim_ke" value="" title="Required return on equity (cost of equity) — e.g. 24 = 24%" placeholder="0" oninput="calcRIM()"></div>
+        <div class="inp-group"><label>Cost of Equity Ke (%)</label><input type="number" id="rim_ke" value="" title="Required return on equity (cost of equity) — e.g. 24 = 24%" placeholder="0" oninput="reverseGlobal('rim_ke',this.value);calcRIM()"></div>
         <div class="inp-group"><label>Growth g (%)</label><input type="number" id="rim_g" value="" title="Perpetual growth rate in residual income (e.g. 6 = 6%)" placeholder="0" oninput="calcRIM()"></div>
-        <div class="inp-group"><label>Current Share Price</label><input type="number" id="rim_price" value="" title="Current market price per share for valuation comparison" placeholder="0" step="0.01" oninput="calcRIM()"></div>
+        <div class="inp-group"><label>Current Share Price</label><input type="number" id="rim_price" value="" title="Current market price per share for valuation comparison" placeholder="0" step="0.01" oninput="reverseGlobal('rim_price',this.value);calcRIM()"></div>
       </div>
       <div id="rim_res" class="res-grid"></div>
       <div id="rim_verdict" class="verdict neutral" style="margin-top:12px"></div>
@@ -573,7 +641,7 @@ main > div[style*="margin-bottom: 20px"] {
         <div class="inp-group"><label>Variable Costs (% Rev)</label><input type="number" id="cb_vc" value="" placeholder="0" oninput="calcCapBudget()"></div>
         <div class="inp-group"><label>Year-1 Fixed Costs (000)</label><input type="number" id="cb_fc" value="" placeholder="0" oninput="calcCapBudget()"></div>
         <div class="inp-group"><label>Discount Rate (%)</label><input type="number" id="cb_r" value="" placeholder="0" oninput="calcCapBudget()"></div>
-        <div class="inp-group"><label>Tax Rate (%)</label><input type="number" id="cb_tax" value="" placeholder="0" oninput="calcCapBudget()"></div>
+        <div class="inp-group"><label>Tax Rate (%)</label><input type="number" id="cb_tax" value="" placeholder="0" oninput="reverseGlobal('cb_tax',this.value);calcCapBudget()"></div>
         <div class="inp-group"><label>Salvage Value (000)</label><input type="number" id="cb_salv" value="" placeholder="0" oninput="calcCapBudget()"></div>
       </div>
       <div id="cb_res" class="res-grid"></div>
@@ -589,9 +657,9 @@ main > div[style*="margin-bottom: 20px"] {
         <div class="inp-group"><label>Invested Capital (000)</label><input type="number" id="eva_ic" value="" placeholder="0" oninput="calcEVA()"></div>
         <div class="inp-group"><label>NOPAT Year 1 (000)</label><input type="number" id="eva_nopat" value="" placeholder="0" oninput="calcEVA()"></div>
         <div class="inp-group"><label>NOPAT Growth (%)</label><input type="number" id="eva_g" value="" placeholder="0" oninput="calcEVA()"></div>
-        <div class="inp-group"><label>WACC (%)</label><input type="number" id="eva_wacc" value="" placeholder="0" oninput="calcEVA()"></div>
-        <div class="inp-group"><label>Terminal Growth (%)</label><input type="number" id="eva_tg" value="" placeholder="0" oninput="calcEVA()"></div>
-        <div class="inp-group"><label>Net Debt (000)</label><input type="number" id="eva_debt" value="" placeholder="0" oninput="calcEVA()"></div>
+        <div class="inp-group"><label>WACC (%)</label><input type="number" id="eva_wacc" value="" placeholder="0" oninput="reverseGlobal('eva_wacc',this.value);calcEVA()"></div>
+        <div class="inp-group"><label>Terminal Growth (%)</label><input type="number" id="eva_tg" value="" placeholder="0" oninput="reverseGlobal('eva_tg',this.value);calcEVA()"></div>
+        <div class="inp-group"><label>Net Debt (000)</label><input type="number" id="eva_debt" value="" placeholder="0" oninput="reverseGlobal('eva_debt',this.value);calcEVA()"></div>
         <div class="inp-group"><label>Shares Outstanding (000)</label><input type="number" id="eva_sh" value="" placeholder="0" oninput="syncShares('eva_sh',this.value);calcEVA()"></div>
       </div>
       <div id="eva_res" class="res-grid"></div>
@@ -612,7 +680,7 @@ main > div[style*="margin-bottom: 20px"] {
         <div class="inp-group"><label>Offer Premium (%)</label><input type="number" id="ma_prem" value="" placeholder="0" oninput="calcMA()"></div>
         <div class="inp-group"><label>Cash % of Consideration</label><input type="number" id="ma_cash" value="" placeholder="0" oninput="calcMA()"></div>
         <div class="inp-group"><label>Pre-tax Synergies (m)</label><input type="number" id="ma_syn" value="" placeholder="0" oninput="calcMA()"></div>
-        <div class="inp-group"><label>Tax Rate (%)</label><input type="number" id="ma_tax" value="" placeholder="0" oninput="calcMA()"></div>
+        <div class="inp-group"><label>Tax Rate (%)</label><input type="number" id="ma_tax" value="" placeholder="0" oninput="reverseGlobal('ma_tax',this.value);calcMA()"></div>
         <div class="inp-group"><label>Synergy Discount Rate (%)</label><input type="number" id="ma_synd" value="" placeholder="0" oninput="calcMA()"></div>
         <div class="inp-group"><label>Synergy Growth (%)</label><input type="number" id="ma_syng" value="" placeholder="0" oninput="calcMA()"></div>
       </div>
@@ -788,7 +856,7 @@ main > div[style*="margin-bottom: 20px"] {
         <div class="inp-group"><label>Senior Rate (%)</label><input type="number" id="lbo_sr" value="" placeholder="0" oninput="calcLBO()"></div>
         <div class="inp-group"><label>Mezz Cash Coupon (%)</label><input type="number" id="lbo_mr" value="" placeholder="0" oninput="calcLBO()"></div>
         <div class="inp-group"><label>EBITDA Growth pa (%)</label><input type="number" id="lbo_eg" value="" placeholder="0" oninput="calcLBO()"></div>
-        <div class="inp-group"><label>Tax Rate (%)</label><input type="number" id="lbo_tax" value="" placeholder="0" oninput="calcLBO()"></div>
+        <div class="inp-group"><label>Tax Rate (%)</label><input type="number" id="lbo_tax" value="" placeholder="0" oninput="reverseGlobal('lbo_tax',this.value);calcLBO()"></div>
       </div>
       <div id="lbo_res" class="res-grid"></div>
       <div id="lbo_verdict" class="verdict neutral" style="margin-top:12px"></div>
@@ -1575,6 +1643,54 @@ function syncShares(srcId, rawVal) {
   _paComputeAutoRows();
   if (document.getElementById('pa-results').style.display !== 'none') computePaResults();
   _syncingShares = false;
+}
+
+/* ── Global Assumptions panel toggle ── */
+function toggleGlobalPanel() {
+  const panel = document.getElementById('global-panel');
+  const chevron = document.getElementById('global-chevron');
+  const open = panel.style.display === 'none';
+  panel.style.display = open ? 'block' : 'none';
+  chevron.style.transform = open ? 'rotate(180deg)' : '';
+}
+
+/* ── Global Assumptions sync ── */
+const _GLOBAL_SYNC_MAP = {
+  global_wacc:  ['eq_wacc',  'eva_wacc'],
+  global_tg:    ['eq_gterm', 'eva_tg'],
+  global_ke:    ['ddm_ke',   'rim_ke'],
+  global_price: ['eq_price', 'ddm_price', 'rim_price'],
+  global_nd:    ['eq_netdebt','eva_debt'],
+  global_tax:   ['cb_tax',   'ma_tax',   'lbo_tax'],
+};
+let _syncingGlobal = false;
+function syncGlobal(globalId, rawVal) {
+  if (_syncingGlobal) return;
+  _syncingGlobal = true;
+  const val = parseFloat(rawVal);
+  const targets = _GLOBAL_SYNC_MAP[globalId] || [];
+  targets.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.value = isNaN(val) ? '' : rawVal;
+    el.dispatchEvent(new Event('input'));
+  });
+  _syncingGlobal = false;
+}
+
+/* ── Reverse sync: model field → global when global is blank ── */
+function reverseGlobal(targetId, rawVal) {
+  if (_syncingGlobal) return;
+  for (const [gid, targets] of Object.entries(_GLOBAL_SYNC_MAP)) {
+    if (!targets.includes(targetId)) continue;
+    const gel = document.getElementById(gid);
+    if (gel && (!gel.value || gel.value === '')) {
+      _syncingGlobal = true;
+      gel.value = rawVal;
+      _syncingGlobal = false;
+    }
+    break;
+  }
 }
 
 /* Tab switcher */
