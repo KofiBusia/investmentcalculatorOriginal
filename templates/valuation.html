@@ -391,14 +391,25 @@ main > div[style*="margin-bottom: 20px"] {
       </div><!-- /grid -->
 
       <!-- Combined action row (shown once at least one extract done) -->
-      <div id="pdf-action-row" style="display:none;background:#f8fafc;border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:12px;flex-wrap:wrap;border:1px solid #e2e8f0">
-        <div id="pdf-action-summary" style="flex:1;font-size:.82rem;color:#475569;font-weight:600"></div>
-        <button onclick="applyAllPdfFields()" style="background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;border:none;border-radius:10px;padding:10px 22px;font-size:.88rem;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(79,70,229,.3)">
-          <i class="fas fa-magic"></i> Populate All Calculator Fields
-        </button>
-        <button onclick="clearAllPdf()" style="background:#f1f5f9;color:#64748b;border:none;border-radius:10px;padding:10px 16px;font-size:.85rem;font-weight:600;cursor:pointer">
-          <i class="fas fa-times"></i> Clear All
-        </button>
+      <div id="pdf-action-row" style="display:none;background:#f8fafc;border-radius:12px;padding:14px 18px;border:1px solid #e2e8f0">
+        <div style="display:flex;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:10px">
+          <span style="font-size:.8rem;font-weight:700;color:#475569;white-space:nowrap">Apply to model:</span>
+          <div style="display:flex;gap:4px;flex-wrap:wrap" id="pdf-model-btns">
+            <button id="pmb-all"     onclick="setPdfModel('all')"    class="pmb" style="padding:6px 14px;border:2px solid #4f46e5;border-radius:8px;font-size:.78rem;font-weight:700;cursor:pointer;background:#4f46e5;color:#fff;transition:all .2s">All Models</button>
+            <button id="pmb-equity"  onclick="setPdfModel('equity')" class="pmb" style="padding:6px 14px;border:2px solid #e2e8f0;border-radius:8px;font-size:.78rem;font-weight:700;cursor:pointer;background:#fff;color:#374151;transition:all .2s">Equity</button>
+            <button id="pmb-corp"    onclick="setPdfModel('corp')"   class="pmb" style="padding:6px 14px;border:2px solid #e2e8f0;border-radius:8px;font-size:.78rem;font-weight:700;cursor:pointer;background:#fff;color:#374151;transition:all .2s">Corp Finance</button>
+            <button id="pmb-fi"      onclick="setPdfModel('fi')"     class="pmb" style="padding:6px 14px;border:2px solid #e2e8f0;border-radius:8px;font-size:.78rem;font-weight:700;cursor:pointer;background:#fff;color:#374151;transition:all .2s">Fixed Income</button>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+          <div id="pdf-action-summary" style="flex:1;font-size:.82rem;color:#475569;font-weight:600"></div>
+          <button onclick="applyAllPdfFields()" style="background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;border:none;border-radius:10px;padding:10px 22px;font-size:.88rem;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(79,70,229,.3)">
+            <i class="fas fa-magic"></i> Populate Calculator Fields
+          </button>
+          <button onclick="clearAllPdf()" style="background:#f1f5f9;color:#64748b;border:none;border-radius:10px;padding:10px 16px;font-size:.85rem;font-weight:600;cursor:pointer">
+            <i class="fas fa-times"></i> Clear All
+          </button>
+        </div>
       </div>
       <div style="font-size:.72rem;color:#94a3b8;margin-top:10px"><i class="fas fa-info-circle"></i> You can upload one, two or all three statements — figures are merged automatically. Always review populated values before running calculations.</div>
 
@@ -1080,21 +1091,43 @@ async function _processPdfForType(file, type) {
   }
 }
 
+/* Which model tab's fields to populate from PDF extraction */
+let _pdfModelFilter = 'all';
+
+const _PDF_MODEL_PREFIXES = {
+  equity: ['eq_', 'ddm_', 'rim_'],
+  corp:   ['cb_', 'eva_', 'ma_'],
+  fi:     ['bond_', 'dur_', 'fi_', 'oas_', 'cd_'],
+  all:    null,
+};
+
+function setPdfModel(model) {
+  _pdfModelFilter = model;
+  document.querySelectorAll('.pmb').forEach(b => {
+    const active = b.id === 'pmb-' + model;
+    b.style.background   = active ? '#4f46e5' : '#fff';
+    b.style.color        = active ? '#fff'    : '#374151';
+    b.style.borderColor  = active ? '#4f46e5' : '#e2e8f0';
+  });
+}
+
 function _refreshActionRow() {
   const total = Object.values(_pdfStore).reduce((s, m) => s + Object.keys(m).length, 0);
   const row = document.getElementById('pdf-action-row');
   if (total === 0) { row.style.display = 'none'; return; }
-  row.style.display = 'flex';
+  row.style.display = 'block';
   const loaded = Object.entries(_pdfStore).filter(([,m])=>Object.keys(m).length>0).map(([t])=>t);
   document.getElementById('pdf-action-summary').textContent =
     loaded.map(t => ({ income:'Income Statement', balance:'Balance Sheet', cashflow:'Cash Flow' }[t])).join(' + ')
-    + ` — ${total} field(s) ready to populate`;
+    + ` — ${total} field(s) ready`;
 }
 
 function applyAllPdfFields() {
+  const prefixes = _PDF_MODEL_PREFIXES[_pdfModelFilter] || null;
   let applied = 0;
   for (const fields of Object.values(_pdfStore)) {
     for (const [id, val] of Object.entries(fields)) {
+      if (prefixes && !prefixes.some(p => id.startsWith(p))) continue;
       const el = document.getElementById(id);
       if (el && val != null) {
         el.value = val;
@@ -1104,10 +1137,11 @@ function applyAllPdfFields() {
     }
   }
   const summaryEl = document.getElementById('pdf-action-summary');
+  const modelName = { all:'All Models', equity:'Equity', corp:'Corp Finance', fi:'Fixed Income' }[_pdfModelFilter] || 'All';
   if (applied === 0) {
-    summaryEl.textContent = 'No matching calculator fields found — upload statements first.';
+    summaryEl.innerHTML = `<span style="color:#b91c1c"><i class="fas fa-exclamation-triangle"></i> No ${modelName} fields matched — try "All Models" or upload more statements.</span>`;
   } else {
-    summaryEl.innerHTML = `<i class="fas fa-check-circle" style="color:#10b981"></i> ${applied} field(s) populated! Review values and click Calculate.`;
+    summaryEl.innerHTML = `<i class="fas fa-check-circle" style="color:#10b981"></i> ${applied} ${modelName} field(s) populated — review values then click Calculate.`;
   }
 }
 
@@ -1182,21 +1216,38 @@ function _paPeriodLabels() {
   return labels;
 }
 
+/* Metric definitions. auto=true rows are computed, not entered manually. */
 const _PA_METRICS = [
-  { id: 'revenue',  label: 'Revenue (000)',       unit: '000' },
-  { id: 'ebitda',   label: 'EBITDA (000)',         unit: '000' },
-  { id: 'netinc',   label: 'Net Income (000)',     unit: '000' },
-  { id: 'eps',      label: 'EPS',                  unit: ''    },
-  { id: 'fcf',      label: 'Free Cash Flow (000)', unit: '000' },
-  { id: 'bvps',     label: 'Book Value/Share',     unit: ''    },
+  { id: 'revenue', label: 'Revenue (000)',         auto: false,
+    tip: 'Total sales / turnover for the period. Enter in GHS thousands (e.g. 3,200 = GHS 3.2m).' },
+  { id: 'ebitda',  label: 'EBITDA (000)',           auto: false,
+    tip: 'Earnings Before Interest, Tax, Depreciation & Amortisation — in thousands. Take directly from income statement or calculate as Operating Profit + D&A.' },
+  { id: 'netinc',  label: 'Net Income (000)',       auto: false,
+    tip: 'Profit after tax attributable to equity holders — in thousands. Use the bottom-line figure from the income statement.' },
+  { id: 'eps',     label: 'EPS',                    auto: false,
+    tip: 'Earnings Per Share in GHS. Basic EPS from the income statement notes (e.g. 1.44 = GHS 1.44 per share).' },
+  { id: 'opcf',    label: 'Operating CF (000)',     auto: false,
+    tip: 'Net cash generated from operating activities — from the cash flow statement, in thousands.' },
+  { id: 'capex',   label: 'CapEx (000)',             auto: false,
+    tip: 'Capital Expenditure — purchase of property, plant & equipment. Enter as a positive number in thousands.' },
+  { id: 'fcf',     label: 'Free Cash Flow (000)',   auto: true,
+    tip: 'Auto-calculated: Operating Cash Flow minus Capital Expenditure. No entry needed.' },
+  { id: 'bvps',    label: 'Book Value / Share',     auto: false,
+    tip: 'Book value per share = Total equity divided by shares outstanding. Find in balance sheet notes.' },
 ];
+
+function _paGetVal(id, i) {
+  const el = document.getElementById(`pa_${id}_${i}`);
+  if (!el || el.value.trim() === '') return null;
+  const v = parseFloat(el.value);
+  return isNaN(v) ? null : v;
+}
 
 function _buildPaGrid() {
   const labels = _paPeriodLabels();
   const grid   = document.getElementById('pa-grid');
 
-  // Header row
-  let html = `<table style="width:100%;border-collapse:collapse;min-width:480px">
+  let html = `<table style="width:100%;border-collapse:collapse;min-width:520px">
     <thead><tr>
       <th style="text-align:left;padding:8px 12px;font-size:.78rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.04em;background:#f8fafc;border-radius:8px 0 0 0;white-space:nowrap">Metric</th>`;
   labels.forEach(l => {
@@ -1206,18 +1257,32 @@ function _buildPaGrid() {
     </tr></thead><tbody>`;
 
   _PA_METRICS.forEach((m, ri) => {
-    const bg = ri % 2 === 0 ? '#fff' : '#fafbff';
+    const isAuto = m.auto === true;
+    const bg     = ri % 2 === 0 ? '#fff' : '#fafbff';
+    const metaEl = isAuto
+      ? `<span style="display:inline-block;margin-left:6px;font-size:.65rem;font-weight:700;background:#e0e7ff;color:#4f46e5;padding:1px 6px;border-radius:10px;vertical-align:middle">auto</span>`
+      : '';
+
     html += `<tr style="background:${bg}">
-      <td style="padding:8px 12px;font-size:.82rem;font-weight:700;color:#374151;white-space:nowrap">${m.label}</td>`;
+      <td style="padding:8px 12px;font-size:.82rem;font-weight:700;color:${isAuto?'#6366f1':'#374151'};white-space:nowrap">${m.label}${metaEl}</td>`;
+
     labels.forEach((_, ci) => {
-      html += `<td style="padding:6px 8px">
-        <input type="number" id="pa_${m.id}_${ci}" placeholder="0" step="any"
-          style="width:100%;min-width:80px;padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:.85rem;text-align:right;outline:none;transition:border .2s"
-          onfocus="this.style.borderColor='#4f46e5'"
-          onblur="this.style.borderColor='#e2e8f0'"
-          oninput="computePaResults()">
-      </td>`;
+      if (isAuto) {
+        html += `<td style="padding:6px 8px;text-align:right">
+          <div id="pa_${m.id}_${ci}" style="padding:7px 10px;background:#f0f4ff;border-radius:8px;font-size:.85rem;font-weight:700;color:#4f46e5;min-width:80px;text-align:right">0</div>
+        </td>`;
+      } else {
+        html += `<td style="padding:6px 8px">
+          <input type="number" id="pa_${m.id}_${ci}" value="0" step="any"
+            title="${m.tip}"
+            style="width:100%;min-width:80px;padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:.85rem;text-align:right;outline:none;transition:border .2s;cursor:help"
+            onfocus="this.style.borderColor='#4f46e5';this.select()"
+            onblur="this.style.borderColor='#e2e8f0'"
+            oninput="computePaResults()">
+        </td>`;
+      }
     });
+
     html += `<td id="pa_cagr_${m.id}" style="text-align:right;padding:8px 12px;font-size:.85rem;font-weight:800;color:#4f46e5;background:#f0f4ff">—</td>
     </tr>`;
   });
@@ -1227,85 +1292,94 @@ function _buildPaGrid() {
   document.getElementById('pa-results').style.display = 'none';
 }
 
+function _paComputeAutoRows() {
+  for (let i = 0; i < _paCount; i++) {
+    const opcf  = _paGetVal('opcf',  i);
+    const capex = _paGetVal('capex', i);
+    const fcfEl = document.getElementById(`pa_fcf_${i}`);
+    if (fcfEl) {
+      if (opcf !== null && capex !== null) {
+        const fcf = opcf - capex;
+        fcfEl.textContent = fcf.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+        fcfEl.dataset.val = String(fcf);
+      } else {
+        fcfEl.textContent = '—';
+        fcfEl.dataset.val = '';
+      }
+    }
+  }
+}
+
+function _paVals(id) {
+  const vals = [];
+  for (let i = 0; i < _paCount; i++) {
+    const m = _PA_METRICS.find(x => x.id === id);
+    if (m && m.auto) {
+      const el = document.getElementById(`pa_${id}_${i}`);
+      const raw = el ? el.dataset.val : '';
+      vals.push(raw !== '' && raw != null ? parseFloat(raw) : null);
+    } else {
+      vals.push(_paGetVal(id, i));
+    }
+  }
+  return vals;
+}
+
+function _paComputeCagr(vals) {
+  const nonNull = vals.filter(v => v !== null && v !== 0);
+  if (nonNull.length < 2) return { cagr: null, avg: null, display: '—' };
+  const firstIdx = vals.findIndex(v => v !== null && v !== 0);
+  const lastIdx  = vals.map((v,i) => (v!==null && v!==0)?i:-1).filter(i=>i>=0).pop();
+  const n        = lastIdx - firstIdx;
+  const first    = vals[firstIdx];
+  const last     = vals[lastIdx];
+  let cagr = null, avg = null;
+  if (n > 0 && first > 0) cagr = (Math.pow(last / first, 1 / n) - 1) * 100;
+  let sumG = 0, cnt = 0;
+  for (let i = firstIdx + 1; i <= lastIdx; i++) {
+    if (vals[i] !== null && vals[i-1] !== null && vals[i-1] !== 0) {
+      sumG += (vals[i] - vals[i-1]) / Math.abs(vals[i-1]) * 100;
+      cnt++;
+    }
+  }
+  if (cnt > 0) avg = sumG / cnt;
+  const display = cagr != null
+    ? `${cagr>=0?'+':''}${cagr.toFixed(1)}% CAGR<br><span style="font-size:.72rem;color:#64748b">${avg!=null?(avg>=0?'+':'')+avg.toFixed(1)+'% avg':''}</span>`
+    : (avg != null ? `${avg>=0?'+':''}${avg.toFixed(1)}% avg` : '—');
+  return { cagr, avg, display };
+}
+
 function computePaResults() {
-  const labels = _paPeriodLabels();
-  let anyData  = false;
+  _paComputeAutoRows();
+  const labels  = _paPeriodLabels();
+  let anyData   = false;
   const cagrMap = {};
+  const avgMap  = {};
 
   _PA_METRICS.forEach(m => {
-    const vals = [];
-    for (let i = 0; i < _paCount; i++) {
-      const el = document.getElementById(`pa_${m.id}_${i}`);
-      const v  = el ? parseFloat(el.value) : NaN;
-      vals.push(isNaN(v) || el.value.trim() === '' ? null : v);
-    }
-
-    const nonNull = vals.filter(v => v !== null);
-    if (nonNull.length < 2) {
-      document.getElementById(`pa_cagr_${m.id}`).textContent = '—';
-      return;
-    }
-    anyData = true;
-
-    // CAGR from first non-null to last non-null
-    const firstIdx = vals.findIndex(v => v !== null);
-    const lastIdx  = vals.map((v,i)=>v!==null?i:-1).filter(i=>i>=0).pop();
-    const n        = lastIdx - firstIdx;
-    const first    = vals[firstIdx];
-    const last     = vals[lastIdx];
-
-    let display = '—';
-    if (n > 0 && first > 0) {
-      const cagr = (Math.pow(last / first, 1 / n) - 1) * 100;
-      display = (cagr >= 0 ? '+' : '') + cagr.toFixed(1) + '%';
-      cagrMap[m.id] = cagr;
-    } else if (n === 0 && nonNull.length >= 2) {
-      // period-over-period average growth
-      let sumG = 0, cnt = 0;
-      for (let i = 1; i < vals.length; i++) {
-        if (vals[i] !== null && vals[i-1] !== null && vals[i-1] !== 0) {
-          sumG += (vals[i] - vals[i-1]) / Math.abs(vals[i-1]) * 100;
-          cnt++;
-        }
-      }
-      if (cnt > 0) {
-        const avg = sumG / cnt;
-        display = (avg >= 0 ? '+' : '') + avg.toFixed(1) + '% avg';
-        cagrMap[m.id] = avg;
-      }
-    }
-
-    // period-over-period average growth as secondary
-    if (n > 0) {
-      let sumG = 0, cnt = 0;
-      for (let i = firstIdx + 1; i <= lastIdx; i++) {
-        if (vals[i] !== null && vals[i-1] !== null && vals[i-1] !== 0) {
-          sumG += (vals[i] - vals[i-1]) / Math.abs(vals[i-1]) * 100;
-          cnt++;
-        }
-      }
-      if (cnt > 0) {
-        const avg = sumG / cnt;
-        const cagr = cagrMap[m.id];
-        display = `${(cagr >= 0 ? '+' : '')}${cagr.toFixed(1)}% CAGR<br><span style="font-size:.72rem;color:#64748b">${(avg>=0?'+':'')}${avg.toFixed(1)}% avg/period</span>`;
-      }
-    }
-
+    const vals = _paVals(m.id);
+    const { cagr, avg, display } = _paComputeCagr(vals);
     const cell = document.getElementById(`pa_cagr_${m.id}`);
     if (cell) cell.innerHTML = display;
+    if (cagr != null || avg != null) {
+      cagrMap[m.id] = cagr ?? avg;
+      avgMap[m.id]  = avg;
+      anyData = true;
+    }
   });
 
-  // Build summary table
   if (anyData) {
     _paCagrStore = cagrMap;
-    _buildPaResultsTable(labels, cagrMap);
+    _paAvgStore  = avgMap;
+    _buildPaResultsTable(labels, cagrMap, avgMap);
     document.getElementById('pa-results').style.display = 'block';
   }
 }
 
 let _paCagrStore = {};
+let _paAvgStore  = {};
 
-function _buildPaResultsTable(labels, cagrMap) {
+function _buildPaResultsTable(labels, cagrMap, avgMap) {
   const tbl = document.getElementById('pa-results-table');
   const modeLabel = _paMode === 'annual' ? `${_paCount}-Year` : `${_paCount}-Quarter`;
   let html = `<table style="border-collapse:collapse;font-size:.82rem">
@@ -1317,42 +1391,27 @@ function _buildPaResultsTable(labels, cagrMap) {
     </tr>`;
 
   const fieldMap = {
-    revenue: { model: 'Capital Budgeting Rev Growth', ids: ['cb_revg'] },
-    ebitda:  { model: 'EVA NOPAT Growth',             ids: ['eva_g']   },
-    netinc:  { model: 'DDM Short-run Growth',         ids: ['ddm_gs']  },
-    eps:     { model: 'DDM Long-run Growth',          ids: ['ddm_gl']  },
-    fcf:     { model: 'FCFF Stage-1 Growth',          ids: ['eq_gstage1'] },
-    bvps:    { model: 'RIM Growth g',                 ids: ['rim_g']   },
+    revenue: { model: 'Capital Budgeting Rev Growth',   ids: ['cb_revg']    },
+    ebitda:  { model: 'EVA — NOPAT Growth',             ids: ['eva_g']       },
+    netinc:  { model: 'DDM Short-run Growth',           ids: ['ddm_gs']      },
+    eps:     { model: 'DDM Long-run Growth',            ids: ['ddm_gl']      },
+    fcf:     { model: 'FCFF DCF Stage-1 Growth',        ids: ['eq_gstage1']  },
+    bvps:    { model: 'Residual Income Model Growth g', ids: ['rim_g']       },
+    opcf:    { model: '(reference only)',               ids: []              },
+    capex:   { model: '(reference only)',               ids: []              },
   };
 
   _PA_METRICS.forEach((m, i) => {
     if (cagrMap[m.id] == null) return;
     const cagr = cagrMap[m.id];
+    const avg  = avgMap[m.id];
     const bg   = i % 2 === 0 ? '#fff' : '#f8fafc';
-
-    // avg/period
-    let avgG = null;
-    const vals = [];
-    for (let j = 0; j < _paCount; j++) {
-      const el = document.getElementById(`pa_${m.id}_${j}`);
-      const v  = el ? parseFloat(el.value) : NaN;
-      vals.push(isNaN(v) || el.value.trim() === '' ? null : v);
-    }
-    let sumG = 0, cnt = 0;
-    for (let j = 1; j < vals.length; j++) {
-      if (vals[j] !== null && vals[j-1] !== null && vals[j-1] !== 0) {
-        sumG += (vals[j] - vals[j-1]) / Math.abs(vals[j-1]) * 100;
-        cnt++;
-      }
-    }
-    avgG = cnt > 0 ? sumG / cnt : null;
-
-    const fm = fieldMap[m.id] || { model: '—', ids: [] };
+    const fm   = fieldMap[m.id] || { model: '—', ids: [] };
     html += `<tr style="background:${bg}">
       <td style="padding:8px 14px;font-weight:700;color:#374151">${m.label}</td>
       <td style="padding:8px 14px;text-align:right;font-weight:800;color:${cagr>=0?'#059669':'#dc2626'}">${(cagr>=0?'+':'')}${cagr.toFixed(2)}%</td>
-      <td style="padding:8px 14px;text-align:right;color:#64748b">${avgG!=null?(avgG>=0?'+':'')+avgG.toFixed(2)+'%':'—'}</td>
-      <td style="padding:8px 14px;color:#4f46e5;font-weight:600">${fm.model}</td>
+      <td style="padding:8px 14px;text-align:right;color:#64748b">${avg!=null?(avg>=0?'+':'')+avg.toFixed(2)+'%':'—'}</td>
+      <td style="padding:8px 14px;color:${fm.ids.length?'#4f46e5':'#9ca3af'};font-weight:600">${fm.model}</td>
     </tr>`;
   });
   html += '</table>';
@@ -1384,7 +1443,7 @@ function applyPaGrowthRates() {
   }
 
   const msg = document.getElementById('pa-apply-msg');
-  msg.style.display   = 'block';
+  msg.style.display    = 'block';
   msg.style.background = applied > 0 ? '#f0fdf4' : '#fef2f2';
   msg.style.color      = applied > 0 ? '#065f46' : '#b91c1c';
   msg.style.border     = '1px solid ' + (applied > 0 ? '#6ee7b7' : '#fca5a5');
@@ -1397,12 +1456,15 @@ function clearPaPanel() {
   _PA_METRICS.forEach(m => {
     for (let i = 0; i < _paCount; i++) {
       const el = document.getElementById(`pa_${m.id}_${i}`);
-      if (el) el.value = '';
+      if (!el) continue;
+      if (m.auto) { el.textContent = '0'; el.dataset.val = ''; }
+      else el.value = '0';
     }
     const cell = document.getElementById(`pa_cagr_${m.id}`);
     if (cell) cell.textContent = '—';
   });
   _paCagrStore = {};
+  _paAvgStore  = {};
   document.getElementById('pa-results').style.display = 'none';
   document.getElementById('pa-apply-msg').style.display = 'none';
 }

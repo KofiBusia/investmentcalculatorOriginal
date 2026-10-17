@@ -2285,45 +2285,64 @@ def _parse_num(s):
 
 def _detect_scale(text):
     """Return multiplier to convert raw PDF numbers → thousands (000s)."""
-    t = text[:3000]  # check header only
-    if re.search(r"in\s+millions|GHS['\s]*m\b|expressed\s+in\s+millions", t, re.I):
-        return 1000.0   # millions → ×1000 = thousands
-    if re.search(r"in\s+thousands|GHS['\s]*000|'000|expressed\s+in\s+thousands", t, re.I):
-        return 1.0      # already in thousands
-    # If numbers look big (> 1 billion raw) assume full units → ÷1000
-    nums = re.findall(r'[\d,]{10,}', text[:5000])
-    if len(nums) >= 3:
-        return 0.001    # full units → ÷1000 = thousands
-    return 1.0          # default: assume already in thousands
+    t = text[:4000]
+    # Millions expressed
+    if re.search(
+        r"in\s+millions?|GHS?\s*m\b|GH[¢₵]\s*m\b|expressed\s+in\s+millions?"
+        r"|amounts?\s+(?:are\s+)?in\s+millions?|stated\s+in\s+millions?",
+        t, re.I):
+        return 1000.0
+    # Thousands expressed
+    if re.search(
+        r"in\s+thousands?|GHS?['\s]*000|GH[¢₵]['\s]*000|'000s?"
+        r"|expressed\s+in\s+thousands?|amounts?\s+(?:are\s+)?in\s+thousands?",
+        t, re.I):
+        return 1.0
+    # Billions expressed
+    if re.search(r"in\s+billions?|GHS?\s*bn\b", t, re.I):
+        return 1_000_000.0
+    # Heuristic: if many 9+ digit numbers appear, likely full units (cedis) → ÷1000
+    large = re.findall(r'\b\d[\d,]{8,}\b', text[:6000])
+    if len(large) >= 3:
+        return 0.001
+    return 1.0
 
 
 def _find_val(text, *label_pats, require_positive=True):
     """
-    Scan each line of text for a label match, then take the first numeric
-    token on that line (or the next non-empty line).  Returns float or None.
-    A 'numeric token' is anything matching _NUM_PAT and > 0 (if require_positive).
+    Scan lines for a label match, extract the first (current-year) numeric
+    token appearing after the label on the same line, or on the next 1-2
+    non-empty lines (handles columnar table layouts).
+    Parenthetical negatives such as (1,234) are parsed as negative numbers.
     """
     lines = text.split('\n')
     for i, line in enumerate(lines):
         for pat in label_pats:
-            if re.search(pat, line, re.IGNORECASE):
-                # Try numbers on the same line first (after the label)
-                rest = re.sub(pat, '', line, flags=re.IGNORECASE, count=1)
-                candidates = _NUM_PAT.findall(rest)
+            if not re.search(pat, line, re.IGNORECASE):
+                continue
+            # Strip the label part to avoid matching numbers inside label text
+            rest = re.sub(pat, '', line, flags=re.IGNORECASE, count=1)
+            # Also strip common leading noise (dashes, dots, whitespace)
+            rest = re.sub(r'^[\s\-–—\.]+', '', rest)
+            candidates = _NUM_PAT.findall(rest)
+            for c in candidates:
+                v = _parse_num(c)
+                if v is not None and (not require_positive or v > 0):
+                    return v
+            # Look at the next 1-3 non-blank lines (columnar layout)
+            for j in range(i + 1, min(i + 4, len(lines))):
+                next_line = lines[j].strip()
+                if not next_line:
+                    continue
+                # Stop if next non-blank line looks like another label (no digits)
+                if not re.search(r'\d', next_line):
+                    break
+                candidates = _NUM_PAT.findall(next_line)
                 for c in candidates:
                     v = _parse_num(c)
                     if v is not None and (not require_positive or v > 0):
                         return v
-                # Try the very next non-empty line
-                for j in range(i + 1, min(i + 3, len(lines))):
-                    next_line = lines[j].strip()
-                    if next_line:
-                        candidates = _NUM_PAT.findall(next_line)
-                        for c in candidates:
-                            v = _parse_num(c)
-                            if v is not None and (not require_positive or v > 0):
-                                return v
-                        break
+                break   # only look one non-blank line ahead
     return None
 
 
