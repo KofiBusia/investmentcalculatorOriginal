@@ -1049,7 +1049,9 @@ async function _processPdfUnified(files) {
 
     try {
       const resp = await fetch('/valuation/extract-pdf', { method: 'POST', body: form });
-      const data = await resp.json();
+      let data;
+      try { data = await resp.json(); }
+      catch (_) { data = { error: `Server error ${resp.status} — PDF may be too large or server timed out` }; }
 
       if (!resp.ok || data.error) {
         document.getElementById(`pfl-icon-${i}`).className = 'fas fa-times-circle';

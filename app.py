@@ -117,6 +117,14 @@ login_manager = LoginManager(app)
 login_manager.login_view = 'user_login'
 login_manager.login_message = 'Please log in to access this page.'
 
+@app.errorhandler(413)
+def request_too_large(e):
+    return jsonify({'error': 'File too large — maximum upload size is 50 MB per file'}), 413
+
+@app.errorhandler(500)
+def internal_server_error(e):
+    return jsonify({'error': 'Internal server error — please try again'}), 500
+
 # Google OAuth via Authlib
 from authlib.integrations.flask_client import OAuth as AuthlibOAuth
 _oauth = AuthlibOAuth(app)
