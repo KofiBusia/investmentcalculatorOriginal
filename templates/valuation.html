@@ -576,7 +576,7 @@ main > div[style*="margin-bottom: 20px"] {
       <div class="inp-grid">
         <div class="inp-group"><label>D0 — Last Dividend Paid</label><input type="number" id="ddm_d0" value="" title="Most recently paid annual dividend per share (D0)" placeholder="0" step="0.01" oninput="calcDDM()"></div>
         <div class="inp-group"><label>Short-run Growth gS (%)</label><input type="number" id="ddm_gs" value="" title="Short-run dividend growth rate during the high-growth phase (e.g. 18 = 18%)" placeholder="0" oninput="calcDDM()"></div>
-        <div class="inp-group"><label>Long-run Growth gL (%)</label><input type="number" id="ddm_gl" value="" title="Long-run (terminal) dividend growth rate — sustainable perpetual rate (e.g. 6 = 6%)" placeholder="0" oninput="calcDDM()"></div>
+        <div class="inp-group"><label>Long-run Growth gL (%)</label><input type="number" id="ddm_gl" value="" title="Long-run (terminal) dividend growth rate — sustainable perpetual rate (e.g. 6 = 6%)" placeholder="0" oninput="reverseGlobal('ddm_gl',this.value);calcDDM()"></div>
         <div class="inp-group"><label>Required Return Ke (%)</label><input type="number" id="ddm_ke" value="" title="Required return on equity (cost of equity) from CAPM or other model (e.g. 24 = 24%)" placeholder="0" oninput="reverseGlobal('ddm_ke',this.value);calcDDM()"></div>
         <div class="inp-group"><label>High-growth period H (yrs)</label><input type="number" id="ddm_h" value="" title="Number of years in the high-growth phase for H-model (e.g. 5 years)" placeholder="0" oninput="calcDDM()"></div>
         <div class="inp-group"><label>Current Price</label><input type="number" id="ddm_price" value="" title="Current market price per share to compare with intrinsic value" placeholder="0" step="0.01" oninput="reverseGlobal('ddm_price',this.value);calcDDM()"></div>
@@ -593,7 +593,7 @@ main > div[style*="margin-bottom: 20px"] {
         <div class="inp-group"><label>Book Value Per Share (B0)</label><input type="number" id="rim_bv" value="" title="Book value per share (shareholders equity ÷ shares outstanding)" placeholder="0" step="0.01" oninput="calcRIM()"></div>
         <div class="inp-group"><label>ROE (%)</label><input type="number" id="rim_roe" value="" title="Return on Equity — net income ÷ book value (e.g. 31 = 31%)" placeholder="0" oninput="calcRIM()"></div>
         <div class="inp-group"><label>Cost of Equity Ke (%)</label><input type="number" id="rim_ke" value="" title="Required return on equity (cost of equity) — e.g. 24 = 24%" placeholder="0" oninput="reverseGlobal('rim_ke',this.value);calcRIM()"></div>
-        <div class="inp-group"><label>Growth g (%)</label><input type="number" id="rim_g" value="" title="Perpetual growth rate in residual income (e.g. 6 = 6%)" placeholder="0" oninput="calcRIM()"></div>
+        <div class="inp-group"><label>Growth g (%)</label><input type="number" id="rim_g" value="" title="Perpetual growth rate in residual income (e.g. 6 = 6%)" placeholder="0" oninput="reverseGlobal('rim_g',this.value);calcRIM()"></div>
         <div class="inp-group"><label>Current Share Price</label><input type="number" id="rim_price" value="" title="Current market price per share for valuation comparison" placeholder="0" step="0.01" oninput="reverseGlobal('rim_price',this.value);calcRIM()"></div>
       </div>
       <div id="rim_res" class="res-grid"></div>
@@ -640,7 +640,7 @@ main > div[style*="margin-bottom: 20px"] {
         <div class="inp-group"><label>Revenue Growth (%)</label><input type="number" id="cb_revg" value="" placeholder="0" oninput="calcCapBudget()"></div>
         <div class="inp-group"><label>Variable Costs (% Rev)</label><input type="number" id="cb_vc" value="" placeholder="0" oninput="calcCapBudget()"></div>
         <div class="inp-group"><label>Year-1 Fixed Costs (000)</label><input type="number" id="cb_fc" value="" placeholder="0" oninput="calcCapBudget()"></div>
-        <div class="inp-group"><label>Discount Rate (%)</label><input type="number" id="cb_r" value="" placeholder="0" oninput="calcCapBudget()"></div>
+        <div class="inp-group"><label>Discount Rate (%)</label><input type="number" id="cb_r" value="" placeholder="0" oninput="reverseGlobal('cb_r',this.value);calcCapBudget()"></div>
         <div class="inp-group"><label>Tax Rate (%)</label><input type="number" id="cb_tax" value="" placeholder="0" oninput="reverseGlobal('cb_tax',this.value);calcCapBudget()"></div>
         <div class="inp-group"><label>Salvage Value (000)</label><input type="number" id="cb_salv" value="" placeholder="0" oninput="calcCapBudget()"></div>
       </div>
@@ -1656,8 +1656,8 @@ function toggleGlobalPanel() {
 
 /* ── Global Assumptions sync ── */
 const _GLOBAL_SYNC_MAP = {
-  global_wacc:  ['eq_wacc',  'eva_wacc'],
-  global_tg:    ['eq_gterm', 'eva_tg'],
+  global_wacc:  ['eq_wacc',  'eva_wacc', 'cb_r'],
+  global_tg:    ['eq_gterm', 'eva_tg', 'ddm_gl', 'rim_g'],
   global_ke:    ['ddm_ke',   'rim_ke'],
   global_price: ['eq_price', 'ddm_price', 'rim_price'],
   global_nd:    ['eq_netdebt','eva_debt'],
