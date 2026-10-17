@@ -1342,6 +1342,8 @@ const _PA_METRICS = [
     tip: 'Total shareholders equity from the balance sheet — in thousands.' },
   { id: 'bvps',    label: 'Book Value / Share',     auto: true,
     tip: 'Auto-calculated: Total Equity ÷ Shares Outstanding. Enter Shares once in the FCFF model.' },
+  { id: 'roe',     label: 'ROE (%)',                auto: true,
+    tip: 'Auto-calculated: Net Income ÷ Total Equity × 100. Used as the starting ROE in the Residual Income Model.' },
   { id: 'opcf',    label: 'Operating CF (000)',     auto: false,
     tip: 'Net cash generated from operating activities — from the cash flow statement, in thousands.' },
   { id: 'capex',   label: 'CapEx (000)',             auto: false,
@@ -1443,6 +1445,18 @@ function _paComputeAutoRows() {
         bvpsEl.dataset.val = bvps;
       } else { bvpsEl.textContent = globalShares > 0 ? '—' : '← enter shares'; bvpsEl.dataset.val = ''; }
     }
+
+    // ROE = Net Income (000) / Total Equity (000) × 100
+    const roeEl = document.getElementById(`pa_roe_${i}`);
+    if (roeEl) {
+      const ni = _paGetVal('netinc', i);
+      const eq = _paGetVal('equity', i);
+      if (ni !== null && eq !== null && eq !== 0) {
+        const roe = ((ni / eq) * 100).toFixed(2);
+        roeEl.textContent = roe + '%';
+        roeEl.dataset.val = roe;
+      } else { roeEl.textContent = '—'; roeEl.dataset.val = ''; }
+    }
   }
 }
 
@@ -1533,6 +1547,7 @@ function _buildPaResultsTable(labels, cagrMap, avgMap) {
     eps:     { model: 'DDM Long-run Growth',            ids: ['ddm_gl']      },
     fcf:     { model: 'FCFF DCF Stage-1 Growth',        ids: ['eq_gstage1']  },
     bvps:    { model: 'Residual Income Model Growth g', ids: ['rim_g']       },
+    roe:     { model: 'RIM — base ROE (most recent)',   ids: []              },
     opcf:    { model: '(reference only)',               ids: []              },
     capex:   { model: '(reference only)',               ids: []              },
   };
@@ -1569,6 +1584,7 @@ function applyPaGrowthRates() {
     fcf:     'eq_fcff1',
     revenue: 'cb_rev',
     bvps:    'rim_bv',
+    roe:     'rim_roe',
     netinc:  'ddm_d0',
   };
 
