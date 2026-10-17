@@ -290,6 +290,53 @@ main > div[style*="margin-bottom:20px"] {
   </div>
   </div><!-- /user-guide -->
 
+  <!-- ── PDF Financial Statement Upload ─────────────────── -->
+  <div id="pdf-upload-section" style="background:#fff;border-radius:18px;box-shadow:0 4px 24px rgba(79,70,229,.08);border:1px solid #e8ecff;margin-bottom:24px;overflow:hidden">
+    <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:18px 24px;background:linear-gradient(135deg,#f0fdf4,#dcfce7)" onclick="togglePdfPanel()">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:38px;height:38px;background:linear-gradient(135deg,#059669,#10b981);border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:.95rem;box-shadow:0 4px 12px rgba(5,150,105,.3)"><i class="fas fa-file-pdf"></i></div>
+        <div>
+          <div style="font-size:.95rem;font-weight:800;color:#064e3b">Auto-Fill from Financial Statement PDF</div>
+          <div style="font-size:.75rem;color:#059669">Upload an annual report or financial statement — we'll extract the figures for you</div>
+        </div>
+      </div>
+      <i class="fas fa-chevron-down" id="pdf-chevron" style="color:#059669;transition:transform .25s;font-size:1rem"></i>
+    </div>
+    <div id="pdf-panel" style="display:none;padding:20px 24px;border-top:1px solid #d1fae5">
+
+      <!-- Drop zone -->
+      <div id="pdf-drop-zone" style="border:2px dashed #6ee7b7;border-radius:14px;padding:28px 20px;text-align:center;cursor:pointer;background:#f0fdf4;transition:background .2s"
+           onclick="document.getElementById('pdf-file-input').click()"
+           ondragover="event.preventDefault();this.style.background='#d1fae5'"
+           ondragleave="this.style.background='#f0fdf4'"
+           ondrop="handlePdfDrop(event)">
+        <i class="fas fa-cloud-upload-alt" style="font-size:2rem;color:#6ee7b7;margin-bottom:8px;display:block"></i>
+        <div style="font-size:.9rem;font-weight:700;color:#065f46">Drop PDF here or click to browse</div>
+        <div style="font-size:.78rem;color:#6b7280;margin-top:4px">Supports Annual Reports, Income Statements, Balance Sheets, Cash Flow Statements (max 20 MB)</div>
+        <input type="file" id="pdf-file-input" accept=".pdf" style="display:none" onchange="handlePdfSelect(this)">
+      </div>
+
+      <!-- Status bar -->
+      <div id="pdf-status" style="display:none;margin-top:14px;padding:10px 16px;border-radius:10px;font-size:.82rem;font-weight:600"></div>
+
+      <!-- Extracted figures table -->
+      <div id="pdf-results" style="display:none;margin-top:18px">
+        <div style="font-size:.9rem;font-weight:800;color:#064e3b;margin-bottom:10px"><i class="fas fa-table" style="color:#10b981;margin-right:6px"></i>Extracted Figures</div>
+        <div id="pdf-summary-table" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:8px;margin-bottom:16px"></div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button onclick="applyPdfFields()" style="background:linear-gradient(135deg,#059669,#10b981);color:#fff;border:none;border-radius:10px;padding:10px 22px;font-size:.88rem;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(5,150,105,.3)">
+            <i class="fas fa-magic"></i> Populate Calculator Fields
+          </button>
+          <button onclick="clearPdfUpload()" style="background:#f3f4f6;color:#6b7280;border:none;border-radius:10px;padding:10px 18px;font-size:.88rem;font-weight:600;cursor:pointer">
+            <i class="fas fa-times"></i> Clear
+          </button>
+        </div>
+        <div style="font-size:.75rem;color:#9ca3af;margin-top:8px"><i class="fas fa-info-circle"></i> Review all populated values before running calculations — extraction may not be 100% accurate for all PDF formats.</div>
+      </div>
+
+    </div>
+  </div><!-- /pdf-upload-section -->
+
   <!-- Tab bar -->
   <div class="vt-tabs" role="tablist">
     <button class="vt-tab active" data-panel="equity" onclick="switchTab(this)">
@@ -792,6 +839,108 @@ function toggleGuide() {
   const open = body.style.display === 'block';
   body.style.display = open ? 'none' : 'block';
   chevron.style.transform = open ? '' : 'rotate(180deg)';
+}
+
+/* PDF upload panel toggle */
+function togglePdfPanel() {
+  const panel = document.getElementById('pdf-panel');
+  const chevron = document.getElementById('pdf-chevron');
+  const open = panel.style.display === 'block';
+  panel.style.display = open ? 'none' : 'block';
+  chevron.style.transform = open ? '' : 'rotate(180deg)';
+}
+
+/* Extracted field map — populated after successful extraction */
+let _pdfFields = {};
+
+function _pdfStatus(msg, type) {
+  const el = document.getElementById('pdf-status');
+  el.style.display = 'block';
+  el.style.background = type === 'error' ? '#fef2f2' : type === 'ok' ? '#f0fdf4' : '#fffbeb';
+  el.style.color = type === 'error' ? '#b91c1c' : type === 'ok' ? '#065f46' : '#92400e';
+  el.style.border = '1px solid ' + (type === 'error' ? '#fca5a5' : type === 'ok' ? '#6ee7b7' : '#fde68a');
+  el.innerHTML = msg;
+}
+
+function handlePdfDrop(e) {
+  e.preventDefault();
+  document.getElementById('pdf-drop-zone').style.background = '#f0fdf4';
+  const file = e.dataTransfer.files[0];
+  if (file) _processPdf(file);
+}
+
+function handlePdfSelect(input) {
+  if (input.files[0]) _processPdf(input.files[0]);
+}
+
+async function _processPdf(file) {
+  if (!file.name.toLowerCase().endsWith('.pdf')) {
+    _pdfStatus('<i class="fas fa-exclamation-triangle"></i> Please upload a PDF file.', 'error');
+    return;
+  }
+  _pdfStatus('<i class="fas fa-spinner fa-spin"></i> Extracting financial figures from PDF… this may take a moment.', 'warn');
+  document.getElementById('pdf-results').style.display = 'none';
+
+  const form = new FormData();
+  form.append('pdf', file);
+
+  try {
+    const resp = await fetch('/valuation/extract-pdf', { method: 'POST', body: form });
+    const data = await resp.json();
+
+    if (!resp.ok || data.error) {
+      _pdfStatus('<i class="fas fa-times-circle"></i> ' + (data.error || 'Extraction failed'), 'error');
+      return;
+    }
+
+    _pdfFields = data.fields || {};
+    const summary = data.summary || {};
+    const pages = data.pages_read || '?';
+
+    if (!Object.keys(summary).length) {
+      _pdfStatus('<i class="fas fa-exclamation-triangle"></i> No standard financial figures found. Make sure the PDF contains text (not a scanned image).', 'warn');
+      return;
+    }
+
+    // Build summary table
+    const tableEl = document.getElementById('pdf-summary-table');
+    tableEl.innerHTML = Object.entries(summary).map(([label, val]) =>
+      `<div style="background:#f0fdf4;border:1px solid #d1fae5;border-radius:8px;padding:10px 14px">
+        <div style="font-size:.72rem;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.04em">${label}</div>
+        <div style="font-size:.95rem;font-weight:800;color:#064e3b;margin-top:2px">${typeof val === 'number' ? val.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}) : val}</div>
+      </div>`
+    ).join('');
+
+    const fieldCount = Object.keys(_pdfFields).length;
+    _pdfStatus(`<i class="fas fa-check-circle"></i> Extracted ${Object.keys(summary).length} metrics from ${pages} pages. ${fieldCount} calculator field(s) ready to populate.`, 'ok');
+    document.getElementById('pdf-results').style.display = 'block';
+  } catch (err) {
+    _pdfStatus('<i class="fas fa-times-circle"></i> Network error: ' + err.message, 'error');
+  }
+}
+
+function applyPdfFields() {
+  let applied = 0;
+  for (const [id, val] of Object.entries(_pdfFields)) {
+    const el = document.getElementById(id);
+    if (el && val != null) {
+      el.value = val;
+      el.dispatchEvent(new Event('input'));
+      applied++;
+    }
+  }
+  if (applied === 0) {
+    _pdfStatus('<i class="fas fa-exclamation-triangle"></i> No matching fields found for the active tab. Switch to a different tab and try again.', 'warn');
+  } else {
+    _pdfStatus(`<i class="fas fa-check-circle"></i> ${applied} field(s) populated! Review values and click Calculate.`, 'ok');
+  }
+}
+
+function clearPdfUpload() {
+  _pdfFields = {};
+  document.getElementById('pdf-file-input').value = '';
+  document.getElementById('pdf-status').style.display = 'none';
+  document.getElementById('pdf-results').style.display = 'none';
 }
 
 /* Tab switcher */
