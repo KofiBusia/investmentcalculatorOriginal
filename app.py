@@ -2405,7 +2405,7 @@ _YEAR_HDR_RE = re.compile(r'\b(20(?:1[5-9]|2[0-9]))\b')
 def _extract_year_labels(text, max_years=3):
     """Return year labels from column-header rows, most-recent first."""
     seen, result = set(), []
-    for line in text.split('\n')[:300]:
+    for line in text.split('\n')[:1000]:
         years = _YEAR_HDR_RE.findall(line)
         if len(years) >= 2:
             for y in years:
@@ -2431,9 +2431,13 @@ def _find_row(text, *label_pats, max_cols=3):
         others = [x for x in peers if x != v]
         return any(abs(x) >= 100 for x in others) or any(x != round(x) for x in others)
 
+    _YEAR_RE = re.compile(r'^20(?:1[5-9]|2[0-9])$')
+
     def _all_vals(candidates):
         vals = [_parse_num(c) for c in candidates]
         vals = [v for v in vals if v is not None]
+        # Strip year-column header numbers (e.g. 2024, 2023 on a label line)
+        vals = [v for v in vals if not (v == round(v) and _YEAR_RE.match(str(int(v))))]
         return [v for v in vals if not _is_note_ref(v, vals)]
 
     for i, line in enumerate(lines):
