@@ -1268,6 +1268,28 @@ function _refreshActionRow() {
 /* Populate the Historical Period Analysis grid from extracted multi-year pa_data. */
 function _applyPaData(paData) {
   if (!paData || !Object.keys(paData).length) return 0;
+
+  // Auto-expand grid to cover all years in paData
+  if (_paMode === 'annual') {
+    const pdfYears = Object.keys(paData).filter(y => /^\d{4}$/.test(y)).map(Number);
+    if (pdfYears.length > 0) {
+      const minY = Math.min(...pdfYears);
+      const maxY = Math.max(...pdfYears);
+      const now = new Date().getFullYear();
+      const endYear = _paEndYear !== null ? _paEndYear : now;
+      const startYear = endYear - _paCount + 1;
+      // Expand end year if PDF has a more recent year
+      const newEnd = Math.max(endYear, maxY);
+      // Expand count to include oldest PDF year
+      const newCount = Math.max(_paCount, newEnd - minY + 1);
+      if (newEnd !== endYear || newCount !== _paCount) {
+        _paEndYear = newEnd;
+        _paCount = Math.min(newCount, 15); // cap at 15 columns
+        _buildPaGrid();
+      }
+    }
+  }
+
   const labels = _paPeriodLabels();
   const PA_MAP = { revenue:'revenue', ebitda:'ebitda', net_inc:'netinc', equity:'equity', ocf:'opcf', capex:'capex' };
   let populated = 0;
@@ -1341,8 +1363,9 @@ function clearAllPdf() {
 }
 
 /* ── Historical Period Analysis ─────────────────────────── */
-let _paMode  = 'annual';    // 'annual' | 'quarterly'
-let _paCount = 4;           // 3-6
+let _paMode      = 'annual';    // 'annual' | 'quarterly'
+let _paCount     = 4;           // number of periods shown
+let _paEndYear   = null;        // null = current year; set when auto-expanded from PDF data
 
 function togglePaPanel() {
   const panel   = document.getElementById('pa-panel');
@@ -1366,6 +1389,7 @@ function setPaMode(mode) {
 
 function setPaCount(n) {
   _paCount = n;
+  _paEndYear = null; // reset to current year when user manually changes count
   document.querySelectorAll('.pa-cnt-btn').forEach(b => {
     const active = +b.dataset.n === n;
     b.style.background  = active ? '#4f46e5' : '#f8fafc';
@@ -1379,7 +1403,7 @@ function _paPeriodLabels() {
   const now = new Date();
   const labels = [];
   if (_paMode === 'annual') {
-    const endYear = now.getFullYear();
+    const endYear = _paEndYear !== null ? _paEndYear : now.getFullYear();
     for (let i = _paCount - 1; i >= 0; i--) labels.push(String(endYear - i));
   } else {
     // quarterly — work backwards from current quarter

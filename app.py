@@ -2399,13 +2399,23 @@ def _find_val(text, *label_pats, require_positive=True):
     return None
 
 
-_YEAR_HDR_RE = re.compile(r'\b(20(?:1[5-9]|2[0-9]))\b')
+_YEAR_HDR_RE = re.compile(r'\b((?:19|20)\d{2})\b')
 
 
 def _extract_year_labels(text, max_years=3):
-    """Return year labels from column-header rows, most-recent first."""
+    """Return year labels from column-header rows, most-recent first.
+
+    Handles both:
+      - Inline  (space-separated columns on one line): "2025  2024"
+      - One-per-line (PyMuPDF table output):
+            2025
+            2024
+    """
+    lines = text.split('\n')[:1000]
+
+    # Pass 1: standard — look for a single line containing ≥2 year tokens
     seen, result = set(), []
-    for line in text.split('\n')[:1000]:
+    for line in lines:
         years = _YEAR_HDR_RE.findall(line)
         if len(years) >= 2:
             for y in years:
@@ -2415,6 +2425,24 @@ def _extract_year_labels(text, max_years=3):
             if len(result) >= 2:
                 result.sort(reverse=True)
                 return result[:max_years]
+
+    # Pass 2: one-per-line — look for a run of consecutive lines that are
+    # ONLY a year number (possibly with trailing space / "Restated" note).
+    seen2 = {}  # year → first line-index seen
+    for idx, line in enumerate(lines):
+        stripped = line.strip()
+        # A year-only line: optional leading whitespace, then 4-digit year,
+        # optionally followed by whitespace or "Restated*" annotation.
+        m = re.match(r'^((?:19|20)\d{2})\s*(?:Restated\*?|Restated)?$', stripped, re.I)
+        if m:
+            y = m.group(1)
+            if y not in seen2:
+                seen2[y] = idx
+    if len(seen2) >= 2:
+        # Return sorted descending
+        years_sorted = sorted(seen2.keys(), reverse=True)
+        return years_sorted[:max_years]
+
     return []
 
 
@@ -2427,11 +2455,22 @@ def _find_row(text, *label_pats, max_cols=3):
 
     def _is_note_ref(v, peers):
         if not (0 < v < 100 and v == round(v)):
+            # Also treat small fractional values (e.g. 2.5 from "2.5.6") as note refs
+            # when larger peers exist (financial metric columns are all similar magnitude)
+            if 0 < abs(v) < 100 and v != round(v):
+                others = [x for x in peers if x != v]
+                if any(abs(x) >= 1000 for x in others):
+                    return True
             return False
         others = [x for x in peers if x != v]
         return any(abs(x) >= 100 for x in others) or any(x != round(x) for x in others)
 
-    _YEAR_RE = re.compile(r'^20(?:1[5-9]|2[0-9])$')
+    _YEAR_RE = re.compile(r'^(?:19|20)\d{2}$')
+    # Section reference pattern: e.g. "2.5.6", "2.15.3" — remove before numeric scan
+    _SECT_REF_RE = re.compile(r'\b\d+(?:\.\d+){2,}')
+
+    def _clean_line(s):
+        return _SECT_REF_RE.sub('', s)
 
     def _all_vals(candidates):
         vals = [_parse_num(c) for c in candidates]
@@ -2448,9 +2487,9 @@ def _find_row(text, *label_pats, max_cols=3):
             m = re.search(pat, line, re.IGNORECASE)
             rest = line[m.end():]
             rest = re.sub(r'^[\s\-–—\.]+', '', rest)
-            same_cands = _NUM_PAT.findall(rest)
+            same_cands = _NUM_PAT.findall(_clean_line(rest))
 
-            if re.search(r'\b(?:million|billion|bn)\b', rest, re.I):
+            if re.search(r'[\d.]\s*(?:b|m|bn|mn|tr)\b|\b(?:million|billion|bn)\b', rest, re.I):
                 continue
 
             # Check for Access-Bank style: note ref on this line, current year on line above
@@ -2470,17 +2509,91 @@ def _find_row(text, *label_pats, max_cols=3):
             if clean:
                 return clean[:max_cols]
 
-            # Next-line columnar layout
-            for j in range(i + 1, min(i + 4, len(lines))):
+            # Next-line / one-value-per-line collector.
+            # Handles:
+            #   (a) Traditional: all values on one line after a blank or label
+            #   (b) One-per-line: each column value is on its own line
+            #       (common in PyMuPDF output of multi-column PDF tables)
+            # Skips text-continuation lines (multi-line labels) and note-ref
+            # strings like "2.5.6" that fail to parse.
+            collected = []
+            text_skips = 0
+            _BARE_YEAR_RE = re.compile(r'^(?:19|20)\d{2}\s*$')
+            for j in range(i + 1, min(i + 25, len(lines))):
                 nxt = lines[j].strip()
                 if not nxt:
                     continue
-                if not re.search(r'\d', nxt):
+                # Bare year lines (column headers like "2024", "2025 ") must be
+                # skipped outright — _NUM_PAT splits "2024" → ["202","4"] and
+                # "202" would pass as a plausible metric value.
+                if _BARE_YEAR_RE.match(nxt):
+                    if collected:
+                        break   # year appears after values → row is done
+                    continue    # year column header before values → skip
+                # Date-format column headers: "31 Dec 2025", "31 December 2025 "
+                _DATE_HDR_RE = re.compile(
+                    r'^(?:0?[1-9]|[12]\d|3[01])\s+'
+                    r'(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec'
+                    r'|January|February|March|April|May|June|July|August'
+                    r'|September|October|November|December)\b',
+                    re.IGNORECASE,
+                )
+                if _DATE_HDR_RE.match(nxt):
+                    if collected:
+                        break
+                    continue
+                has_digit  = bool(re.search(r'\d', nxt))
+                has_letter = bool(re.search(r'[a-zA-Z]', nxt))
+                if not has_digit:
+                    # Pure-text continuation line (multi-line label or heading)
+                    if collected:
+                        break   # already collecting values — new label → stop
+                    text_skips += 1
+                    if text_skips > 3:
+                        break
+                    continue
+                # Line has digits — try to gather numeric values
+                # Skip lines with billion/million-scale suffixes (narrative pages
+                # use "17.9 b" or "24.4 b"; income statements use plain thousands).
+                if re.search(r'[\d.]\s*(?:b|m|bn|mn|tr)\b|\b(?:million|billion|bn)\b', nxt, re.I):
+                    if collected:
+                        break
+                    continue
+                # Skip growth/change lines ("+36.1%", "+43.5%", "+3.0pp")
+                # Financial table values never start with "+" or end with "%"/"pp"
+                _nxt_r = nxt.rstrip()
+                if (re.match(r'^[+-]\s*[\d.]', _nxt_r) or
+                        _nxt_r.endswith('%') or _nxt_r.endswith('pp')):
+                    if collected:
+                        break
+                    continue
+                # Lines with lots of letters are titles/labels, not data values —
+                # check BEFORE extracting numbers so embedded years like "2025"
+                # in "Capex breakdown (2025 vs 2024)" don't look like two values.
+                letter_cnt = sum(1 for c in nxt if c.isalpha())
+                if letter_cnt > 6:
+                    if collected:
+                        break
+                    continue
+                # Clean section references (2.5.6, 2.15.3) before numeric scan
+                nxt_clean = _clean_line(nxt)
+                nxt_vals = _all_vals(_NUM_PAT.findall(nxt_clean))
+                if not nxt_vals:
+                    # Digits present but nothing parseable (e.g. "2.5.6" note ref)
+                    if collected:
+                        break
+                    continue
+                if len(nxt_vals) >= 2:
+                    # Multiple values on one line → traditional row format; take & stop
+                    collected.extend(nxt_vals)
                     break
-                nxt_vals = _all_vals(_NUM_PAT.findall(nxt))
-                if nxt_vals:
-                    return nxt_vals[:max_cols]
-                break
+                # Single clean numeric line → one-per-line column value
+                collected.extend(nxt_vals)
+                if len(collected) >= max_cols:
+                    break
+
+            if collected:
+                return collected[:max_cols]
     return []
 
 
@@ -2502,8 +2615,12 @@ def _extract_pa_data(text, scale):
         r'\btotal\s+revenue\b', r'\bnet\s+revenue\b', r'\bnet\s+sales?\b',
         r'\bturnover\b', r'\bnet\s+interest\s+income\b', r'\btotal\s+income\b',
         r'\bnet\s+operating\s+income\b', r'\btotal\s+operating\s+income\b',
-        r'\bincome\s+from\s+operations?\b', r'^\s*revenue\b')]
-    ebitda_row = [s(v) for v in _find_row(text, r'\bebitda\b')]
+        r'\bincome\s+from\s+operations?\b', r'^\s*revenue\b',
+        r'\brevenue\s+from\s+contracts\b')]
+    ebitda_row = [s(v) for v in _find_row(text,
+        r'\bebitda\b',
+        r'\bearnings\s+before\s+interest\s+tax\b',
+        r'\bearnings\s+before\s+interest,?\s+taxes?\b')]
     netinc_row = [s(v) for v in _find_row(text,
         r'\bnet\s+(?:income|profit)\b',
         r'\bprofit\s+(?:for|after)\s+(?:the\s+)?(?:year|period)\b',
@@ -2521,7 +2638,11 @@ def _extract_pa_data(text, scale):
     capex_raw = _find_row(text,
         r'\bpurchase\s+of\s+(?:property|fixed\s+assets?|ppe|plant\s+and\s+equipment)\b',
         r'\bacquisition\s+of\s+(?:property(?:\s+and\s+equipment)?|fixed\s+assets?|ppe)\b',
-        r'\bcapital\s+expenditure(?:s)?\b', r'\bcapex\b')
+        r'\bcapital\s+expenditure(?:s)?\b',
+        # standalone "capex" label at start of line — excludes composite
+        # titles ("Capex and Free cash flow", "Capex (IFRS 16)", "Capex
+        # intensity") AND secondary labels ("Ex-lease capex", "Growth capex")
+        r'^\s*capex\b(?!\s*(?:and\b|intensity\b|breakdown\b|\())')
     capex_row = [s(abs(v)) if v is not None else None for v in capex_raw]
 
     metric_rows = {
@@ -2605,7 +2726,18 @@ def _extract_income_statement(text, scale):
         r'^\s*basic\b')
     dps = _find_val(text,
         r'\bdividend(?:s)?\s+per\s+share\b',
-        r'\bdps\b', r'\bdividend\s+declared\s+per\s+share\b')
+        r'\bdps\b', r'\bdividend\s+declared\s+per\s+share\b',
+        r'\btotal\s+dividend(?:s)?\s+per\s+share\b',
+        r'\bfinal\s+dividend(?:\s+per\s+share)?\b')
+    # Prose fallback: "GHS 0.48 per share" or "GHS0.48 per share" near dividend keyword
+    if dps is None:
+        for m in re.finditer(
+            r'\bdividend\b.*?(?:GHS?|GH[¢₵])\s*([\d]+\.[\d]+)\s*per\s+share',
+            text, re.IGNORECASE | re.DOTALL):
+            v = _parse_num(m.group(1))
+            if v is not None and 0 < v < 100:
+                dps = v
+                break
 
     summary = {}
     if revenue  is not None: summary['Revenue (000)']         = revenue
@@ -2888,15 +3020,30 @@ def _pdf_to_text(raw_bytes):
         total = len(doc)
 
         if total > 30:
-            # One-pass scan: cache text and score for financial keywords
+            # One-pass scan: score pages by numeric density.
+            # Financial statement table pages have very high density of numeric tokens
+            # (hundreds of figures); narrative pages have far fewer.
+            # Tie-break: pages with ≥2 year-column headers on a single line go first.
             cached = {}
-            fin_pages = []
-            for i in range(min(total, 80)):
+            scored = []  # (score, page_index)
+            for i in range(min(total, 300)):
                 t = doc[i].get_text('text')
                 cached[i] = t
-                if _FIN_KW_RE.search(t):
-                    fin_pages.append(i)
-            page_range = fin_pages[:40] if fin_pages else list(range(min(total, 40)))
+                if not _FIN_KW_RE.search(t):
+                    continue
+                num_tokens  = len(_NUM_PAT.findall(t))
+                yr_hdr_bonus = 10 if any(
+                    len(_YEAR_HDR_RE.findall(ln)) >= 2 for ln in t.split('\n')
+                ) else 0
+                scored.append((num_tokens + yr_hdr_bonus, i))
+            # Sort descending by score; take top 40 pages in DOCUMENT ORDER.
+            # Document order is important: income statement always comes before
+            # notes; keeping order ensures _find_row finds the primary statement
+            # value before reaching disaggregation/note tables.
+            scored.sort(reverse=True)
+            page_range = sorted(i for _, i in scored[:40])
+            if not page_range:
+                page_range = list(range(min(total, 40)))
         else:
             cached = {}
             page_range = list(range(total))
@@ -3053,7 +3200,7 @@ def valuation_extract_pdf():
         )}), 422
 
     # Truncate to a focused financial-section window before running regex extractors
-    extract_text = _truncate_for_extraction(full_text, max_lines=2500)
+    extract_text = _truncate_for_extraction(full_text, max_lines=5000)
     scale = _detect_scale(extract_text)
 
     if stmt_type == 'income':
