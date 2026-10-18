@@ -2915,34 +2915,30 @@ def _pdf_to_text(raw_bytes):
     except Exception as e:
         logger.warning(f'pdfplumber failed: {e}')
 
-    # ── Tier 3: Tesseract OCR — smart page selection for scanned PDFs ───
+    # ── Tier 3: Tesseract OCR — budget-capped for scanned PDFs ──────────
+    # Each scanned page decompresses a full-res image regardless of output DPI,
+    # so we cap at 12 pages and pick a smart start offset to skip cover/narrative
+    # pages that precede the financial statements.
     try:
         import fitz
         import pytesseract
         from PIL import Image as _PILImage
 
-        MAX_OCR_PAGES = 20
+        MAX_OCR_PAGES = 12
         OCR_DPI       = 200
 
         doc = fitz.open(stream=raw_bytes, filetype='pdf')
         total_pages = len(doc)
 
-        if total_pages > MAX_OCR_PAGES:
-            # Fast pixel-density scan at 72 DPI to pick the most text-heavy pages.
-            # Financial tables have many dark characters → high dark-pixel fraction.
-            density_mat = fitz.Matrix(1, 1)  # 1× = 72 DPI
-            densities = []
-            for i in range(min(total_pages, 60)):
-                pix = doc[i].get_pixmap(matrix=density_mat,
-                                        colorspace=fitz.csGRAY, alpha=False)
-                img_q = _PILImage.frombytes('L', [pix.width, pix.height], pix.samples)
-                hist = img_q.histogram()  # 256-bucket count, very fast
-                dark_frac = sum(hist[:160]) / max(pix.width * pix.height, 1)
-                densities.append((i, dark_frac))
-            densities.sort(key=lambda x: x[1], reverse=True)
-            page_indices = sorted(p for p, _ in densities[:MAX_OCR_PAGES])
+        # Heuristic start offset: skip likely cover/director/auditor pages
+        if total_pages <= MAX_OCR_PAGES:
+            start = 0
+        elif total_pages <= 25:
+            start = max(0, total_pages - MAX_OCR_PAGES)  # read the back half
         else:
-            page_indices = list(range(total_pages))
+            start = total_pages // 3  # financials roughly in second third
+
+        page_indices = list(range(start, min(start + MAX_OCR_PAGES, total_pages)))
 
         ocr_mat   = fitz.Matrix(OCR_DPI / 72, OCR_DPI / 72)
         ocr_parts = []
