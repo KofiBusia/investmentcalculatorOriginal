@@ -1056,6 +1056,7 @@ function togglePdfPanel() {
 
 /* Single unified field store (auto mode extracts all statement types at once) */
 let _pdfAutoFields = {};
+let _pdfPaData = {};
 
 function _setUnifiedStatus(msg, kind) {
   const el = document.getElementById('pdf-status-unified');
@@ -1089,6 +1090,7 @@ async function _processPdfUnified(files) {
   document.getElementById('pdf-table-unified').style.display = 'none';
   document.getElementById('pdf-action-row').style.display = 'none';
   _pdfAutoFields = {};
+  _pdfPaData = {};
 
   /* build per-file status rows */
   const fileListEl = document.getElementById('pdf-file-list');
@@ -1105,7 +1107,7 @@ async function _processPdfUnified(files) {
     `<i class="fas fa-spinner fa-spin"></i> Processing ${files.length} file${files.length>1?'s':''}…`;
   _setUnifiedStatus(`<i class="fas fa-spinner fa-spin"></i> Analysing ${files.length} PDF${files.length>1?'s':''}…`, 'warn');
 
-  let mergedSummary = {}, mergedFields = {}, totalPages = 0, successCount = 0;
+  let mergedSummary = {}, mergedFields = {}, mergedPaData = {}, totalPages = 0, successCount = 0;
 
   for (let i = 0; i < files.length; i++) {
     const file = files[i];
@@ -1137,11 +1139,22 @@ async function _processPdfUnified(files) {
       for (const [k, v] of Object.entries(summary)) { if (v != null && mergedSummary[k] == null) mergedSummary[k] = v; }
       for (const [k, v] of Object.entries(fields))  { if (v != null && mergedFields[k]  == null) mergedFields[k]  = v; }
 
+      /* merge pa_data — keyed by year, then by metric */
+      const paData = data.pa_data || {};
+      const paYears = Object.keys(paData);
+      for (const [yr, metrics] of Object.entries(paData)) {
+        if (!mergedPaData[yr]) mergedPaData[yr] = {};
+        for (const [mk, mv] of Object.entries(metrics)) {
+          if (mv != null && mergedPaData[yr][mk] == null) mergedPaData[yr][mk] = mv;
+        }
+      }
+
       if (count > 0) {
         successCount++;
         document.getElementById(`pfl-icon-${i}`).className = 'fas fa-check-circle';
         document.getElementById(`pfl-icon-${i}`).style.color = '#10b981';
-        document.getElementById(`pfl-msg-${i}`).textContent = `${count} metrics · ${pages}p`;
+        const paLabel = paYears.length ? ` · PA: ${paYears.sort().reverse().join(', ')}` : '';
+        document.getElementById(`pfl-msg-${i}`).textContent = `${count} metrics · ${pages}p${paLabel}`;
         document.getElementById(`pfl-msg-${i}`).style.color = '#10b981';
       } else {
         document.getElementById(`pfl-icon-${i}`).className = 'fas fa-exclamation-circle';
@@ -1158,6 +1171,7 @@ async function _processPdfUnified(files) {
   }
 
   _pdfAutoFields = mergedFields;
+  _pdfPaData = mergedPaData;
   const keys = Object.keys(mergedSummary);
 
   if (!keys.length) {
@@ -1227,10 +1241,36 @@ function setPdfModel(model) {
 
 function _refreshActionRow() {
   const total = Object.keys(_pdfAutoFields).length;
+  const paYears = Object.keys(_pdfPaData).length;
   const row = document.getElementById('pdf-action-row');
-  if (total === 0) { row.style.display = 'none'; return; }
+  if (total === 0 && paYears === 0) { row.style.display = 'none'; return; }
   row.style.display = 'block';
-  document.getElementById('pdf-action-summary').textContent = `${total} field(s) ready to populate`;
+  const paNote = paYears ? ` + ${paYears} PA year(s)` : '';
+  document.getElementById('pdf-action-summary').textContent = `${total} field(s)${paNote} ready to populate`;
+}
+
+/* Populate the Historical Period Analysis grid from extracted multi-year pa_data. */
+function _applyPaData(paData) {
+  if (!paData || !Object.keys(paData).length) return 0;
+  const labels = _paPeriodLabels();
+  const PA_MAP = { revenue:'revenue', ebitda:'ebitda', net_inc:'netinc', equity:'equity', ocf:'opcf', capex:'capex' };
+  let populated = 0;
+  for (const [year, metrics] of Object.entries(paData)) {
+    const colIdx = labels.indexOf(year);
+    if (colIdx === -1) continue;
+    for (const [key, val] of Object.entries(metrics)) {
+      const gridId = PA_MAP[key];
+      if (!gridId || val == null) continue;
+      const el = document.getElementById(`pa_${gridId}_${colIdx}`);
+      if (el) {
+        el.value = val;
+        el.dispatchEvent(new Event('input'));
+        populated++;
+      }
+    }
+  }
+  if (populated > 0) computePaResults();
+  return populated;
 }
 
 function applyAllPdfFields() {
@@ -1249,17 +1289,22 @@ function applyAllPdfFields() {
   const shEl = document.getElementById('eq_shares');
   if (shEl && shEl.value) syncShares('eq_shares', shEl.value);
 
+  // Populate Historical Period Analysis grid with multi-year extracted data
+  const paPopulated = _applyPaData(_pdfPaData);
+
   const summaryEl = document.getElementById('pdf-action-summary');
   const modelName = { all:'All Models', equity:'Equity', corp:'Corp Finance', fi:'Fixed Income' }[_pdfModelFilter] || 'All';
-  if (applied === 0) {
+  const paNote = paPopulated > 0 ? ` · <span style="color:#059669"><i class="fas fa-table"></i> ${paPopulated} PA cell(s) filled</span>` : '';
+  if (applied === 0 && paPopulated === 0) {
     summaryEl.innerHTML = `<span style="color:#b91c1c"><i class="fas fa-exclamation-triangle"></i> No ${modelName} fields matched — try "All Models".</span>`;
   } else {
-    summaryEl.innerHTML = `<i class="fas fa-check-circle" style="color:#10b981"></i> ${applied} ${modelName} field(s) populated — review values then click Calculate.`;
+    summaryEl.innerHTML = `<i class="fas fa-check-circle" style="color:#10b981"></i> ${applied} ${modelName} field(s) populated — review values then click Calculate.${paNote}`;
   }
 }
 
 function clearAllPdf() {
   _pdfAutoFields = {};
+  _pdfPaData = {};
   const inp = document.getElementById('pdf-input-unified');
   if (inp) inp.value = '';
   const st = document.getElementById('pdf-status-unified');

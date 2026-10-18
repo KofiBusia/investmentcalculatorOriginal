@@ -2399,6 +2399,149 @@ def _find_val(text, *label_pats, require_positive=True):
     return None
 
 
+_YEAR_HDR_RE = re.compile(r'\b(20(?:1[5-9]|2[0-9]))\b')
+
+
+def _extract_year_labels(text, max_years=3):
+    """Return year labels from column-header rows, most-recent first."""
+    seen, result = set(), []
+    for line in text.split('\n')[:300]:
+        years = _YEAR_HDR_RE.findall(line)
+        if len(years) >= 2:
+            for y in years:
+                if y not in seen:
+                    seen.add(y)
+                    result.append(y)
+            if len(result) >= 2:
+                result.sort(reverse=True)
+                return result[:max_years]
+    return []
+
+
+def _find_row(text, *label_pats, max_cols=3):
+    """Like _find_val but returns all column values from the matching row.
+    Values are in left-to-right order (most-recent year first for annual reports).
+    Note-reference integers (small whole numbers like 7, 14) are stripped.
+    """
+    lines = text.split('\n')
+
+    def _is_note_ref(v, peers):
+        if not (0 < v < 100 and v == round(v)):
+            return False
+        others = [x for x in peers if x != v]
+        return any(abs(x) >= 100 for x in others) or any(x != round(x) for x in others)
+
+    def _all_vals(candidates):
+        vals = [_parse_num(c) for c in candidates]
+        vals = [v for v in vals if v is not None]
+        return [v for v in vals if not _is_note_ref(v, vals)]
+
+    for i, line in enumerate(lines):
+        for pat in label_pats:
+            if not re.search(pat, line, re.IGNORECASE):
+                continue
+
+            m = re.search(pat, line, re.IGNORECASE)
+            rest = line[m.end():]
+            rest = re.sub(r'^[\s\-–—\.]+', '', rest)
+            same_cands = _NUM_PAT.findall(rest)
+
+            if re.search(r'\b(?:million|billion|bn)\b', rest, re.I):
+                continue
+
+            # Check for Access-Bank style: note ref on this line, current year on line above
+            raw_vals = [_parse_num(c) for c in same_cands if _parse_num(c) is not None]
+            has_note_ref = any(_is_note_ref(v, raw_vals) for v in raw_vals)
+            if has_note_ref and i > 0:
+                prev = lines[i - 1].strip()
+                if prev and not re.search(r'[a-zA-Z]', prev):
+                    prev_vals = _all_vals(_NUM_PAT.findall(prev))
+                    same_clean = _all_vals(same_cands)
+                    if prev_vals:
+                        combined = (prev_vals[:1] + same_clean)[:max_cols]
+                        if combined:
+                            return combined
+
+            clean = _all_vals(same_cands)
+            if clean:
+                return clean[:max_cols]
+
+            # Next-line columnar layout
+            for j in range(i + 1, min(i + 4, len(lines))):
+                nxt = lines[j].strip()
+                if not nxt:
+                    continue
+                if not re.search(r'\d', nxt):
+                    break
+                nxt_vals = _all_vals(_NUM_PAT.findall(nxt))
+                if nxt_vals:
+                    return nxt_vals[:max_cols]
+                break
+    return []
+
+
+def _extract_pa_data(text, scale):
+    """Extract multi-year PA grid data from financial statement text.
+
+    Returns a dict keyed by 4-digit year string (e.g. '2025'), each value
+    being a dict of metric_key → scaled_value ready for PA grid population.
+    Returns {} when year headers cannot be detected.
+    """
+    years = _extract_year_labels(text)
+    if not years:
+        return {}
+
+    def s(v):
+        return round(v * scale, 2) if v is not None else None
+
+    rev_row = [s(v) for v in _find_row(text,
+        r'\btotal\s+revenue\b', r'\bnet\s+revenue\b', r'\bnet\s+sales?\b',
+        r'\bturnover\b', r'\bnet\s+interest\s+income\b', r'\btotal\s+income\b',
+        r'\bnet\s+operating\s+income\b', r'\btotal\s+operating\s+income\b',
+        r'\bincome\s+from\s+operations?\b', r'^\s*revenue\b')]
+    ebitda_row = [s(v) for v in _find_row(text, r'\bebitda\b')]
+    netinc_row = [s(v) for v in _find_row(text,
+        r'\bnet\s+(?:income|profit)\b',
+        r'\bprofit\s+(?:for|after)\s+(?:the\s+)?(?:year|period)\b',
+        r'\bprofit\s+attributable\s+to\s+(?:owners?|shareholders?|equity)\b',
+        r'\bprofit\s+for\s+the\s+(?:year|period)\b')]
+    equity_row = [s(v) for v in _find_row(text,
+        r'\btotal\s+(?:shareholders?|stockholders?)[^\w\s]*s?\s+equity\b',
+        r'\btotal\s+equity\b', r'\bshareholders?[^\w\s]*s?\s+funds?\b',
+        r'\bequity\s+attributable\s+to\s+(?:owners?|equity\s+holders?)\b')]
+    ocf_row = [s(v) for v in _find_row(text,
+        r'\bnet\s+cash\s+flows?\s+(?:generated\s+from|from)\s+operating\s+activities?\b',
+        r'\bnet\s+cash\s?flows?\s+from\s+operating\s+activities?\b',
+        r'\bcash\s+(?:flows?\s+)?from\s+operations?\b',
+        r'\boperating\s+cash\s+(?:flow|inflow)\b')]
+    capex_raw = _find_row(text,
+        r'\bpurchase\s+of\s+(?:property|fixed\s+assets?|ppe|plant\s+and\s+equipment)\b',
+        r'\bacquisition\s+of\s+(?:property(?:\s+and\s+equipment)?|fixed\s+assets?|ppe)\b',
+        r'\bcapital\s+expenditure(?:s)?\b', r'\bcapex\b')
+    capex_row = [s(abs(v)) if v is not None else None for v in capex_raw]
+
+    metric_rows = {
+        'revenue': rev_row,
+        'ebitda':  ebitda_row,
+        'net_inc': netinc_row,
+        'equity':  equity_row,
+        'ocf':     ocf_row,
+        'capex':   capex_row,
+    }
+
+    result = {}
+    for yi, yr in enumerate(years):
+        year_data = {}
+        for metric, row in metric_rows.items():
+            val = row[yi] if yi < len(row) else None
+            if val is not None:
+                year_data[metric] = val
+        if year_data:
+            result[yr] = year_data
+
+    return result
+
+
 # ── Per-statement-type extractors ─────────────────────────────────────
 
 def _extract_income_statement(text, scale):
@@ -2878,7 +3021,8 @@ def valuation_extract_pdf():
     if not summary:
         return jsonify({'error': 'No financial figures found. Ensure this is a text-based financial statement PDF.'}), 422
 
-    return jsonify({'summary': summary, 'fields': fields, 'pages_read': pages, 'scale': scale})
+    pa_data = _extract_pa_data(extract_text, scale)
+    return jsonify({'summary': summary, 'fields': fields, 'pages_read': pages, 'scale': scale, 'pa_data': pa_data})
 
 
 # --- STATIC / REDIRECT ROUTES ---
