@@ -509,6 +509,22 @@ main > div[style*="margin-bottom: 20px"] {
             title="Corporate tax rate — pushed to Capital Budgeting, M&A and LBO models">
         </div>
 
+        <div class="inp-group">
+          <label style="font-size:.78rem;font-weight:700;color:#4f46e5"><i class="fas fa-layer-group" style="margin-right:4px"></i>Shares Outstanding (000)</label>
+          <input type="number" id="global_shares" placeholder="e.g. 27000" step="1"
+            style="width:100%;padding:8px 10px;border:1.5px solid #c7d2fe;border-radius:9px;font-size:.88rem;font-weight:700;outline:none"
+            oninput="syncGlobal('global_shares',this.value)"
+            title="Shares outstanding — pushed to FCFF DCF, EVA, REIT and Insurance models">
+        </div>
+
+        <div class="inp-group">
+          <label style="font-size:.78rem;font-weight:700;color:#4f46e5"><i class="fas fa-book-open" style="margin-right:4px"></i>Book Value / Share</label>
+          <input type="number" id="global_bvps" placeholder="e.g. 2.45" step="0.01"
+            style="width:100%;padding:8px 10px;border:1.5px solid #c7d2fe;border-radius:9px;font-size:.88rem;font-weight:700;outline:none"
+            oninput="syncGlobal('global_bvps',this.value)"
+            title="Book value per share — pushed to Residual Income Model and Bank Franchise Model">
+        </div>
+
       </div>
       <div style="margin-top:10px;font-size:.72rem;color:#94a3b8"><i class="fas fa-info-circle"></i> Values push to all relevant models instantly. Individual model fields can still be fine-tuned.</div>
     </div>
@@ -590,7 +606,7 @@ main > div[style*="margin-bottom: 20px"] {
       <h3>Residual Income Model (RIM)</h3>
       <p class="subtitle">Intrinsic value = Book Value + PV of residual income stream</p>
       <div class="inp-grid">
-        <div class="inp-group"><label>Book Value Per Share (B0)</label><input type="number" id="rim_bv" value="" title="Book value per share (shareholders equity ÷ shares outstanding)" placeholder="0" step="0.01" oninput="calcRIM()"></div>
+        <div class="inp-group"><label>Book Value Per Share (B0)</label><input type="number" id="rim_bv" value="" title="Book value per share (shareholders equity ÷ shares outstanding)" placeholder="0" step="0.01" oninput="reverseGlobal('rim_bv',this.value);calcRIM()"></div>
         <div class="inp-group"><label>ROE (%)</label><input type="number" id="rim_roe" value="" title="Return on Equity — net income ÷ book value (e.g. 31 = 31%)" placeholder="0" oninput="calcRIM()"></div>
         <div class="inp-group"><label>Cost of Equity Ke (%)</label><input type="number" id="rim_ke" value="" title="Required return on equity (cost of equity) — e.g. 24 = 24%" placeholder="0" oninput="reverseGlobal('rim_ke',this.value);calcRIM()"></div>
         <div class="inp-group"><label>Growth g (%)</label><input type="number" id="rim_g" value="" title="Perpetual growth rate in residual income (e.g. 6 = 6%)" placeholder="0" oninput="reverseGlobal('rim_g',this.value);calcRIM()"></div>
@@ -934,7 +950,7 @@ main > div[style*="margin-bottom: 20px"] {
         <div class="inp-group"><label>Other Assets (000)</label><input type="number" id="reit_oa" value="" placeholder="0" oninput="calcREIT()"></div>
         <div class="inp-group"><label>Total Debt (000)</label><input type="number" id="reit_debt" value="" placeholder="0" oninput="calcREIT()"></div>
         <div class="inp-group"><label>Other Liabilities (000)</label><input type="number" id="reit_ol" value="" placeholder="0" oninput="calcREIT()"></div>
-        <div class="inp-group"><label>Shares Outstanding (000)</label><input type="number" id="reit_sh" value="" placeholder="0" oninput="calcREIT()"></div>
+        <div class="inp-group"><label>Shares Outstanding (000)</label><input type="number" id="reit_sh" value="" placeholder="0" oninput="syncShares('reit_sh',this.value);calcREIT()"></div>
         <div class="inp-group"><label>Current Share Price</label><input type="number" id="reit_price" value="" placeholder="0" step="0.01" oninput="reverseGlobal('reit_price',this.value);calcREIT()"></div>
         <div class="inp-group"><label>Net Income (000)</label><input type="number" id="reit_ni" value="" placeholder="0" oninput="calcREIT()"></div>
         <div class="inp-group"><label>RE Depreciation (000)</label><input type="number" id="reit_dep" value="" placeholder="0" oninput="calcREIT()"></div>
@@ -975,7 +991,7 @@ main > div[style*="margin-bottom: 20px"] {
       <h3>Bank Valuation — Justified P/B &amp; Excess-Capital DDM</h3>
       <p class="subtitle">CFA: P/B = (ROE − g)/(Ke − g); residual income; implied cost of equity</p>
       <div class="inp-grid">
-        <div class="inp-group"><label>Book Value Per Share (B0)</label><input type="number" id="bk_bv" value="" placeholder="0" step="0.01" oninput="calcBank()"></div>
+        <div class="inp-group"><label>Book Value Per Share (B0)</label><input type="number" id="bk_bv" value="" placeholder="0" step="0.01" oninput="reverseGlobal('bk_bv',this.value);calcBank()"></div>
         <div class="inp-group"><label>Sustainable ROE (%)</label><input type="number" id="bk_roe" value="" placeholder="0" oninput="calcBank()"></div>
         <div class="inp-group"><label>Cost of Equity Ke (%)</label><input type="number" id="bk_ke" value="" placeholder="0" step="0.01" oninput="calcBank()"></div>
         <div class="inp-group"><label>Long-run Growth g (%)</label><input type="number" id="bk_g" value="" placeholder="0" oninput="calcBank()"></div>
@@ -1000,7 +1016,7 @@ main > div[style*="margin-bottom: 20px"] {
         <div class="inp-group"><label>Value of New Business (000)</label><input type="number" id="ins_vnb" value="" placeholder="0" oninput="calcInsurance()"></div>
         <div class="inp-group"><label>New Business Growth (%)</label><input type="number" id="ins_ng" value="" placeholder="0" oninput="calcInsurance()"></div>
         <div class="inp-group"><label>Years of New Business</label><input type="number" id="ins_ny" value="" placeholder="0" oninput="calcInsurance()"></div>
-        <div class="inp-group"><label>Shares Outstanding (000)</label><input type="number" id="ins_sh" value="" placeholder="0" oninput="calcInsurance()"></div>
+        <div class="inp-group"><label>Shares Outstanding (000)</label><input type="number" id="ins_sh" value="" placeholder="0" oninput="syncShares('ins_sh',this.value);calcInsurance()"></div>
         <div class="inp-group"><label>Current Share Price</label><input type="number" id="ins_price" value="" placeholder="0" step="0.01" oninput="reverseGlobal('ins_price',this.value);calcInsurance()"></div>
       </div>
       <div id="ins_res" class="res-grid"></div>
@@ -1285,9 +1301,16 @@ function applyAllPdfFields() {
       applied++;
     }
   }
-  // Propagate shares to all models and recompute PA auto rows
+  // Propagate shares across all models + global bar
   const shEl = document.getElementById('eq_shares');
   if (shEl && shEl.value) syncShares('eq_shares', shEl.value);
+
+  // Propagate BVPS to global bar → RIM + Bank model
+  const bvEl = document.getElementById('rim_bv');
+  if (bvEl && bvEl.value && parseFloat(bvEl.value) !== 0) {
+    const gBv = document.getElementById('global_bvps');
+    if (gBv && !gBv.value) { gBv.value = bvEl.value; syncGlobal('global_bvps', bvEl.value); }
+  }
 
   // Populate Historical Period Analysis grid with multi-year extracted data
   const paPopulated = _applyPaData(_pdfPaData);
@@ -1696,11 +1719,14 @@ function syncShares(srcId, rawVal) {
   if (_syncingShares) return;
   _syncingShares = true;
   const val = parseFloat(rawVal) || 0;
-  ['eq_shares', 'eva_sh'].forEach(id => {
+  ['eq_shares', 'eva_sh', 'reit_sh', 'ins_sh'].forEach(id => {
     if (id === srcId) return;
     const el = document.getElementById(id);
     if (el && (!el.value || parseFloat(el.value) === 0)) el.value = val || '';
   });
+  // Keep global bar in sync
+  const gEl = document.getElementById('global_shares');
+  if (gEl && (!gEl.value || parseFloat(gEl.value) === 0)) gEl.value = val || '';
   // Recompute auto rows (EPS, BVPS depend on shares)
   _paComputeAutoRows();
   if (document.getElementById('pa-results').style.display !== 'none') computePaResults();
@@ -1718,12 +1744,14 @@ function toggleGlobalPanel() {
 
 /* ── Global Assumptions sync ── */
 const _GLOBAL_SYNC_MAP = {
-  global_wacc:  ['eq_wacc',  'eva_wacc', 'cb_r'],
-  global_tg:    ['eq_gterm', 'eva_tg', 'ddm_gl', 'rim_g'],
-  global_ke:    ['ddm_ke',   'rim_ke'],
-  global_price: ['eq_price', 'ddm_price', 'rim_price', 'bk_price', 'reit_price', 'ins_price'],
-  global_nd:    ['eq_netdebt','eva_debt'],
-  global_tax:   ['cb_tax',   'ma_tax',   'lbo_tax'],
+  global_wacc:   ['eq_wacc',  'eva_wacc', 'cb_r'],
+  global_tg:     ['eq_gterm', 'eva_tg', 'ddm_gl', 'rim_g'],
+  global_ke:     ['ddm_ke',   'rim_ke',  'bk_ke',  'reit_ke'],
+  global_price:  ['eq_price', 'ddm_price', 'rim_price', 'bk_price', 'reit_price', 'ins_price'],
+  global_nd:     ['eq_netdebt','eva_debt'],
+  global_tax:    ['cb_tax',   'ma_tax',   'lbo_tax'],
+  global_shares: ['eq_shares','eva_sh',   'reit_sh',  'ins_sh'],
+  global_bvps:   ['rim_bv',   'bk_bv'],
 };
 let _syncingGlobal = false;
 function syncGlobal(globalId, rawVal) {

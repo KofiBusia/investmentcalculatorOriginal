@@ -2822,6 +2822,16 @@ def _build_fields(inc, bs, cf):
     if net_inc  is not None: fields['ma_tgtni']   = round(net_inc / 1000, 2)
     if shares   is not None: fields['ma_tgts']    = round(shares / 1000, 2)
 
+    # Bank Franchise Model (bk_*)
+    if bvps     is not None: fields['bk_bv']      = round(bvps, 4)
+    if net_inc is not None and equity is not None and equity > 0:
+        fields['bk_roe'] = round(net_inc / equity * 100, 2)
+
+    # Financial institution / REIT share counts
+    if shares   is not None:
+        fields['reit_sh'] = round(shares, 0)
+        fields['ins_sh']  = round(shares, 0)
+
     return fields
 
 
