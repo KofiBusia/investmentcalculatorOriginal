@@ -2991,13 +2991,15 @@ def valuation_extract_pdf():
     if not f.filename.lower().endswith('.pdf'):
         return jsonify({'error': 'Only PDF files are accepted'}), 400
 
-    raw = f.read(50 * 1024 * 1024)  # match MAX_CONTENT_LENGTH
+    raw = f.read(50 * 1024 * 1024)  # capped by MAX_CONTENT_LENGTH (50 MB)
     size_mb = len(raw) / (1024 * 1024)
     logger.info(f'PDF extract: {f.filename!r}, {size_mb:.1f} MB')
-    if size_mb > 15:
+    if size_mb > 30:
         return jsonify({'error': (
-            f'File is {size_mb:.0f} MB — too large to process on the server. '
-            'Please upload only the financial statements pages of the report (5–20 pages, usually < 5 MB).'
+            f'File is {size_mb:.0f} MB — too large (30 MB max). '
+            'If the annual report is very large, try exporting or printing just the '
+            'financial statement pages (income statement, balance sheet, cash flow) '
+            'as a separate PDF and upload that instead.'
         )}), 413
 
     # Run extraction in a daemon thread so we can enforce a hard timeout.
