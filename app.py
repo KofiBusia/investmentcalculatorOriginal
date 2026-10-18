@@ -2915,40 +2915,59 @@ def _pdf_to_text(raw_bytes):
     except Exception as e:
         logger.warning(f'pdfplumber failed: {e}')
 
-    # ── Tier 3: Tesseract OCR — budget-capped for scanned PDFs ──────────
-    # Each scanned page decompresses a full-res image regardless of output DPI,
-    # so we cap at 12 pages and pick a smart start offset to skip cover/narrative
-    # pages that precede the financial statements.
+    # ── Tier 3: Tesseract OCR — direct image extraction, time-bounded ───
+    # For fully-scanned PDFs every page is a JPEG/PNG embedded at its
+    # native resolution.  Extracting the raw image bytes bypasses
+    # PyMuPDF's re-render step (which decompresses the full image even at
+    # "low" DPI) and is 3-5× faster per page.  A 70-second wall-clock
+    # budget ensures we always return before the 85-second thread timeout,
+    # even on a slow server — partial results beat a 502.
     try:
         import fitz
         import pytesseract
-        from PIL import Image as _PILImage
+        import io          as _io
+        import time        as _time
+        from PIL import Image         as _PILImage
+        from PIL import ImageEnhance  as _IE
+        from PIL import ImageFilter   as _IF
 
-        MAX_OCR_PAGES = 12
-        OCR_DPI       = 200
+        OCR_BUDGET = 70   # seconds; leaves 15 s headroom before thread timeout
+        OCR_DPI    = 200  # fallback DPI for vector/mixed pages
 
         doc = fitz.open(stream=raw_bytes, filetype='pdf')
         total_pages = len(doc)
+        t0 = _time.monotonic()
 
-        # Heuristic start offset: skip likely cover/director/auditor pages
-        if total_pages <= MAX_OCR_PAGES:
-            start = 0
-        elif total_pages <= 25:
-            start = max(0, total_pages - MAX_OCR_PAGES)  # read the back half
-        else:
-            start = total_pages // 3  # financials roughly in second third
-
-        page_indices = list(range(start, min(start + MAX_OCR_PAGES, total_pages)))
-
-        ocr_mat   = fitz.Matrix(OCR_DPI / 72, OCR_DPI / 72)
         ocr_parts = []
-        for i in page_indices:
-            pix = doc[i].get_pixmap(matrix=ocr_mat,
-                                    colorspace=fitz.csGRAY, alpha=False)
-            img = _PILImage.frombytes('L', [pix.width, pix.height], pix.samples)
-            t   = pytesseract.image_to_string(img, config='--psm 6 --oem 3')
+        for i in range(total_pages):
+            if _time.monotonic() - t0 > OCR_BUDGET:
+                logger.info('OCR time budget reached at page %d/%d', i + 1, total_pages)
+                break
+
+            img = None
+            try:
+                imgs = doc[i].get_images(full=True)
+                if imgs:
+                    # Pick the largest embedded image (the scan content, not logos)
+                    xref = max(imgs, key=lambda x: x[2] * x[3])[0]
+                    base = doc.extract_image(xref)
+                    img  = _PILImage.open(_io.BytesIO(base['image'])).convert('L')
+            except Exception:
+                pass
+
+            if img is None:
+                # Fall back to pixmap for vector / mixed pages
+                mat = fitz.Matrix(OCR_DPI / 72, OCR_DPI / 72)
+                pix = doc[i].get_pixmap(matrix=mat, colorspace=fitz.csGRAY, alpha=False)
+                img = _PILImage.frombytes('L', [pix.width, pix.height], pix.samples)
+
+            # Mild contrast boost → better recognition of low-contrast scans
+            img = _IE.Contrast(img).enhance(1.4)
+
+            t = pytesseract.image_to_string(img, config='--psm 6 --oem 3')
             if t.strip():
                 ocr_parts.append(t)
+
         doc.close()
         if ocr_parts:
             return '\n'.join(ocr_parts), len(ocr_parts)
