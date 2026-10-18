@@ -2331,10 +2331,18 @@ def _find_val(text, *label_pats, require_positive=True):
       • Parenthetical negatives                   (1,234) → -1,234
     """
     lines = text.split('\n')
+    _SECT_REF_RE_FV = re.compile(r'\b\d+(?:\.\d+){2,}')  # "2.5.6", "2.15.3"
+    _YEAR_RE_FV     = re.compile(r'\b(?:19|20)\d{2}\b')   # "2024", "2025"
 
     def _is_note_ref(v, peers):
-        """True when v looks like a note-reference integer (0 < v < 100, no decimal)."""
+        """True when v looks like a note-reference integer or small section ref."""
         if not (0 < v < 100 and v == round(v)):
+            # Small non-integer values (e.g. 2.5, 4.4, 2.6) are section refs
+            # when much larger financial values exist as peers
+            if 0 < abs(v) < 100:
+                others = [x for x in peers if x != v]
+                if any(abs(x) >= 1000 for x in others):
+                    return True
             return False
         others = [x for x in peers if x != v]
         return any(abs(x) >= 100 for x in others) or any(x != round(x) for x in others)
@@ -2358,11 +2366,15 @@ def _find_val(text, *label_pats, require_positive=True):
             m = re.search(pat, line, re.IGNORECASE)
             rest = line[m.end():]
             rest = re.sub(r'^[\s\-–—\.]+', '', rest)
-            same_cands = _NUM_PAT.findall(rest)
+            # Strip 4-digit years ("2024"→"") before scanning to prevent "202"
+            # artefacts from _NUM_PAT splitting years, and multi-dot section refs
+            rest_clean = _YEAR_RE_FV.sub('', rest)
+            rest_clean = _SECT_REF_RE_FV.sub('', rest_clean)
+            same_cands = _NUM_PAT.findall(rest_clean)
 
-            # Skip comparison-table rows (3+ cols + %) and narrative sentences
-            # (values stated in millions/billions mid-sentence, e.g. "GHS 92.98 million").
-            if (len(same_cands) >= 3 and '%' in rest) or re.search(r'\b(?:million|billion|bn)\b', rest, re.I):
+            # Skip billion/million narrative lines
+            if (len(same_cands) >= 3 and '%' in rest) or \
+               re.search(r'[\d.]\s*(?:b|m|bn|mn|tr)\b|\b(?:million|billion|bn)\b', rest, re.I):
                 continue
 
             # 2. Prior pure-numeric line (Access-Bank style: current-year value
@@ -2385,15 +2397,49 @@ def _find_val(text, *label_pats, require_positive=True):
             if v is not None:
                 return v
 
-            # 3. Next 1-3 non-blank lines (columnar / multi-line labels)
-            for j in range(i + 1, min(i + 4, len(lines))):
+            # 3. Next lines — scan up to 8 ahead to handle multi-line labels.
+            # All-letter continuation lines (e.g. "customers" after "Revenue from
+            # contracts with") are skipped; stop on blank lines, billion-scale
+            # lines, or lines with too many letters (narrative/title).
+            for j in range(i + 1, min(i + 8, len(lines))):
                 nxt = lines[j].strip()
                 if not nxt:
-                    continue
+                    break  # blank = row separator
                 if not re.search(r'\d', nxt):
+                    continue  # no digits = label continuation, skip
+                # Skip billion/million narrative lines
+                if re.search(r'[\d.]\s*(?:b|m|bn|mn|tr)\b|\b(?:million|billion|bn)\b', nxt, re.I):
                     break
-                v = _pick(_NUM_PAT.findall(nxt))
+                # Skip title/label lines with lots of letters (narrative text)
+                if sum(1 for c in nxt if c.isalpha()) > 6:
+                    break
+                # Strip multi-dot section refs (e.g. "2.5.6") before extracting
+                nxt_clean = _SECT_REF_RE_FV.sub('', nxt)
+                nxt_cands = _NUM_PAT.findall(nxt_clean)
+                if not nxt_cands:
+                    continue  # all digits were section refs; keep scanning
+                v = _pick(nxt_cands)
                 if v is not None:
+                    # v is a small potential section ref (e.g. "2.26"); scan
+                    # ahead up to 4 lines for the real large financial value.
+                    if 0 < v < 100:
+                        for k in range(j + 1, min(j + 5, len(lines))):
+                            nxt2 = lines[k].strip()
+                            if not nxt2:
+                                break
+                            if not re.search(r'\d', nxt2):
+                                continue
+                            if re.search(
+                                    r'[\d.]\s*(?:b|m|bn|mn|tr)\b|\b(?:million|billion|bn)\b',
+                                    nxt2, re.I):
+                                break
+                            if sum(1 for c in nxt2 if c.isalpha()) > 6:
+                                break
+                            nxt2_cands = _NUM_PAT.findall(_SECT_REF_RE_FV.sub('', nxt2))
+                            if nxt2_cands:
+                                v2 = _pick(nxt2_cands)
+                                if v2 is not None and abs(v2) >= 1000:
+                                    return v2
                     return v
                 break
     return None
@@ -2682,7 +2728,10 @@ def _extract_income_statement(text, scale):
         r'\bincome\s+from\s+operations?\b',
         r'\brevenue\s+from\s+(?:contract|sale)\b',
         r'^\s*revenue\b'))
-    ebitda    = s(_find_val(text, r'\bebitda\b'))
+    ebitda    = s(_find_val(text,
+        r'\bebitda\b',
+        r'\bearnings\s+before\s+interest\s+(?:tax|and\s+tax)',
+        r'\bearnings\s+before\s+interest,?\s+tax(?:es)?(?:\s+depreciation)?\b'))
     ebit      = s(_find_val(text,
         r'\bebit\b',
         r'\boperating\s+profit\b',
@@ -2727,17 +2776,22 @@ def _extract_income_statement(text, scale):
     dps = _find_val(text,
         r'\bdividend(?:s)?\s+per\s+share\b',
         r'\bdps\b', r'\bdividend\s+declared\s+per\s+share\b',
-        r'\btotal\s+dividend(?:s)?\s+per\s+share\b',
-        r'\bfinal\s+dividend(?:\s+per\s+share)?\b')
-    # Prose fallback: "GHS 0.48 per share" or "GHS0.48 per share" near dividend keyword
+        r'\btotal\s+dividend(?:s)?\s+per\s+share\b')
+    # Prose fallback: scan for "proposed/interim/final dividend ... GHS X.XX per share".
+    # Use the LAST match — most recently declared (e.g. proposed final for current year).
+    # Note: "per share" sometimes falls on the next line, so allow [\s\S]{0,30}
+    # between the captured amount and "per share".
     if dps is None:
+        _dps_candidates = []
         for m in re.finditer(
-            r'\bdividend\b.*?(?:GHS?|GH[¢₵])\s*([\d]+\.[\d]+)\s*per\s+share',
-            text, re.IGNORECASE | re.DOTALL):
+            r'(?:proposed|interim|final|declared)?\s*dividend[^\n]{0,120}?'
+            r'(?:GHS?|GH[¢₵])\s*([\d]+\.[\d]+)[\s\S]{0,30}?per\s+(?:ordinary\s+)?share',
+            text, re.IGNORECASE):
             v = _parse_num(m.group(1))
             if v is not None and 0 < v < 100:
-                dps = v
-                break
+                _dps_candidates.append(v)
+        if _dps_candidates:
+            dps = _dps_candidates[-1]  # last = most recently declared (proposed final)
 
     summary = {}
     if revenue  is not None: summary['Revenue (000)']         = revenue
@@ -2838,7 +2892,7 @@ def _extract_cash_flow(text, scale):
         r'\bpurchase\s+of\s+(?:property|fixed\s+assets?|ppe|plant\s+and\s+equipment)\b',
         r'\bacquisition\s+of\s+(?:property(?:\s+and\s+equipment)?|fixed\s+assets?|ppe)\b',
         r'\bcapital\s+expenditure(?:s)?\b',
-        r'\bcapex\b',
+        r'^\s*capex\b(?!\s*(?:and\b|intensity\b|breakdown\b|\())',
         require_positive=False)
     capex = s(abs(_capex_raw) if _capex_raw is not None else None)
     fcf_direct = s(_find_val(text, r'\bfree\s+cash\s+flow\b'))
