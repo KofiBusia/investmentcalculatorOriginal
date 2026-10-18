@@ -935,7 +935,7 @@ main > div[style*="margin-bottom: 20px"] {
         <div class="inp-group"><label>Total Debt (000)</label><input type="number" id="reit_debt" value="" placeholder="0" oninput="calcREIT()"></div>
         <div class="inp-group"><label>Other Liabilities (000)</label><input type="number" id="reit_ol" value="" placeholder="0" oninput="calcREIT()"></div>
         <div class="inp-group"><label>Shares Outstanding (000)</label><input type="number" id="reit_sh" value="" placeholder="0" oninput="calcREIT()"></div>
-        <div class="inp-group"><label>Current Share Price</label><input type="number" id="reit_price" value="" placeholder="0" step="0.01" oninput="calcREIT()"></div>
+        <div class="inp-group"><label>Current Share Price</label><input type="number" id="reit_price" value="" placeholder="0" step="0.01" oninput="reverseGlobal('reit_price',this.value);calcREIT()"></div>
         <div class="inp-group"><label>Net Income (000)</label><input type="number" id="reit_ni" value="" placeholder="0" oninput="calcREIT()"></div>
         <div class="inp-group"><label>RE Depreciation (000)</label><input type="number" id="reit_dep" value="" placeholder="0" oninput="calcREIT()"></div>
         <div class="inp-group"><label>Gains on Sales (000)</label><input type="number" id="reit_gains" value="" placeholder="0" oninput="calcREIT()"></div>
@@ -979,7 +979,7 @@ main > div[style*="margin-bottom: 20px"] {
         <div class="inp-group"><label>Sustainable ROE (%)</label><input type="number" id="bk_roe" value="" placeholder="0" oninput="calcBank()"></div>
         <div class="inp-group"><label>Cost of Equity Ke (%)</label><input type="number" id="bk_ke" value="" placeholder="0" step="0.01" oninput="calcBank()"></div>
         <div class="inp-group"><label>Long-run Growth g (%)</label><input type="number" id="bk_g" value="" placeholder="0" oninput="calcBank()"></div>
-        <div class="inp-group"><label>Current Share Price</label><input type="number" id="bk_price" value="" placeholder="0" step="0.01" oninput="calcBank()"></div>
+        <div class="inp-group"><label>Current Share Price</label><input type="number" id="bk_price" value="" placeholder="0" step="0.01" oninput="reverseGlobal('bk_price',this.value);calcBank()"></div>
         <div class="inp-group"><label>Dividend Payout Ratio (%)</label><input type="number" id="bk_pay" value="" placeholder="0" oninput="calcBank()"></div>
       </div>
       <div id="bk_res" class="res-grid"></div>
@@ -1001,7 +1001,7 @@ main > div[style*="margin-bottom: 20px"] {
         <div class="inp-group"><label>New Business Growth (%)</label><input type="number" id="ins_ng" value="" placeholder="0" oninput="calcInsurance()"></div>
         <div class="inp-group"><label>Years of New Business</label><input type="number" id="ins_ny" value="" placeholder="0" oninput="calcInsurance()"></div>
         <div class="inp-group"><label>Shares Outstanding (000)</label><input type="number" id="ins_sh" value="" placeholder="0" oninput="calcInsurance()"></div>
-        <div class="inp-group"><label>Current Share Price</label><input type="number" id="ins_price" value="" placeholder="0" step="0.01" oninput="calcInsurance()"></div>
+        <div class="inp-group"><label>Current Share Price</label><input type="number" id="ins_price" value="" placeholder="0" step="0.01" oninput="reverseGlobal('ins_price',this.value);calcInsurance()"></div>
       </div>
       <div id="ins_res" class="res-grid"></div>
       <div id="ins_verdict" class="verdict neutral" style="margin-top:12px"></div>
@@ -1721,7 +1721,7 @@ const _GLOBAL_SYNC_MAP = {
   global_wacc:  ['eq_wacc',  'eva_wacc', 'cb_r'],
   global_tg:    ['eq_gterm', 'eva_tg', 'ddm_gl', 'rim_g'],
   global_ke:    ['ddm_ke',   'rim_ke'],
-  global_price: ['eq_price', 'ddm_price', 'rim_price'],
+  global_price: ['eq_price', 'ddm_price', 'rim_price', 'bk_price', 'reit_price', 'ins_price'],
   global_nd:    ['eq_netdebt','eva_debt'],
   global_tax:   ['cb_tax',   'ma_tax',   'lbo_tax'],
 };
