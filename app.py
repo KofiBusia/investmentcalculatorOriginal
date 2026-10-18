@@ -2915,20 +2915,42 @@ def _pdf_to_text(raw_bytes):
     except Exception as e:
         logger.warning(f'pdfplumber failed: {e}')
 
-    # ── Tier 3: Tesseract OCR — last resort; 10-page hard cap ────────────
+    # ── Tier 3: Tesseract OCR — smart page selection for scanned PDFs ───
     try:
         import fitz
         import pytesseract
         from PIL import Image as _PILImage
 
-        ocr_parts = []
+        MAX_OCR_PAGES = 20
+        OCR_DPI       = 200
+
         doc = fitz.open(stream=raw_bytes, filetype='pdf')
-        for i in range(min(len(doc), 10)):
-            page = doc[i]
-            mat = fitz.Matrix(150 / 72, 150 / 72)  # 150 DPI
-            pix = page.get_pixmap(matrix=mat, colorspace=fitz.csGRAY)
+        total_pages = len(doc)
+
+        if total_pages > MAX_OCR_PAGES:
+            # Fast pixel-density scan at 72 DPI to pick the most text-heavy pages.
+            # Financial tables have many dark characters → high dark-pixel fraction.
+            density_mat = fitz.Matrix(1, 1)  # 1× = 72 DPI
+            densities = []
+            for i in range(min(total_pages, 60)):
+                pix = doc[i].get_pixmap(matrix=density_mat,
+                                        colorspace=fitz.csGRAY, alpha=False)
+                img_q = _PILImage.frombytes('L', [pix.width, pix.height], pix.samples)
+                hist = img_q.histogram()  # 256-bucket count, very fast
+                dark_frac = sum(hist[:160]) / max(pix.width * pix.height, 1)
+                densities.append((i, dark_frac))
+            densities.sort(key=lambda x: x[1], reverse=True)
+            page_indices = sorted(p for p, _ in densities[:MAX_OCR_PAGES])
+        else:
+            page_indices = list(range(total_pages))
+
+        ocr_mat   = fitz.Matrix(OCR_DPI / 72, OCR_DPI / 72)
+        ocr_parts = []
+        for i in page_indices:
+            pix = doc[i].get_pixmap(matrix=ocr_mat,
+                                    colorspace=fitz.csGRAY, alpha=False)
             img = _PILImage.frombytes('L', [pix.width, pix.height], pix.samples)
-            t = pytesseract.image_to_string(img, config='--psm 6 --oem 3')
+            t   = pytesseract.image_to_string(img, config='--psm 6 --oem 3')
             if t.strip():
                 ocr_parts.append(t)
         doc.close()
@@ -2992,7 +3014,12 @@ def valuation_extract_pdf():
     full_text, pages = _result[0] or '', _result[1] or 0
 
     if not full_text.strip():
-        return jsonify({'error': 'No text could be extracted — PDF may be password-protected or corrupted'}), 422
+        return jsonify({'error': (
+            'No text could be extracted. '
+            'If this is a scanned PDF, please try exporting or scanning just the '
+            'financial statement pages as a separate PDF (income statement, balance '
+            'sheet, cash flow — usually 5–15 pages) and re-upload that.'
+        )}), 422
 
     # Truncate to a focused financial-section window before running regex extractors
     extract_text = _truncate_for_extraction(full_text, max_lines=2500)
