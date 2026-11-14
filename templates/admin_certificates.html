@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Certificates — Admin</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+<style>
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #f1f5f9; min-height: 100vh; }
+  .topbar { background: #1e293b; border-bottom: 1px solid #334155; padding: 0 28px; height: 56px; display: flex; align-items: center; justify-content: space-between; }
+  .brand { font-size: 1rem; font-weight: 800; color: #f1f5f9; display: flex; align-items: center; gap: 8px; text-decoration: none; }
+  .back-btn { display: flex; align-items: center; gap: 6px; padding: 7px 14px; background: rgba(100,116,139,.15); color: #94a3b8; border: 1px solid rgba(100,116,139,.25); border-radius: 8px; font-size: .82rem; font-weight: 600; text-decoration: none; transition: all .2s; }
+  .back-btn:hover { background: rgba(100,116,139,.3); color: #e2e8f0; }
+  .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+  .input-field { display: block; width: 100%; border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 9px 12px; font-size: .9rem; outline: none; transition: border-color .2s; }
+  .input-field:focus { border-color: #16a34a; box-shadow: 0 0 0 3px rgba(22,163,74,.1); }
+  .badge-active { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; padding: 2px 10px; border-radius: 20px; font-size: .75rem; font-weight: 700; }
+  .badge-revoked { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; padding: 2px 10px; border-radius: 20px; font-size: .75rem; font-weight: 700; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a href="/admin" class="brand">
+    <i class="fas fa-chart-line" style="color:#3b82f6;"></i> InvestIQ <span style="color:#64748b;font-weight:400;">/ Admin</span>
+  </a>
+  <a href="/admin" class="back-btn"><i class="fas fa-arrow-left"></i> Dashboard</a>
+</div>
+
+<div class="max-w-5xl mx-auto px-4 py-10">
+
+  <div class="mb-8 flex items-center justify-between flex-wrap gap-4">
+    <div>
+      <h1 class="text-2xl font-extrabold text-gray-800 flex items-center gap-3">
+        <span class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:linear-gradient(135deg,#16a34a,#15803d);">
+          <i class="fas fa-certificate text-white text-sm"></i>
+        </span>
+        Certificates
+      </h1>
+      <p class="text-gray-500 text-sm mt-1">All certificates issued across YIAP, GISI, and future YIN programmes.</p>
+    </div>
+    <a href="/admin/certificates-csv" class="btn-primary flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm text-white" style="background:linear-gradient(135deg,#16a34a,#15803d);">
+      <i class="fas fa-file-csv"></i> Export CSV
+    </a>
+  </div>
+
+  <div class="card p-4 mb-6">
+    <form method="GET" action="/admin/certificates" class="flex gap-3">
+      <input type="text" name="q" value="{{ q }}" placeholder="Search by name, email, or verification code..." class="input-field"/>
+      <button type="submit" class="px-5 py-2 rounded-lg font-bold text-sm text-white" style="background:#1e293b;"><i class="fas fa-search mr-1"></i>Search</button>
+    </form>
+  </div>
+
+  <div class="card overflow-hidden">
+    <table class="w-full text-sm">
+      <thead class="bg-gray-50 text-gray-500 text-xs uppercase">
+        <tr>
+          <th class="text-left px-4 py-3">Holder</th>
+          <th class="text-left px-4 py-3">Title</th>
+          <th class="text-left px-4 py-3">Score</th>
+          <th class="text-left px-4 py-3">Issued</th>
+          <th class="text-left px-4 py-3">Status</th>
+          <th class="text-right px-4 py-3">Actions</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-100">
+        {% for c in certificates %}
+        <tr>
+          <td class="px-4 py-3">
+            <p class="font-semibold text-gray-800">{{ c.holder_name }}</p>
+            <p class="text-xs text-gray-400">{{ c.holder_email }}</p>
+          </td>
+          <td class="px-4 py-3">
+            <p class="text-gray-700">{{ c.title }}</p>
+            <p class="text-xs text-gray-400">{{ c.verify_code }}</p>
+          </td>
+          <td class="px-4 py-3 text-gray-700">{{ c.score }}</td>
+          <td class="px-4 py-3 text-gray-500">{{ c.issued_at.strftime('%d %b %Y') }}</td>
+          <td class="px-4 py-3">
+            {% if c.revoked %}<span class="badge-revoked">Revoked</span>{% else %}<span class="badge-active">Valid</span>{% endif %}
+          </td>
+          <td class="px-4 py-3 text-right">
+            <a href="/certificate/{{ c.verify_code }}/download" target="_blank" class="text-green-600 hover:text-green-700 font-semibold text-xs mr-3"><i class="fas fa-download"></i></a>
+            <form method="POST" action="/admin/certificates/{{ c.id }}/toggle-revoke?q={{ q }}" class="inline" onsubmit="return confirm('{% if c.revoked %}Restore{% else %}Revoke{% endif %} this certificate?')">
+              <button type="submit" class="text-xs font-semibold {% if c.revoked %}text-green-600 hover:text-green-700{% else %}text-red-600 hover:text-red-700{% endif %}">
+                {% if c.revoked %}Restore{% else %}Revoke{% endif %}
+              </button>
+            </form>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6" class="px-4 py-10 text-center text-gray-400">No certificates issued yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+</body>
+</html>

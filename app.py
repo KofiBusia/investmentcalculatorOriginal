@@ -117,6 +117,13 @@ login_manager = LoginManager(app)
 login_manager.login_view = 'user_login'
 login_manager.login_message = 'Please log in to access this page.'
 
+# Several templates (gisi_quiz.html, yiap_quiz.html, ...) call {{ csrf_token() }} expecting the
+# global Flask-WTF registers — but CSRFProtect(app) was never initialized, so without this the
+# function doesn't exist and every one of those renders raises UndefinedError. Register just the
+# token generator (not full CSRFProtect), so existing POST routes that don't send a token keep working.
+from flask_wtf.csrf import generate_csrf
+app.jinja_env.globals['csrf_token'] = generate_csrf
+
 @app.errorhandler(413)
 def request_too_large(e):
     return jsonify({'error': 'File too large — maximum upload size is 50 MB per file'}), 413
@@ -6906,9 +6913,12 @@ def gisi_quiz_question(attempt_id):
     idx = attempt.current_index
     if idx >= len(q_list):
         # Mark complete
+        was_complete = attempt.is_complete
         attempt.is_complete = True
         attempt.completed_at = datetime.utcnow()
         db.session.commit()
+        if not was_complete:
+            _maybe_issue_quiz_certificate(current_user, attempt.course, 'GISI', attempt.score, attempt.total_questions, 60)
         return redirect(url_for('gisi_quiz_results', attempt_id=attempt_id))
 
     q_id = int(q_list[idx])
@@ -6945,6 +6955,7 @@ def gisi_quiz_answer(attempt_id):
         attempt.is_complete = True
         attempt.completed_at = datetime.utcnow()
         db.session.commit()
+        _maybe_issue_quiz_certificate(current_user, attempt.course, 'GISI', attempt.score, attempt.total_questions, 60)
         return redirect(url_for('gisi_quiz_results', attempt_id=attempt_id))
     db.session.commit()
 
@@ -6984,8 +6995,12 @@ def gisi_quiz_results(attempt_id):
     course = attempt.course
     pass_mark = int(attempt.total_questions * 0.60)
     passed = attempt.score >= pass_mark
+    cert = None
+    if passed:
+        cert = Certificate.query.filter_by(source_type='GISI', source_id=course.id,
+                                           holder_email=(current_user.email or '').strip().lower()).first()
     return render_template('gisi_results.html', attempt=attempt, course=course,
-                           questions_detail=questions_detail, passed=passed, pass_mark=pass_mark)
+                           questions_detail=questions_detail, passed=passed, pass_mark=pass_mark, cert=cert)
 
 
 @app.route('/gisi-prep/pay')
@@ -7359,7 +7374,7 @@ def yiap_quiz_question(attempt_id):
         attempt.completed_at = datetime.utcnow()
         db.session.commit()
         if not was_complete:
-            pass  # email notifications disabled
+            _maybe_issue_quiz_certificate(current_user, attempt.course, 'YIAP', attempt.score, attempt.total_questions, YIAP_PASS_PCT)
         return redirect(url_for('yiap_quiz_results', attempt_id=attempt_id))
 
     q_id = int(q_list[idx])
@@ -7396,6 +7411,7 @@ def yiap_quiz_answer(attempt_id):
         attempt.is_complete = True
         attempt.completed_at = datetime.utcnow()
         db.session.commit()
+        _maybe_issue_quiz_certificate(current_user, attempt.course, 'YIAP', attempt.score, attempt.total_questions, YIAP_PASS_PCT)
         return redirect(url_for('yiap_quiz_results', attempt_id=attempt_id))
     db.session.commit()
 
@@ -7434,9 +7450,13 @@ def yiap_quiz_results(attempt_id):
     course = attempt.course
     passed = attempt.score_pct >= YIAP_PASS_PCT
     pass_mark = int(round(attempt.total_questions * (YIAP_PASS_PCT / 100)))
+    cert = None
+    if passed:
+        cert = Certificate.query.filter_by(source_type='YIAP', source_id=course.id,
+                                           holder_email=(current_user.email or '').strip().lower()).first()
     return render_template('yiap_results.html', attempt=attempt, course=course,
                            questions_detail=questions_detail, passed=passed,
-                           pass_pct=YIAP_PASS_PCT, pass_mark=pass_mark)
+                           pass_pct=YIAP_PASS_PCT, pass_mark=pass_mark, cert=cert)
 
 
 @app.route('/yiap-practice/seed')
@@ -9629,6 +9649,70 @@ def _render_certificate_pdf(cert):
     return buf.getvalue()
 
 
+def _award_points_by_email(email, amount):
+    """Best-effort: add YIN points to the most recent registration matching this email.
+    Silently no-ops if the person never registered via /yin-register (no row to hold points on)."""
+    email = (email or '').strip().lower()
+    if not email or not amount:
+        return
+    reg = (YINRegistration.query
+           .filter(db.func.lower(YINRegistration.email) == email)
+           .order_by(YINRegistration.created_at.desc())
+           .first())
+    if reg:
+        reg.points = (reg.points or 0) + amount
+        db.session.commit()
+
+
+def _email_certificate_pdf(to_email, to_name, cert, subject, intro_html):
+    """Email a freshly-rendered certificate PDF to the recipient. Failure is logged, never raised."""
+    try:
+        pdf_bytes = _render_certificate_pdf(cert)
+        verify_link = url_for('certificate_verify', code=cert.verify_code, _external=True)
+        msg = Message(subject=subject, sender=("InvestIQ — YIN", app.config.get('MAIL_USERNAME')),
+                      recipients=[to_email])
+        msg.html = f"""
+        <div style="font-family:Inter,Arial,sans-serif;max-width:560px;margin:0 auto;">
+          <h2 style="color:#16a34a;">Congratulations, {to_name}!</h2>
+          <p>{intro_html}</p>
+          <p>Your certificate is attached to this email. You can verify it any time at
+             <a href="{verify_link}">{verify_link}</a>.</p>
+          <p style="color:#94a3b8;font-size:12px;">Young Investors Network (YIN)</p>
+        </div>
+        """
+        msg.body = f"Congratulations, {to_name}!\n\n{intro_html}\n\nYour certificate is attached. Verify at: {verify_link}"
+        msg.attach(filename=f'YIN_Certificate_{cert.verify_code}.pdf', content_type='application/pdf', data=pdf_bytes)
+        mail.send(msg)
+    except Exception as e:
+        logger.error(f'Certificate email failed -> {to_email}: {e}')
+
+
+def _maybe_issue_quiz_certificate(user, course, source_type, score, total, pass_pct):
+    """If score/total meets pass_pct and no certificate exists yet for this user+course, issue one,
+    award points, and email the PDF. Returns the Certificate (new or pre-existing), or None if not passed."""
+    if not total:
+        return None
+    pct = round((score / total) * 100, 1)
+    if pct < pass_pct:
+        return None
+    email = (user.email or '').strip().lower()
+    existing = Certificate.query.filter_by(source_type=source_type, source_id=course.id, holder_email=email).first()
+    if existing:
+        return existing
+    cert = _issue_certificate(
+        holder_name=user.full_name, holder_email=email,
+        source_type=source_type, source_id=course.id,
+        title=f'{source_type} — {course.name}', score=f'{score}/{total} ({pct}%)',
+    )
+    _award_points_by_email(email, 50)
+    _email_certificate_pdf(
+        to_email=email, to_name=user.full_name, cert=cert,
+        subject=f'Your {source_type} Certificate — {course.name}',
+        intro_html=f'You have successfully completed <strong>{course.name}</strong> with a score of {score}/{total} ({pct}%).',
+    )
+    return cert
+
+
 @app.route('/certificate/verify/<code>')
 def certificate_verify(code):
     cert = Certificate.query.filter_by(verify_code=(code or '').strip().upper()).first()
@@ -9644,6 +9728,45 @@ def certificate_download(code):
     from flask import Response
     return Response(pdf_bytes, mimetype='application/pdf',
                      headers={'Content-Disposition': f'inline; filename=YIN_Certificate_{cert.verify_code}.pdf'})
+
+
+@app.route('/admin/certificates')
+@admin_required
+def admin_certificates():
+    q = request.args.get('q', '').strip()
+    query = Certificate.query
+    if q:
+        like = f'%{q}%'
+        query = query.filter(db.or_(Certificate.holder_name.ilike(like),
+                                     Certificate.holder_email.ilike(like),
+                                     Certificate.verify_code.ilike(like)))
+    certs = query.order_by(Certificate.issued_at.desc()).limit(500).all()
+    return render_template('admin_certificates.html', certificates=certs, q=q)
+
+
+@app.route('/admin/certificates/<int:cert_id>/toggle-revoke', methods=['POST'])
+@admin_required
+def admin_certificate_toggle_revoke(cert_id):
+    cert = Certificate.query.get_or_404(cert_id)
+    cert.revoked = not cert.revoked
+    db.session.commit()
+    return redirect(url_for('admin_certificates', q=request.args.get('q', '')))
+
+
+@app.route('/admin/certificates-csv')
+@admin_required
+def admin_certificates_csv():
+    certs = Certificate.query.order_by(Certificate.issued_at.desc()).all()
+    out = io.StringIO()
+    w = csv.writer(out)
+    w.writerow(['Verify Code', 'Holder Name', 'Holder Email', 'Source', 'Title', 'Score', 'Issued', 'Revoked'])
+    for c in certs:
+        w.writerow([c.verify_code, c.holder_name, c.holder_email, c.source_type, c.title, c.score,
+                    c.issued_at.strftime('%Y-%m-%d %H:%M'), 'Yes' if c.revoked else 'No'])
+    out.seek(0)
+    from flask import Response
+    return Response(out.getvalue(), mimetype='text/csv',
+                     headers={'Content-Disposition': 'attachment;filename=yin_certificates.csv'})
 
 
 # ============================================================

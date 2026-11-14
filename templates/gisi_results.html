@@ -69,6 +69,11 @@
       <a href="/gisi-prep/course/{{ course.slug }}" class="px-6 py-3 bg-white border-2 border-gray-200 text-gray-700 hover:border-blue-400 rounded-xl font-bold">
         <i class="fas fa-book mr-2"></i>Course Page
       </a>
+      {% if passed and cert %}
+      <a href="/certificate/{{ cert.verify_code }}/download" target="_blank" class="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-bold">
+        <i class="fas fa-certificate mr-2"></i>Download Certificate
+      </a>
+      {% endif %}
     </div>
   </div>
 
