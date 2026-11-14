@@ -69,6 +69,10 @@
         <label class="block text-sm font-semibold text-gray-600 mb-1">Requirements</label>
         <textarea name="requirements" rows="5" class="input-field" placeholder="• CFA or ACCA qualification preferred&#10;• 5+ years experience in investment analysis&#10;• Proficiency in financial modelling">{{ job.requirements if job else '' }}</textarea>
       </div>
+      <div class="flex items-center gap-2">
+        <input type="checkbox" name="is_opportunity" id="is_opportunity" {{ 'checked' if job and job.is_opportunity else '' }} class="w-4 h-4 text-amber-600"/>
+        <label for="is_opportunity" class="text-sm font-semibold text-gray-600">Opportunity (internship/scholarship — highlighted distinctly on the jobs page)</label>
+      </div>
       {% if job %}
       <div class="flex items-center gap-2">
         <input type="checkbox" name="is_active" id="is_active" {{ 'checked' if job.is_active else '' }} class="w-4 h-4 text-blue-600"/>

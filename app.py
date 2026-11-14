@@ -164,6 +164,7 @@ class JobListing(db.Model):
     requirements = db.Column(db.Text, default='')
     salary_range = db.Column(db.String(100), default='')
     is_active    = db.Column(db.Boolean, default=True)
+    is_opportunity = db.Column(db.Boolean, default=False)  # internships/scholarships, surfaced distinctly from regular jobs
     created_at   = db.Column(db.DateTime, default=datetime.utcnow)
 
 
@@ -745,6 +746,20 @@ class CVSurveyResponse(db.Model):
     created_at            = db.Column(db.DateTime,    default=datetime.utcnow)
 
 
+class Mentor(db.Model):
+    __tablename__    = 'mentors'
+    id               = db.Column(db.Integer, primary_key=True)
+    full_name        = db.Column(db.String(200), nullable=False)
+    email            = db.Column(db.String(200), nullable=False, index=True)
+    phone            = db.Column(db.String(50), default='')
+    expertise_areas  = db.Column(db.String(300), default='')   # free text, e.g. "Finance, IB, AM"
+    availability     = db.Column(db.String(50), default='')
+    bio              = db.Column(db.Text, default='')
+    capacity         = db.Column(db.Integer, default=3)   # max mentees at a time
+    is_active        = db.Column(db.Boolean, default=True)
+    created_at       = db.Column(db.DateTime, default=datetime.utcnow)
+
+
 class MentorshipApplication(db.Model):
     __tablename__   = 'mentorship_applications'
     id              = db.Column(db.Integer, primary_key=True)
@@ -758,8 +773,11 @@ class MentorshipApplication(db.Model):
     availability    = db.Column(db.String(50),  default='')   # Weekdays, Weekends, etc.
     why_mentorship  = db.Column(db.Text,        default='')
     linkedin        = db.Column(db.String(500), default='')
-    status          = db.Column(db.String(30),  default='Pending')  # Pending / Matched / Active
+    mentor_id       = db.Column(db.Integer, db.ForeignKey('mentors.id'), nullable=True)
+    status          = db.Column(db.String(30),  default='pending')  # pending / matched / active
     created_at      = db.Column(db.DateTime,    default=datetime.utcnow)
+
+    mentor = db.relationship('Mentor', backref='mentees')
 
 
 class PasswordResetToken(db.Model):
@@ -1043,6 +1061,8 @@ with app.app_context():
             "ALTER TABLE yin_registrations ALTER COLUMN institution_type TYPE VARCHAR(40)",
             "ALTER TABLE yin_registrations ADD COLUMN IF NOT EXISTS points INTEGER NOT NULL DEFAULT 0",
             "ALTER TABLE yin_registrations ADD COLUMN IF NOT EXISTS chapter_id INTEGER REFERENCES yin_chapters(id)",
+            "ALTER TABLE mentorship_applications ADD COLUMN IF NOT EXISTS mentor_id INTEGER REFERENCES mentors(id)",
+            "ALTER TABLE job_listings ADD COLUMN IF NOT EXISTS is_opportunity BOOLEAN NOT NULL DEFAULT FALSE",
         ]
         for _sql in _migrate_sql:
             try:
@@ -8843,6 +8863,7 @@ def admin_jobs_new():
             description=request.form.get('description', '').strip(),
             requirements=request.form.get('requirements', '').strip(),
             salary_range=request.form.get('salary_range', '').strip(),
+            is_opportunity=bool(request.form.get('is_opportunity')),
         )
         if not job.title:
             error = 'Title is required.'
@@ -8868,6 +8889,7 @@ def admin_jobs_edit(job_id):
         job.description  = request.form.get('description', job.description).strip()
         job.requirements = request.form.get('requirements', job.requirements).strip()
         job.salary_range = request.form.get('salary_range', job.salary_range).strip()
+        job.is_opportunity = bool(request.form.get('is_opportunity'))
         job.is_active    = bool(request.form.get('is_active'))
         if not job.title:
             error = 'Title is required.'
@@ -10744,6 +10766,63 @@ def academy_hub():
     yinvest_available = YInvestContent.query.filter_by(is_active=True).count() > 0
     return render_template('academy.html', gisi_courses=gisi_courses, yiap_courses=yiap_courses,
                            niq_round_types=niq_round_types, yinvest_available=yinvest_available)
+
+
+# ============================================================
+# MENTORSHIP MATCHING
+# ============================================================
+
+@app.route('/admin/mentorship', methods=['GET', 'POST'])
+@admin_required
+def admin_mentorship():
+    if request.method == 'POST':
+        name = request.form.get('full_name', '').strip()
+        email = request.form.get('email', '').strip().lower()
+        phone = request.form.get('phone', '').strip()
+        expertise = request.form.get('expertise_areas', '').strip()
+        availability = request.form.get('availability', '').strip()
+        bio = request.form.get('bio', '').strip()
+        capacity = request.form.get('capacity', type=int) or 3
+        if name and email:
+            db.session.add(Mentor(full_name=name, email=email, phone=phone, expertise_areas=expertise,
+                                  availability=availability, bio=bio, capacity=capacity))
+            db.session.commit()
+        return redirect(url_for('admin_mentorship'))
+
+    status_filter = request.args.get('status', '')
+    query = MentorshipApplication.query
+    if status_filter:
+        query = query.filter(MentorshipApplication.status.ilike(status_filter))
+    applications = query.order_by(MentorshipApplication.created_at.desc()).all()
+    mentors = Mentor.query.filter_by(is_active=True).order_by(Mentor.full_name.asc()).all()
+    mentee_counts = {m.id: MentorshipApplication.query.filter_by(mentor_id=m.id).filter(
+        MentorshipApplication.status.in_(['matched', 'active', 'Matched', 'Active'])).count() for m in mentors}
+    return render_template('admin_mentorship.html', applications=applications, mentors=mentors,
+                           mentee_counts=mentee_counts, status_filter=status_filter)
+
+
+@app.route('/admin/mentorship/<int:app_id>/match', methods=['POST'])
+@admin_required
+def admin_mentorship_match(app_id):
+    application = MentorshipApplication.query.get_or_404(app_id)
+    mentor_id = request.form.get('mentor_id', type=int)
+    mentor = Mentor.query.get(mentor_id) if mentor_id else None
+    if mentor:
+        application.mentor_id = mentor.id
+        application.status = 'matched'
+        db.session.commit()
+    return redirect(url_for('admin_mentorship'))
+
+
+@app.route('/admin/mentorship/<int:app_id>/set-status', methods=['POST'])
+@admin_required
+def admin_mentorship_set_status(app_id):
+    application = MentorshipApplication.query.get_or_404(app_id)
+    status = request.form.get('status', '').strip().lower()
+    if status in ('pending', 'matched', 'active'):
+        application.status = status
+        db.session.commit()
+    return redirect(url_for('admin_mentorship'))
 
 
 @app.route('/yin-register', methods=['GET', 'POST'])
