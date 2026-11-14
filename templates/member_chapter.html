@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>My Chapter — Young Investors Network</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body{font-family:'Inter',sans-serif;background:#f8fafc;}
+  .hero-gradient{background:linear-gradient(135deg,#052e16 0%,#14532d 50%,#166534 100%);}
+</style>
+</head>
+<body>
+
+<nav class="hero-gradient" style="padding:1rem 1.5rem;display:flex;justify-content:space-between;align-items:center;">
+  <a href="/member/dashboard" style="color:#fff;font-weight:800;font-size:1.1rem;text-decoration:none;">Invest<span style="color:#86efac;">IQ</span> <span style="color:#d1fae5;font-weight:500;font-size:.9rem;">/ YIN</span></a>
+  <a href="/member/logout" style="color:#d1fae5;font-size:.85rem;text-decoration:none;"><i class="fas fa-arrow-right-from-bracket mr-1"></i>Log Out</a>
+</nav>
+
+<section style="max-width:680px;margin:2.5rem auto;padding:0 1.25rem;">
+
+  {% if not chapter %}
+  <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center">
+    <i class="fas fa-sitemap text-3xl text-gray-300 mb-3"></i>
+    <p class="font-bold text-gray-700">You're not assigned to a chapter yet</p>
+    <p class="text-gray-400 text-sm mt-1">Contact your university chapter executive or YIN admin to be added.</p>
+  </div>
+  {% else %}
+  <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-7 mb-6">
+    <h1 class="text-xl font-black text-gray-900">{{ chapter.name }}</h1>
+    <p class="text-gray-500 text-sm mt-1">{{ chapter.institution }}{% if chapter.region %} · {{ chapter.region }}{% endif %}</p>
+  </div>
+
+  {% if is_exec and roster is not none %}
+  <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-7">
+    <h2 class="text-lg font-black text-gray-900 mb-4"><i class="fas fa-users text-green-600 mr-1"></i>Chapter Roster ({{ roster|length }})</h2>
+    <div class="space-y-2">
+      {% for r in roster %}
+      <div class="flex items-center justify-between border border-gray-100 rounded-xl p-3">
+        <div>
+          <p class="font-semibold text-gray-800 text-sm">{{ r.full_name }}</p>
+          <p class="text-xs text-gray-400">{{ r.institution_type }}</p>
+        </div>
+        <p class="font-black text-green-700 text-sm">{{ r.points }} pts</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+  {% else %}
+  <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-7 text-center text-gray-400 text-sm">
+    Full roster access is available to chapter executives only.
+  </div>
+  {% endif %}
+  {% endif %}
+
+</section>
+
+</body>
+</html>

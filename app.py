@@ -791,11 +791,22 @@ class YINProgram(db.Model):
     created_at  = db.Column(db.DateTime, default=datetime.utcnow)
 
 
+class YINChapter(db.Model):
+    __tablename__ = 'yin_chapters'
+    id          = db.Column(db.Integer, primary_key=True)
+    name        = db.Column(db.String(200), nullable=False)
+    institution = db.Column(db.String(200), default='')
+    region      = db.Column(db.String(100), default='')
+    is_active   = db.Column(db.Boolean, default=True)
+    created_at  = db.Column(db.DateTime, default=datetime.utcnow)
+
+
 class YINRegistration(db.Model):
     __tablename__ = 'yin_registrations'
     id               = db.Column(db.Integer, primary_key=True)
     program_id       = db.Column(db.Integer, db.ForeignKey('yin_programs.id'), nullable=False)
     program_name     = db.Column(db.String(200), default='')
+    chapter_id       = db.Column(db.Integer, db.ForeignKey('yin_chapters.id'), nullable=True)
     full_name        = db.Column(db.String(200), nullable=False)
     phone            = db.Column(db.String(50), default='')
     email            = db.Column(db.String(200), nullable=False, index=True)
@@ -887,6 +898,7 @@ with app.app_context():
             # institution_type now stores a role label (e.g. "Teacher / School Coordinator") instead of tertiary/non-tertiary
             "ALTER TABLE yin_registrations ALTER COLUMN institution_type TYPE VARCHAR(40)",
             "ALTER TABLE yin_registrations ADD COLUMN IF NOT EXISTS points INTEGER NOT NULL DEFAULT 0",
+            "ALTER TABLE yin_registrations ADD COLUMN IF NOT EXISTS chapter_id INTEGER REFERENCES yin_chapters(id)",
         ]
         for _sql in _migrate_sql:
             try:
@@ -9819,7 +9831,24 @@ def member_dashboard():
     certificates = (Certificate.query
                      .filter_by(holder_email=(member.email or '').strip().lower(), revoked=False)
                      .order_by(Certificate.issued_at.desc()).all())
-    return render_template('member_dashboard.html', member=member, certificates=certificates)
+    chapter = YINChapter.query.get(member.chapter_id) if member.chapter_id else None
+    return render_template('member_dashboard.html', member=member, certificates=certificates, chapter=chapter)
+
+
+@app.route('/member/chapter')
+def member_chapter():
+    member = _current_member()
+    if not member:
+        return redirect(url_for('member_login'))
+    if not member.chapter_id:
+        return render_template('member_chapter.html', member=member, chapter=None, roster=None)
+    chapter = YINChapter.query.get_or_404(member.chapter_id)
+    is_exec = (member.institution_type or '').strip().lower() == 'chapter executive'
+    roster = None
+    if is_exec:
+        roster = (YINRegistration.query.filter_by(chapter_id=chapter.id)
+                  .order_by(YINRegistration.points.desc()).all())
+    return render_template('member_chapter.html', member=member, chapter=chapter, roster=roster, is_exec=is_exec)
 
 
 # ============================================================
@@ -9856,6 +9885,102 @@ def admin_gamification():
                                      YINRegistration.yin_code.ilike(like)))
     members = query.order_by(YINRegistration.points.desc()).limit(300).all()
     return render_template('admin_gamification.html', members=members, q=q)
+
+
+# ============================================================
+# CHAPTER MANAGEMENT
+# ============================================================
+
+@app.route('/admin/chapters', methods=['GET', 'POST'])
+@admin_required
+def admin_chapters():
+    if request.method == 'POST':
+        name = request.form.get('name', '').strip()
+        institution = request.form.get('institution', '').strip()
+        region = request.form.get('region', '').strip()
+        if name:
+            db.session.add(YINChapter(name=name, institution=institution, region=region))
+            db.session.commit()
+        return redirect(url_for('admin_chapters'))
+
+    chapters = YINChapter.query.order_by(YINChapter.created_at.desc()).all()
+    member_counts = {c.id: YINRegistration.query.filter_by(chapter_id=c.id).count() for c in chapters}
+    return render_template('admin_chapters.html', chapters=chapters, member_counts=member_counts)
+
+
+@app.route('/admin/chapters/<int:chapter_id>/toggle', methods=['POST'])
+@admin_required
+def admin_chapter_toggle(chapter_id):
+    chapter = YINChapter.query.get_or_404(chapter_id)
+    chapter.is_active = not chapter.is_active
+    db.session.commit()
+    return redirect(url_for('admin_chapters'))
+
+
+@app.route('/admin/chapters/<int:chapter_id>')
+@admin_required
+def admin_chapter_detail(chapter_id):
+    chapter = YINChapter.query.get_or_404(chapter_id)
+    roster = (YINRegistration.query.filter_by(chapter_id=chapter.id)
+              .order_by(YINRegistration.points.desc()).all())
+    return render_template('admin_chapter_detail.html', chapter=chapter, roster=roster, error=request.args.get('error'))
+
+
+@app.route('/admin/chapters/<int:chapter_id>/add-member', methods=['POST'])
+@admin_required
+def admin_chapter_add_member(chapter_id):
+    chapter = YINChapter.query.get_or_404(chapter_id)
+    identifier = request.form.get('identifier', '').strip()
+    reg = None
+    if identifier:
+        if '@' in identifier:
+            reg = YINRegistration.query.filter(db.func.lower(YINRegistration.email) == identifier.lower()).first()
+        else:
+            reg = YINRegistration.query.filter_by(yin_code=identifier.upper()).first()
+    if not reg:
+        return redirect(url_for('admin_chapter_detail', chapter_id=chapter_id, error='No member found with that email or YIN code.'))
+    reg.chapter_id = chapter.id
+    db.session.commit()
+    return redirect(url_for('admin_chapter_detail', chapter_id=chapter_id))
+
+
+@app.route('/admin/chapters/<int:chapter_id>/remove-member/<int:reg_id>', methods=['POST'])
+@admin_required
+def admin_chapter_remove_member(chapter_id, reg_id):
+    reg = YINRegistration.query.get_or_404(reg_id)
+    if reg.chapter_id == chapter_id:
+        reg.chapter_id = None
+        db.session.commit()
+    return redirect(url_for('admin_chapter_detail', chapter_id=chapter_id))
+
+
+@app.route('/admin/chapters/<int:chapter_id>/set-exec/<int:reg_id>', methods=['POST'])
+@admin_required
+def admin_chapter_set_exec(chapter_id, reg_id):
+    reg = YINRegistration.query.get_or_404(reg_id)
+    if reg.chapter_id == chapter_id:
+        reg.institution_type = 'Chapter Executive'
+        db.session.commit()
+    return redirect(url_for('admin_chapter_detail', chapter_id=chapter_id))
+
+
+@app.route('/admin/chapters/<int:chapter_id>/registrations-csv')
+@admin_required
+def admin_chapter_csv(chapter_id):
+    chapter = YINChapter.query.get_or_404(chapter_id)
+    rows = YINRegistration.query.filter_by(chapter_id=chapter_id).order_by(YINRegistration.points.desc()).all()
+    out = io.StringIO()
+    w = csv.writer(out)
+    w.writerow(['YIN Code', 'Full Name', 'Email', 'Phone', 'Role', 'Points', 'Date Registered'])
+    for r in rows:
+        phone_cell = f'="{r.phone}"' if r.phone else ''
+        w.writerow([r.yin_code, r.full_name, r.email, phone_cell, r.institution_type, r.points,
+                    r.created_at.strftime('%Y-%m-%d %H:%M')])
+    out.seek(0)
+    from flask import Response
+    safe_name = chapter.name.replace(' ', '_').replace('/', '-')[:40]
+    return Response(out.getvalue(), mimetype='text/csv',
+                     headers={'Content-Disposition': f'attachment;filename=YIN_Chapter_{safe_name}.csv'})
 
 
 @app.route('/yin-register', methods=['GET', 'POST'])

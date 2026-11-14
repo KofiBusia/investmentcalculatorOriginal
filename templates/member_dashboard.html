@@ -48,6 +48,19 @@
     </div>
   </div>
 
+  <a href="/member/chapter" class="block bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-6 hover:border-green-300 transition-colors">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <i class="fas fa-sitemap text-green-600"></i>
+        <div>
+          <p class="font-bold text-gray-800 text-sm">{% if chapter %}{{ chapter.name }}{% else %}No Chapter Assigned{% endif %}</p>
+          <p class="text-xs text-gray-400">{% if chapter %}View chapter{% else %}Contact admin to join a chapter{% endif %}</p>
+        </div>
+      </div>
+      <i class="fas fa-chevron-right text-gray-300"></i>
+    </div>
+  </a>
+
   <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-7">
     <h2 class="text-lg font-black text-gray-900 mb-4"><i class="fas fa-certificate text-green-600 mr-1"></i>My Certificates</h2>
     {% if certificates %}
