@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Competitions — Young Investors Network</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body{font-family:'Inter',sans-serif;background:#f8fafc;}
+  .hero-gradient{background:linear-gradient(135deg,#052e16 0%,#14532d 50%,#166534 100%);}
+  .card{background:#fff;border:1px solid #f1f5f9;border-radius:14px;}
+</style>
+</head>
+<body>
+
+<nav class="hero-gradient" style="padding:1rem 1.5rem;">
+  <a href="/" style="color:#fff;font-weight:800;font-size:1.1rem;text-decoration:none;">Invest<span style="color:#86efac;">IQ</span> <span style="color:#d1fae5;font-weight:500;font-size:.9rem;">/ YIN</span></a>
+</nav>
+
+<section style="max-width:720px;margin:2.5rem auto;padding:0 1.25rem;">
+  <div class="text-center mb-6">
+    <h1 class="text-2xl font-black text-gray-900"><i class="fas fa-flag-checkered text-green-600 mr-2"></i>YIN Competitions</h1>
+    <p class="text-gray-500 text-sm mt-1">Stock pitches, case competitions, and more.</p>
+  </div>
+
+  <div class="space-y-4">
+    {% for c in comps %}
+    <a href="/competitions/{{ c.id }}" class="card p-5 flex items-center justify-between hover:border-green-300 transition-colors block">
+      <div>
+        <p class="font-bold text-gray-800">{{ c.name }}</p>
+        <p class="text-xs text-gray-400 mt-1">{{ c.comp_type.replace('_', ' ')|title }}{% if c.is_team_based %} · Team-based{% endif %}</p>
+      </div>
+      <i class="fas fa-chevron-right text-gray-300"></i>
+    </a>
+    {% else %}
+    <p class="text-center text-gray-400 py-10">No open competitions right now — check back soon.</p>
+    {% endfor %}
+  </div>
+</section>
+
+</body>
+</html>

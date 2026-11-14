@@ -850,6 +850,36 @@ class EventRegistration(db.Model):
     event = db.relationship('Event', backref='registrations')
 
 
+class Competition(db.Model):
+    __tablename__ = 'competitions'
+    id            = db.Column(db.Integer, primary_key=True)
+    name          = db.Column(db.String(200), nullable=False)
+    comp_type     = db.Column(db.String(40), default='other')   # stock_pitch, essay, case, other
+    description   = db.Column(db.Text, default='')
+    is_team_based = db.Column(db.Boolean, default=True)
+    is_active     = db.Column(db.Boolean, default=True)
+    created_at    = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+class CompetitionRegistration(db.Model):
+    __tablename__ = 'competition_registrations'
+    id               = db.Column(db.Integer, primary_key=True)
+    competition_id   = db.Column(db.Integer, db.ForeignKey('competitions.id'), nullable=False)
+    team_name        = db.Column(db.String(200), default='')
+    contact_name     = db.Column(db.String(200), nullable=False)
+    contact_email    = db.Column(db.String(200), nullable=False, index=True)
+    contact_phone    = db.Column(db.String(50), default='')
+    members          = db.Column(db.Text, default='')    # free-text list of team member names
+    submission_link  = db.Column(db.String(500), default='')
+    submission_notes = db.Column(db.Text, default='')
+    score            = db.Column(db.Float, nullable=True)
+    rank             = db.Column(db.Integer, nullable=True)
+    judge_notes      = db.Column(db.Text, default='')
+    created_at       = db.Column(db.DateTime, default=datetime.utcnow)
+
+    competition = db.relationship('Competition', backref='registrations')
+
+
 class Certificate(db.Model):
     """A verifiable certificate issued for any YIN activity (quiz pass, event, competition, etc.)."""
     __tablename__ = 'certificates'
@@ -6598,7 +6628,8 @@ def jobs_page():
 
 @app.route('/stock-pitch')
 def stock_pitch():
-    return render_template('hr_stock_pitch.html')
+    active_comp = Competition.query.filter_by(comp_type='stock_pitch', is_active=True).order_by(Competition.created_at.desc()).first()
+    return render_template('hr_stock_pitch.html', active_comp=active_comp)
 
 
 @app.route('/stock-pitch/download-pptx')
@@ -10163,6 +10194,133 @@ def admin_event_csv(event_id):
     safe_name = event.title.replace(' ', '_').replace('/', '-')[:40]
     return Response(out.getvalue(), mimetype='text/csv',
                      headers={'Content-Disposition': f'attachment;filename=YIN_Event_{safe_name}.csv'})
+
+
+# ============================================================
+# COMPETITIONS ENGINE
+# ============================================================
+
+@app.route('/competitions')
+def competitions_list():
+    comps = Competition.query.filter_by(is_active=True).order_by(Competition.created_at.desc()).all()
+    return render_template('competitions_list.html', comps=comps)
+
+
+@app.route('/competitions/<int:comp_id>', methods=['GET', 'POST'])
+def competition_detail(comp_id):
+    comp = Competition.query.get_or_404(comp_id)
+    error = None
+    if request.method == 'POST':
+        contact_name = request.form.get('contact_name', '').strip()
+        contact_email = request.form.get('contact_email', '').strip().lower()
+        contact_phone = request.form.get('contact_phone', '').strip()
+        team_name = request.form.get('team_name', '').strip()
+        members = request.form.get('members', '').strip()
+        submission_link = request.form.get('submission_link', '').strip()
+        if not contact_name or not contact_email:
+            error = 'Name and email are required.'
+        else:
+            reg = CompetitionRegistration(competition_id=comp.id, team_name=team_name,
+                                          contact_name=contact_name, contact_email=contact_email,
+                                          contact_phone=contact_phone, members=members,
+                                          submission_link=submission_link)
+            db.session.add(reg)
+            db.session.commit()
+            _award_points_by_email(contact_email, 10)
+            return render_template('competition_detail.html', comp=comp, success=True)
+    return render_template('competition_detail.html', comp=comp, error=error)
+
+
+@app.route('/competitions/<int:comp_id>/leaderboard')
+def competition_leaderboard(comp_id):
+    comp = Competition.query.get_or_404(comp_id)
+    ranked = (CompetitionRegistration.query.filter_by(competition_id=comp.id)
+              .filter(CompetitionRegistration.rank.isnot(None))
+              .order_by(CompetitionRegistration.rank.asc()).all())
+    return render_template('competition_leaderboard.html', comp=comp, ranked=ranked)
+
+
+@app.route('/admin/competitions', methods=['GET', 'POST'])
+@admin_required
+def admin_competitions():
+    if request.method == 'POST':
+        name = request.form.get('name', '').strip()
+        comp_type = request.form.get('comp_type', 'other').strip()
+        description = request.form.get('description', '').strip()
+        is_team_based = request.form.get('is_team_based') == 'on'
+        if name:
+            db.session.add(Competition(name=name, comp_type=comp_type, description=description,
+                                       is_team_based=is_team_based))
+            db.session.commit()
+        return redirect(url_for('admin_competitions'))
+
+    comps = Competition.query.order_by(Competition.created_at.desc()).all()
+    reg_counts = {c.id: CompetitionRegistration.query.filter_by(competition_id=c.id).count() for c in comps}
+    return render_template('admin_competitions.html', comps=comps, reg_counts=reg_counts)
+
+
+@app.route('/admin/competitions/<int:comp_id>/toggle', methods=['POST'])
+@admin_required
+def admin_competition_toggle(comp_id):
+    comp = Competition.query.get_or_404(comp_id)
+    comp.is_active = not comp.is_active
+    db.session.commit()
+    return redirect(url_for('admin_competitions'))
+
+
+@app.route('/admin/competitions/<int:comp_id>')
+@admin_required
+def admin_competition_detail(comp_id):
+    comp = Competition.query.get_or_404(comp_id)
+    registrations = (CompetitionRegistration.query.filter_by(competition_id=comp.id)
+                     .order_by(CompetitionRegistration.score.desc().nullslast()).all())
+    return render_template('admin_competition_detail.html', comp=comp, registrations=registrations)
+
+
+@app.route('/admin/competitions/<int:comp_id>/score/<int:reg_id>', methods=['POST'])
+@admin_required
+def admin_competition_score(comp_id, reg_id):
+    reg = CompetitionRegistration.query.get_or_404(reg_id)
+    if reg.competition_id == comp_id:
+        score = request.form.get('score', type=float)
+        notes = request.form.get('judge_notes', '').strip()
+        reg.score = score
+        reg.judge_notes = notes
+        db.session.commit()
+    return redirect(url_for('admin_competition_detail', comp_id=comp_id))
+
+
+@app.route('/admin/competitions/<int:comp_id>/publish-ranks', methods=['POST'])
+@admin_required
+def admin_competition_publish_ranks(comp_id):
+    scored = (CompetitionRegistration.query.filter_by(competition_id=comp_id)
+              .filter(CompetitionRegistration.score.isnot(None))
+              .order_by(CompetitionRegistration.score.desc()).all())
+    for i, reg in enumerate(scored, start=1):
+        reg.rank = i
+    db.session.commit()
+    return redirect(url_for('admin_competition_detail', comp_id=comp_id))
+
+
+@app.route('/admin/competitions/<int:comp_id>/registrations-csv')
+@admin_required
+def admin_competition_csv(comp_id):
+    comp = Competition.query.get_or_404(comp_id)
+    rows = (CompetitionRegistration.query.filter_by(competition_id=comp_id)
+           .order_by(CompetitionRegistration.score.desc().nullslast()).all())
+    out = io.StringIO()
+    w = csv.writer(out)
+    w.writerow(['Team/Contact', 'Email', 'Phone', 'Members', 'Score', 'Rank', 'Submission Link', 'Registered'])
+    for r in rows:
+        phone_cell = f'="{r.contact_phone}"' if r.contact_phone else ''
+        w.writerow([r.team_name or r.contact_name, r.contact_email, phone_cell, r.members,
+                    r.score if r.score is not None else '', r.rank if r.rank is not None else '',
+                    r.submission_link, r.created_at.strftime('%Y-%m-%d %H:%M')])
+    out.seek(0)
+    from flask import Response
+    safe_name = comp.name.replace(' ', '_').replace('/', '-')[:40]
+    return Response(out.getvalue(), mimetype='text/csv',
+                     headers={'Content-Disposition': f'attachment;filename=YIN_Competition_{safe_name}.csv'})
 
 
 @app.route('/yin-register', methods=['GET', 'POST'])

@@ -776,6 +776,11 @@ function generatePrefilledPptx(btn) {
     <span class="section-tag">Official Guidelines</span>
     <h2 class="text-3xl font-black text-gray-900 mt-2">Competition Details</h2>
     <p class="text-gray-500 mt-2">Everything you need to know about the YIN Stock Pitch Competition</p>
+    {% if active_comp %}
+    <a href="/competitions/{{ active_comp.id }}" class="inline-flex items-center gap-2 mt-5 bg-green-600 hover:bg-green-700 text-white font-bold px-6 py-3 rounded-xl">
+      <i class="fas fa-user-plus"></i> Register Your Team
+    </a>
+    {% endif %}
   </div>
 
   <div class="grid md:grid-cols-2 gap-6 mb-8">

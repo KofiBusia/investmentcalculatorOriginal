@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>{{ comp.name }} — YIN Competitions</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body{font-family:'Inter',sans-serif;background:#f8fafc;}
+  .hero-gradient{background:linear-gradient(135deg,#052e16 0%,#14532d 50%,#166534 100%);}
+  .input-field{width:100%;border:1.5px solid #e2e8f0;border-radius:10px;padding:.7rem 1rem;font-size:.93rem;outline:none;}
+  .input-field:focus{border-color:#16a34a;box-shadow:0 0 0 3px rgba(22,163,74,.1);}
+  .submit-btn{background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;padding:.9rem 2rem;border-radius:12px;font-weight:800;border:none;cursor:pointer;width:100%;}
+</style>
+</head>
+<body>
+
+<nav class="hero-gradient" style="padding:1rem 1.5rem;">
+  <a href="/competitions" style="color:#fff;font-weight:800;font-size:1.1rem;text-decoration:none;"><i class="fas fa-arrow-left mr-2"></i>All Competitions</a>
+</nav>
+
+<section style="max-width:520px;margin:2.5rem auto;padding:0 1.25rem;">
+  <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-7">
+
+    {% if success %}
+    <div class="text-center">
+      <i class="fas fa-circle-check text-4xl text-green-500 mb-3"></i>
+      <h1 class="text-xl font-black text-gray-900 mb-1">Registration Received!</h1>
+      <p class="text-gray-500 text-sm">You're registered for {{ comp.name }}. Follow the submission instructions on the competition page.</p>
+    </div>
+    {% else %}
+    <h1 class="text-xl font-black text-gray-900 mb-2">{{ comp.name }}</h1>
+    {% if comp.description %}<p class="text-sm text-gray-600 mb-6">{{ comp.description }}</p>{% endif %}
+
+    {% if error %}
+    <div class="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm">{{ error }}</div>
+    {% endif %}
+
+    <form method="POST" action="/competitions/{{ comp.id }}">
+      {% if comp.is_team_based %}
+      <div class="mb-3">
+        <input type="text" name="team_name" placeholder="Team Name" class="input-field"/>
+      </div>
+      {% endif %}
+      <div class="mb-3">
+        <input type="text" name="contact_name" required placeholder="Contact Full Name" class="input-field"/>
+      </div>
+      <div class="mb-3">
+        <input type="email" name="contact_email" required placeholder="Contact Email" class="input-field"/>
+      </div>
+      <div class="mb-3">
+        <input type="tel" name="contact_phone" placeholder="Contact Phone" class="input-field"/>
+      </div>
+      {% if comp.is_team_based %}
+      <div class="mb-3">
+        <textarea name="members" rows="2" placeholder="Other team members (names, one per line)" class="input-field"></textarea>
+      </div>
+      {% endif %}
+      <div class="mb-5">
+        <input type="url" name="submission_link" placeholder="Submission link (optional — e.g. Google Drive)" class="input-field"/>
+      </div>
+      <button type="submit" class="submit-btn"><i class="fas fa-flag-checkered mr-2"></i>Register</button>
+    </form>
+    {% endif %}
+  </div>
+</section>
+
+</body>
+</html>
