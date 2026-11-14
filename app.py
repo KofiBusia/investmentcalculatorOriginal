@@ -799,7 +799,23 @@ class YINRegistration(db.Model):
     yin_code         = db.Column(db.String(20), default='', index=True)  # existing or generated
     confirmed        = db.Column(db.Boolean, default=False)
     welcome_sent     = db.Column(db.Boolean, default=False, server_default='0')
+    points           = db.Column(db.Integer, default=0, server_default='0')  # YIN gamification points
     created_at       = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+class Certificate(db.Model):
+    """A verifiable certificate issued for any YIN activity (quiz pass, event, competition, etc.)."""
+    __tablename__ = 'certificates'
+    id            = db.Column(db.Integer, primary_key=True)
+    holder_name   = db.Column(db.String(200), nullable=False)
+    holder_email  = db.Column(db.String(200), nullable=False, index=True)
+    source_type   = db.Column(db.String(40), nullable=False)   # 'GISI', 'YIAP', 'NIQ', 'Event', 'Competition'
+    source_id     = db.Column(db.Integer, nullable=True)        # id of the course/event/competition/attempt, if applicable
+    title         = db.Column(db.String(300), nullable=False)   # e.g. "YIAP — Income Statement Mastery"
+    score         = db.Column(db.String(40), default='')        # free-form, e.g. "42/50 (84%)"
+    verify_code   = db.Column(db.String(30), unique=True, nullable=False, index=True)
+    revoked       = db.Column(db.Boolean, default=False)
+    issued_at     = db.Column(db.DateTime, default=datetime.utcnow)
 
 
 class ContentAdmin(db.Model):
@@ -863,6 +879,7 @@ with app.app_context():
             "ALTER TABLE yiap_quiz_attempts ADD COLUMN IF NOT EXISTS student_name VARCHAR(200)",
             # institution_type now stores a role label (e.g. "Teacher / School Coordinator") instead of tertiary/non-tertiary
             "ALTER TABLE yin_registrations ALTER COLUMN institution_type TYPE VARCHAR(40)",
+            "ALTER TABLE yin_registrations ADD COLUMN IF NOT EXISTS points INTEGER NOT NULL DEFAULT 0",
         ]
         for _sql in _migrate_sql:
             try:
@@ -9522,6 +9539,164 @@ def _generate_yin_code():
             used.add(int(code[3:]))
     next_n = (max(used) + 1) if used else 1
     return f'YIN{next_n:04d}'
+
+
+# ============================================================
+# CERTIFICATES — verifiable PDF certificates with QR codes
+# ============================================================
+
+def _generate_verify_code():
+    """Return a unique certificate verification code, e.g. YIN-CERT-A1B2C3D4."""
+    import secrets
+    while True:
+        code = 'YIN-CERT-' + secrets.token_hex(4).upper()
+        if not Certificate.query.filter_by(verify_code=code).first():
+            return code
+
+
+def _issue_certificate(holder_name, holder_email, source_type, source_id, title, score=''):
+    """Create and persist a Certificate row. Returns the Certificate object."""
+    cert = Certificate(
+        holder_name=holder_name, holder_email=(holder_email or '').strip().lower(),
+        source_type=source_type, source_id=source_id, title=title, score=score or '',
+        verify_code=_generate_verify_code(),
+    )
+    db.session.add(cert)
+    db.session.commit()
+    return cert
+
+
+def _render_certificate_pdf(cert):
+    """Render a Certificate row to PDF bytes with an embedded QR verification code."""
+    import qrcode
+    from reportlab.lib.pagesizes import landscape, A4
+    from reportlab.lib.units import mm
+    from reportlab.lib.utils import ImageReader
+    from reportlab.pdfgen import canvas as _canvas
+
+    verify_url = url_for('certificate_verify', code=cert.verify_code, _external=True)
+    qr_buf = io.BytesIO()
+    qrcode.make(verify_url).save(qr_buf, format='PNG')
+    qr_buf.seek(0)
+
+    buf = io.BytesIO()
+    page_w, page_h = landscape(A4)
+    c = _canvas.Canvas(buf, pagesize=landscape(A4))
+
+    c.setStrokeColorRGB(0.086, 0.396, 0.271)
+    c.setLineWidth(3)
+    c.rect(12 * mm, 12 * mm, page_w - 24 * mm, page_h - 24 * mm)
+
+    c.setFont('Helvetica-Bold', 30)
+    c.setFillColorRGB(0.02, 0.18, 0.09)
+    c.drawCentredString(page_w / 2, page_h - 40 * mm, 'Certificate of Achievement')
+
+    c.setFont('Helvetica', 14)
+    c.setFillColorRGB(0.3, 0.3, 0.3)
+    c.drawCentredString(page_w / 2, page_h - 52 * mm, 'Young Investors Network (YIN)')
+
+    c.setFont('Helvetica', 13)
+    c.drawCentredString(page_w / 2, page_h - 72 * mm, 'This certifies that')
+
+    c.setFont('Helvetica-Bold', 26)
+    c.setFillColorRGB(0.086, 0.396, 0.271)
+    c.drawCentredString(page_w / 2, page_h - 86 * mm, cert.holder_name)
+
+    c.setFont('Helvetica', 13)
+    c.setFillColorRGB(0.2, 0.2, 0.2)
+    c.drawCentredString(page_w / 2, page_h - 100 * mm, 'has successfully completed')
+
+    c.setFont('Helvetica-Bold', 16)
+    c.drawCentredString(page_w / 2, page_h - 110 * mm, cert.title)
+
+    if cert.score:
+        c.setFont('Helvetica', 12)
+        c.drawCentredString(page_w / 2, page_h - 120 * mm, f'Score: {cert.score}')
+
+    c.setFont('Helvetica', 10)
+    c.setFillColorRGB(0.4, 0.4, 0.4)
+    c.drawCentredString(page_w / 2, 22 * mm,
+                         f'Issued {cert.issued_at.strftime("%d %B %Y")}  ·  Verification code: {cert.verify_code}')
+
+    qr_size = 28 * mm
+    c.drawImage(ImageReader(qr_buf), page_w - 22 * mm - qr_size, 14 * mm, width=qr_size, height=qr_size)
+    c.setFont('Helvetica', 7)
+    c.drawCentredString(page_w - 22 * mm - qr_size / 2, 12 * mm, 'Scan to verify')
+
+    c.showPage()
+    c.save()
+    buf.seek(0)
+    return buf.getvalue()
+
+
+@app.route('/certificate/verify/<code>')
+def certificate_verify(code):
+    cert = Certificate.query.filter_by(verify_code=(code or '').strip().upper()).first()
+    return render_template('certificate_verify.html', cert=cert)
+
+
+@app.route('/certificate/<code>/download')
+def certificate_download(code):
+    cert = Certificate.query.filter_by(verify_code=(code or '').strip().upper()).first_or_404()
+    if cert.revoked:
+        abort(404)
+    pdf_bytes = _render_certificate_pdf(cert)
+    from flask import Response
+    return Response(pdf_bytes, mimetype='application/pdf',
+                     headers={'Content-Disposition': f'inline; filename=YIN_Certificate_{cert.verify_code}.pdf'})
+
+
+# ============================================================
+# MEMBER PORTAL — lightweight login via email + YIN code
+# ============================================================
+
+def _current_member():
+    reg_id = session.get('yin_member_id')
+    if not reg_id:
+        return None
+    return YINRegistration.query.get(reg_id)
+
+
+@app.route('/member/login', methods=['GET', 'POST'])
+def member_login():
+    if request.method == 'GET':
+        return render_template('member_login.html')
+
+    email = request.form.get('email', '').strip().lower()
+    code = request.form.get('yin_code', '').strip().upper()
+    error = None
+    if not email or not code:
+        error = 'Please enter both your email and YIN code.'
+    else:
+        reg = (YINRegistration.query
+               .filter(db.func.lower(YINRegistration.email) == email, YINRegistration.yin_code == code)
+               .order_by(YINRegistration.created_at.desc())
+               .first())
+        if not reg:
+            error = 'No YIN membership found with that email and code combination.'
+        else:
+            session['yin_member_id'] = reg.id
+            session.permanent = True
+            return redirect(url_for('member_dashboard'))
+
+    return render_template('member_login.html', error=error)
+
+
+@app.route('/member/logout')
+def member_logout():
+    session.pop('yin_member_id', None)
+    return redirect(url_for('member_login'))
+
+
+@app.route('/member/dashboard')
+def member_dashboard():
+    member = _current_member()
+    if not member:
+        return redirect(url_for('member_login'))
+    certificates = (Certificate.query
+                     .filter_by(holder_email=(member.email or '').strip().lower(), revoked=False)
+                     .order_by(Certificate.issued_at.desc()).all())
+    return render_template('member_dashboard.html', member=member, certificates=certificates)
 
 
 @app.route('/yin-register', methods=['GET', 'POST'])

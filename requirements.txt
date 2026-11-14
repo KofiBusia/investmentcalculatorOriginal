@@ -56,3 +56,6 @@ pytesseract==0.3.13
 openpyxl==3.1.5
 xlsxwriter==3.2.5
 lxml==5.3.1
+Pillow==12.3.0
+qrcode==8.2
+reportlab==5.1.0
