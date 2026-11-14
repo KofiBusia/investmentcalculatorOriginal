@@ -953,6 +953,18 @@ class NIQAttempt(db.Model):
         return self.is_timed and self.seconds_remaining == 0
 
 
+class YInvestContent(db.Model):
+    """Education-only content blocks for the Y-Invest info page. No transactions happen here --
+    subscriptions/redemptions run through the licensed fund manager and custodian, never this app."""
+    __tablename__ = 'yinvest_content'
+    id         = db.Column(db.Integer, primary_key=True)
+    title      = db.Column(db.String(200), nullable=False)
+    body       = db.Column(db.Text, default='')
+    sort_order = db.Column(db.Integer, default=0)
+    is_active  = db.Column(db.Boolean, default=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+
 class Certificate(db.Model):
     """A verifiable certificate issued for any YIN activity (quiz pass, event, competition, etc.)."""
     __tablename__ = 'certificates'
@@ -10659,6 +10671,50 @@ def admin_niq_results_csv():
     from flask import Response
     return Response(out.getvalue(), mimetype='text/csv',
                      headers={'Content-Disposition': f'attachment;filename=NIQ_{round_type}_results.csv'})
+
+
+# ============================================================
+# Y-INVEST — education content only (no transactions in this app)
+# ============================================================
+
+@app.route('/y-invest')
+def yinvest_page():
+    blocks = YInvestContent.query.filter_by(is_active=True).order_by(YInvestContent.sort_order.asc()).all()
+    return render_template('yinvest.html', blocks=blocks)
+
+
+@app.route('/admin/yinvest-content', methods=['GET', 'POST'])
+@admin_required
+def admin_yinvest_content():
+    if request.method == 'POST':
+        title = request.form.get('title', '').strip()
+        body = request.form.get('body', '').strip()
+        sort_order = request.form.get('sort_order', type=int) or 0
+        if title:
+            db.session.add(YInvestContent(title=title, body=body, sort_order=sort_order))
+            db.session.commit()
+        return redirect(url_for('admin_yinvest_content'))
+
+    blocks = YInvestContent.query.order_by(YInvestContent.sort_order.asc()).all()
+    return render_template('admin_yinvest_content.html', blocks=blocks)
+
+
+@app.route('/admin/yinvest-content/<int:block_id>/toggle', methods=['POST'])
+@admin_required
+def admin_yinvest_toggle(block_id):
+    block = YInvestContent.query.get_or_404(block_id)
+    block.is_active = not block.is_active
+    db.session.commit()
+    return redirect(url_for('admin_yinvest_content'))
+
+
+@app.route('/admin/yinvest-content/<int:block_id>/delete', methods=['POST'])
+@admin_required
+def admin_yinvest_delete(block_id):
+    block = YInvestContent.query.get_or_404(block_id)
+    db.session.delete(block)
+    db.session.commit()
+    return redirect(url_for('admin_yinvest_content'))
 
 
 @app.route('/yin-register', methods=['GET', 'POST'])

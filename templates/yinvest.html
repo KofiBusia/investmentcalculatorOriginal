@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Y-Invest — Young Investors Network</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body{font-family:'Inter',sans-serif;background:#f8fafc;}
+  .hero-gradient{background:linear-gradient(135deg,#052e16 0%,#14532d 50%,#166534 100%);}
+  .card{background:#fff;border:1px solid #f1f5f9;border-radius:16px;}
+</style>
+</head>
+<body>
+
+<nav class="hero-gradient" style="padding:1rem 1.5rem;">
+  <a href="/" style="color:#fff;font-weight:800;font-size:1.1rem;text-decoration:none;">Invest<span style="color:#86efac;">IQ</span> <span style="color:#d1fae5;font-weight:500;font-size:.9rem;">/ YIN</span></a>
+</nav>
+
+<section class="hero-gradient text-white text-center py-14 px-4">
+  <h1 class="text-3xl font-black">Y-Invest</h1>
+  <p class="text-green-100 mt-2 max-w-md mx-auto">Learn how Y-Invest works — education first.</p>
+</section>
+
+<section style="max-width:680px;margin:2.5rem auto;padding:0 1.25rem;">
+
+  <div class="bg-amber-50 border border-amber-200 rounded-2xl p-5 mb-6">
+    <p class="text-sm text-amber-800">
+      <i class="fas fa-shield-halved mr-1"></i>
+      <strong>Important:</strong> This page is for education only. YIN does not hold your money or process
+      investment transactions. All subscriptions, holdings, and redemptions are handled exclusively by the
+      licensed fund manager and custodian. Any claim of regulatory backing (e.g. by the GSE, SEC, or CSD)
+      shown here is only included when supported by a verified primary source.
+    </p>
+  </div>
+
+  {% for b in blocks %}
+  <div class="card p-6 mb-5">
+    <h2 class="font-bold text-gray-800 text-lg mb-2">{{ b.title }}</h2>
+    <div class="text-sm text-gray-600 leading-relaxed" style="white-space:pre-line;">{{ b.body }}</div>
+  </div>
+  {% else %}
+  <div class="card p-8 text-center text-gray-400">
+    Y-Invest content is being prepared — check back soon.
+  </div>
+  {% endfor %}
+
+</section>
+
+</body>
+</html>
