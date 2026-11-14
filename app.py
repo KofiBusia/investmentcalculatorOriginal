@@ -805,6 +805,7 @@ class YINProgram(db.Model):
     id          = db.Column(db.Integer, primary_key=True)
     name        = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text, default='')
+    sponsor_partner_id = db.Column(db.Integer, db.ForeignKey('partner_accounts.id'), nullable=True)
     is_active   = db.Column(db.Boolean, default=True)
     created_at  = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -849,6 +850,7 @@ class Event(db.Model):
     is_paid     = db.Column(db.Boolean, default=False)
     price       = db.Column(db.Float, default=0.0)
     capacity    = db.Column(db.Integer, default=0)   # 0 = unlimited
+    sponsor_partner_id = db.Column(db.Integer, db.ForeignKey('partner_accounts.id'), nullable=True)
     is_active   = db.Column(db.Boolean, default=True)
     created_at  = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -875,6 +877,7 @@ class Competition(db.Model):
     comp_type     = db.Column(db.String(40), default='other')   # stock_pitch, essay, case, other
     description   = db.Column(db.Text, default='')
     is_team_based = db.Column(db.Boolean, default=True)
+    sponsor_partner_id = db.Column(db.Integer, db.ForeignKey('partner_accounts.id'), nullable=True)
     is_active     = db.Column(db.Boolean, default=True)
     created_at    = db.Column(db.DateTime, default=datetime.utcnow)
 
@@ -983,6 +986,26 @@ class YInvestContent(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 
+class PartnerAccount(db.Model):
+    """Sponsor/partner login -- admin-created, read-only aggregate view of what they sponsor.
+    Mirrors ContentAdmin's pattern rather than EmployerAccount's self-serve signup, since
+    partners are organisations YIN coordinates with directly."""
+    __tablename__ = 'partner_accounts'
+    id            = db.Column(db.Integer, primary_key=True)
+    name          = db.Column(db.String(200), nullable=False)
+    organization  = db.Column(db.String(200), default='')
+    email         = db.Column(db.String(200), unique=True, nullable=False)
+    password_hash = db.Column(db.String(256), nullable=False)
+    is_active     = db.Column(db.Boolean, default=True)
+    created_at    = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def set_password(self, pw):
+        self.password_hash = generate_password_hash(pw)
+
+    def check_password(self, pw):
+        return check_password_hash(self.password_hash, pw)
+
+
 class Announcement(db.Model):
     __tablename__   = 'announcements'
     id              = db.Column(db.Integer, primary_key=True)
@@ -1074,6 +1097,9 @@ with app.app_context():
             "ALTER TABLE yin_registrations ADD COLUMN IF NOT EXISTS chapter_id INTEGER REFERENCES yin_chapters(id)",
             "ALTER TABLE mentorship_applications ADD COLUMN IF NOT EXISTS mentor_id INTEGER REFERENCES mentors(id)",
             "ALTER TABLE job_listings ADD COLUMN IF NOT EXISTS is_opportunity BOOLEAN NOT NULL DEFAULT FALSE",
+            "ALTER TABLE yin_programs ADD COLUMN IF NOT EXISTS sponsor_partner_id INTEGER REFERENCES partner_accounts(id)",
+            "ALTER TABLE events ADD COLUMN IF NOT EXISTS sponsor_partner_id INTEGER REFERENCES partner_accounts(id)",
+            "ALTER TABLE competitions ADD COLUMN IF NOT EXISTS sponsor_partner_id INTEGER REFERENCES partner_accounts(id)",
         ]
         for _sql in _migrate_sql:
             try:
@@ -4938,6 +4964,17 @@ def admin_dashboard():
         for a in JobApplication.query.with_entities(JobApplication.email).all():   all_emails.add(a[0].strip().lower())
         total_signups = len(all_emails)
 
+    # YIN platform analytics (chapters, events, competitions, NIQ, certificates, gamification)
+    yin_chapter_count = YINChapter.query.count() if is_super_admin else 0
+    yin_total_points  = (db.session.query(db.func.coalesce(db.func.sum(YINRegistration.points), 0)).scalar()
+                        if is_super_admin else 0)
+    event_count       = Event.query.filter_by(is_active=True).count() if is_super_admin else 0
+    event_reg_count   = EventRegistration.query.count() if is_super_admin else 0
+    competition_count = Competition.query.filter_by(is_active=True).count() if is_super_admin else 0
+    niq_school_count  = NIQSchool.query.count() if is_super_admin else 0
+    niq_attempt_count = NIQAttempt.query.filter_by(is_complete=True).count() if is_super_admin else 0
+    certificate_count = Certificate.query.filter_by(revoked=False).count() if is_super_admin else 0
+
     return render_template('admin_dashboard.html',
                            article_count=article_count, video_count=video_count,
                            published=published, recent=recent,
@@ -4946,7 +4983,11 @@ def admin_dashboard():
                            training_count=training_count, employer_count=employer_count,
                            candidate_count=candidate_count, yin_reg_count=yin_reg_count,
                            referral_count=referral_count, successful_refs=successful_refs,
-                           linked_count=linked_count, total_signups=total_signups)
+                           linked_count=linked_count, total_signups=total_signups,
+                           yin_chapter_count=yin_chapter_count, yin_total_points=yin_total_points,
+                           event_count=event_count, event_reg_count=event_reg_count,
+                           competition_count=competition_count, niq_school_count=niq_school_count,
+                           niq_attempt_count=niq_attempt_count, certificate_count=certificate_count)
 
 
 # ---- ARTICLE CRUD ----
@@ -10920,6 +10961,106 @@ def admin_announcement_delete(ann_id):
     db.session.delete(ann)
     db.session.commit()
     return redirect(url_for('admin_announcements'))
+
+
+# ============================================================
+# PARTNER PORTAL — admin-created sponsor accounts, aggregate-only view
+# ============================================================
+
+@app.route('/admin/partners', methods=['GET', 'POST'])
+@admin_required
+def admin_partners():
+    error = None
+    if request.method == 'POST':
+        name = request.form.get('name', '').strip()
+        organization = request.form.get('organization', '').strip()
+        email = request.form.get('email', '').strip().lower()
+        password = request.form.get('password', '')
+        if not name or not email or not password:
+            error = 'Name, email, and password are required.'
+        elif PartnerAccount.query.filter_by(email=email).first():
+            error = 'An account with that email already exists.'
+        else:
+            pa = PartnerAccount(name=name, organization=organization, email=email)
+            pa.set_password(password)
+            db.session.add(pa)
+            db.session.commit()
+
+    partners = PartnerAccount.query.order_by(PartnerAccount.created_at.desc()).all()
+    programs = YINProgram.query.order_by(YINProgram.name.asc()).all()
+    events = Event.query.order_by(Event.title.asc()).all()
+    comps = Competition.query.order_by(Competition.name.asc()).all()
+    return render_template('admin_partners.html', partners=partners, programs=programs,
+                           events=events, comps=comps, error=error)
+
+
+@app.route('/admin/partners/<int:partner_id>/toggle', methods=['POST'])
+@admin_required
+def admin_partner_toggle(partner_id):
+    pa = PartnerAccount.query.get_or_404(partner_id)
+    pa.is_active = not pa.is_active
+    db.session.commit()
+    return redirect(url_for('admin_partners'))
+
+
+@app.route('/admin/partners/assign-sponsor', methods=['POST'])
+@admin_required
+def admin_partner_assign_sponsor():
+    partner_id = request.form.get('partner_id', type=int) or None
+    target_type = request.form.get('target_type', '')
+    target_id = request.form.get('target_id', type=int)
+    model_map = {'program': YINProgram, 'event': Event, 'competition': Competition}
+    model = model_map.get(target_type)
+    if model and target_id:
+        obj = model.query.get(target_id)
+        if obj:
+            obj.sponsor_partner_id = partner_id
+            db.session.commit()
+    return redirect(url_for('admin_partners'))
+
+
+@app.route('/partner/login', methods=['GET', 'POST'])
+def partner_login():
+    if request.method == 'GET':
+        return render_template('partner_login.html')
+    email = request.form.get('email', '').strip().lower()
+    password = request.form.get('password', '')
+    pa = PartnerAccount.query.filter_by(email=email, is_active=True).first()
+    if pa and pa.check_password(password):
+        session['partner_id'] = pa.id
+        session.permanent = True
+        return redirect(url_for('partner_dashboard'))
+    return render_template('partner_login.html', error='Invalid email or password.')
+
+
+@app.route('/partner/logout')
+def partner_logout():
+    session.pop('partner_id', None)
+    return redirect(url_for('partner_login'))
+
+
+@app.route('/partner/dashboard')
+def partner_dashboard():
+    partner_id = session.get('partner_id')
+    if not partner_id:
+        return redirect(url_for('partner_login'))
+    partner = PartnerAccount.query.get_or_404(partner_id)
+
+    programs = YINProgram.query.filter_by(sponsor_partner_id=partner.id).all()
+    events = Event.query.filter_by(sponsor_partner_id=partner.id).all()
+    comps = Competition.query.filter_by(sponsor_partner_id=partner.id).all()
+
+    program_stats = [{'name': p.name, 'registrations': YINRegistration.query.filter_by(program_id=p.id).count()}
+                     for p in programs]
+    event_stats = [{'name': e.title,
+                    'registrations': EventRegistration.query.filter_by(event_id=e.id).count(),
+                    'checked_in': EventRegistration.query.filter_by(event_id=e.id, checked_in=True).count()}
+                   for e in events]
+    comp_stats = [{'name': c.name, 'entries': CompetitionRegistration.query.filter_by(competition_id=c.id).count()}
+                  for c in comps]
+
+    return render_template('partner_dashboard.html', partner=partner, program_stats=program_stats,
+                           event_stats=event_stats, comp_stats=comp_stats)
 
 
 @app.route('/yin-register', methods=['GET', 'POST'])

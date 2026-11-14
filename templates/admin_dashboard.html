@@ -100,6 +100,9 @@
       <a href="/admin/announcements" class="flex items-center gap-3 px-3 py-2.5 text-gray-300 hover:bg-gray-800 rounded-lg text-sm font-medium transition-colors">
         <i class="fas fa-bullhorn w-4 text-yellow-400"></i> Announcements
       </a>
+      <a href="/admin/partners" class="flex items-center gap-3 px-3 py-2.5 text-gray-300 hover:bg-gray-800 rounded-lg text-sm font-medium transition-colors">
+        <i class="fas fa-handshake-angle w-4 text-yellow-400"></i> Partners
+      </a>
       <a href="/admin/money-quiz" class="flex items-center gap-3 px-3 py-2.5 text-gray-300 hover:bg-gray-800 rounded-lg text-sm font-medium transition-colors">
         <i class="fas fa-book w-4 text-purple-400"></i> Money Quiz Results
       </a>
@@ -291,6 +294,29 @@
           <p class="text-xs text-gray-500 mt-0.5">{{ label }}</p>
         </div>
         {% endfor %}
+      </div>
+
+      <!-- YIN platform stats row -->
+      <div class="mb-6">
+        <p class="text-sm font-bold text-gray-700 mb-3"><i class="fas fa-chart-line text-green-600 mr-1"></i>YIN Platform Analytics</p>
+        <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+          {% set yin_stat_data = [
+            ('Chapters', yin_chapter_count, 'green', 'fa-sitemap'),
+            ('Total Points', yin_total_points, 'green', 'fa-trophy'),
+            ('Active Events', event_count, 'green', 'fa-calendar-check'),
+            ('Event Regs', event_reg_count, 'green', 'fa-ticket'),
+            ('Competitions', competition_count, 'green', 'fa-flag-checkered'),
+            ('NIQ Schools', niq_school_count, 'green', 'fa-school'),
+            ('Certificates', certificate_count, 'green', 'fa-award'),
+          ] %}
+          {% for label, val, color, icon in yin_stat_data %}
+          <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 text-center">
+            <i class="fas {{ icon }} text-{{ color }}-600 text-lg mb-1"></i>
+            <p class="text-2xl font-black text-gray-800">{{ val }}</p>
+            <p class="text-xs text-gray-500 mt-0.5">{{ label }}</p>
+          </div>
+          {% endfor %}
+        </div>
       </div>
 
       <!-- Export cards grid -->
