@@ -9497,6 +9497,16 @@ def _yin_duplicate_check(email, phone_norm):
     ).first()
     return q
 
+def _yin_sort_key(code):
+    """Numeric sort key for a YIN code's trailing digits.
+    Postgres's CAST(...AS INTEGER) blows up (500) on any code that isn't a
+    clean 'YIN####' string (blank, or a free-typed 'existing' code), so sort
+    in Python instead — malformed codes just fall back to 0 rather than
+    crashing the whole list/export."""
+    m = re.search(r'(\d+)$', code or '')
+    return int(m.group(1)) if m else 0
+
+
 def _generate_yin_code():
     """Return next unique YIN code.
     Reads every existing code, builds the full set of used numbers,
@@ -9767,9 +9777,8 @@ def admin_yin_send_codes():
     """One-click: send welcome email to every member who has NOT yet received one."""
     if not session.get('admin_logged_in'):
         return redirect(url_for('admin_login'))
-    regs = YINRegistration.query.filter_by(welcome_sent=False).order_by(
-        db.cast(db.func.substr(YINRegistration.yin_code, 4), db.Integer).asc()
-    ).all()
+    regs = YINRegistration.query.filter_by(welcome_sent=False).all()
+    regs.sort(key=lambda r: _yin_sort_key(r.yin_code))
     sent = 0
     failed = 0
     for reg in regs:
@@ -9874,9 +9883,8 @@ def admin_yin_program_csv(prog_id):
     if not session.get('admin_logged_in') and not session.get('super_admin_logged_in'):
         return redirect(url_for('admin_login'))
     prog = YINProgram.query.get_or_404(prog_id)
-    rows = YINRegistration.query.filter_by(program_id=prog_id).order_by(
-        db.cast(db.func.substr(YINRegistration.yin_code, 4), db.Integer).asc()
-    ).all()
+    rows = YINRegistration.query.filter_by(program_id=prog_id).all()
+    rows.sort(key=lambda r: _yin_sort_key(r.yin_code))
     import csv, io
     out = io.StringIO()
     w = csv.writer(out)
@@ -10014,9 +10022,8 @@ def admin_yin_toggle(prog_id):
 def super_admin_yin_csv():
     if not session.get('admin_logged_in') and not session.get('super_admin_logged_in'):
         return redirect(url_for('admin_login'))
-    rows = YINRegistration.query.order_by(
-        db.cast(db.func.substr(YINRegistration.yin_code, 4), db.Integer).asc()
-    ).all()
+    rows = YINRegistration.query.all()
+    rows.sort(key=lambda r: _yin_sort_key(r.yin_code))
     import csv, io
     out = io.StringIO()
     w = csv.writer(out)
