@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>NIQ Schools — Admin</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+<style>
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #f1f5f9; min-height: 100vh; }
+  .topbar { background: #1e293b; border-bottom: 1px solid #334155; padding: 0 28px; height: 56px; display: flex; align-items: center; justify-content: space-between; }
+  .brand { font-size: 1rem; font-weight: 800; color: #f1f5f9; display: flex; align-items: center; gap: 8px; text-decoration: none; }
+  .back-btn { display: flex; align-items: center; gap: 6px; padding: 7px 14px; background: rgba(100,116,139,.15); color: #94a3b8; border: 1px solid rgba(100,116,139,.25); border-radius: 8px; font-size: .82rem; font-weight: 600; text-decoration: none; }
+  .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 14px; box-shadow: 0 2px 8px rgba(0,0,0,.06); }
+  .input-field { display: block; width: 100%; border: 1.5px solid #e2e8f0; border-radius: 8px; padding: 9px 12px; font-size: .9rem; outline: none; }
+  .input-field:focus { border-color: #16a34a; box-shadow: 0 0 0 3px rgba(22,163,74,.1); }
+  .btn-primary { background: linear-gradient(135deg, #16a34a, #15803d); color: #fff; border: none; border-radius: 8px; padding: 10px 20px; font-weight: 700; font-size: .88rem; cursor: pointer; }
+  .badge-active { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; padding: 2px 10px; border-radius: 20px; font-size: .75rem; font-weight: 700; }
+  .badge-inactive { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; padding: 2px 10px; border-radius: 20px; font-size: .75rem; font-weight: 700; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <a href="/admin" class="brand"><i class="fas fa-chart-line" style="color:#3b82f6;"></i> InvestIQ <span style="color:#64748b;font-weight:400;">/ Admin</span></a>
+  <a href="/admin" class="back-btn"><i class="fas fa-arrow-left"></i> Dashboard</a>
+</div>
+
+<div class="max-w-4xl mx-auto px-4 py-10">
+
+  <div class="mb-8 flex items-center justify-between flex-wrap gap-3">
+    <div>
+      <h1 class="text-2xl font-extrabold text-gray-800 flex items-center gap-3">
+        <span class="w-10 h-10 rounded-xl flex items-center justify-center" style="background:linear-gradient(135deg,#16a34a,#15803d);"><i class="fas fa-school text-white text-sm"></i></span>
+        NIQ Schools
+      </h1>
+      <p class="text-gray-500 text-sm mt-1">Schools registered for the National Investment Quiz.</p>
+    </div>
+    <div class="flex gap-2">
+      <a href="/admin/niq-questions" class="back-btn"><i class="fas fa-question"></i> Questions</a>
+      <a href="/admin/niq-results" class="back-btn"><i class="fas fa-trophy"></i> Results</a>
+    </div>
+  </div>
+
+  <div class="card p-6 mb-8">
+    <h2 class="text-base font-bold text-gray-700 mb-4 flex items-center gap-2"><i class="fas fa-plus-circle text-green-600"></i> Add School Manually</h2>
+    <form method="POST" action="/admin/niq-schools" class="grid sm:grid-cols-2 gap-3">
+      <input type="text" name="name" required placeholder="School Name" class="input-field"/>
+      <input type="text" name="region" placeholder="Region" class="input-field"/>
+      <input type="text" name="coordinator_name" placeholder="Coordinator Name" class="input-field"/>
+      <input type="email" name="coordinator_email" placeholder="Coordinator Email" class="input-field"/>
+      <input type="tel" name="coordinator_phone" placeholder="Coordinator Phone" class="input-field"/>
+      <button type="submit" class="btn-primary sm:col-span-2 w-fit"><i class="fas fa-save mr-1"></i> Add School</button>
+    </form>
+  </div>
+
+  <div class="card overflow-hidden">
+    <table class="w-full text-sm">
+      <thead class="bg-gray-50 text-gray-500 text-xs uppercase">
+        <tr><th class="text-left px-4 py-3">School</th><th class="text-left px-4 py-3">Coordinator</th><th class="text-left px-4 py-3">Attempts</th><th class="text-left px-4 py-3">Status</th><th class="text-right px-4 py-3">Actions</th></tr>
+      </thead>
+      <tbody class="divide-y divide-gray-100">
+        {% for s in schools %}
+        <tr>
+          <td class="px-4 py-3"><p class="font-semibold text-gray-800">{{ s.name }}</p><p class="text-xs text-gray-400">{{ s.region }}</p></td>
+          <td class="px-4 py-3 text-gray-600">{{ s.coordinator_name }}<br/><span class="text-xs text-gray-400">{{ s.coordinator_email }}</span></td>
+          <td class="px-4 py-3 text-gray-700">{{ attempt_counts.get(s.id, 0) }}</td>
+          <td class="px-4 py-3">{% if s.is_active %}<span class="badge-active">Active</span>{% else %}<span class="badge-inactive">Inactive</span>{% endif %}</td>
+          <td class="px-4 py-3 text-right">
+            <form method="POST" action="/admin/niq-schools/{{ s.id }}/toggle"><button type="submit" class="text-xs font-semibold text-gray-500 hover:text-gray-700">{% if s.is_active %}Deactivate{% else %}Activate{% endif %}</button></form>
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" class="px-4 py-10 text-center text-gray-400">No schools registered yet.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+</body>
+</html>

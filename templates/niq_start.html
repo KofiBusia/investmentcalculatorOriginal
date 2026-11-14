@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Start Quiz — NIQ</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body{font-family:'Inter',sans-serif;background:#f8fafc;}
+  .hero-gradient{background:linear-gradient(135deg,#052e16 0%,#14532d 50%,#166534 100%);}
+  .input-field{width:100%;border:1.5px solid #e2e8f0;border-radius:10px;padding:.7rem 1rem;font-size:.93rem;outline:none;}
+  .input-field:focus{border-color:#16a34a;box-shadow:0 0 0 3px rgba(22,163,74,.1);}
+  .submit-btn{background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;padding:.9rem 2rem;border-radius:12px;font-weight:800;border:none;cursor:pointer;width:100%;}
+</style>
+</head>
+<body>
+
+<nav class="hero-gradient" style="padding:1rem 1.5rem;">
+  <a href="/niq" style="color:#fff;font-weight:800;font-size:1.1rem;text-decoration:none;"><i class="fas fa-arrow-left mr-2"></i>NIQ Home</a>
+</nav>
+
+<section style="max-width:480px;margin:2.5rem auto;padding:0 1.25rem;">
+  <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-7">
+    <h1 class="text-xl font-black text-gray-900 mb-4"><i class="fas fa-pen-to-square text-green-600 mr-1"></i>Start Your Quiz</h1>
+
+    {% if error %}<div class="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-sm">{{ error }}</div>{% endif %}
+
+    {% if not schools %}
+    <p class="text-gray-500 text-sm">No schools registered yet. <a href="/niq/register-school" class="text-green-600 font-semibold">Register your school first</a>.</p>
+    {% else %}
+    <form method="POST" action="/niq/start" class="space-y-3">
+      <select name="school_id" required class="input-field">
+        <option value="">— Select your school —</option>
+        {% for s in schools %}<option value="{{ s.id }}">{{ s.name }}</option>{% endfor %}
+      </select>
+      <input type="text" name="student_name" required placeholder="Your Full Name" class="input-field"/>
+      <input type="email" name="student_email" placeholder="Your Email (required for qualifying/final)" class="input-field"/>
+      <select name="round_type" required class="input-field">
+        <option value="practice">Practice (unlimited attempts)</option>
+        {% if 'qualifying' in round_types %}<option value="qualifying">Qualifying Round</option>{% endif %}
+        {% if 'final' in round_types %}<option value="final">Final Round</option>{% endif %}
+      </select>
+      <button type="submit" class="submit-btn mt-2"><i class="fas fa-play mr-2"></i>Begin Quiz</button>
+    </form>
+    {% endif %}
+  </div>
+</section>
+
+</body>
+</html>

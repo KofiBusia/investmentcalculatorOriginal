@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>NIQ Results</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body{font-family:'Inter',sans-serif;background:#f0f4f8;}
+  .hero-gradient{background:linear-gradient(135deg,#052e16 0%,#14532d 50%,#166534 100%);}
+</style>
+</head>
+<body>
+
+<nav class="hero-gradient" style="padding:1rem 1.5rem;">
+  <a href="/niq" style="color:#fff;font-weight:800;font-size:1.1rem;text-decoration:none;"><i class="fas fa-arrow-left mr-2"></i>NIQ Home</a>
+</nav>
+
+<section style="max-width:480px;margin:2.5rem auto;padding:0 1.25rem;">
+  <div class="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 text-center">
+    <div class="text-5xl mb-3">{% if attempt.score_pct >= 60 %}🎉{% else %}📚{% endif %}</div>
+    <h1 class="text-2xl font-black text-gray-900">{{ attempt.student_name }}</h1>
+    <p class="text-gray-500 text-sm mb-5">{{ attempt.round_type|title }} Round</p>
+    <p class="text-5xl font-black text-green-600">{{ attempt.score_pct }}%</p>
+    <p class="text-sm text-gray-400 mt-1 mb-6">{{ attempt.score }} / {{ attempt.total_questions }} correct</p>
+
+    {% if attempt.round_type != 'practice' and cert %}
+    <a href="/certificate/{{ cert.verify_code }}/download" target="_blank" class="inline-flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white font-bold px-5 py-2.5 rounded-xl text-sm mb-4">
+      <i class="fas fa-certificate"></i> Download Certificate
+    </a>
+    {% endif %}
+
+    <div class="flex justify-center gap-3">
+      <a href="/niq/start" class="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-bold text-sm"><i class="fas fa-redo mr-1"></i>Try Again</a>
+      <a href="/niq/leaderboard?round={{ attempt.round_type }}" class="px-5 py-2.5 bg-amber-100 hover:bg-amber-200 text-amber-700 rounded-xl font-bold text-sm"><i class="fas fa-trophy mr-1"></i>Leaderboard</a>
+    </div>
+  </div>
+</section>
+
+</body>
+</html>

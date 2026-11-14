@@ -880,6 +880,79 @@ class CompetitionRegistration(db.Model):
     competition = db.relationship('Competition', backref='registrations')
 
 
+class NIQSchool(db.Model):
+    __tablename__ = 'niq_schools'
+    id                = db.Column(db.Integer, primary_key=True)
+    name              = db.Column(db.String(200), nullable=False)
+    region            = db.Column(db.String(100), default='')
+    coordinator_name  = db.Column(db.String(200), default='')
+    coordinator_email = db.Column(db.String(200), default='', index=True)
+    coordinator_phone = db.Column(db.String(50), default='')
+    is_active         = db.Column(db.Boolean, default=True)
+    created_at        = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+class NIQQuestion(db.Model):
+    __tablename__ = 'niq_questions'
+    id             = db.Column(db.Integer, primary_key=True)
+    question_text  = db.Column(db.Text, nullable=False)
+    option_a       = db.Column(db.String(300), default='')
+    option_b       = db.Column(db.String(300), default='')
+    option_c       = db.Column(db.String(300), default='')
+    option_d       = db.Column(db.String(300), default='')
+    correct_answer = db.Column(db.String(1), default='a')
+    explanation    = db.Column(db.Text, default='')
+    round_type     = db.Column(db.String(20), default='practice')   # practice, qualifying, final
+    created_at     = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+class NIQAttempt(db.Model):
+    __tablename__ = 'niq_attempts'
+    id                  = db.Column(db.Integer, primary_key=True)
+    school_id           = db.Column(db.Integer, db.ForeignKey('niq_schools.id'), nullable=False)
+    student_name        = db.Column(db.String(200), nullable=False)
+    student_email       = db.Column(db.String(200), default='')
+    round_type          = db.Column(db.String(20), default='practice')
+    questions_order     = db.Column(db.Text, default='[]')
+    answers_given       = db.Column(db.Text, default='{}')
+    current_index       = db.Column(db.Integer, default=0)
+    score               = db.Column(db.Integer, default=0)
+    total_questions     = db.Column(db.Integer, default=20)
+    time_limit_minutes  = db.Column(db.Integer, default=20)
+    started_at          = db.Column(db.DateTime, default=datetime.utcnow)
+    completed_at        = db.Column(db.DateTime, nullable=True)
+    is_complete         = db.Column(db.Boolean, default=False)
+
+    school = db.relationship('NIQSchool', backref='attempts')
+
+    @property
+    def questions_list(self):
+        return json.loads(self.questions_order) if self.questions_order else []
+
+    @property
+    def answers_dict(self):
+        return json.loads(self.answers_given) if self.answers_given else {}
+
+    @property
+    def score_pct(self):
+        return round((self.score / self.total_questions) * 100, 1) if self.total_questions else 0
+
+    @property
+    def is_timed(self):
+        return self.round_type != 'practice'
+
+    @property
+    def seconds_remaining(self):
+        if not self.is_timed or not self.started_at:
+            return None
+        elapsed = (datetime.utcnow() - self.started_at).total_seconds()
+        return max(0, int(self.time_limit_minutes * 60 - elapsed))
+
+    @property
+    def is_expired(self):
+        return self.is_timed and self.seconds_remaining == 0
+
+
 class Certificate(db.Model):
     """A verifiable certificate issued for any YIN activity (quiz pass, event, competition, etc.)."""
     __tablename__ = 'certificates'
@@ -10321,6 +10394,271 @@ def admin_competition_csv(comp_id):
     safe_name = comp.name.replace(' ', '_').replace('/', '-')[:40]
     return Response(out.getvalue(), mimetype='text/csv',
                      headers={'Content-Disposition': f'attachment;filename=YIN_Competition_{safe_name}.csv'})
+
+
+# ============================================================
+# NIQ — NATIONAL INVESTMENT QUIZ
+# ============================================================
+
+def _niq_available_round_types():
+    """Round types that have at least one question seeded."""
+    rows = db.session.query(NIQQuestion.round_type).distinct().all()
+    return [r[0] for r in rows]
+
+
+@app.route('/niq')
+def niq_hub():
+    schools = NIQSchool.query.filter_by(is_active=True).order_by(NIQSchool.name.asc()).all()
+    round_types = _niq_available_round_types()
+    return render_template('niq_hub.html', schools=schools, round_types=round_types)
+
+
+@app.route('/niq/register-school', methods=['GET', 'POST'])
+def niq_register_school():
+    if request.method == 'POST':
+        name = request.form.get('name', '').strip()
+        region = request.form.get('region', '').strip()
+        coord_name = request.form.get('coordinator_name', '').strip()
+        coord_email = request.form.get('coordinator_email', '').strip().lower()
+        coord_phone = request.form.get('coordinator_phone', '').strip()
+        if not name or not coord_name or not coord_email:
+            return render_template('niq_register_school.html',
+                                   error='School name, coordinator name, and coordinator email are required.')
+        school = NIQSchool(name=name, region=region, coordinator_name=coord_name,
+                           coordinator_email=coord_email, coordinator_phone=coord_phone)
+        db.session.add(school)
+        db.session.commit()
+        return render_template('niq_register_school.html', success=True, school=school)
+    return render_template('niq_register_school.html')
+
+
+@app.route('/niq/start', methods=['GET', 'POST'])
+def niq_start():
+    schools = NIQSchool.query.filter_by(is_active=True).order_by(NIQSchool.name.asc()).all()
+    round_types = _niq_available_round_types()
+    if request.method == 'POST':
+        school_id = request.form.get('school_id', type=int)
+        student_name = request.form.get('student_name', '').strip()
+        student_email = request.form.get('student_email', '').strip().lower()
+        round_type = request.form.get('round_type', 'practice').strip()
+
+        school = NIQSchool.query.get(school_id) if school_id else None
+        if not school or not student_name:
+            return render_template('niq_start.html', schools=schools, round_types=round_types,
+                                   error='Please select your school and enter your name.')
+        if round_type != 'practice' and not student_email:
+            return render_template('niq_start.html', schools=schools, round_types=round_types,
+                                   error='An email address is required for qualifying and final rounds (used to send your certificate).')
+
+        # Single-attempt enforcement for qualifying/final
+        if round_type != 'practice':
+            existing = NIQAttempt.query.filter_by(school_id=school.id, student_name=student_name,
+                                                  round_type=round_type).first()
+            if existing:
+                return redirect(url_for('niq_quiz_question', attempt_id=existing.id))
+
+        pool = NIQQuestion.query.filter_by(round_type=round_type).all()
+        if not pool:
+            return render_template('niq_start.html', schools=schools, round_types=round_types,
+                                   error='This round is not open yet — no questions have been published.')
+        import random
+        n = min(20, len(pool))
+        selected = random.sample([q.id for q in pool], n)
+        random.shuffle(selected)
+
+        attempt = NIQAttempt(school_id=school.id, student_name=student_name, student_email=student_email,
+                             round_type=round_type, questions_order=json.dumps(selected),
+                             answers_given='{}', current_index=0, score=0, total_questions=len(selected))
+        db.session.add(attempt)
+        db.session.commit()
+        return redirect(url_for('niq_quiz_question', attempt_id=attempt.id))
+
+    return render_template('niq_start.html', schools=schools, round_types=round_types)
+
+
+def _niq_finish_attempt(attempt):
+    attempt.is_complete = True
+    attempt.completed_at = datetime.utcnow()
+    db.session.commit()
+    if attempt.round_type != 'practice' and attempt.student_email:
+        pts = 50 if attempt.round_type == 'final' else 30
+        _award_points_by_email(attempt.student_email, pts)
+        existing = Certificate.query.filter_by(source_type='NIQ', source_id=attempt.id,
+                                                holder_email=attempt.student_email.lower()).first()
+        if not existing:
+            cert = _issue_certificate(holder_name=attempt.student_name, holder_email=attempt.student_email,
+                                      source_type='NIQ', source_id=attempt.id,
+                                      title=f'National Investment Quiz — {attempt.round_type.title()} Round',
+                                      score=f'{attempt.score}/{attempt.total_questions} ({attempt.score_pct}%)')
+            _email_certificate_pdf(to_email=attempt.student_email, to_name=attempt.student_name, cert=cert,
+                                   subject=f'Your NIQ {attempt.round_type.title()} Round Certificate',
+                                   intro_html=f'You completed the NIQ {attempt.round_type} round with a score of '
+                                              f'{attempt.score}/{attempt.total_questions} ({attempt.score_pct}%).')
+
+
+@app.route('/niq/quiz/<int:attempt_id>')
+def niq_quiz_question(attempt_id):
+    attempt = NIQAttempt.query.get_or_404(attempt_id)
+    if attempt.is_complete:
+        return redirect(url_for('niq_quiz_results', attempt_id=attempt_id))
+    if attempt.is_expired:
+        _niq_finish_attempt(attempt)
+        return redirect(url_for('niq_quiz_results', attempt_id=attempt_id))
+
+    q_list = attempt.questions_list
+    idx = attempt.current_index
+    if idx >= len(q_list):
+        _niq_finish_attempt(attempt)
+        return redirect(url_for('niq_quiz_results', attempt_id=attempt_id))
+
+    question = NIQQuestion.query.get_or_404(int(q_list[idx]))
+    return render_template('niq_quiz.html', attempt=attempt, question=question,
+                           q_num=idx + 1, total=attempt.total_questions, feedback=None, last_correct=None)
+
+
+@app.route('/niq/quiz/<int:attempt_id>/answer', methods=['POST'])
+def niq_quiz_answer(attempt_id):
+    attempt = NIQAttempt.query.get_or_404(attempt_id)
+    if attempt.is_complete:
+        return redirect(url_for('niq_quiz_results', attempt_id=attempt_id))
+    if attempt.is_expired:
+        _niq_finish_attempt(attempt)
+        return redirect(url_for('niq_quiz_results', attempt_id=attempt_id))
+
+    q_list = attempt.questions_list
+    idx = attempt.current_index
+    q_id = int(q_list[idx])
+    question = NIQQuestion.query.get_or_404(q_id)
+    chosen = request.form.get('answer', '').strip().lower()
+    answers = attempt.answers_dict
+    answers[str(q_id)] = chosen
+    attempt.answers_given = json.dumps(answers)
+    is_correct = (chosen == question.correct_answer)
+    if is_correct:
+        attempt.score += 1
+    attempt.current_index = idx + 1
+    if attempt.current_index >= attempt.total_questions:
+        db.session.commit()
+        _niq_finish_attempt(attempt)
+        return redirect(url_for('niq_quiz_results', attempt_id=attempt_id))
+    db.session.commit()
+
+    next_q = NIQQuestion.query.get(int(q_list[attempt.current_index]))
+    return render_template('niq_quiz.html', attempt=attempt, question=next_q,
+                           q_num=attempt.current_index + 1, total=attempt.total_questions,
+                           feedback={'chosen': chosen, 'correct': question.correct_answer,
+                                     'is_correct': is_correct, 'explanation': question.explanation},
+                           last_correct=is_correct)
+
+
+@app.route('/niq/quiz/<int:attempt_id>/results')
+def niq_quiz_results(attempt_id):
+    attempt = NIQAttempt.query.get_or_404(attempt_id)
+    cert = None
+    if attempt.round_type != 'practice' and attempt.student_email:
+        cert = Certificate.query.filter_by(source_type='NIQ', source_id=attempt.id,
+                                           holder_email=attempt.student_email.lower()).first()
+    return render_template('niq_results.html', attempt=attempt, cert=cert)
+
+
+@app.route('/niq/leaderboard')
+def niq_leaderboard():
+    round_type = request.args.get('round', 'final')
+    top = (NIQAttempt.query.filter_by(round_type=round_type, is_complete=True)
+           .order_by(NIQAttempt.score.desc(), NIQAttempt.completed_at.asc()).limit(50).all())
+    return render_template('niq_leaderboard.html', top=top, round_type=round_type)
+
+
+@app.route('/admin/niq-schools', methods=['GET', 'POST'])
+@admin_required
+def admin_niq_schools():
+    if request.method == 'POST':
+        name = request.form.get('name', '').strip()
+        region = request.form.get('region', '').strip()
+        coord_name = request.form.get('coordinator_name', '').strip()
+        coord_email = request.form.get('coordinator_email', '').strip().lower()
+        coord_phone = request.form.get('coordinator_phone', '').strip()
+        if name:
+            db.session.add(NIQSchool(name=name, region=region, coordinator_name=coord_name,
+                                     coordinator_email=coord_email, coordinator_phone=coord_phone))
+            db.session.commit()
+        return redirect(url_for('admin_niq_schools'))
+
+    schools = NIQSchool.query.order_by(NIQSchool.created_at.desc()).all()
+    attempt_counts = {s.id: NIQAttempt.query.filter_by(school_id=s.id).count() for s in schools}
+    return render_template('admin_niq_schools.html', schools=schools, attempt_counts=attempt_counts)
+
+
+@app.route('/admin/niq-schools/<int:school_id>/toggle', methods=['POST'])
+@admin_required
+def admin_niq_school_toggle(school_id):
+    school = NIQSchool.query.get_or_404(school_id)
+    school.is_active = not school.is_active
+    db.session.commit()
+    return redirect(url_for('admin_niq_schools'))
+
+
+@app.route('/admin/niq-questions', methods=['GET', 'POST'])
+@admin_required
+def admin_niq_questions():
+    if request.method == 'POST':
+        q = NIQQuestion(
+            question_text=request.form.get('question_text', '').strip(),
+            option_a=request.form.get('option_a', '').strip(),
+            option_b=request.form.get('option_b', '').strip(),
+            option_c=request.form.get('option_c', '').strip(),
+            option_d=request.form.get('option_d', '').strip(),
+            correct_answer=request.form.get('correct_answer', 'a').strip().lower(),
+            explanation=request.form.get('explanation', '').strip(),
+            round_type=request.form.get('round_type', 'practice').strip(),
+        )
+        if q.question_text:
+            db.session.add(q)
+            db.session.commit()
+        return redirect(url_for('admin_niq_questions', round=request.form.get('round_type', 'practice')))
+
+    round_type = request.args.get('round', 'practice')
+    questions = NIQQuestion.query.filter_by(round_type=round_type).order_by(NIQQuestion.created_at.desc()).all()
+    counts = {rt: NIQQuestion.query.filter_by(round_type=rt).count() for rt in ('practice', 'qualifying', 'final')}
+    return render_template('admin_niq_questions.html', questions=questions, round_type=round_type, counts=counts)
+
+
+@app.route('/admin/niq-questions/<int:q_id>/delete', methods=['POST'])
+@admin_required
+def admin_niq_question_delete(q_id):
+    q = NIQQuestion.query.get_or_404(q_id)
+    round_type = q.round_type
+    db.session.delete(q)
+    db.session.commit()
+    return redirect(url_for('admin_niq_questions', round=round_type))
+
+
+@app.route('/admin/niq-results')
+@admin_required
+def admin_niq_results():
+    round_type = request.args.get('round', 'final')
+    attempts = (NIQAttempt.query.filter_by(round_type=round_type, is_complete=True)
+               .order_by(NIQAttempt.score.desc()).all())
+    return render_template('admin_niq_results.html', attempts=attempts, round_type=round_type)
+
+
+@app.route('/admin/niq-results-csv')
+@admin_required
+def admin_niq_results_csv():
+    round_type = request.args.get('round', 'final')
+    attempts = (NIQAttempt.query.filter_by(round_type=round_type, is_complete=True)
+               .order_by(NIQAttempt.score.desc()).all())
+    out = io.StringIO()
+    w = csv.writer(out)
+    w.writerow(['Student', 'School', 'Email', 'Score', 'Total', '%', 'Completed'])
+    for a in attempts:
+        w.writerow([a.student_name, a.school.name if a.school else '', a.student_email,
+                    a.score, a.total_questions, a.score_pct,
+                    a.completed_at.strftime('%Y-%m-%d %H:%M') if a.completed_at else ''])
+    out.seek(0)
+    from flask import Response
+    return Response(out.getvalue(), mimetype='text/csv',
+                     headers={'Content-Disposition': f'attachment;filename=NIQ_{round_type}_results.csv'})
 
 
 @app.route('/yin-register', methods=['GET', 'POST'])
