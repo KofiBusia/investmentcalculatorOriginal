@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>YIN Academy — Young Investors Network</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body{font-family:'Inter',sans-serif;background:#f8fafc;}
+  .hero-gradient{background:linear-gradient(135deg,#052e16 0%,#14532d 50%,#166534 100%);}
+  .card{background:#fff;border:1px solid #f1f5f9;border-radius:16px;}
+  .section-tag{font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:#16a34a;background:#f0fdf4;padding:.25rem .7rem;border-radius:999px;}
+</style>
+</head>
+<body>
+
+<nav class="hero-gradient" style="padding:1rem 1.5rem;">
+  <a href="/" style="color:#fff;font-weight:800;font-size:1.1rem;text-decoration:none;">Invest<span style="color:#86efac;">IQ</span> <span style="color:#d1fae5;font-weight:500;font-size:.9rem;">/ YIN</span></a>
+</nav>
+
+<section class="hero-gradient text-white text-center py-14 px-4">
+  <h1 class="text-3xl font-black">YIN Academy</h1>
+  <p class="text-green-100 mt-2 max-w-md mx-auto">From personal finance to equity research — everything YIN teaches, in one place.</p>
+</section>
+
+<section style="max-width:780px;margin:2.5rem auto;padding:0 1.25rem;">
+
+  <span class="section-tag">GISI Exam Prep</span>
+  <div class="grid sm:grid-cols-2 gap-4 mt-3 mb-8">
+    {% for c in gisi_courses %}
+    <a href="/gisi-prep/course/{{ c.slug }}" class="card p-5 hover:border-green-300 transition-colors">
+      <p class="font-bold text-gray-800">{{ c.name }}</p>
+      <p class="text-xs text-gray-400 mt-1">{{ c.level }}{% if c.is_free %} · Free{% endif %}</p>
+    </a>
+    {% else %}
+    <p class="text-gray-400 text-sm">No GISI courses available right now.</p>
+    {% endfor %}
+  </div>
+
+  <span class="section-tag">YIAP Practice</span>
+  <div class="grid sm:grid-cols-2 gap-4 mt-3 mb-8">
+    {% for c in yiap_courses %}
+    <a href="/yiap-practice/course/{{ c.slug }}" class="card p-5 hover:border-green-300 transition-colors">
+      <p class="font-bold text-gray-800">{{ c.name }}</p>
+      <p class="text-xs text-gray-400 mt-1">{{ c.short_name }}</p>
+    </a>
+    {% else %}
+    <p class="text-gray-400 text-sm">No YIAP sections available right now.</p>
+    {% endfor %}
+  </div>
+
+  <span class="section-tag">Other Learning</span>
+  <div class="grid sm:grid-cols-2 gap-4 mt-3">
+    <a href="/niq/start" class="card p-5 hover:border-green-300 transition-colors">
+      <p class="font-bold text-gray-800"><i class="fas fa-school text-green-600 mr-1"></i>NIQ Practice</p>
+      <p class="text-xs text-gray-400 mt-1">{% if niq_round_types %}Open now{% else %}Practice anytime{% endif %}</p>
+    </a>
+    {% if yinvest_available %}
+    <a href="/y-invest" class="card p-5 hover:border-green-300 transition-colors">
+      <p class="font-bold text-gray-800"><i class="fas fa-seedling text-green-600 mr-1"></i>Y-Invest</p>
+      <p class="text-xs text-gray-400 mt-1">Learn how Y-Invest works</p>
+    </a>
+    {% endif %}
+  </div>
+
+</section>
+
+</body>
+</html>

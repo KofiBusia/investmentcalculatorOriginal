@@ -9977,7 +9977,22 @@ def member_dashboard():
                      .filter_by(holder_email=(member.email or '').strip().lower(), revoked=False)
                      .order_by(Certificate.issued_at.desc()).all())
     chapter = YINChapter.query.get(member.chapter_id) if member.chapter_id else None
-    return render_template('member_dashboard.html', member=member, certificates=certificates, chapter=chapter)
+
+    # Best-effort learning progress, joined by email (no FK exists between
+    # YINRegistration and SiteUser/NIQAttempt -- see build plan for why).
+    email_lc = (member.email or '').strip().lower()
+    site_user = SiteUser.query.filter(db.func.lower(SiteUser.email) == email_lc).first()
+    gisi_passed = yiap_passed = niq_attempts = 0
+    if site_user:
+        gisi_passed = (GISIQuizAttempt.query.filter_by(user_id=site_user.id, is_complete=True)
+                      .filter(GISIQuizAttempt.score >= GISIQuizAttempt.total_questions * 0.6).count())
+        yiap_passed = (YIAPQuizAttempt.query.filter_by(user_id=site_user.id, is_complete=True)
+                      .filter(YIAPQuizAttempt.score >= YIAPQuizAttempt.total_questions * (YIAP_PASS_PCT / 100)).count())
+    niq_attempts = NIQAttempt.query.filter(db.func.lower(NIQAttempt.student_email) == email_lc,
+                                           NIQAttempt.is_complete == True).count()
+
+    return render_template('member_dashboard.html', member=member, certificates=certificates, chapter=chapter,
+                           gisi_passed=gisi_passed, yiap_passed=yiap_passed, niq_attempts=niq_attempts)
 
 
 @app.route('/member/chapter')
@@ -10715,6 +10730,20 @@ def admin_yinvest_delete(block_id):
     db.session.delete(block)
     db.session.commit()
     return redirect(url_for('admin_yinvest_content'))
+
+
+# ============================================================
+# YIN ACADEMY — read-only aggregation of GISI/YIAP/NIQ/Y-Invest
+# ============================================================
+
+@app.route('/academy')
+def academy_hub():
+    gisi_courses = GISICourse.query.filter_by(is_active=True).order_by(GISICourse.sort_order.asc()).all()
+    yiap_courses = YIAPCourse.query.filter_by(is_active=True).order_by(YIAPCourse.sort_order.asc()).all()
+    niq_round_types = _niq_available_round_types()
+    yinvest_available = YInvestContent.query.filter_by(is_active=True).count() > 0
+    return render_template('academy.html', gisi_courses=gisi_courses, yiap_courses=yiap_courses,
+                           niq_round_types=niq_round_types, yinvest_available=yinvest_available)
 
 
 @app.route('/yin-register', methods=['GET', 'POST'])
