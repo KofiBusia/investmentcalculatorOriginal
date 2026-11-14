@@ -793,7 +793,7 @@ class YINRegistration(db.Model):
     phone            = db.Column(db.String(50), default='')
     email            = db.Column(db.String(200), nullable=False, index=True)
     institution      = db.Column(db.String(200), default='')
-    institution_type = db.Column(db.String(20), default='')   # tertiary / non-tertiary
+    institution_type = db.Column(db.String(40), default='')   # role/user-group: SHS Student, Teacher / School Coordinator, University Student, Chapter Executive, Alumni / Mentor
     how_heard        = db.Column(db.String(200), default='')
     is_existing_member = db.Column(db.Boolean, default=False)
     yin_code         = db.Column(db.String(20), default='', index=True)  # existing or generated
@@ -861,6 +861,8 @@ with app.app_context():
             "ALTER TABLE gisi_user_access ADD COLUMN IF NOT EXISTS access_code VARCHAR(20)",
             "ALTER TABLE gisi_user_access ADD COLUMN IF NOT EXISTS admin_token VARCHAR(64)",
             "ALTER TABLE yiap_quiz_attempts ADD COLUMN IF NOT EXISTS student_name VARCHAR(200)",
+            # institution_type now stores a role label (e.g. "Teacher / School Coordinator") instead of tertiary/non-tertiary
+            "ALTER TABLE yin_registrations ALTER COLUMN institution_type TYPE VARCHAR(40)",
         ]
         for _sql in _migrate_sql:
             try:
@@ -9545,6 +9547,10 @@ def yin_register_page():
     if not full_name or not email or not phone:
         return render_template('hr_yin_register.html', programs=programs,
                                error='Full name, email, and phone number are required.')
+
+    if not inst_type:
+        return render_template('hr_yin_register.html', programs=programs,
+                               error='Please select your role (e.g. SHS Student, University Student).')
 
     if not _validate_email(email):
         return render_template('hr_yin_register.html', programs=programs,

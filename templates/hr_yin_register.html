@@ -194,24 +194,22 @@
       <input type="email" name="email" required placeholder="your@email.com" class="input-field"/>
     </div>
 
+    <!-- Role / user group -->
     <div class="mb-4">
-      <label class="block text-sm font-semibold text-gray-700 mb-1"><i class="fas fa-university text-green-600 mr-1"></i>Institution / Organisation</label>
-      <input type="text" name="institution" placeholder="e.g. University of Ghana" class="input-field"/>
+      <label class="block text-sm font-semibold text-gray-700 mb-1"><i class="fas fa-graduation-cap text-green-600 mr-1"></i>I am a... <span class="text-red-500">*</span></label>
+      <select name="institution_type" id="role-select" required class="input-field" onchange="onRoleChange(this.value)">
+        <option value="">— Select your role —</option>
+        <option value="SHS Student">SHS Student (National Investment Quiz)</option>
+        <option value="Teacher / School Coordinator">Teacher / School Coordinator</option>
+        <option value="University Student" selected>University Student</option>
+        <option value="Chapter Executive">Chapter Executive</option>
+        <option value="Alumni / Mentor">Alumni / Mentor</option>
+      </select>
     </div>
 
-    <!-- Institution type -->
     <div class="mb-4">
-      <label class="block text-sm font-semibold text-gray-700 mb-2"><i class="fas fa-graduation-cap text-green-600 mr-1"></i>Institution Type</label>
-      <div class="flex flex-wrap gap-4">
-        <label class="flex items-center gap-2 cursor-pointer">
-          <input type="radio" name="institution_type" value="tertiary" checked class="accent-green-600"/>
-          <span class="text-sm text-gray-700">Tertiary (University / Polytechnic)</span>
-        </label>
-        <label class="flex items-center gap-2 cursor-pointer">
-          <input type="radio" name="institution_type" value="non-tertiary" class="accent-green-600"/>
-          <span class="text-sm text-gray-700">Non-Tertiary / Professional / Working</span>
-        </label>
-      </div>
+      <label class="block text-sm font-semibold text-gray-700 mb-1" id="institution-label"><i class="fas fa-university text-green-600 mr-1"></i>University / Institution</label>
+      <input type="text" name="institution" id="institution-input" placeholder="e.g. University of Ghana" class="input-field"/>
     </div>
 
     <!-- How heard -->
@@ -297,6 +295,20 @@ function selectProg(id) {
   document.getElementById('no-prog-warning').classList.add('hidden');
 }
 
+const ROLE_INSTITUTION_LABELS = {
+  'SHS Student':                     {label: 'School Name', placeholder: 'e.g. Achimota School'},
+  'Teacher / School Coordinator':    {label: 'School Name', placeholder: 'e.g. Achimota School'},
+  'University Student':              {label: 'University / Institution', placeholder: 'e.g. University of Ghana'},
+  'Chapter Executive':                {label: 'University / Institution', placeholder: 'e.g. University of Ghana'},
+  'Alumni / Mentor':                 {label: 'Organisation / Employer', placeholder: 'e.g. where you currently work'},
+};
+
+function onRoleChange(role) {
+  const cfg = ROLE_INSTITUTION_LABELS[role] || {label: 'Institution / Organisation', placeholder: 'e.g. University of Ghana'};
+  document.getElementById('institution-label').innerHTML = '<i class="fas fa-university text-green-600 mr-1"></i>' + cfg.label;
+  document.getElementById('institution-input').placeholder = cfg.placeholder;
+}
+
 function toggleYINCode(isExisting) {
   document.getElementById('yin-code-wrap').classList.toggle('hidden', !isExisting);
   const cc = document.getElementById('consent-check');
@@ -311,6 +323,7 @@ document.addEventListener('DOMContentLoaded', function() {
   if (firstRadio) {
     selectProg(firstRadio.value);
   }
+  onRoleChange(document.getElementById('role-select').value);
 });
 </script>
 </body>
