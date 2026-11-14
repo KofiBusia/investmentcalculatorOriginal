@@ -983,6 +983,17 @@ class YInvestContent(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
 
+class Announcement(db.Model):
+    __tablename__   = 'announcements'
+    id              = db.Column(db.Integer, primary_key=True)
+    title           = db.Column(db.String(200), nullable=False)
+    body            = db.Column(db.Text, default='')
+    audience_type   = db.Column(db.String(20), default='all')    # all, role, chapter, program
+    audience_value  = db.Column(db.String(200), default='')      # role name / chapter id / program id, per audience_type
+    is_active       = db.Column(db.Boolean, default=True)
+    created_at      = db.Column(db.DateTime, default=datetime.utcnow)
+
+
 class Certificate(db.Model):
     """A verifiable certificate issued for any YIN activity (quiz pass, event, competition, etc.)."""
     __tablename__ = 'certificates'
@@ -10823,6 +10834,92 @@ def admin_mentorship_set_status(app_id):
         application.status = status
         db.session.commit()
     return redirect(url_for('admin_mentorship'))
+
+
+# ============================================================
+# COMMUNICATION — Announcements (email digest, no push infra yet --
+# real push notifications are a mobile-app capability, see build plan)
+# ============================================================
+
+def _announcement_matches_member(ann, member):
+    if ann.audience_type == 'all':
+        return True
+    if not member:
+        return False
+    if ann.audience_type == 'role':
+        return (member.institution_type or '').strip().lower() == ann.audience_value.strip().lower()
+    if ann.audience_type == 'chapter':
+        return str(member.chapter_id or '') == ann.audience_value.strip()
+    if ann.audience_type == 'program':
+        return str(member.program_id or '') == ann.audience_value.strip()
+    return False
+
+
+@app.route('/announcements')
+def announcements_feed():
+    member = _current_member()
+    all_ann = Announcement.query.filter_by(is_active=True).order_by(Announcement.created_at.desc()).all()
+    visible = [a for a in all_ann if _announcement_matches_member(a, member)]
+    return render_template('announcements.html', announcements=visible)
+
+
+@app.route('/admin/announcements', methods=['GET', 'POST'])
+@admin_required
+def admin_announcements():
+    chapters = YINChapter.query.filter_by(is_active=True).order_by(YINChapter.name.asc()).all()
+    programs = YINProgram.query.filter_by(is_active=True).order_by(YINProgram.name.asc()).all()
+
+    if request.method == 'POST':
+        title = request.form.get('title', '').strip()
+        body = request.form.get('body', '').strip()
+        audience_type = request.form.get('audience_type', 'all').strip()
+        audience_value = request.form.get('audience_value', '').strip()
+        also_email = request.form.get('also_email') == 'on'
+        emailed = 0
+
+        if title and body:
+            ann = Announcement(title=title, body=body, audience_type=audience_type, audience_value=audience_value)
+            db.session.add(ann)
+            db.session.commit()
+
+            if also_email:
+                regs = YINRegistration.query.all()
+                for reg in regs:
+                    if not reg.email:
+                        continue
+                    member_like = reg  # YINRegistration already has institution_type/chapter_id/program_id
+                    if not _announcement_matches_member(ann, member_like):
+                        continue
+                    try:
+                        html_body = _yin_email_html(body, reg)
+                        mail.send(Message(title, recipients=[reg.email], html=html_body))
+                        emailed += 1
+                    except Exception as e:
+                        logger.error(f'Announcement email failed -> {reg.email}: {e}')
+
+        return redirect(url_for('admin_announcements', emailed=emailed))
+
+    announcements = Announcement.query.order_by(Announcement.created_at.desc()).all()
+    return render_template('admin_announcements.html', announcements=announcements, chapters=chapters,
+                           programs=programs, emailed=request.args.get('emailed', type=int))
+
+
+@app.route('/admin/announcements/<int:ann_id>/toggle', methods=['POST'])
+@admin_required
+def admin_announcement_toggle(ann_id):
+    ann = Announcement.query.get_or_404(ann_id)
+    ann.is_active = not ann.is_active
+    db.session.commit()
+    return redirect(url_for('admin_announcements'))
+
+
+@app.route('/admin/announcements/<int:ann_id>/delete', methods=['POST'])
+@admin_required
+def admin_announcement_delete(ann_id):
+    ann = Announcement.query.get_or_404(ann_id)
+    db.session.delete(ann)
+    db.session.commit()
+    return redirect(url_for('admin_announcements'))
 
 
 @app.route('/yin-register', methods=['GET', 'POST'])

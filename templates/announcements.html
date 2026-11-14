@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Announcements — Young Investors Network</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  body{font-family:'Inter',sans-serif;background:#f8fafc;}
+  .hero-gradient{background:linear-gradient(135deg,#052e16 0%,#14532d 50%,#166534 100%);}
+  .card{background:#fff;border:1px solid #f1f5f9;border-radius:14px;}
+</style>
+</head>
+<body>
+
+<nav class="hero-gradient" style="padding:1rem 1.5rem;">
+  <a href="/" style="color:#fff;font-weight:800;font-size:1.1rem;text-decoration:none;">Invest<span style="color:#86efac;">IQ</span> <span style="color:#d1fae5;font-weight:500;font-size:.9rem;">/ YIN</span></a>
+</nav>
+
+<section style="max-width:640px;margin:2.5rem auto;padding:0 1.25rem;">
+  <h1 class="text-2xl font-black text-gray-900 text-center mb-6"><i class="fas fa-bullhorn text-green-600 mr-2"></i>Announcements</h1>
+
+  <div class="space-y-4">
+    {% for a in announcements %}
+    <div class="card p-5">
+      <p class="font-bold text-gray-800">{{ a.title }}</p>
+      <p class="text-sm text-gray-600 mt-1" style="white-space:pre-line;">{{ a.body }}</p>
+      <p class="text-xs text-gray-400 mt-2">{{ a.created_at.strftime('%d %b %Y') }}</p>
+    </div>
+    {% else %}
+    <p class="text-center text-gray-400 py-10">No announcements right now.</p>
+    {% endfor %}
+  </div>
+</section>
+
+</body>
+</html>
