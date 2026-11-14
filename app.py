@@ -821,6 +821,35 @@ class YINRegistration(db.Model):
     created_at       = db.Column(db.DateTime, default=datetime.utcnow)
 
 
+class Event(db.Model):
+    __tablename__ = 'events'
+    id          = db.Column(db.Integer, primary_key=True)
+    title       = db.Column(db.String(200), nullable=False)
+    description = db.Column(db.Text, default='')
+    event_date  = db.Column(db.DateTime, nullable=False)
+    location    = db.Column(db.String(200), default='')
+    is_paid     = db.Column(db.Boolean, default=False)
+    price       = db.Column(db.Float, default=0.0)
+    capacity    = db.Column(db.Integer, default=0)   # 0 = unlimited
+    is_active   = db.Column(db.Boolean, default=True)
+    created_at  = db.Column(db.DateTime, default=datetime.utcnow)
+
+
+class EventRegistration(db.Model):
+    __tablename__ = 'event_registrations'
+    id            = db.Column(db.Integer, primary_key=True)
+    event_id      = db.Column(db.Integer, db.ForeignKey('events.id'), nullable=False)
+    full_name     = db.Column(db.String(200), nullable=False)
+    email         = db.Column(db.String(200), nullable=False, index=True)
+    phone         = db.Column(db.String(50), default='')
+    ticket_code   = db.Column(db.String(30), unique=True, nullable=False, index=True)
+    checked_in    = db.Column(db.Boolean, default=False)
+    checked_in_at = db.Column(db.DateTime, nullable=True)
+    created_at    = db.Column(db.DateTime, default=datetime.utcnow)
+
+    event = db.relationship('Event', backref='registrations')
+
+
 class Certificate(db.Model):
     """A verifiable certificate issued for any YIN activity (quiz pass, event, competition, etc.)."""
     __tablename__ = 'certificates'
@@ -9981,6 +10010,159 @@ def admin_chapter_csv(chapter_id):
     safe_name = chapter.name.replace(' ', '_').replace('/', '-')[:40]
     return Response(out.getvalue(), mimetype='text/csv',
                      headers={'Content-Disposition': f'attachment;filename=YIN_Chapter_{safe_name}.csv'})
+
+
+# ============================================================
+# EVENTS & ATTENDANCE
+# ============================================================
+
+def _generate_ticket_code():
+    import secrets
+    while True:
+        code = 'TIX-' + secrets.token_hex(4).upper()
+        if not EventRegistration.query.filter_by(ticket_code=code).first():
+            return code
+
+
+def _render_ticket_qr_png(ticket_code):
+    import qrcode
+    buf = io.BytesIO()
+    qrcode.make(ticket_code).save(buf, format='PNG')
+    buf.seek(0)
+    return buf.getvalue()
+
+
+@app.route('/events')
+def events_list():
+    events = Event.query.filter_by(is_active=True).order_by(Event.event_date.asc()).all()
+    return render_template('events_list.html', events=events, now=datetime.utcnow())
+
+
+@app.route('/events/<int:event_id>', methods=['GET', 'POST'])
+def event_detail(event_id):
+    event = Event.query.get_or_404(event_id)
+    error = None
+    if request.method == 'POST':
+        full_name = request.form.get('full_name', '').strip()
+        email = request.form.get('email', '').strip().lower()
+        phone = request.form.get('phone', '').strip()
+        if not full_name or not email:
+            error = 'Full name and email are required.'
+        else:
+            count = EventRegistration.query.filter_by(event_id=event.id).count()
+            if event.capacity and count >= event.capacity:
+                error = 'Sorry, this event has reached full capacity.'
+            else:
+                reg = EventRegistration(event_id=event.id, full_name=full_name, email=email,
+                                        phone=phone, ticket_code=_generate_ticket_code())
+                db.session.add(reg)
+                db.session.commit()
+                _award_points_by_email(email, 10)
+                return redirect(url_for('event_ticket', code=reg.ticket_code))
+    return render_template('event_detail.html', event=event, error=error)
+
+
+@app.route('/events/ticket/<code>')
+def event_ticket(code):
+    reg = EventRegistration.query.filter_by(ticket_code=code).first_or_404()
+    return render_template('event_ticket.html', reg=reg, event=reg.event)
+
+
+@app.route('/events/ticket/<code>/qr.png')
+def event_ticket_qr(code):
+    reg = EventRegistration.query.filter_by(ticket_code=code).first_or_404()
+    from flask import Response
+    return Response(_render_ticket_qr_png(reg.ticket_code), mimetype='image/png')
+
+
+@app.route('/admin/events', methods=['GET', 'POST'])
+@admin_required
+def admin_events():
+    if request.method == 'POST':
+        title = request.form.get('title', '').strip()
+        description = request.form.get('description', '').strip()
+        location = request.form.get('location', '').strip()
+        date_str = request.form.get('event_date', '').strip()
+        is_paid = request.form.get('is_paid') == 'on'
+        price = request.form.get('price', type=float) or 0.0
+        capacity = request.form.get('capacity', type=int) or 0
+        try:
+            event_date = datetime.strptime(date_str, '%Y-%m-%dT%H:%M')
+        except ValueError:
+            event_date = datetime.utcnow()
+        if title:
+            db.session.add(Event(title=title, description=description, location=location,
+                                 event_date=event_date, is_paid=is_paid, price=price, capacity=capacity))
+            db.session.commit()
+        return redirect(url_for('admin_events'))
+
+    events = Event.query.order_by(Event.event_date.desc()).all()
+    reg_counts = {e.id: EventRegistration.query.filter_by(event_id=e.id).count() for e in events}
+    checkin_counts = {e.id: EventRegistration.query.filter_by(event_id=e.id, checked_in=True).count() for e in events}
+    return render_template('admin_events.html', events=events, reg_counts=reg_counts, checkin_counts=checkin_counts)
+
+
+@app.route('/admin/events/<int:event_id>/toggle', methods=['POST'])
+@admin_required
+def admin_event_toggle(event_id):
+    event = Event.query.get_or_404(event_id)
+    event.is_active = not event.is_active
+    db.session.commit()
+    return redirect(url_for('admin_events'))
+
+
+@app.route('/admin/events/<int:event_id>')
+@admin_required
+def admin_event_detail(event_id):
+    event = Event.query.get_or_404(event_id)
+    registrations = EventRegistration.query.filter_by(event_id=event.id).order_by(EventRegistration.created_at.desc()).all()
+    return render_template('admin_event_detail.html', event=event, registrations=registrations,
+                           error=request.args.get('error'))
+
+
+@app.route('/admin/events/<int:event_id>/checkin', methods=['POST'])
+@admin_required
+def admin_event_checkin(event_id):
+    event = Event.query.get_or_404(event_id)
+    code = request.form.get('ticket_code', '').strip().upper()
+    reg = EventRegistration.query.filter_by(event_id=event.id, ticket_code=code).first()
+    if not reg:
+        return redirect(url_for('admin_event_detail', event_id=event_id, error='No ticket found with that code for this event.'))
+    if not reg.checked_in:
+        reg.checked_in = True
+        reg.checked_in_at = datetime.utcnow()
+        db.session.commit()
+        _award_points_by_email(reg.email, 20)
+        existing = Certificate.query.filter_by(source_type='Event', source_id=event.id, holder_email=reg.email.lower()).first()
+        if not existing:
+            cert = _issue_certificate(holder_name=reg.full_name, holder_email=reg.email,
+                                      source_type='Event', source_id=event.id,
+                                      title=f'Event Participation — {event.title}')
+            _email_certificate_pdf(to_email=reg.email, to_name=reg.full_name, cert=cert,
+                                   subject=f'Your Certificate of Participation — {event.title}',
+                                   intro_html=f'Thank you for attending <strong>{event.title}</strong>.')
+    return redirect(url_for('admin_event_detail', event_id=event_id))
+
+
+@app.route('/admin/events/<int:event_id>/registrations-csv')
+@admin_required
+def admin_event_csv(event_id):
+    event = Event.query.get_or_404(event_id)
+    rows = EventRegistration.query.filter_by(event_id=event_id).order_by(EventRegistration.created_at.asc()).all()
+    out = io.StringIO()
+    w = csv.writer(out)
+    w.writerow(['Ticket Code', 'Full Name', 'Email', 'Phone', 'Checked In', 'Check-in Time', 'Registered'])
+    for r in rows:
+        phone_cell = f'="{r.phone}"' if r.phone else ''
+        w.writerow([r.ticket_code, r.full_name, r.email, phone_cell,
+                    'Yes' if r.checked_in else 'No',
+                    r.checked_in_at.strftime('%Y-%m-%d %H:%M') if r.checked_in_at else '',
+                    r.created_at.strftime('%Y-%m-%d %H:%M')])
+    out.seek(0)
+    from flask import Response
+    safe_name = event.title.replace(' ', '_').replace('/', '-')[:40]
+    return Response(out.getvalue(), mimetype='text/csv',
+                     headers={'Content-Disposition': f'attachment;filename=YIN_Event_{safe_name}.csv'})
 
 
 @app.route('/yin-register', methods=['GET', 'POST'])
