@@ -9822,6 +9822,42 @@ def member_dashboard():
     return render_template('member_dashboard.html', member=member, certificates=certificates)
 
 
+# ============================================================
+# GAMIFICATION — YIN points leaderboard
+# ============================================================
+
+@app.route('/leaderboard')
+def leaderboard():
+    top = (YINRegistration.query
+           .filter(YINRegistration.points > 0)
+           .order_by(YINRegistration.points.desc(), YINRegistration.created_at.asc())
+           .limit(50).all())
+    return render_template('leaderboard.html', top=top)
+
+
+@app.route('/admin/gamification', methods=['GET', 'POST'])
+@admin_required
+def admin_gamification():
+    if request.method == 'POST':
+        reg_id = request.form.get('reg_id', type=int)
+        delta = request.form.get('delta', type=int)
+        reg = YINRegistration.query.get(reg_id) if reg_id else None
+        if reg and delta:
+            reg.points = max(0, (reg.points or 0) + delta)
+            db.session.commit()
+        return redirect(url_for('admin_gamification', q=request.args.get('q', '')))
+
+    q = request.args.get('q', '').strip()
+    query = YINRegistration.query
+    if q:
+        like = f'%{q}%'
+        query = query.filter(db.or_(YINRegistration.full_name.ilike(like),
+                                     YINRegistration.email.ilike(like),
+                                     YINRegistration.yin_code.ilike(like)))
+    members = query.order_by(YINRegistration.points.desc()).limit(300).all()
+    return render_template('admin_gamification.html', members=members, q=q)
+
+
 @app.route('/yin-register', methods=['GET', 'POST'])
 def yin_register_page():
     programs = YINProgram.query.filter_by(is_active=True).order_by(YINProgram.created_at.desc()).all()
@@ -9888,7 +9924,7 @@ def yin_register_page():
         full_name=full_name, phone=phone_norm, email=email.lower().strip(),
         institution=institution, institution_type=inst_type,
         how_heard=how_heard, is_existing_member=is_existing,
-        yin_code=yin_code, confirmed=confirmed,
+        yin_code=yin_code, confirmed=confirmed, points=10,
     )
     db.session.add(reg)
     db.session.commit()
@@ -9955,7 +9991,7 @@ def yin_register(prog_id):
         full_name=full_name, phone=phone_norm, email=email,
         institution=institution, institution_type=institution_type,
         how_heard=how_heard, is_existing_member=is_existing,
-        yin_code=yin_code, confirmed=confirmed,
+        yin_code=yin_code, confirmed=confirmed, points=10,
     )
     db.session.add(reg)
     db.session.commit()
